@@ -1,9 +1,10 @@
 import React from "react";
 import PageLayout from "../components/PageLayout";
+import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 
 function Header() {
   return (
-    <div className="flex justify-between items-center h-14">
+    <div className="flex justify-between items-center h-14 px-5 sm:px-6 lg:px-8">
       <div className="flex items-center space-x-2">
         <span className="text-xl font-bold bg-clip-text md:text-2xl">job:about</span>
       </div>
@@ -29,10 +30,7 @@ function Body() {
             Get personalized job recommendations.
           </p>
           <div className="mt-4">
-            <button className="w-full flex items-center justify-center border-2 border-gray-300 text-gray-700 px-6 py-3 md:px-8 md:py-4 rounded-full text-lg font-semibold md:text-xl hover:shadow-xl transform transition-all duration-300">
-              <img src="/icons/icon-google.svg" alt="Google" className="w-6 h-6 md:w-8 md:h-8" />
-              <span className="ml-2">Continue with Google</span>
-            </button>
+            <GoogleLoginButton></GoogleLoginButton>
           </div>
         </div>
       </main>
