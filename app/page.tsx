@@ -1,5 +1,4 @@
 import React from "react";
-import PageLayout from "../components/PageLayout";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 
 function Header() {
@@ -38,10 +37,40 @@ function Body() {
   );
 }
 
+function Footer() {
+  return (
+    <div>
+      <footer className="bg-gray-900 text-white py-16 px-5 sm:px-6 lg:px-8">
+        <div className="max-w-[576px] mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <span className="text-xl font-bold md:text-2xl">job:about</span>
+          </div>
+          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 Grit200.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 export default function HomePage() {
   return (
-    <PageLayout header={<Header />}>
-      <Body />
-    </PageLayout>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="max-w-[576px] mx-auto px-5 sm:px-6 lg:px-8">
+          <Header />
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-[576px] mx-auto px-5 py-6">
+        <Body />
+      </main>
+
+      {/* Footer */}
+      <Footer />
+    </div>
   );
 }

@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import Typography from "@/components/ui/Typography";
 
 interface HeaderProps {
   title: string;
@@ -6,20 +7,18 @@ interface HeaderProps {
   rightIcon?: React.ReactNode;
 }
 
-const Header = ({ title, leftIcon, rightIcon }: HeaderProps) => {
+export default function Header({ title, leftIcon, rightIcon }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 w-full h-14 bg-white flex items-center justify-between px-4 shadow z-50">
-      <div className="w-10 flex items-center justify-start">
-        {leftIcon}
-      </div>
-      <div className="flex-1 flex items-center justify-center font-bold text-lg">
-        {title}
-      </div>
-      <div className="w-10 flex items-center justify-end">
-        {rightIcon}
+    <header className="sticky top-0 z-50 bg-background-primary">
+      <div className="max-w-md mx-auto flex items-center justify-between h-16">
+        <div className="w-6 h-6">{leftIcon}</div>
+
+        <Typography as="h1" variant="headlineLg" className="text-center flex-1 truncate">
+          {title}
+        </Typography>
+
+        <div className="w-6 h-6 flex justify-end">{rightIcon}</div>
       </div>
     </header>
   );
-};
-
-export default Header;
+}
