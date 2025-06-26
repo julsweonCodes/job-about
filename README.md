@@ -3,12 +3,14 @@
 This project is a login example using Next.js, TypeScript, TailwindCSS, and Supabase.
 
 ## Tech Stack
+
 - Next.js
 - TypeScript
 - TailwindCSS
 - Supabase
 
 ## Required Node.js Version
+
 - Node.js 18.x or higher (LTS recommended)
 
 ## Installation & Usage
@@ -45,3 +47,23 @@ Initialize the Supabase client in `lib/client/supabase.ts`.
 ---
 
 For more details, see the comments in each file.
+
+## setting prisma
+
+yarn add -D prisma
+yarn add @prisma/client
+
+yarn prisma init
+
+.env 파일 설정
+
+DB 스키마 가져오기
+yarn prisma db pull
+⮕ schema.prisma 업데이트됨
+⮕ 자동으로 prisma generate 실행됨
+
+prisma/schema.prisma 파일에 model 추가 후,
+yarn prisma db push
+-> supabase 테이블 자동 생성
+
++prisma plugin 설치하면 편리함
