@@ -1,5 +1,6 @@
 import React from "react";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
+import AuthUI from "@/components/auth";
 
 function Header() {
   return (
@@ -29,7 +30,7 @@ function Body() {
             Get personalized job recommendations.
           </p>
           <div className="mt-4">
-            <GoogleLoginButton></GoogleLoginButton>
+            <AuthUI />
           </div>
         </div>
       </main>

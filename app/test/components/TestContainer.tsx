@@ -1,4 +1,4 @@
-/*"use client";
+"use client";
 import React, { useEffect } from "react";
 import useTestController from "../hooks/useTestController";
 
@@ -8,4 +8,4 @@ const TestContainer = () => {
   return <div>TestContainer</div>;
 };
 
-export default TestContainer;*/
+export default TestContainer;
