@@ -1,4 +1,4 @@
-/*import { createTests, deleteTests, getTests, updateTests } from "@/apis/test";
+import { createTests, deleteTests, getTests, updateTests } from "@/apis/test";
 import { Database } from "@/types/supabase";
 import { useState, useEffect } from "react";
 
@@ -42,4 +42,4 @@ const useTestController = () => {
   return { loading, tests };
 };
 
-export default useTestController;*/
+export default useTestController;
