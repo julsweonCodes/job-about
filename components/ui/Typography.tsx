@@ -11,7 +11,7 @@ type Variant =
   | "titleRegular" // 16px Regular
   | "bodySmBold" // 14px Bold
   | "bodySm" // 14px Medium
-  | "bodyXs"; // 14px regular
+  | "bodyXs" // 14px regular
 
 interface TypographyProps<T extends React.ElementType = "p"> {
   as?: T;
