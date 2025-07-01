@@ -47,6 +47,7 @@ export default function HeaderLoginButton() {
     setUser(null);
   };
 
+  // test 용 버튼
   if (isLoggedIn && user) {
     return (
       <button
