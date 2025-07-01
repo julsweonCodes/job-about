@@ -1,22 +1,27 @@
-"use client";
-
 import React from "react";
 import AuthUI from "@/components/auth";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import Typography from "@/components/ui/Typography";
-import Image from "next/image";
-
+import JobCard from "@/components/cards/JobCard";
 import { Bot, Briefcase, CircleDollarSign, ConciergeBell } from "lucide-react";
+import HeaderLoginButton from "@/components/buttons/HeaderLoginButton";
 
 function Header() {
+  // const logoImage = (
+  //   <Image
+  //     src="/images/img-logo.png"
+  //     alt="job about logo"
+  //     width={100}
+  //     height={20}
+  //     className="w-[100px] h-[20px] md:w-[120px] md:h-[23px]"
+  //     style={{ height: "auto" }}
+  //   />
+  // );
   return (
-    <header className="flex items-center justify-between px-6 py-4">
-      <div className="flex items-center">
-        <Image src="/images/img-logo.png" alt="job about logo" width={120} height={23} />
-      </div>
-      <button className="hidden md:block bg-black text-white px-6 py-2 rounded-lg font-semibold">
-        Login
-      </button>
+    <header className="flex items-center justify-between px-5 pr-2.5 py-4 h-14">
+      <span className="text-xl font-bold md:text-2xl">job:about</span>
+      {/* <div className="flex items-center">{logoImage}</div> */}
+      <HeaderLoginButton />
     </header>
   );
 }
@@ -59,7 +64,7 @@ function Footer() {
           <div className="flex justify-between items-center mb-8">
             <span className="text-xl font-bold md:text-2xl">job:about</span>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-800 pt-8 text-gray-400">
             <p>&copy; 2025 Grit200.</p>
           </div>
         </div>
@@ -91,7 +96,7 @@ export default function HomePage() {
             <br className="md:hidden" /> for international students & workers
           </Typography>
           <div className="md:hidden w-full px-5">
-            <GoogleLoginButton></GoogleLoginButton>
+            <GoogleLoginButton />
           </div>
         </section>
 
@@ -109,28 +114,18 @@ export default function HomePage() {
             Recommended for you
           </Typography>
           <div className="flex flex-row gap-4 w-full justify-center">
-            {/* 카드 1 */}
-            <div className="flex flex-col justify-center items-center border rounded-2xl p-6 w-full md:w-1/3 bg-background-primary gap-2">
-              {/* 예시 아이콘 */}
-              <Briefcase className="w-6 h-6 md:w-8 md:h-8 text-text-primary " />
-              <Typography as="span" variant="bodySm">
-                Sales Associate
-              </Typography>
-            </div>
-            {/* 카드 2 */}
-            <div className="flex flex-col justify-center items-center border rounded-2xl p-6 w-full md:w-1/3 bg-background-primary gap-2">
-              <CircleDollarSign className="w-6 h-6 md:w-8 md:h-8 text-text-primary " />
-              <Typography as="span" variant="bodySm">
-                Cashier
-              </Typography>
-            </div>
-            {/* 카드 3 */}
-            <div className="flex flex-col justify-center items-center border rounded-2xl p-6 w-full md:w-1/3 bg-background-primary gap-2">
-              <ConciergeBell className="w-6 h-6 md:w-8 md:h-8 text-text-primary text-center" />
-              <Typography as="span" variant="bodySm" className="text-center">
-                Restaurant Server
-              </Typography>
-            </div>
+            <JobCard
+              icon={<Briefcase className="w-6 h-6 md:w-8 md:h-8 text-text-primary" />}
+              title="Sales Associate"
+            />
+            <JobCard
+              icon={<CircleDollarSign className="w-6 h-6 md:w-8 md:h-8 text-text-primary" />}
+              title="Cashier"
+            />
+            <JobCard
+              icon={<ConciergeBell className="w-6 h-6 md:w-8 md:h-8 text-text-primary" />}
+              title="Restaurant Server"
+            />
           </div>
         </section>
       </main>
