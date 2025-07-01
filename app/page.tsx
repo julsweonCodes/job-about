@@ -2,21 +2,22 @@ import React from "react";
 import AuthUI from "@/components/auth";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import Typography from "@/components/ui/Typography";
-import JobCard from "@/components/cards/JobCard";
+import { Card } from "@/components/ui/Card";
 import { Bot, Briefcase, CircleDollarSign, ConciergeBell } from "lucide-react";
 import HeaderLoginButton from "@/components/buttons/HeaderLoginButton";
 
+function JobCard({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <Card className="flex flex-col justify-center items-center p-6 w-full md:w-1/3 gap-2 transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-[#3B82F6] cursor-pointer">
+      {icon}
+      <Typography as="span" variant="bodySm" className="text-center">
+        {title}
+      </Typography>
+    </Card>
+  );
+}
+
 function Header() {
-  // const logoImage = (
-  //   <Image
-  //     src="/images/img-logo.png"
-  //     alt="job about logo"
-  //     width={100}
-  //     height={20}
-  //     className="w-[100px] h-[20px] md:w-[120px] md:h-[23px]"
-  //     style={{ height: "auto" }}
-  //   />
-  // );
   return (
     <header>
       <div className="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
