@@ -18,10 +18,11 @@ function Header() {
   //   />
   // );
   return (
-    <header className="flex items-center justify-between px-5 pr-2.5 py-4 h-14">
-      <span className="text-xl font-bold md:text-2xl">job:about</span>
-      {/* <div className="flex items-center">{logoImage}</div> */}
-      <HeaderLoginButton />
+    <header>
+      <div className="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
+        <span className="text-xl font-bold md:text-2xl">job:about</span>
+        <HeaderLoginButton />
+      </div>
     </header>
   );
 }
@@ -60,7 +61,7 @@ function Footer() {
   return (
     <div>
       <footer className="bg-gray-900 text-white py-16 px-5 sm:px-6 lg:px-8">
-        <div className="mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <span className="text-xl font-bold md:text-2xl">job:about</span>
           </div>
