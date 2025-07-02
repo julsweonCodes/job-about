@@ -20,9 +20,6 @@ export default function GoogleLoginButton() {
       if (event === "SIGNED_IN") {
         setIsLoggedIn(true);
         setUser(session?.user ?? null);
-        if (loginTried && session?.user?.email) {
-          alert(`로그인 성공! 이메일: ${session.user.email}`);
-        }
       }
       if (event === "SIGNED_OUT") {
         setIsLoggedIn(false);
@@ -39,7 +36,7 @@ export default function GoogleLoginButton() {
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
     if (error) {
-      alert("로그인에 실패했습니다.");
+      alert("Login Failed");
       return;
     }
   };

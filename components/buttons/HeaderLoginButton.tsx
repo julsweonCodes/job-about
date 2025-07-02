@@ -20,9 +20,6 @@ export default function HeaderLoginButton() {
       if (event === "SIGNED_IN") {
         setIsLoggedIn(true);
         setUser(session?.user ?? null);
-        if (loginTried && session?.user?.email) {
-          alert(`로그인 성공! 이메일: ${session.user.email}`);
-        }
       }
       if (event === "SIGNED_OUT") {
         setIsLoggedIn(false);
@@ -37,7 +34,11 @@ export default function HeaderLoginButton() {
   const handleGoogleLogin = async () => {
     setLoginTried(true);
     const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signInWithOAuth({ provider: "google" });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) {
+      alert("Login Failed");
+      return;
+    }
   };
 
   const handleLogout = async () => {
