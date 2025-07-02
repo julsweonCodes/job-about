@@ -145,20 +145,7 @@ const Matches = () => {
   const Header = () => {
     return (
       <PageHeader title="Job Matches" rightIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />} />
-      //   <div className="bg-white px-4 md:px-8 py-6 md:py-8 border-b border-gray-200">
-      //     <div className="flex items-center justify-between">
-      //       <Typography
-      //         as="h1"
-      //         variant="headlineLg"
-      //         className="text-2xl md:text-3xl font-bold text-gray-900"
-      //       >
-      //         Job Matches
-      //       </Typography>
-      //       <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-full flex items-center justify-center">
-      //         <User className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
-      //       </div>
-      //     </div>
-      //   </div>
+// Removed commented-out legacy header markup for improved readability.
     );
   };
 
