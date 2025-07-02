@@ -44,26 +44,24 @@ Initialize the Supabase client in `lib/client/supabase.ts`.
 
 - Example login using Supabase Auth can be found in `app/test/components/TestContainer.tsx` and related hooks.
 
----
+## prisma
 
-For more details, see the comments in each file.
+`yarn add -D prisma`
+`yarn add @prisma/client`
 
-## setting prisma
+`yarn prisma init`
 
-yarn add -D prisma
-yarn add @prisma/client
+#### DB 스키마 가져오기
 
-yarn prisma init
-
-.env 파일 설정
-
-DB 스키마 가져오기
-yarn prisma db pull
+`yarn prisma db pull`
 ⮕ schema.prisma 업데이트됨
 ⮕ 자동으로 prisma generate 실행됨
 
-prisma/schema.prisma 파일에 model 추가 후,
-yarn prisma db push
--> supabase 테이블 자동 생성
+#### code로 DB 스키마 변경하기
 
-+prisma plugin 설치하면 편리함
+`schema.prisma` 수정 후, `yarn prisma db push`
+⮕ supabase schema update
+
+---
+
+For more details, see the comments in each file.
