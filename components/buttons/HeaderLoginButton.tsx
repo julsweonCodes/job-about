@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/client/supabase";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-export default function GoogleLoginButton() {
-  const { setIsLoggedIn, setUser, loginTried, setLoginTried, isLoggedIn, user } = useAuthStore();
+export default function HeaderLoginButton() {
+  const { isLoggedIn, user, setIsLoggedIn, setUser, loginTried, setLoginTried } = useAuthStore();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -41,17 +41,31 @@ export default function GoogleLoginButton() {
     }
   };
 
+  const handleLogout = async () => {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    setUser(null);
+  };
+
+  // test 용 버튼
   if (isLoggedIn && user) {
-    return null;
+    return (
+      <button
+        className="px-4 py-2 bg-gray-200 text-gray-900 rounded font-semibold hover:bg-gray-300 transition-all"
+        onClick={handleLogout}
+      >
+        Log out
+      </button>
+    );
   }
 
   return (
     <button
+      className="hidden md:block bg-black text-white px-6 py-2 rounded-lg font-semibold"
       onClick={handleGoogleLogin}
-      className="w-full flex items-center justify-center border-2 bg-background-primary border-gray-300 text-gray-700 px-5 py-3 md:px-5 md:py-4 text-lg font-semibold md:text-xl hover:shadow-xl transform transition-all duration-300 rounded-[16px]"
     >
-      <img src="/icons/icon-google.svg" alt="Google" className="w-6 h-6 md:w-8 md:h-8" />
-      <span className="ml-2">Continue with Google</span>
+      Login
     </button>
   );
 }
