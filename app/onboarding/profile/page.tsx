@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
+import { Plus, X, Briefcase, Globe, Clock, MapPin, Award, FileText } from "lucide-react";
 import {
-  Plus,
-  X,
-  ChevronDown,
-  Briefcase,
-  Globe,
-  Clock,
-  MapPin,
-  Award,
-  FileText,
-} from "lucide-react";
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Dialog } from "@/components/common/Dialog";
 
 function App() {
   const [skills, setSkills] = useState(["Customer Service", "Communication", "Problem Solving"]);
@@ -24,6 +22,15 @@ function App() {
   const [language, setLanguage] = useState("Intermediate");
   const [experience, setExperience] = useState("");
   const [focusedInput, setFocusedInput] = useState("");
+  const [workExperiences, setWorkExperiences] = useState<any[]>([]);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
+  const [expForm, setExpForm] = useState({
+    company: "",
+    jobType: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+  });
 
   const skillSuggestions = [
     "Leadership",
@@ -67,6 +74,12 @@ function App() {
       5) *
       100
   );
+
+  const handleAddExperience = () => {
+    setWorkExperiences([...workExperiences, expForm]);
+    setExpForm({ company: "", jobType: "", startDate: "", endDate: "", description: "" });
+    setBottomSheetOpen(false);
+  };
 
   return (
     <div className="min-h-screen">
@@ -202,23 +215,19 @@ function App() {
                   Preferred Industries
                 </label>
                 <div className="relative">
-                  <select
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-2xl focus:border-indigo-400 focus:shadow-lg focus:shadow-indigo-100 appearance-none transition-all duration-300 font-medium"
-                  >
-                    <option value="">Select industry</option>
-                    <option value="technology">Technology</option>
-                    <option value="healthcare">Healthcare</option>
-                    <option value="finance">Finance</option>
-                    <option value="retail">Retail</option>
-                    <option value="education">Education</option>
-                    <option value="hospitality">Hospitality</option>
-                  </select>
-                  <ChevronDown
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
-                    size={20}
-                  />
+                  <Select value={industry} onValueChange={setIndustry}>
+                    <SelectTrigger className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-2xl focus:border-indigo-400 focus:shadow-lg focus:shadow-indigo-100 appearance-none transition-all duration-300 font-medium h-auto min-h-[48px]">
+                      <SelectValue placeholder="Select industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technology">Technology</SelectItem>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="retail">Retail</SelectItem>
+                      <SelectItem value="education">Education</SelectItem>
+                      <SelectItem value="hospitality">Hospitality</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -269,22 +278,18 @@ function App() {
                   Location
                 </label>
                 <div className="relative">
-                  <select
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-2xl focus:border-indigo-400 focus:shadow-lg focus:shadow-indigo-100 appearance-none transition-all duration-300 font-medium"
-                  >
-                    <option value="">Select location</option>
-                    <option value="downtown">Downtown</option>
-                    <option value="uptown">Uptown</option>
-                    <option value="midtown">Midtown</option>
-                    <option value="suburbs">Suburbs</option>
-                    <option value="remote">Remote</option>
-                  </select>
-                  <ChevronDown
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
-                    size={20}
-                  />
+                  <Select value={location} onValueChange={setLocation}>
+                    <SelectTrigger className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-2xl focus:border-indigo-400 focus:shadow-lg focus:shadow-indigo-100 appearance-none transition-all duration-300 font-medium h-auto min-h-[48px]">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="downtown">Downtown</SelectItem>
+                      <SelectItem value="uptown">Uptown</SelectItem>
+                      <SelectItem value="midtown">Midtown</SelectItem>
+                      <SelectItem value="suburbs">Suburbs</SelectItem>
+                      <SelectItem value="remote">Remote</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -315,26 +320,34 @@ function App() {
 
           {/* Work Experience */}
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl  ">
-            <div className="flex items-center mb-4">
-              <FileText className="w-5 h-5 text-indigo-600 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-800">
-                Work Experience
-                <span className="text-sm text-gray-500 font-normal ml-2">(Optional)</span>
-              </h2>
+            <div className="flex items-center mb-4 justify-between">
+              <div className="flex items-center">
+                <FileText className="w-5 h-5 text-indigo-600 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Work Experience
+                  <span className="text-sm text-gray-500 font-normal ml-2">(Optional)</span>
+                </h2>
+              </div>
+              <button
+                className="px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full text-sm font-medium hover:from-indigo-600 hover:to-purple-600 transition"
+                onClick={() => setBottomSheetOpen(true)}
+              >
+                + Add Experience
+              </button>
             </div>
-            <textarea
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              onFocus={() => setFocusedInput("experience")}
-              onBlur={() => setFocusedInput("")}
-              placeholder="Tell us about your relevant work experience, achievements, and what makes you unique..."
-              rows={4}
-              className={`w-full px-4 py-3 bg-white/80 border-2 rounded-2xl resize-none transition-all duration-300 ${
-                focusedInput === "experience"
-                  ? "border-indigo-400 shadow-lg shadow-indigo-100 bg-white"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            />
+            {/* 경험 리스트 */}
+            <ul className="space-y-2">
+              {workExperiences.map((exp, idx) => (
+                <li key={idx} className="p-3 bg-gray-100 rounded-xl">
+                  <div className="font-bold">{exp.company}</div>
+                  <div className="text-sm">{exp.jobType}</div>
+                  <div className="text-xs text-gray-500">
+                    {exp.startDate} ~ {exp.endDate}
+                  </div>
+                  <div className="text-sm">{exp.description}</div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -344,6 +357,54 @@ function App() {
             Create My Profile
           </button>
         </div>
+
+        {/* Dialog for Work Experience */}
+        <Dialog open={bottomSheetOpen} onClose={() => setBottomSheetOpen(false)} type="bottomSheet">
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold mb-2">Add Job Experience</h3>
+            <input
+              className="w-full border rounded p-2"
+              placeholder="Company Name"
+              value={expForm.company}
+              onChange={(e) => setExpForm((f) => ({ ...f, company: e.target.value }))}
+            />
+            <input
+              className="w-full border rounded p-2"
+              placeholder="Job Type"
+              value={expForm.jobType}
+              onChange={(e) => setExpForm((f) => ({ ...f, jobType: e.target.value }))}
+            />
+            <div className="flex gap-2">
+              <input
+                className="w-1/2 border rounded p-2"
+                placeholder="Start Date"
+                type="date"
+                value={expForm.startDate}
+                onChange={(e) => setExpForm((f) => ({ ...f, startDate: e.target.value }))}
+              />
+              <input
+                className="w-1/2 border rounded p-2"
+                placeholder="End Date"
+                type="date"
+                value={expForm.endDate}
+                onChange={(e) => setExpForm((f) => ({ ...f, endDate: e.target.value }))}
+              />
+            </div>
+            <textarea
+              className="w-full border rounded p-2"
+              placeholder="Description"
+              rows={3}
+              value={expForm.description}
+              onChange={(e) => setExpForm((f) => ({ ...f, description: e.target.value }))}
+            />
+            <button
+              className="w-full py-2 bg-indigo-500 text-white rounded font-semibold hover:bg-indigo-600 transition"
+              onClick={handleAddExperience}
+            >
+              저장
+            </button>
+          </div>
+        </Dialog>
       </div>
     </div>
   );
