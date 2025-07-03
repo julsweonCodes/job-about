@@ -1,13 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Briefcase, Users, SquarePen, UserRound, AlertCircle, Clock } from "lucide-react";
+import {
+  Briefcase,
+  Users,
+  SquarePen,
+  UserRound,
+  AlertCircle,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
 import JobCard, { JobCardJob } from "@/components/common/JobCard";
+import { useRouter } from "next/navigation";
 
 export default function EmployerPage() {
   const [jobs, setJobs] = useState([
@@ -74,7 +83,17 @@ export default function EmployerPage() {
   const stats = [
     { icon: <Briefcase className="w-6 h-6" />, value: 2, label: "Active Jobs" },
     { icon: <Users className="w-6 h-6" />, value: 30, label: "Total Applicants" },
+    { icon: <AlertTriangle className="w-6 h-6" />, value: 2, label: "Status Update Needed" },
   ];
+
+  // Stats section에는 Status Update Needed 제외
+  const statsForSection = stats.filter((s) => s.label !== "Status Update Needed");
+
+  const router = useRouter();
+
+  // Status Update Needed 배너 노출 조건
+  const statusUpdateStat = stats.find((s) => s.label === "Status Update Needed");
+  const needsUpdate = statusUpdateStat && statusUpdateStat.value > 0;
 
   // Active Job Posts 예시 데이터
   const activeJobPosts = [
@@ -119,23 +138,41 @@ export default function EmployerPage() {
           onClickRight={() => {}}
         />
 
-        {/* Stats */}
-        <section className="grid grid-cols-2 gap-4 p-4 md:p-8">
-          {stats.map((s, i) => (
-            <Card
-              key={i}
-              className="flex flex-col items-center justify-center text-center w-full md:aspect-auto md:min-w-0 md:max-w-none py-5"
-            >
-              {s.icon}
-              <Typography as="div" variant="headlineMd">
-                {s.value}
-              </Typography>
-              <Typography as="div" variant="bodySm" className="text-text-secondary">
-                {s.label}
-              </Typography>
-            </Card>
-          ))}
-        </section>
+        <div className="flex flex-col gap-6">
+          {/* Status Update Needed Banner */}
+          <div className="px-4 md:px-8 mt-4">
+            {needsUpdate && (
+              <button
+                className="w-full flex items-center gap-2 bg-yellow-100 text-yellow-800 rounded-lg px-4 py-3 font-medium hover:bg-yellow-200 transition cursor-pointer"
+                onClick={() => router.push("/employer/status-update")}
+                aria-label="Go to status update page"
+              >
+                <AlertTriangle className="w-5 h-5 mr-1 text-yellow-800" />
+                <span className="text-start text-sm md:text-base">
+                  {statusUpdateStat.value} job posts need status update. <br /> Please check!
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Stats */}
+          <section className="grid grid-cols-2 gap-4 px-4 md:px-8 pb-6">
+            {statsForSection.map((s, i) => (
+              <Card
+                key={i}
+                className="flex flex-col items-center justify-center text-center w-full md:aspect-auto md:min-w-0 md:max-w-none py-5"
+              >
+                {s.icon}
+                <Typography as="div" variant="headlineMd">
+                  {s.value}
+                </Typography>
+                <Typography as="div" variant="bodySm" className="text-text-secondary">
+                  {s.label}
+                </Typography>
+              </Card>
+            ))}
+          </section>
+        </div>
 
         {/* Active Job Posts (이미지 스타일) */}
         <section className="p-4 md:p-8 bg-gradient-to-b from-purple-50 to-white">
