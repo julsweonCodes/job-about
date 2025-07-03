@@ -72,8 +72,8 @@ export default function EmployerPage() {
 
   // Stats 예시 데이터
   const stats = [
-    { icon: <Briefcase className="w-6 h-6 text-blue-600" />, value: 2, label: "Active Jobs" },
-    { icon: <Users className="w-6 h-6 text-green-600" />, value: 213, label: "Total Applicants" },
+    { icon: <Briefcase className="w-6 h-6" />, value: 2, label: "Active Jobs" },
+    { icon: <Users className="w-6 h-6" />, value: 30, label: "Total Applicants" },
   ];
 
   // Active Job Posts 예시 데이터
@@ -122,12 +122,15 @@ export default function EmployerPage() {
         {/* Stats */}
         <section className="grid grid-cols-2 gap-4 p-4 md:p-8">
           {stats.map((s, i) => (
-            <Card key={i} className="flex flex-col items-center justify-center p-6 gap-2">
+            <Card
+              key={i}
+              className="flex flex-col items-center justify-center text-center w-full md:aspect-auto md:min-w-0 md:max-w-none py-5"
+            >
               {s.icon}
-              <Typography as="div" variant="headlineMd" className="text-gray-900">
+              <Typography as="div" variant="headlineMd">
                 {s.value}
               </Typography>
-              <Typography as="div" variant="bodySm" className="text-gray-500">
+              <Typography as="div" variant="bodySm" className="text-text-secondary">
                 {s.label}
               </Typography>
             </Card>

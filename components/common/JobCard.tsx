@@ -62,7 +62,7 @@ export default function JobCard({
               {job.company && <div className="text-xs text-gray-500">{job.company}</div>}
               {job.desc && <div className="text-sm text-gray-600">{job.desc}</div>}
               {(job.applicants !== undefined || job.views !== undefined) && (
-                <div className="flex items-center gap-6 text-gray-500 text-sm">
+                <div className="flex items-center gap-2 text-gray-500 text-sm">
                   {job.applicants !== undefined && (
                     <span className="flex items-center gap-1">
                       <span className="font-semibold">{job.applicants}</span> applicants
