@@ -1,10 +1,11 @@
 import React from "react";
-import AuthUI from "@/components/auth";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import Typography from "@/components/ui/Typography";
 import { Card } from "@/components/ui/Card";
 import { Bot, Briefcase, CircleDollarSign, ConciergeBell } from "lucide-react";
 import HeaderLoginButton from "@/components/buttons/HeaderLoginButton";
+import LogoHeader from "@/components/common/LogoHeader";
+import Footer from "@/components/common/Footer";
 
 function JobCard({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
@@ -17,81 +18,13 @@ function JobCard({ icon, title }: { icon: React.ReactNode; title: string }) {
   );
 }
 
-function Header() {
-  return (
-    <header>
-      <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-4">
-        <Typography as="span" variant="headlineMd" className="text-xl md:text-2xl font-bold">
-          job:about
-        </Typography>
-        <HeaderLoginButton />
-      </div>
-    </header>
-  );
-}
-
-function Body() {
-  return (
-    <div>
-      <main className="flex-1 pt-20 text-center pb-32 px-5 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <div className="inline-flex items-center px-5 py-2 bg-purple-100 rounded-full text-purple-700 text-sm font-medium mb-8">
-            <Typography as="span" variant="bodySm" className="text-purple-700">
-              One-Click Apply Service
-            </Typography>
-          </div>
-          <Typography as="h1" variant="headlineLg" className="text-gray-900 mb-6 leading-tight">
-            Your Personal
-            <span className="block bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Job Find Helper
-            </span>
-          </Typography>
-          <Typography
-            as="p"
-            variant="bodySm"
-            className="text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed"
-          >
-            Get personalized job recommendations.
-          </Typography>
-          <div className="mt-4">
-            <AuthUI />
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function Footer() {
-  return (
-    <div>
-      <footer className="bg-gray-900 text-white py-16 px-5 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <Typography
-              as="span"
-              variant="headlineMd"
-              className="text-xl font-bold md:text-2xl text-white"
-            >
-              job:about
-            </Typography>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-gray-400">
-            <Typography as="p" variant="bodySm" className="text-white/70">
-              &copy; 2025 Grit200.
-            </Typography>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background-primary flex flex-col">
       {/* 헤더 */}
-      <Header />
+      <LogoHeader className="bg-background-primary">
+        <HeaderLoginButton />
+      </LogoHeader>
 
       {/* 메인 섹션 */}
       <main className="flex-1 flex flex-col items-center">
