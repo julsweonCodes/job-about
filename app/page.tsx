@@ -20,7 +20,7 @@ function JobCard({ icon, title }: { icon: React.ReactNode; title: string }) {
 function Header() {
   return (
     <header>
-      <div className="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
+      <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-4">
         <Typography as="span" variant="headlineMd" className="text-xl md:text-2xl font-bold">
           job:about
         </Typography>
@@ -66,7 +66,7 @@ function Footer() {
   return (
     <div>
       <footer className="bg-gray-900 text-white py-16 px-5 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <Typography
               as="span"

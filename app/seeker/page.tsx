@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, UserRound, Sparkles, Compass, MapPin, Calendar, ImageUp } from "lucide-react";
+import { UserRound, Sparkles, Compass, MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -26,7 +26,7 @@ type Job = {
   imageUrl: string;
 };
 
-const Matches = () => {
+const SeekerHome = () => {
   const [jobType, setJobType] = useState("");
   const [location, setLocation] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
@@ -101,6 +101,71 @@ const Matches = () => {
       imageUrl:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg-Hu63xpLSz-T8LeMQrBt09rk4fhAkts_EQ&s",
     },
+    {
+      id: 7,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+      imageUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg-Hu63xpLSz-T8LeMQrBt09rk4fhAkts_EQ&s",
+    },
+    {
+      id: 8,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+    },
+    {
+      id: 9,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+    },
+    {
+      id: 10,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+    },
+    {
+      id: 11,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+    },
+    {
+      id: 12,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+    },
+    {
+      id: 13,
+      type: "Part-Time",
+      title: "Retail Assistant",
+      rate: "₩13,500/hr",
+      city: "Insadong",
+      dateRange: "Dec 18 - Feb 14",
+      company: "Fashion Store",
+    },
   ];
 
   const JobCard = ({ job, isLatest = false }: { job: Job; isLatest?: boolean }) => (
@@ -130,7 +195,7 @@ const Matches = () => {
           <img
             src={job.imageUrl}
             alt={job.title}
-            className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg flex-shrink-0"
+            className="w-auto max-w-20 aspect-square object-cover rounded-lg flex-shrink-0"
           />
         </div>
         <Button
@@ -144,14 +209,13 @@ const Matches = () => {
 
   const Header = () => {
     return (
-      <PageHeader title="Job Matches" rightIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />} />
-// Removed commented-out legacy header markup for improved readability.
+      <PageHeader title="job:about" rightIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />} />
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
-      <div className="max-w-md md:max-w-3xl lg:max-w-4xl mx-auto bg-white min-h-screen">
+      <div className="max-w-md md:max-w-6xl mx-auto bg-white min-h-screen">
         {/* Header */}
         <Header></Header>
         {/* Filter Bar */}
@@ -195,61 +259,99 @@ const Matches = () => {
 
         {/* Recommended Jobs Section */}
         <div className="px-4 md:px-8 py-6 md:py-10">
-          <div className="flex items-center mb-2">
-            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" />
+              <Typography
+                as="h2"
+                variant="headlineMd"
+                className="text-xl md:text-2xl font-bold text-gray-900"
+              >
+                Recommended Jobs
+              </Typography>
+            </div>
             <Typography
-              as="h2"
-              variant="headlineMd"
-              className="text-xl md:text-2xl font-bold text-gray-900"
+              as="span"
+              variant="bodySm"
+              className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm md:text-base hidden md:inline"
             >
-              Recommended Jobs
+              See more
             </Typography>
           </div>
           <Typography as="p" variant="bodySm" className="text-gray-600 text-sm md:text-base mb-4">
             Based on your profile and preferences
           </Typography>
 
-          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 mb-6">
-            {recommendedJobs.map((job) => (
+          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+            {recommendedJobs.slice(0, 3).map((job) => (
               <JobCard key={job.id} job={job} />
             ))}
           </div>
-
           <Button
             variant="outline"
-            className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 md:text-lg md:h-11"
+            className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 text-sm mt-4 block md:hidden"
           >
-            See More Recommended Jobs
+            See more
           </Button>
         </div>
 
         {/* Latest Jobs Section */}
         <div className="px-4 md:px-8 py-6 md:py-10 bg-gradient-to-b from-purple-50 to-white">
-          <div className="flex items-center mb-2">
-            <Compass className="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <Compass className="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" />
+              <Typography
+                as="h2"
+                variant="headlineMd"
+                className="text-xl md:text-2xl font-bold text-gray-900"
+              >
+                Latest Jobs
+              </Typography>
+            </div>
             <Typography
-              as="h2"
-              variant="headlineMd"
-              className="text-xl md:text-2xl font-bold text-gray-900"
+              as="span"
+              variant="bodySm"
+              className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm md:text-base hidden md:inline"
             >
-              Latest Jobs
+              See more
             </Typography>
           </div>
           <Typography as="p" variant="bodySm" className="text-gray-600 text-sm md:text-base mb-4">
             Fresh opportunities just posted
           </Typography>
 
-          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 mb-6">
-            {latestJobs.map((job) => (
-              <JobCard key={job.id} job={job} isLatest={true} />
+          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-4 md:gap-4">
+            {latestJobs.slice(0, 8).map((job) => (
+              <Card key={job.id} className="border-gray-200 bg-white">
+                <CardContent className="p-3">
+                  <Badge variant="secondary" className="text-xs font-medium mb-1">
+                    {job.type}
+                  </Badge>
+                  <h3 className="font-semibold text-base mb-1 text-gray-900 truncate">
+                    {job.title}
+                  </h3>
+                  <div className="flex items-center text-xs text-gray-600 mb-1">
+                    <span className="font-semibold text-purple-600 mr-1">{job.rate}</span>
+                    <MapPin className="w-3 h-3 mr-1" />
+                    <span>{job.city}</span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-500 mb-1">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    <span>{job.dateRange}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mb-2 truncate">{job.company}</div>
+                  <Button className="w-full h-8 text-xs bg-purple-600 hover:bg-purple-700 text-white py-1 px-2">
+                    Apply Now
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
-
           <Button
             variant="outline"
-            className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 md:text-lg md:h-11"
+            className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 text-sm mt-4 block md:hidden"
           >
-            See More Latest Jobs
+            See more
           </Button>
         </div>
       </div>
@@ -257,4 +359,4 @@ const Matches = () => {
   );
 };
 
-export default Matches;
+export default SeekerHome;
