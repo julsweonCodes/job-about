@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { UserRound, Sparkles, Compass, MapPin, Calendar } from "lucide-react";
+import { UserRound, Sparkles, Compass } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import {
   Select,
   SelectContent,
@@ -14,17 +12,7 @@ import {
 } from "@/components/ui/Select";
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
-
-type Job = {
-  id: number;
-  type: string;
-  title: string;
-  rate: string;
-  city: string;
-  dateRange: string;
-  company: string;
-  imageUrl: string;
-};
+import JobCard from "@/components/common/JobCard";
 
 const SeekerHome = () => {
   const [jobType, setJobType] = useState("");
@@ -54,20 +42,20 @@ const SeekerHome = () => {
       imageUrl:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9ksxdWXzzmkcED9mJs--NlXYc34i5rxacUA&s",
     },
-    {
-      id: 3,
-      type: "Part-Time",
-      title: "Delivery Driver",
-      rate: "₩15,000/hr",
-      city: "Itaewon",
-      dateRange: "Dec 20 - Mar 15",
-      company: "CoupangEats",
-      imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg-Hu63xpLSz-T8LeMQrBt09rk4fhAkts_EQ&s",
-    },
   ];
 
   const latestJobs = [
+    {
+      id: 3,
+      type: "Part-Time",
+      title: "Event Staff",
+      rate: "₩18,000/hr",
+      city: "Myeongdong",
+      dateRange: "Dec 25 - Dec 31",
+      company: "EventCorp",
+      imageUrl:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_vguO_Tb6WmaoO95UhQL7YGkMORACrcgR2w&s",
+    },
     {
       id: 4,
       type: "Part-Time",
@@ -180,45 +168,6 @@ const SeekerHome = () => {
     },
   ];
 
-  const JobCard = ({ job, isLatest = false }: { job: Job; isLatest?: boolean }) => (
-    <Card
-      className={`transition-all duration-300 hover:shadow-lg ${isLatest ? "border-purple-200 bg-gradient-to-br from-purple-50 to-white" : "border-gray-200 bg-white"}`}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <Badge variant="secondary" className="text-xs font-medium mb-1">
-              {job.type}
-            </Badge>
-            <h3 className="font-semibold text-lg mb-2 text-gray-900">{job.title}</h3>
-            <div className="space-y-2 mb-2">
-              <div className="flex items-center text-sm text-gray-600">
-                <span className="font-semibold text-purple-600 mr-2">{job.rate}</span>
-                <MapPin className="w-3 h-3 mr-1" />
-                <span>{job.city}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="w-3 h-3 mr-1" />
-                <span>{job.dateRange}</span>
-              </div>
-              <div className="text-xs text-gray-500">{job.company}</div>
-            </div>
-          </div>
-          {!isLatest && job.imageUrl && (
-            <img
-              src={job.imageUrl}
-              alt={job.title}
-              className="w-auto max-w-20 aspect-square object-cover rounded-lg flex-shrink-0"
-            />
-          )}
-        </div>
-        <Button variant={isLatest ? "default" : "black"} size={isLatest ? "md" : "default"}>
-          Apply Now
-        </Button>
-      </CardContent>
-    </Card>
-  );
-
   const Header = () => {
     return (
       <PageHeader title="job:about" rightIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />} />
@@ -293,7 +242,7 @@ const SeekerHome = () => {
           Based on your profile and preferences
         </Typography>
 
-        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
           {recommendedJobs.slice(0, 3).map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
@@ -334,8 +283,8 @@ const SeekerHome = () => {
           Fresh opportunities just posted
         </Typography>
 
-        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-4 md:gap-4">
-          {latestJobs.slice(0, 8).map((job) => (
+        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+          {latestJobs.slice(0, 6).map((job) => (
             <JobCard key={job.id} job={job} isLatest />
           ))}
         </div>
