@@ -9,7 +9,7 @@ interface LogoHeaderProps {
 
 export default function LogoHeader({ children, className }: LogoHeaderProps) {
   return (
-    <header className={"sticky top-0 z-30"}>
+    <header className={"sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm"}>
       <div
         className={
           "max-w-6xl mx-auto flex items-center justify-between h-14 px-4 " + (className || "")

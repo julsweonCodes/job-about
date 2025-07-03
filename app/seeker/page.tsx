@@ -300,7 +300,7 @@ const SeekerHome = () => {
         </div>
         <Button
           variant="outline"
-          className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 text-sm mt-4 block md:hidden"
+          className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 mt-4 md:hidden"
         >
           See more
         </Button>
@@ -341,7 +341,7 @@ const SeekerHome = () => {
         </div>
         <Button
           variant="outline"
-          className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 text-sm mt-4 block md:hidden"
+          className="border-purple-200 text-purple-600 hover:bg-purple-50 mt-4 md:hidden"
         >
           See more
         </Button>
