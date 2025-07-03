@@ -59,19 +59,27 @@ export default function JobCard({
                   <span>{job.dateRange}</span>
                 </div>
               )}
-              {job.company && <div className="text-xs text-gray-500">{job.company}</div>}
-              {job.desc && <div className="text-sm text-gray-600">{job.desc}</div>}
+              {job.company && (
+                <Typography as="div" variant="bodyXs" className="text-gray-500">
+                  {job.company}
+                </Typography>
+              )}
+              {job.desc && (
+                <Typography as="div" variant="bodySm" className="text-gray-600">
+                  {job.desc}
+                </Typography>
+              )}
               {(job.applicants !== undefined || job.views !== undefined) && (
-                <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <div className="flex items-center gap-2 text-gray-500">
                   {job.applicants !== undefined && (
-                    <span className="flex items-center gap-1">
+                    <Typography as="span" variant="bodyXs" className="flex items-center gap-1">
                       <span className="font-semibold">{job.applicants}</span> applicants
-                    </span>
+                    </Typography>
                   )}
                   {job.views !== undefined && (
-                    <span className="flex items-center gap-1">
+                    <Typography as="span" variant="bodyXs" className="flex items-center gap-1">
                       <span className="font-semibold">{job.views}</span> views
-                    </span>
+                    </Typography>
                   )}
                 </div>
               )}

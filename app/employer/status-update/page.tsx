@@ -92,10 +92,10 @@ export default function StatusUpdatePage() {
                   <Typography as="div" variant="titleBold" className="mb-0.5">
                     {job.title}
                   </Typography>
-                  <Typography as="div" variant="bodySm" className="text-gray-500">
+                  <Typography as="div" variant="bodyMd" className="text-gray-500">
                     {job.type}
                   </Typography>
-                  <Typography as="div" variant="bodyXs" className="text-gray-400 text-xs">
+                  <Typography as="div" variant="bodyLg" className="text-gray-400 text-xs">
                     {job.postedAgo}
                   </Typography>
                 </div>
@@ -123,7 +123,7 @@ export default function StatusUpdatePage() {
                       <Typography as="div" variant="bodySmBold">
                         {applicant.name}
                       </Typography>
-                      <Typography as="div" variant="bodyXs" className="text-gray-500 text-xs">
+                      <Typography as="div" variant="bodyLg" className="text-gray-500 text-xs">
                         {applicant.tags.join(", ")}
                       </Typography>
                     </div>

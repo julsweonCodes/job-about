@@ -14,7 +14,7 @@ export default function Footer() {
           </Typography>
         </div>
         <div className="border-t border-gray-800 pt-8 text-gray-400">
-          <Typography as="p" variant="bodySm" className="text-white/70">
+          <Typography as="p" variant="bodyMd" className="text-white/70">
             &copy; 2025 Grit200.
           </Typography>
         </div>

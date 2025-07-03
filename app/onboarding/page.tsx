@@ -45,7 +45,7 @@ function RoleCard({ selected, onClick, icon, title, description }: RoleCardProps
       </Typography>
       <Typography
         as="div"
-        variant="bodyXs"
+        variant="bodyLg"
         className="text-gray-500 mb-2 transition-colors duration-200"
       >
         {description}

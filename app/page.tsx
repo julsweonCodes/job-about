@@ -19,10 +19,10 @@ function JobCard({
   return (
     <Card className="flex flex-col justify-center items-center p-6 w-full gap-2 transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-[#3B82F6] cursor-pointer">
       {icon}
-      <Typography as="span" variant="bodySm" className="text-center">
+      <Typography as="span" variant="bodyMd" className="text-center">
         {title}
       </Typography>
-      <Typography as="span" variant="bodyXs" className="text-center text-gray-500">
+      <Typography as="span" variant="bodyMd" className="text-center text-gray-500">
         {description}
       </Typography>
     </Card>
@@ -92,7 +92,7 @@ export default function HomePage() {
           </Typography>
           <Typography
             as="p"
-            variant="bodySm"
+            variant="bodyMd"
             className="text-gray-500 text-center text-base md:text-lg"
           >
             Get personalized job recommendations <br /> based on your language skills, location, and

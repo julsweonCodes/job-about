@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Briefcase,
-  Users,
-  SquarePen,
-  UserRound,
-  AlertCircle,
-  Clock,
-  AlertTriangle,
-} from "lucide-react";
+import { Briefcase, Users, SquarePen, UserRound, AlertTriangle } from "lucide-react";
 import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -149,7 +141,8 @@ export default function EmployerPage() {
               >
                 <AlertTriangle className="w-5 h-5 mr-1 text-yellow-800" />
                 <span className="text-start text-sm md:text-base">
-                  {statusUpdateStat.value} job posts need status update. <br /> Please check!
+                  {statusUpdateStat.value} job posts need status update.{" "}
+                  <br className="md:hidden" /> Please check!
                 </span>
               </button>
             )}
@@ -166,7 +159,7 @@ export default function EmployerPage() {
                 <Typography as="div" variant="headlineMd">
                   {s.value}
                 </Typography>
-                <Typography as="div" variant="bodySm" className="text-text-secondary">
+                <Typography as="div" variant="bodyLg" className="text-gray-600">
                   {s.label}
                 </Typography>
               </Card>
@@ -205,16 +198,10 @@ export default function EmployerPage() {
                 job={job as JobCardJob}
                 actionButtons={
                   <>
-                    <Button
-                      variant="outline"
-                      className="flex-1 rounded-lg font-bold border-gray-300 hover:bg-gray-100"
-                    >
+                    <Button variant="outline" className="flex-1 border-gray-300 hover:bg-gray-100">
                       View
                     </Button>
-                    <Button
-                      variant="default"
-                      className="flex-1 rounded-lg font-bold bg-purple-500 hover:bg-purple-600"
-                    >
+                    <Button variant="default" className="flex-1">
                       Applicants
                     </Button>
                   </>
@@ -223,94 +210,6 @@ export default function EmployerPage() {
             ))}
           </div>
         </section>
-
-        {/* Job Form Dialog */}
-        <Dialog open={showJobForm} onClose={() => setShowJobForm(false)} type="alert">
-          <Card className="p-6 max-w-lg mx-auto">
-            <Typography as="h3" variant="headlineMd" className="mb-4">
-              새 채용 공고 등록
-            </Typography>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">직무 제목</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={jobForm.title}
-                    onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A73F1] focus:border-[#7A73F1] pl-10 placeholder:text-gray-300"
-                    placeholder="예: Frontend Developer"
-                  />
-                  <SquarePen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">직무 설명</label>
-                <textarea
-                  value={jobForm.description}
-                  onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A73F1] focus:border-[#7A73F1] placeholder:text-gray-300"
-                  placeholder="직무에 대한 상세한 설명을 입력하세요"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">근무지</label>
-                  <input
-                    type="text"
-                    value={jobForm.location}
-                    onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A73F1] focus:border-[#7A73F1] placeholder:text-gray-300"
-                    placeholder="예: 서울, 원격"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">고용 형태</label>
-                  <select
-                    value={jobForm.type}
-                    onChange={(e) => setJobForm({ ...jobForm, type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A73F1] focus:border-[#7A73F1] placeholder:text-gray-300"
-                  >
-                    <option value="">선택하세요</option>
-                    <option value="Full-time">정규직</option>
-                    <option value="Part-time">파트타임</option>
-                    <option value="Contract">계약직</option>
-                    <option value="Intern">인턴</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">연봉</label>
-                <input
-                  type="text"
-                  value={jobForm.salary}
-                  onChange={(e) => setJobForm({ ...jobForm, salary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A73F1] focus:border-[#7A73F1] placeholder:text-gray-300"
-                  placeholder="예: $50,000 - $70,000"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">자격 요건</label>
-                <textarea
-                  value={jobForm.requirements}
-                  onChange={(e) => setJobForm({ ...jobForm, requirements: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A73F1] focus:border-[#7A73F1] placeholder:text-gray-300"
-                  placeholder="필요한 자격 요건을 입력하세요"
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <Button onClick={handleAddJob} variant="black" className="flex-1">
-                  등록하기
-                </Button>
-                <Button onClick={() => setShowJobForm(false)} variant="outline" className="flex-1">
-                  취소
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </Dialog>
       </div>
     </div>
   );

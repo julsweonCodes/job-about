@@ -232,13 +232,13 @@ const SeekerHome = () => {
           </div>
           <Typography
             as="span"
-            variant="bodySm"
+            variant="bodyMd"
             className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm md:text-base hidden md:inline"
           >
             See more
           </Typography>
         </div>
-        <Typography as="p" variant="bodySm" className="text-gray-600 text-sm md:text-base mb-4">
+        <Typography as="p" variant="bodyMd" className="text-gray-600 text-sm md:text-base mb-4">
           Based on your profile and preferences
         </Typography>
 
@@ -273,13 +273,13 @@ const SeekerHome = () => {
           </div>
           <Typography
             as="span"
-            variant="bodySm"
+            variant="bodyMd"
             className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm md:text-base hidden md:inline"
           >
             See more
           </Typography>
         </div>
-        <Typography as="p" variant="bodySm" className="text-gray-600 text-sm md:text-base mb-4">
+        <Typography as="p" variant="bodyMd" className="text-gray-600 text-sm md:text-base mb-4">
           Fresh opportunities just posted
         </Typography>
 
