@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
-import PageHeader from "@/components/common/PageHeader";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import LogoHeader from "@/components/common/LogoHeader";
+import ProgressBar from "@/components/common/ProgressBar";
 
 export default function SeekerProfilePage() {
   const [skills, setSkills] = useState<string[]>([]);
@@ -150,12 +150,7 @@ export default function SeekerProfilePage() {
           <Typography as="h1" variant="headlineSm" className="text-center mb-6">
             Create Your Profile
           </Typography>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-4">
-            <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${completionPercentage}%` }}
-            />
-          </div>
+          <ProgressBar value={completionPercentage} className="mb-4" />
         </div>
 
         {/* Content */}

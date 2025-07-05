@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import { MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
-import PageHeader from "@/components/common/PageHeader";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import PhotoUploader from "@/components/ui/PhotoUploader";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import Checkbox from "@/components/ui/Checkbox";
 import LogoHeader from "@/components/common/LogoHeader";
+import ProgressBar from "@/components/common/ProgressBar";
 
 export default function EmployerProfilePage() {
   const [companyName, setCompanyName] = useState("");
@@ -72,12 +72,7 @@ export default function EmployerProfilePage() {
           <Typography as="h1" variant="headlineSm" className="text-center mb-6">
             Create Employer Profile
           </Typography>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-4">
-            <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${completionPercentage}%` }}
-            />
-          </div>
+          <ProgressBar value={completionPercentage} className="mb-4" />
         </div>
         <div className="px-4 md:px-8 py-8 space-y-8">
           {/* Business Information */}
