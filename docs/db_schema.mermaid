@@ -1,0 +1,109 @@
+erDiagram
+    %% --- 핵심 모델 (사용자 및 사업장) ---
+    users {
+        BigInt id PK
+        String name
+        String email
+        enum role
+        BigInt personality_profile_id FK
+    }
+    business_loc {
+        BigInt id PK
+        BigInt user_id FK
+        String name
+        String address
+    }
+
+    %% --- 구직자 프로필 및 이력 관련 모델 ---
+    applicant_profiles {
+        BigInt id PK
+        BigInt user_id FK
+        text description
+    }
+    work_experiences {
+        BigInt id PK
+        BigInt profile_id FK
+        String company_name
+    }
+    skills {
+        BigInt id PK
+        String name
+    }
+    profile_skills {
+        BigInt profile_id PK, FK
+        BigInt skill_id PK, FK
+    }
+
+    %% --- 채용 공고 및 지원 관련 모델 ---
+    job_posts {
+        BigInt id PK
+        BigInt business_loc_id FK
+        String title
+        enum status
+    }
+    job_post_skills {
+        BigInt job_post_id PK, FK
+        BigInt skill_id PK, FK
+    }
+    applications {
+        BigInt id PK
+        BigInt job_post_id FK
+        BigInt profile_id FK
+        enum status
+    }
+    bookmarked_jobs {
+        BigInt id PK
+        BigInt user_id FK
+        BigInt job_post_id FK
+    }
+
+    %% --- 퀴즈 및 성향 분석 시스템 ---
+    personality_profiles {
+        BigInt id PK
+        String name_ko
+        String name_en
+    }
+    job_post_preferred_profiles {
+        BigInt job_post_id PK, FK
+        BigInt profile_id PK, FK
+    }
+    dimensions {
+        BigInt id PK
+        String name
+    }
+    quiz_questions {
+        BigInt id PK
+        String question_code
+        BigInt dimension_id FK
+    }
+    quiz_choices {
+        BigInt id PK
+        BigInt question_id FK
+        enum label
+    }
+    user_responses {
+        BigInt id PK
+        BigInt user_id FK
+        BigInt choice_id FK
+    }
+
+
+    %% --- 관계 정의 ---
+    users ||--o{ applicant_profiles : "has"
+    users ||--o{ business_loc : "owns"
+    users ||--o{ bookmarked_jobs : "bookmarks"
+    users ||--o{ user_responses : "gives"
+    users }o--|| personality_profiles : "has a"
+
+    applicant_profiles ||--o{ work_experiences : "has"
+    applicant_profiles ||--o{ applications : "submits"
+    applicant_profiles }o--o{ profile_skills : "has"
+    
+    business_loc ||--o{ job_posts : "posts"
+
+    job_posts ||--o{ applications : "receives"
+    job_posts ||--o{ bookmarked_jobs : "is"
+    job_posts }o--o{ job_post_skills : "requires"
+    job_posts }o--o{ job_post_preferred_profiles : "prefers"
+
+    skills }o
