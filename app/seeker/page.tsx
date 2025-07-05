@@ -168,6 +168,24 @@ const SeekerHome = () => {
     },
   ];
 
+  // Select 옵션 배열 선언
+  const jobTypeOptions = [
+    { value: "part-time", label: "Part-Time" },
+    { value: "freelance", label: "Freelance" },
+    { value: "full-time", label: "Full-Time" },
+  ];
+  const locationOptions = [
+    { value: "gangnam", label: "Gangnam" },
+    { value: "hongdae", label: "Hongdae" },
+    { value: "itaewon", label: "Itaewon" },
+    { value: "myeongdong", label: "Myeongdong" },
+  ];
+  const hourlyRateOptions = [
+    { value: "10000-15000", label: "₩10k-15k" },
+    { value: "15000-20000", label: "₩15k-20k" },
+    { value: "20000+", label: "₩20k+" },
+  ];
+
   const Header = () => {
     return (
       <PageHeader title="job:about" rightIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />} />
@@ -183,9 +201,11 @@ const SeekerHome = () => {
               <SelectValue placeholder="Job Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="part-time">Part-Time</SelectItem>
-              <SelectItem value="freelance">Freelance</SelectItem>
-              <SelectItem value="full-time">Full-Time</SelectItem>
+              {jobTypeOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} selectedValue={jobType}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -194,10 +214,11 @@ const SeekerHome = () => {
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="gangnam">Gangnam</SelectItem>
-              <SelectItem value="hongdae">Hongdae</SelectItem>
-              <SelectItem value="itaewon">Itaewon</SelectItem>
-              <SelectItem value="myeongdong">Myeongdong</SelectItem>
+              {locationOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} selectedValue={location}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -206,9 +227,11 @@ const SeekerHome = () => {
               <SelectValue placeholder="Rate" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10000-15000">₩10k-15k</SelectItem>
-              <SelectItem value="15000-20000">₩15k-20k</SelectItem>
-              <SelectItem value="20000+">₩20k+</SelectItem>
+              {hourlyRateOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} selectedValue={hourlyRate}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

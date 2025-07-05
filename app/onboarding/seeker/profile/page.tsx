@@ -1,18 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  UserRound,
-  Award,
-  Briefcase,
-  Globe,
-  Clock,
-  MapPin,
-  FileText,
-  ArrowLeft,
-} from "lucide-react";
+import { Award, Briefcase, Globe, Clock, MapPin, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
 import {
@@ -26,6 +16,7 @@ import { Dialog } from "@/components/common/Dialog";
 import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
+import TimeRangePicker from "@/components/ui/TimeRangePicker";
 
 export default function SeekerProfilePage() {
   const router = useRouter();
@@ -34,7 +25,8 @@ export default function SeekerProfilePage() {
   const [workType, setWorkType] = useState("");
   const [industry, setIndustry] = useState("");
   const [weekAvailability, setWeekAvailability] = useState("");
-  const [timeAvailability, setTimeAvailability] = useState("");
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("17:00");
   const [location, setLocation] = useState("");
   const [language, setLanguage] = useState("");
   const [workExperiences, setWorkExperiences] = useState<any[]>([]);
@@ -92,9 +84,10 @@ export default function SeekerProfilePage() {
     (((skills.length > 0 ? 1 : 0) +
       (workType ? 1 : 0) +
       (industry ? 1 : 0) +
+      (startTime && endTime ? 1 : 0) +
       (location ? 1 : 0) +
       (language ? 1 : 0)) /
-      5) *
+      6) *
       100
   );
 
@@ -124,7 +117,7 @@ export default function SeekerProfilePage() {
         {/* Content */}
         <div className="px-4 md:px-8 py-6 space-y-6">
           {/* Skills Section */}
-          <Card className="p-6">
+          <div>
             <div className="flex items-center mb-4">
               <Award className="w-5 h-5 text-indigo-600 mr-2" />
               <Typography as="h2" variant="headlineSm" className="text-gray-800">
@@ -195,10 +188,10 @@ export default function SeekerProfilePage() {
                 ))}
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Job Preferences */}
-          <Card className="p-6">
+          <div>
             <div className="flex items-center mb-6">
               <Briefcase className="w-5 h-5 text-indigo-600 mr-2" />
               <Typography as="h2" variant="headlineSm" className="text-gray-800">
@@ -250,44 +243,39 @@ export default function SeekerProfilePage() {
                 </Select>
               </div>
 
-              {/* Available Days/Hours */}
+              {/* Available Days */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
-                  Available Days/Hours
+                  Available Days
                 </label>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    {["Weekdays", "Weekends"].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => setWeekAvailability(option)}
-                        className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                          weekAvailability === option
-                            ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {["AM", "PM"].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => setTimeAvailability(option)}
-                        className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                          timeAvailability === option
-                            ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {["Weekdays", "Weekends"].map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setWeekAvailability(option)}
+                      className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                        weekAvailability === option
+                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
+                          : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              {/* Available Hours */}
+              <div>
+                <TimeRangePicker
+                  startTime={startTime}
+                  endTime={endTime}
+                  onStartTimeChange={setStartTime}
+                  onEndTimeChange={setEndTime}
+                  label="Available Hours"
+                  required
+                />
               </div>
 
               {/* Location */}
@@ -310,10 +298,10 @@ export default function SeekerProfilePage() {
                 </Select>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Language Proficiency */}
-          <Card className="p-6">
+          <div>
             <div className="flex items-center mb-4">
               <Globe className="w-5 h-5 text-indigo-600 mr-2" />
               <Typography as="h2" variant="headlineSm" className="text-gray-800">
@@ -325,7 +313,7 @@ export default function SeekerProfilePage() {
                 <button
                   key={level}
                   onClick={() => setLanguage(level)}
-                  className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
                     language === level
                       ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
                       : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
@@ -335,10 +323,10 @@ export default function SeekerProfilePage() {
                 </button>
               ))}
             </div>
-          </Card>
+          </div>
 
           {/* Work Experience */}
-          <Card className="p-6">
+          <div>
             <div className="flex items-center mb-4 justify-between">
               <div className="flex items-center">
                 <FileText className="w-5 h-5 text-indigo-600 mr-2" />
@@ -375,7 +363,7 @@ export default function SeekerProfilePage() {
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
 
           {/* Create Profile Button (고정 해제, 진행률 100% 아니면 비활성화) */}
           <Button

@@ -1,42 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Briefcase,
-  Building,
-  Globe,
-  MapPin,
-  Users,
-  FileText,
-  ArrowLeft,
-  Award,
-  Phone,
-  Upload,
-} from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/Select";
-import { Dialog } from "@/components/common/Dialog";
-import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import PhotoUploader from "@/components/ui/PhotoUploader";
+import TimeRangePicker from "@/components/ui/TimeRangePicker";
+import Checkbox from "@/components/ui/Checkbox";
 
 export default function EmployerProfilePage() {
-  const router = useRouter();
   const [companyName, setCompanyName] = useState("");
   const [businessPhone, setBusinessPhone] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("17:00");
   const [photos, setPhotos] = useState<File[]>([]);
   const [languageLevel, setLanguageLevel] = useState("");
   const [description, setDescription] = useState("");
@@ -143,31 +123,25 @@ export default function EmployerProfilePage() {
                     : ""
                 }
               />
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Operating Hours
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    onBlur={() => setTouched((t) => ({ ...t, startTime: true }))}
-                    placeholder="Start Time"
-                    className="w-1/2"
-                    error={touched.startTime && !startTime ? "시작 시간을 입력해주세요." : ""}
-                  />
-                  <Input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    onBlur={() => setTouched((t) => ({ ...t, endTime: true }))}
-                    placeholder="End Time"
-                    className="w-1/2"
-                    error={touched.endTime && !endTime ? "종료 시간을 입력해주세요." : ""}
-                  />
-                </div>
-              </div>
+              <TimeRangePicker
+                startTime={startTime}
+                endTime={endTime}
+                onStartTimeChange={(time) => {
+                  setStartTime(time);
+                  setTouched((t) => ({ ...t, startTime: true }));
+                }}
+                onEndTimeChange={(time) => {
+                  setEndTime(time);
+                  setTouched((t) => ({ ...t, endTime: true }));
+                }}
+                label="Operating Hours"
+                required
+                error={
+                  (touched.startTime && !startTime) || (touched.endTime && !endTime)
+                    ? "운영 시간을 선택해주세요."
+                    : ""
+                }
+              />
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -226,19 +200,16 @@ export default function EmployerProfilePage() {
                 </label>
                 <div className="flex flex-col gap-2">
                   {tagOptions.map((tag) => (
-                    <label key={tag} className="flex items-center gap-2 text-sm font-medium">
-                      <input
-                        type="checkbox"
-                        checked={optionalTags.includes(tag)}
-                        onChange={() => {
-                          setOptionalTags((prev) =>
-                            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-                          );
-                        }}
-                        className="accent-indigo-500"
-                      />
-                      {tag}
-                    </label>
+                    <Checkbox
+                      key={tag}
+                      label={tag}
+                      checked={optionalTags.includes(tag)}
+                      onChange={() => {
+                        setOptionalTags((prev) =>
+                          prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                        );
+                      }}
+                    />
                   ))}
                 </div>
               </div>

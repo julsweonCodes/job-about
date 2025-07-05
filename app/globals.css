@@ -1,33 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* 스크롤바 완전 숨기기 */
+.scrollbar-hide {
+  -ms-overflow-style: none !important; /* IE, Edge */
+  scrollbar-width: none !important; /* Firefox */
 }
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-} */
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .input-style {
+    @apply w-full bg-white border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300;
+    @apply px-3 py-3 text-sm; /* 모바일(기본) */
+    @apply sm:px-4 sm:py-3 sm:text-base; /* 데스크탑(sm 이상) */
+  }
+}

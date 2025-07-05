@@ -22,7 +22,7 @@ const bottomSheetVariants = cva("fixed inset-0 z-50 flex items-end justify-cente
 });
 
 const bottomSheetContentVariants = cva(
-  "relative w-full bg-white rounded-t-2xl shadow-lg p-6 pt-4 transition-all duration-300 animate-bottomSheetIn",
+  "relative w-full bg-white rounded-t-2xl shadow-lg p-5 pt-4 transition-all duration-300 animate-bottomSheetIn",
   {
     variants: {
       size: {
@@ -54,6 +54,27 @@ export function BottomSheet({
   align,
   ...props
 }: BottomSheetProps) {
+  // BottomSheet가 열렸을 때 배경 스크롤 방지
+  React.useEffect(() => {
+    if (open) {
+      // 현재 스크롤 위치 저장
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        // BottomSheet가 닫힐 때 원래 스크롤 위치로 복원
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -65,7 +86,7 @@ export function BottomSheet({
       >
         {/* Drag handle */}
         <div className="flex justify-center mb-4">
-          <div className="w-16 h-2 bg-gray-300 rounded-full" />
+          <div className="w-8 h-1 bg-gray-300 rounded-full" />
         </div>
         {children}
       </div>

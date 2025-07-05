@@ -43,24 +43,18 @@ export default function Input({
             type={type === "phone" ? "text" : type}
             value={value}
             onChange={handleChange}
-            className={`w-full px-4 py-3 pr-10 bg-white border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300 ${
-              error ? "border-red-400" : ""
-            }`}
+            className={`input-style ${rightIcon ? "pr-10" : ""} ${error ? "border-red-400" : ""}`}
             {...(type === "time" ? { min: "00:00", max: "23:59", step: 60 } : {})}
             {...props}
           />
-          <span className="flex items-center h-full ml-[-2.5rem] text-gray-400 pointer-events-none">
-            {rightIcon}
-          </span>
+          <span className="flex items-center h-full ml-[-2.5rem] text-gray-400">{rightIcon}</span>
         </div>
       ) : (
         <input
           type={type === "phone" ? "text" : type}
           value={value}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300 ${
-            error ? "border-red-400" : ""
-          }`}
+          className={`input-style ${error ? "border-red-400" : ""}`}
           {...(type === "time" ? { min: "00:00", max: "23:59", step: 60 } : {})}
           {...props}
         />
