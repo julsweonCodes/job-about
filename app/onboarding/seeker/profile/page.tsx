@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Award, Briefcase, Globe, Clock, MapPin, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
@@ -13,13 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { Dialog } from "@/components/common/Dialog";
-import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
+import LogoHeader from "@/components/common/LogoHeader";
 
 export default function SeekerProfilePage() {
-  const router = useRouter();
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [workType, setWorkType] = useState("");
@@ -34,8 +32,8 @@ export default function SeekerProfilePage() {
   const [experienceForm, setExperienceForm] = useState({
     company: "",
     jobType: "",
-    startDate: "",
-    endDate: "",
+    startYear: new Date().getFullYear().toString(),
+    workedPeriod: "Short-term",
     description: "",
   });
 
@@ -50,6 +48,56 @@ export default function SeekerProfilePage() {
     "Communication",
     "Problem Solving",
   ];
+
+  // Select 옵션 배열 선언
+  const workedPeriodOptions = [
+    "Short-term",
+    "Under 3 months",
+    "Under 6 months",
+    "6~12 months",
+    "1~2 years",
+    "2~3 years",
+    "Over 3 years",
+  ];
+
+  const locationOptions = [
+    { value: "downtown", label: "Downtown" },
+    { value: "uptown", label: "Uptown" },
+    { value: "midtown", label: "Midtown" },
+    { value: "suburbs", label: "Suburbs" },
+    { value: "remote", label: "Remote" },
+  ];
+
+  // 공통 Select 렌더 함수 (타입 명시, 컴포넌트 바깥에 선언)
+  type RenderSelectOption = string | { value: string; label: string };
+  interface RenderSelectProps {
+    value: string;
+    onValueChange: (val: string) => void;
+    options: RenderSelectOption[];
+    placeholder: string;
+  }
+  function RenderSelect({ value, onValueChange, options, placeholder }: RenderSelectProps) {
+    return (
+      <Select value={value} onValueChange={(val: string) => onValueChange(val)}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt: RenderSelectOption) =>
+            typeof opt === "string" ? (
+              <SelectItem key={opt} value={opt}>
+                {opt}
+              </SelectItem>
+            ) : (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            )
+          )}
+        </SelectContent>
+      </Select>
+    );
+  }
 
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -73,8 +121,8 @@ export default function SeekerProfilePage() {
     setExperienceForm({
       company: "",
       jobType: "",
-      startDate: "",
-      endDate: "",
+      startYear: new Date().getFullYear().toString(),
+      workedPeriod: "Short-term",
       description: "",
     });
     setShowExperienceForm(false);
@@ -95,35 +143,28 @@ export default function SeekerProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto bg-white min-h-screen">
         {/* Header */}
-        <PageHeader
-          title="Create Profile"
-          leftIcon={<ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />}
-          onClickLeft={() => router.back()}
-        />
+        <LogoHeader borderless shadowless />
 
-        {/* Sticky Progress Bar */}
-        <div className="sticky top-14 z-20 bg-white px-4 md:px-8 py-4 border-b border-gray-100">
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        {/* Sticky Progress Bar + 타이틀 */}
+        <div className="sticky top-14 z-20 bg-white px-4 md:px-8 py-2 border-b border-gray-100">
+          <Typography as="h1" variant="headlineSm" className="text-center mb-6">
+            Create Your Profile
+          </Typography>
+          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-4">
             <div
               className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out"
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
-          <Typography as="p" variant="bodySm" className="text-gray-600 mt-2">
-            {completionPercentage}% Complete
-          </Typography>
         </div>
 
         {/* Content */}
         <div className="px-4 md:px-8 py-6 space-y-6">
           {/* Skills Section */}
           <div>
-            <div className="flex items-center mb-4">
-              <Award className="w-5 h-5 text-indigo-600 mr-2" />
-              <Typography as="h2" variant="headlineSm" className="text-gray-800">
-                Skills & Expertise
-              </Typography>
-            </div>
+            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
+              Skills & Expertise
+            </Typography>
 
             <div className="space-y-4">
               <div className="relative">
@@ -192,29 +233,23 @@ export default function SeekerProfilePage() {
 
           {/* Job Preferences */}
           <div>
-            <div className="flex items-center mb-6">
-              <Briefcase className="w-5 h-5 text-indigo-600 mr-2" />
-              <Typography as="h2" variant="headlineSm" className="text-gray-800">
-                Job Preferences
-              </Typography>
-            </div>
+            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
+              Job Preferences
+            </Typography>
 
             <div className="space-y-6">
               {/* Work Type */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <Globe className="w-4 h-4 mr-1" />
-                  Work Type
-                </label>
-                <div className="grid grid-cols-3 gap-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Work Type</label>
+                <div className="flex gap-2">
                   {["Remote", "On-site", "Hybrid"].map((type) => (
                     <button
                       key={type}
                       onClick={() => setWorkType(type)}
-                      className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                      className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
                         workType === type
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                          : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                       }`}
                     >
                       {type}
@@ -245,19 +280,18 @@ export default function SeekerProfilePage() {
 
               {/* Available Days */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <Clock className="w-4 h-4 mr-1" />
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Available Days
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex gap-2">
                   {["Weekdays", "Weekends"].map((option) => (
                     <button
                       key={option}
                       onClick={() => setWeekAvailability(option)}
-                      className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                      className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
                         weekAvailability === option
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                          : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                       }`}
                     >
                       {option}
@@ -280,43 +314,31 @@ export default function SeekerProfilePage() {
 
               {/* Location */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  Location
-                </label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="downtown">Downtown</SelectItem>
-                    <SelectItem value="uptown">Uptown</SelectItem>
-                    <SelectItem value="midtown">Midtown</SelectItem>
-                    <SelectItem value="suburbs">Suburbs</SelectItem>
-                    <SelectItem value="remote">Remote</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Location</label>
+                <RenderSelect
+                  value={location}
+                  onValueChange={setLocation}
+                  options={locationOptions}
+                  placeholder="Select location"
+                />
               </div>
             </div>
           </div>
 
           {/* Language Proficiency */}
           <div>
-            <div className="flex items-center mb-4">
-              <Globe className="w-5 h-5 text-indigo-600 mr-2" />
-              <Typography as="h2" variant="headlineSm" className="text-gray-800">
-                Language Proficiency
-              </Typography>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
+            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
+              Language Proficiency
+            </Typography>
+            <div className="flex gap-2">
               {["Beginner", "Intermediate", "Fluent"].map((level) => (
                 <button
                   key={level}
                   onClick={() => setLanguage(level)}
-                className={`py-3 px-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                  className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
                     language === level
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   {level}
@@ -328,24 +350,23 @@ export default function SeekerProfilePage() {
           {/* Work Experience */}
           <div>
             <div className="flex items-center mb-4 justify-between">
-              <div className="flex items-center">
-                <FileText className="w-5 h-5 text-indigo-600 mr-2" />
-                <Typography as="h2" variant="headlineSm" className="text-gray-800">
-                  Work Experience
-                  <span className="text-sm text-gray-500 font-normal ml-2">(Optional)</span>
-                </Typography>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => setShowExperienceForm(true)}
-                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
-              >
-                + Add Experience
-              </Button>
+              <Typography as="h2" variant="titleBold" className="text-gray-800">
+                Work Experience
+                <span className="text-sm text-gray-500 font-normal ml-2">(Optional)</span>
+              </Typography>
             </div>
-
-            {/* Experience List */}
+            {/* Experience List (Add Experience가 첫 항목) */}
             <div className="space-y-3">
+              {/* Add Experience 리스트 스타일 버튼 */}
+              <div
+                className="flex items-center gap-2 px-3 py-3 sm:px-4 sm:py-3  bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-100 hover:border-indigo-300  transition-all duration-200"
+                onClick={() => setShowExperienceForm(true)}
+              >
+                <span className="flex-1 text-left select-none text-sm sm:text-base text-gray-500">
+                  + Add Experience
+                </span>
+              </div>
+              {/* 실제 경력 리스트 */}
               {workExperiences.map((exp, idx) => (
                 <div key={idx} className="p-4 bg-gray-50 rounded-xl">
                   <Typography as="div" variant="titleBold" className="text-gray-900">
@@ -355,7 +376,7 @@ export default function SeekerProfilePage() {
                     {exp.jobType}
                   </Typography>
                   <Typography as="div" variant="bodyXs" className="text-gray-500">
-                    {exp.startDate} ~ {exp.endDate}
+                    {exp.startYear} / {exp.workedPeriod}
                   </Typography>
                   <Typography as="div" variant="bodySm" className="text-gray-700 mt-2">
                     {exp.description}
@@ -365,7 +386,7 @@ export default function SeekerProfilePage() {
             </div>
           </div>
 
-          {/* Create Profile Button (고정 해제, 진행률 100% 아니면 비활성화) */}
+          {/* Create Profile Button */}
           <Button
             size="lg"
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white mt-8"
@@ -382,7 +403,7 @@ export default function SeekerProfilePage() {
           type="bottomSheet"
         >
           <div className="space-y-4">
-            <Typography as="h3" variant="headlineSm" className="mb-4">
+            <Typography as="h3" variant="titleBold" className="mb-4">
               Add Job Experience
             </Typography>
             <Input
@@ -398,22 +419,28 @@ export default function SeekerProfilePage() {
               required
             />
             <div className="flex gap-2">
-              <Input
-                label="Start Date"
-                type="date"
-                value={experienceForm.startDate}
-                onChange={(e) => setExperienceForm((f) => ({ ...f, startDate: e.target.value }))}
-                required
-                className="w-1/2"
-              />
-              <Input
-                label="End Date"
-                type="date"
-                value={experienceForm.endDate}
-                onChange={(e) => setExperienceForm((f) => ({ ...f, endDate: e.target.value }))}
-                required
-                className="w-1/2"
-              />
+              <div className="w-1/2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Start Year</label>
+                <RenderSelect
+                  value={experienceForm.startYear}
+                  onValueChange={(val) => setExperienceForm((f) => ({ ...f, startYear: val }))}
+                  options={Array.from({ length: 50 }, (_, i) =>
+                    (new Date().getFullYear() - i).toString()
+                  )}
+                  placeholder="Select year"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Worked Period
+                </label>
+                <RenderSelect
+                  value={experienceForm.workedPeriod}
+                  onValueChange={(val) => setExperienceForm((f) => ({ ...f, workedPeriod: val }))}
+                  options={workedPeriodOptions}
+                  placeholder="Select period"
+                />
+              </div>
             </div>
             <TextArea
               label="Description"
@@ -425,7 +452,7 @@ export default function SeekerProfilePage() {
               onClick={handleAddExperience}
               className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
             >
-              저장
+              Add
             </Button>
           </div>
         </Dialog>

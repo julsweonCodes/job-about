@@ -43,7 +43,7 @@ export default function Input({
             type={type === "phone" ? "text" : type}
             value={value}
             onChange={handleChange}
-            className={`input-style ${rightIcon ? "pr-10" : ""} ${error ? "border-red-400" : ""}`}
+            className={`input-style ${rightIcon ? "pr-10" : ""} ${error ? "border-red-400" : ""} ${className}`}
             {...(type === "time" ? { min: "00:00", max: "23:59", step: 60 } : {})}
             {...props}
           />
@@ -54,7 +54,7 @@ export default function Input({
           type={type === "phone" ? "text" : type}
           value={value}
           onChange={handleChange}
-          className={`input-style ${error ? "border-red-400" : ""}`}
+          className={`input-style ${error ? "border-red-400" : ""} ${className}`}
           {...(type === "time" ? { min: "00:00", max: "23:59", step: 60 } : {})}
           {...props}
         />

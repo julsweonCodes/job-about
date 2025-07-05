@@ -5,14 +5,29 @@ import Link from "next/link";
 interface LogoHeaderProps {
   children?: React.ReactNode;
   className?: string;
+  borderless?: boolean;
+  shadowless?: boolean;
 }
 
-export default function LogoHeader({ children, className }: LogoHeaderProps) {
+export default function LogoHeader({
+  children,
+  className,
+  borderless = false,
+  shadowless = false,
+}: LogoHeaderProps) {
   return (
-    <header className={"sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm"}>
+    <header
+      className={[
+        "sticky top-0 z-30 bg-white",
+        borderless ? "" : "border-b border-gray-100",
+        shadowless ? "" : "shadow-sm",
+        className || "",
+      ].join(" ")}
+    >
       <div
         className={
-          "max-w-6xl mx-auto flex items-center justify-between h-14 px-4 " + (className || "")
+          "max-w-6xl mx-auto flex items-center justify-between h-14 px-4 sm:px-8" +
+          (className || "")
         }
       >
         <Link
@@ -21,9 +36,9 @@ export default function LogoHeader({ children, className }: LogoHeaderProps) {
           aria-label="Go to main page"
         >
           <Typography
-            as="span"
-            variant="headlineMd"
-            className="text-xl md:text-2xl font-bold group-hover:text-[#7A73F1] transition-colors"
+            as="h1"
+            variant="headlineLg"
+            className="group-hover:text-[#7A73F1] transition-colors"
           >
             job:about
           </Typography>

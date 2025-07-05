@@ -94,7 +94,6 @@ export default function PhotoUploader({ photos, setPhotos, maxCount = 5 }: Photo
         onChange={(e) => handleFiles(e.target.files)}
         disabled={photos.length >= maxCount}
       />
-      <div className="text-xs text-gray-500">최대 {maxCount}장까지 업로드할 수 있습니다.</div>
     </div>
   );
 }

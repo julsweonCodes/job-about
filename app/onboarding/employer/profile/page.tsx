@@ -10,6 +10,7 @@ import TextArea from "@/components/ui/TextArea";
 import PhotoUploader from "@/components/ui/PhotoUploader";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import Checkbox from "@/components/ui/Checkbox";
+import LogoHeader from "@/components/common/LogoHeader";
 
 export default function EmployerProfilePage() {
   const [companyName, setCompanyName] = useState("");
@@ -65,28 +66,26 @@ export default function EmployerProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto bg-white min-h-screen">
-        <PageHeader title="Create Employer Profile" leftIcon={null} />
-        <div className="sticky top-14 z-20 bg-white px-4 md:px-8 py-4 border-b border-gray-100">
-          <Typography as="h2" variant="headlineSm" className="mb-2">
-            Progress
+        <LogoHeader borderless shadowless />
+        {/* 타이틀 + 진행률 바 */}
+        <div className="sticky top-14 z-20 bg-white px-4 md:px-8 py-2 border-b border-gray-100">
+          <Typography as="h1" variant="headlineSm" className="text-center mb-6">
+            Create Employer Profile
           </Typography>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-4">
             <div
               className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out"
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
-          <Typography as="p" variant="bodySm" className="text-gray-600 mt-2">
-            {completionPercentage}% Complete
-          </Typography>
         </div>
-        <div className="px-4 md:px-8 py-6 space-y-6">
+        <div className="px-4 md:px-8 py-8 space-y-8">
           {/* Business Information */}
           <div>
-            <Typography as="h2" variant="headlineSm" className="text-gray-800 mb-4">
+            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
               Business Information
             </Typography>
-            <div className="space-y-6">
+            <div className="space-y-4">
               <Input
                 label="Business Name"
                 value={companyName}
@@ -142,7 +141,6 @@ export default function EmployerProfilePage() {
                     : ""
                 }
               />
-
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Detail Photo (Optional)
@@ -156,10 +154,10 @@ export default function EmployerProfilePage() {
           </div>
           {/* Job Conditions & Preferences */}
           <div>
-            <Typography as="h2" variant="headlineSm" className="text-gray-800 mb-4">
+            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
               Job Conditions & Preferences
             </Typography>
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Required Language Level
