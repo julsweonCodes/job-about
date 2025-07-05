@@ -12,8 +12,10 @@ const typographyVariants = cva("text-text-primary", {
       titleMd: "text-[16px] sm:text-[22px] font-medium",
       titleRegular: "text-[16px] sm:text-[18px] font-normal",
       bodySmBold: "text-[14px] sm:text-[20px] font-bold",
-      bodySm: "text-[14px] sm:text-[20px] font-medium",
-      bodyXs: "text-[14px] sm:text-[20px] font-normal",
+      bodyXs: "text-[12px] sm:text-[14px] font-normal",
+      bodySm: "text-[14px] sm:text-[16px] font-medium",
+      bodyMd: "text-[14px] sm:text-[20px] font-medium",
+      bodyLg: "text-[14px] sm:text-[20px] font-normal",
     },
   },
   defaultVariants: {
