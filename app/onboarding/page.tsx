@@ -111,7 +111,18 @@ export default function OnboardingPage() {
             </div>
 
             {/* 확인 버튼 */}
-            <Button type="button" size="lg" className="shadow-md">
+            <Button
+              type="button"
+              size="lg"
+              className="shadow-md"
+              onClick={() => {
+                if (selected === "seeker") {
+                  window.location.href = "/onboarding/seeker/profile";
+                } else {
+                  window.location.href = "/onboarding/employer/profile";
+                }
+              }}
+            >
               Confirm
             </Button>
           </section>
