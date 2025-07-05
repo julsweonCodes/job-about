@@ -8,58 +8,63 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model test {
-  id         BigInt    @id @default(autoincrement())
-  created_at DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @default(now()) @db.Timestamptz(6)
-  deleted_at DateTime? @db.Timestamptz(6)
-  content    String?
-}
+// ---------------------------
+// -- 공통으로 사용될 ENUM 타입 정의 --
+// ---------------------------
 
+// 사용자 역할 (구직자, 구인자)
 enum Role {
   applicant
   employer
 }
 
+// 언어 구사 수준
 enum LanguageLevel {
   beginner
   intermediate
   fluent
 }
 
+// 근무 형태
 enum WorkType {
   remote
   on_site
   hybrid
 }
 
+// 근무 가능 요일
 enum AvailableDay {
   weekdays
   weekends
 }
 
+// 근무 가능 시간대
 enum AvailableHour {
   AM
   PM
 }
 
+// 근무 지역
 enum Location {
   city1
   city2
 }
 
+// 직무 종류
 enum JobType {
   server
   kitchen
   delivery
 }
 
+// 공고 상태
 enum JobStatus {
   draft
   published
   closed
 }
 
+// 지원 상태
 enum ApplicationStatus {
   applied
   in_review
@@ -68,194 +73,273 @@ enum ApplicationStatus {
   hired
 }
 
+// 퀴즈 선택지 라벨
+enum QuizLabel {
+  A
+  B
+}
+
+// ---------------------------
+// -- 핵심 비즈니스 모델 --
+// ---------------------------
+
+// 앱의 모든 사용자(구직자, 구인자)를 관리하는 핵심 모델
 model users {
-  id                  BigInt     @id @default(autoincrement()) @db.BigInt
-  users_id            String     @db.VarChar(255)
-  name                String     @db.VarChar(100)
-  phone_number        String     @db.VarChar(20)
-  email               String     @db.VarChar(255)
-  img_url             String     @db.VarChar(2048)
-  job_fit_type_id_1   BigInt
-  job_fit_type_id_2   BigInt
-  job_fit_type_id_3   BigInt
-  role                Role
+  id                     BigInt    @id @default(autoincrement()) @db.BigInt
+  users_id               String    @db.VarChar(255) // Supabase Auth에서 오는 고유 ID
+  name                   String    @db.VarChar(100)
+  phone_number           String    @db.VarChar(20)
+  email                  String    @unique @db.VarChar(255)
+  img_url                String?   @db.VarChar(2048)
+  role                   Role      // 사용자의 역할을 구분 (구직자/구인자)
+  personality_profile_id BigInt?   // 퀴즈 결과로 부여된 성향 프로필 ID (선택 사항)
 
-  jobFit1             job_fit_types @relation("UserFit1", fields: [job_fit_type_id_1], references: [id])
-  jobFit2             job_fit_types @relation("UserFit2", fields: [job_fit_type_id_2], references: [id])
-  jobFit3             job_fit_types @relation("UserFit3", fields: [job_fit_type_id_3], references: [id])
+  // --- 관계 정의 ---
+  personality_profile  personality_profiles? @relation(fields: [personality_profile_id], references: [id])
+  applicant_profiles   applicant_profiles[]  // 한 명의 유저는 여러 직무 프로필을 가질 수 있음
+  bookmarked_jobs      bookmarked_jobs[]     // 북마크한 공고 목록
+  job_posts            job_posts[]           // 구인자가 작성한 공고 목록
+  business_locs        business_loc[]        // 구인자가 소유한 사업장 목록
+  user_responses       user_responses[]      // 사용자의 퀴즈 답변 기록
 
-  profiles            profiles[]
-  bookmarked_jobs     bookmarked_jobs[]
-  job_posts           job_posts[]
-  business_locs       business_loc[]
-
-  createdAt           DateTime   @default(now()) @db.Timestamptz
-  updatedAt           DateTime   @updatedAt @db.Timestamptz
-  deletedAt           DateTime?  @db.Timestamptz
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
 }
 
+// 구인자(employer)가 등록하는 사업장 정보 모델
 model business_loc {
-  id               BigInt       @id @default(autoincrement()) @db.BigInt
-  name             String       @db.VarChar(100)
-  phone_number     String       @db.VarChar(20)
-  address          String       @db.VarChar(255)
-  operating_start  String       @db.VarChar(20)
-  operating_end    String       @db.VarChar(20)
-  logo_url         String       @db.VarChar(2048)
-  img_url1         String       @db.VarChar(2048)
-  img_url2         String       @db.VarChar(2048)
-  img_url3         String       @db.VarChar(2048)
-  img_url4         String       @db.VarChar(2048)
-  img_url5         String       @db.VarChar(2048)
-  language_level   LanguageLevel
-  description      String       @db.Text
-  user_id          BigInt
-  user             users        @relation(fields: [user_id], references: [id])
-
-  job_posts        job_posts[]
-
-  createdAt        DateTime     @default(now()) @db.Timestamptz
-  updatedAt        DateTime     @updatedAt @db.Timestamptz
-  deletedAt        DateTime?    @db.Timestamptz
-}
-
-model profiles {
-  id              BigInt        @id @default(autoincrement()) @db.BigInt
-  user_id         BigInt
-  user            users         @relation(fields: [user_id], references: [id])
-  skill_id_1      BigInt
-  skill_id_2      BigInt
-  skill_id_3      BigInt
-  skill1          skills        @relation("ProfileSkill1", fields: [skill_id_1], references: [id])
-  skill2          skills        @relation("ProfileSkill2", fields: [skill_id_2], references: [id])
-  skill3          skills        @relation("ProfileSkill3", fields: [skill_id_3], references: [id])
-  job_type1       JobType
-  job_type2       JobType
-  job_type3       JobType
-  work_type       WorkType
-  available_day   AvailableDay
-  available_hour  AvailableHour
-  location        Location
+  id              BigInt    @id @default(autoincrement()) @db.BigInt
+  user_id         BigInt    // 사업장 소유자 ID
+  name            String    @db.VarChar(100)
+  phone_number    String    @db.VarChar(20)
+  address         String    @db.VarChar(255)
+  operating_start String    @db.VarChar(20)
+  operating_end   String    @db.VarChar(20)
+  logo_url        String?   @db.VarChar(2048)
+  img_url1        String?   @db.VarChar(2048)
+  img_url2        String?   @db.VarChar(2048)
+  img_url3        String?   @db.VarChar(2048)
+  img_url4        String?   @db.VarChar(2048)
+  img_url5        String?   @db.VarChar(2048)
   language_level  LanguageLevel
-  description     String        @db.Text
+  description     String    @db.Text
+  
+  user      users       @relation(fields: [user_id], references: [id])
+  job_posts job_posts[] // 해당 사업장에서 올린 공고 목록
 
-  applications     applications[]
-  work_experiences work_experiences[]
-
-  createdAt        DateTime     @default(now()) @db.Timestamptz
-  updatedAt        DateTime     @updatedAt @db.Timestamptz
-  deletedAt        DateTime?    @db.Timestamptz
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
 }
 
+// 구직자(applicant)의 직무 관련 프로필 (이력서 정보) 모델
+model applicant_profiles {
+  id             BigInt    @id @default(autoincrement()) @db.BigInt
+  user_id        BigInt    // 이 프로필의 소유자 ID
+  job_type1      JobType   // 희망 직무 1
+  job_type2      JobType?  // 희망 직무 2
+  job_type3      JobType?  // 희망 직무 3
+  work_type      WorkType
+  available_day  AvailableDay
+  available_hour AvailableHour
+  location       Location
+  language_level LanguageLevel
+  description    String    @db.Text
+
+  user               users                @relation(fields: [user_id], references: [id])
+  applications       applications[]       // 이 프로필로 지원한 기록
+  work_experiences   work_experiences[]   // 경력 사항 목록
+  profile_skills     profile_skills[]     // 보유 스킬 목록 (다대다 관계)
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+}
+
+// 구직자의 경력 사항 모델
 model work_experiences {
-  id            BigInt      @id @default(autoincrement()) @db.BigInt
-  profile_id    BigInt
-  profile       profiles    @relation(fields: [profile_id], references: [id])
-  company_name  String      @db.VarChar(100)
-  job_type      JobType
-  start_date    DateTime    @db.Timestamptz
-  end_date      DateTime    @db.Timestamptz
-  work_type     WorkType
-  description   String      @db.Text
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  profile_id   BigInt    // 이 경력이 속한 직무 프로필 ID
+  company_name String    @db.VarChar(100)
+  job_type     JobType
+  start_date   DateTime  @db.Timestamptz
+  end_date     DateTime? @db.Timestamptz
+  work_type    WorkType
+  description  String    @db.Text
 
-  createdAt     DateTime    @default(now()) @db.Timestamptz
-  updatedAt     DateTime    @updatedAt @db.Timestamptz
-  deletedAt     DateTime?   @db.Timestamptz
+  profile applicant_profiles @relation(fields: [profile_id], references: [id])
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
 }
 
+// 모든 스킬의 마스터 테이블 (중복 방지)
 model skills {
-  id        BigInt      @id @default(autoincrement()) @db.BigInt
-  name      String      @db.VarChar(50)
+  id        BigInt    @id @default(autoincrement()) @db.BigInt
+  name      String    @unique @db.VarChar(50)
 
-  profile1  profiles[]  @relation("ProfileSkill1")
-  profile2  profiles[]  @relation("ProfileSkill2")
-  profile3  profiles[]  @relation("ProfileSkill3")
-  job1      job_posts[] @relation("JobSkill1")
-  job2      job_posts[] @relation("JobSkill2")
-  job3      job_posts[] @relation("JobSkill3")
+  profile_skills  profile_skills[]  // 이 스킬을 가진 프로필 목록
+  job_post_skills job_post_skills[] // 이 스킬을 요구하는 공고 목록
 
-  createdAt DateTime    @default(now()) @db.Timestamptz
-  updatedAt DateTime    @updatedAt @db.Timestamptz
-  deletedAt DateTime?   @db.Timestamptz
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
 }
 
-model job_fit_types {
-  id        BigInt       @id @default(autoincrement()) @db.BigInt
-  name      String       @db.VarChar(50)
+// 구직자 프로필과 스킬을 연결하는 조인 테이블 (다대다 관계)
+model profile_skills {
+  profile_id BigInt
+  skill_id   BigInt
 
-  userFit1  users[]      @relation("UserFit1")
-  userFit2  users[]      @relation("UserFit2")
-  userFit3  users[]      @relation("UserFit3")
-  jobFit1   job_posts[]  @relation("JobFit1")
-  jobFit2   job_posts[]  @relation("JobFit2")
-  jobFit3   job_posts[]  @relation("JobFit3")
+  profile applicant_profiles @relation(fields: [profile_id], references: [id])
+  skill   skills             @relation(fields: [skill_id], references: [id])
+
+  @@id([profile_id, skill_id])
+}
+
+// 구인자가 등록하는 채용 공고 모델
+model job_posts {
+  id              BigInt     @id @default(autoincrement()) @db.BigInt
+  business_loc_id BigInt     // 공고를 올린 사업장 ID
+  user_id         BigInt     // 공고를 올린 담당자 ID
+  title           String     @db.VarChar(100)
+  job_type        JobType
+  deadline        DateTime?  @db.Timestamptz
+  work_schedule   String     @db.VarChar(100)
+  wage            Float
+  location        Location
+  description     String     @db.Text
+  status          JobStatus
+
+  business_loc       business_loc                    @relation(fields: [business_loc_id], references: [id])
+  user               users                           @relation(fields: [user_id], references: [id])
+  applications       applications[]                  // 이 공고에 대한 지원 목록
+  bookmarked_jobs    bookmarked_jobs[]               // 이 공고를 북마크한 기록
+  job_post_skills    job_post_skills[]               // 요구 스킬 목록 (다대다)
+  preferred_profiles job_post_preferred_profiles[]   // 선호 성향 목록 (다대다)
+
+  createdAt DateTime   @default(now()) @db.Timestamptz
+  updatedAt DateTime   @updatedAt @db.Timestamptz
+  deletedAt DateTime?  @db.Timestamptz
+}
+
+// 채용 공고와 요구 스킬을 연결하는 조인 테이블 (다대다 관계)
+model job_post_skills {
+  job_post_id BigInt
+  skill_id    BigInt
+
+  job_post job_posts @relation(fields: [job_post_id], references: [id])
+  skill    skills    @relation(fields: [skill_id], references: [id])
+
+  @@id([job_post_id, skill_id])
+}
+
+// 구직자가 채용 공고에 지원한 기록 모델
+model applications {
+  id          BigInt            @id @default(autoincrement()) @db.BigInt
+  job_post_id BigInt            // 지원한 공고 ID
+  profile_id  BigInt            // 지원 시 사용한 직무 프로필 ID
+  status      ApplicationStatus // 지원 상태
+  
+  job_post job_posts          @relation(fields: [job_post_id], references: [id])
+  profile  applicant_profiles @relation(fields: [profile_id], references: [id])
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+}
+
+// 사용자가 북마크한 채용 공고 모델
+model bookmarked_jobs {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  user_id     BigInt
+  job_post_id BigInt
+
+  user     users     @relation(fields: [user_id], references: [id])
+  job_post job_posts @relation(fields: [job_post_id], references: [id])
+
+  @@unique([user_id, job_post_id]) // 한 유저는 같은 공고를 한 번만 북마크 가능
+}
+
+// ---------------------------
+// -- 퀴즈 및 성향 분석 시스템 --
+// ---------------------------
+
+// 퀴즈 결과로 나오는 성향 유형의 마스터 테이블 (예: 액션 히어로)
+model personality_profiles {
+  id                 BigInt    @id @default(autoincrement()) @db.BigInt
+  name_ko            String    @db.Text
+  name_en            String    @db.Text
+  description_ko     String    @db.Text
+  description_en     String    @db.Text
+
+  users              users[] // 이 성향을 가진 유저 목록
+  preferred_for_jobs job_post_preferred_profiles[]
+
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+}
+
+// 채용 공고와 선호하는 성향을 연결하는 조인 테이블 (다대다 관계)
+model job_post_preferred_profiles {
+  job_post_id BigInt
+  profile_id  BigInt
+
+  job_post job_posts            @relation(fields: [job_post_id], references: [id])
+  profile  personality_profiles @relation(fields: [profile_id], references: [id])
+
+  @@id([job_post_id, profile_id])
+}
+
+// 퀴즈가 측정하는 성향의 종류/차원 (예: Work Pace)
+model dimensions {
+  id   BigInt @id @default(autoincrement()) @db.BigInt
+  name String @unique @db.VarChar(255)
+
+  quiz_questions quiz_questions[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+}
+
+// 모든 퀴즈 질문의 마스터 테이블
+model quiz_questions {
+  id            BigInt    @id @default(autoincrement()) @db.BigInt
+  question_code String    @unique @db.VarChar(10)
+  dimension_id  BigInt
+  content_ko    String    @db.Text
+  content_en    String    @db.Text
+  quiz_set_id   String    @db.Char(1)
+  
+  dimension dimensions     @relation(fields: [dimension_id], references: [id])
+  choices   quiz_choices[]
 
   createdAt DateTime     @default(now()) @db.Timestamptz
-  updatedAt DateTime     @updatedAt @db.Timestamptz
-  deletedAt DateTime?    @db.Timestamptz
 }
 
-model job_posts {
-  id                BigInt       @id @default(autoincrement()) @db.BigInt
-  business_loc_id   BigInt
-  user_id           BigInt
-  title             String       @db.VarChar(100)
-  job_type          JobType
-  deadline          DateTime     @db.Timestamptz
-  work_schedule     String       @db.VarChar(100)
-  job_fit_type_id_1 BigInt
-  job_fit_type_id_2 BigInt
-  job_fit_type_id_3 BigInt
-  skill_id_1        BigInt
-  skill_id_2        BigInt
-  skill_id_3        BigInt
-  wage              Float
-  location          Location
-  description       String       @db.Text
-  status            JobStatus
+// 각 질문에 대한 선택지 (A 또는 B)
+model quiz_choices {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  question_id BigInt
+  label       QuizLabel
+  content_ko  String    @db.Text
+  content_en  String    @db.Text
 
-  business_loc      business_loc @relation(fields: [business_loc_id], references: [id])
-  user              users        @relation(fields: [user_id], references: [id])
-  jobFit1           job_fit_types @relation("JobFit1", fields: [job_fit_type_id_1], references: [id])
-  jobFit2           job_fit_types @relation("JobFit2", fields: [job_fit_type_id_2], references: [id])
-  jobFit3           job_fit_types @relation("JobFit3", fields: [job_fit_type_id_3], references: [id])
-  skill1            skills        @relation("JobSkill1", fields: [skill_id_1], references: [id])
-  skill2            skills        @relation("JobSkill2", fields: [skill_id_2], references: [id])
-  skill3            skills        @relation("JobSkill3", fields: [skill_id_3], references: [id])
-  applications      applications[]
-  bookmarked_jobs   bookmarked_jobs[]
+  question       quiz_questions   @relation(fields: [question_id], references: [id])
+  user_responses user_responses[]
 
-  createdAt         DateTime     @default(now()) @db.Timestamptz
-  updatedAt         DateTime     @updatedAt @db.Timestamptz
-  deletedAt         DateTime?    @db.Timestamptz
+  createdAt      DateTime       @default(now()) @db.Timestamptz
 }
 
-model applications {
-  id            BigInt           @id @default(autoincrement()) @db.BigInt
-  job_post_id   BigInt
-  profile_id    BigInt
-  status        ApplicationStatus
-  reg_date      DateTime         @db.Timestamptz
-  chg_date      DateTime         @db.Timestamptz
+// 사용자가 어떤 질문에 어떻게 답변했는지 기록하는 테이블
+model user_responses {
+  id        BigInt   @id @default(autoincrement()) @db.BigInt
+  user_id   BigInt
+  choice_id BigInt
 
-  job_post      job_posts        @relation(fields: [job_post_id], references: [id])
-  profile       profiles         @relation(fields: [profile_id], references: [id])
+  user   users        @relation(fields: [user_id], references: [id])
+  choice quiz_choices @relation(fields: [choice_id], references: [id])
 
-  createdAt     DateTime         @default(now()) @db.Timestamptz
-  updatedAt     DateTime         @updatedAt @db.Timestamptz
-  deletedAt     DateTime?        @db.Timestamptz
+  createdAt DateTime   @default(now()) @db.Timestamptz
 }
-
-model bookmarked_jobs {
-  id            BigInt        @id @default(autoincrement()) @db.BigInt
-  user_id       BigInt
-  job_post_id   BigInt
-
-  user          users         @relation(fields: [user_id], references: [id])
-  job_post      job_posts     @relation(fields: [job_post_id], references: [id])
-
-  createdAt     DateTime      @default(now()) @db.Timestamptz
-  updatedAt     DateTime      @updatedAt @db.Timestamptz
-  deletedAt     DateTime?     @db.Timestamptz
-}
-
