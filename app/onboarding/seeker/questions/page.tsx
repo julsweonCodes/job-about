@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import LogoHeader from "@/components/common/LogoHeader";
 import Typography from "@/components/ui/Typography";
 import ProgressBar from "@/components/common/ProgressBar";
-import { Sparkles, BookOpen } from "lucide-react";
 import BottomButton from "@/components/common/BottomButton";
 import { Button } from "@/components/ui/Button";
 
@@ -12,15 +11,15 @@ const questions = [
     question: "You're working a weekend café shift. Which suits you better?",
     options: [
       {
-        icon: <Sparkles className="w-8 h-8 mb-2" />,
-        headline: "사람들과 대화가 좋아요!",
-        description: "손님과 소통하며 일하는 게 즐거워요.",
+        icon: <span className="text-3xl mb-2">🗣️</span>,
+        headline: "I like talking to people!",
+        description: "I enjoy communicating with customers while working.",
         value: "talking",
       },
       {
-        icon: <BookOpen className="w-8 h-8 mb-2" />,
-        headline: "조용한 업무가 좋아요!",
-        description: "차분하게 일하는 게 더 편해요.",
+        icon: <span className="text-3xl mb-2">🤫</span>,
+        headline: "I prefer quiet tasks!",
+        description: "I feel more comfortable working quietly.",
         value: "quiet",
       },
     ],
