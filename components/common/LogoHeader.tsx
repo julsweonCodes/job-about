@@ -26,7 +26,7 @@ export default function LogoHeader({
     >
       <div
         className={
-          "max-w-6xl mx-auto flex items-center justify-between h-14 px-4 sm:px-8" +
+          "max-w-6xl mx-auto flex items-center justify-between h-14 px-4 sm:px-8 " +
           (className || "")
         }
       >
