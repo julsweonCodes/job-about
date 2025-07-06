@@ -1,0 +1,334 @@
+{
+  "quiz_sets": [
+    {
+      "set_id": "A",
+      "name": {
+        "ko": "핵심 퀴즈 세트 A",
+        "en": "Core Quiz Set A"
+      },
+      "questions": [
+        {
+          "question_code": "A01",
+          "dimension": "Work Pace",
+          "is_core": true,
+          "status": "active",
+          "content": {
+            "ko": "당신은 다운타운의 인기 카페 '팀홀튼(Tim Hortons)'에서 일하고 있습니다. 한가하던 매장에 갑자기 점심시간 직장인들이 몰려들기 시작합니다. 주문 줄은 문 밖까지 이어지고, 모바일 주문 알림이 쉴 새 없이 울리며, 동료는 우유 스팀을 만들며 도와달라고 외치고 있습니다.",
+            "en": "You're working at a popular downtown café like Tim Hortons. It was quiet, but suddenly the lunch crowd rushes in. The line is out the door, online order alerts are pinging nonstop, and your coworker is calling for help from the milk-steaming station."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "아드레날린이 솟는 기분이야! 바쁘게 움직이며 상황을 해결하는 데서 활력을 얻어.",
+                "en": "I feel a rush of adrenaline! I get energized by moving quickly and resolving the situation."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "일단 심호흡을 하고, 가장 중요한 일부터 차근차근 순서대로 처리해 나갈 거야.",
+                "en": "I'll take a deep breath first, and then tackle the most important tasks systematically, one by one."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "A02",
+          "dimension": "Problem-Solving",
+          "is_core": true,
+          "status": "active",
+          "content": {
+            "ko": "당신은 '캐네디언 타이어(Canadian Tire)'와 같은 리테일 스토어에서 마감 조로 일하고 있습니다. 갑자기 신용카드 단말기가 멈추며 결제가 되지 않습니다. 고객은 바로 앞에 서서 기다리고 있고, 매니저는 사무실에서 중요한 통화 중입니다.",
+            "en": "You're on the closing shift at a retail store like Canadian Tire. The credit card machine suddenly freezes and won't process payments. A customer is waiting, and your manager is on an important call in the back office."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "우선 내 판단에 따라 단말기를 재부팅하는 등 해결을 시도해 보겠어. 이게 더 효율적이야.",
+                "en": "I'll first try to solve it based on my own judgment, like rebooting the terminal. It's more efficient."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "매뉴얼을 찾아보거나, 잠시 고객에게 양해를 구하고 매니저의 통화가 끝날 때까지 기다릴 거야.",
+                "en": "I'll look for the manual or ask the customer for a moment of patience and wait until my manager finishes the call."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "A03",
+          "dimension": "Work Focus",
+          "is_core": true,
+          "status": "active",
+          "content": {
+            "ko": "당신은 'H&M'이나 'Zara' 같은 의류 매장에서 일하고 있습니다. 오늘 당신의 할 일 목록에는 1) 창고에서 새 옷 상자 풀기, 2) 손님들이 헝클어 놓은 판매대 정리하기, 3) 도움이 필요한 고객 응대하기, 세 가지가 있습니다. 당신은 어떻게 하루 업무를 처리하겠습니까?",
+            "en": "You're working at a clothing store like H&M or Zara. Your to-do list for today includes: 1) Unpacking a new box of inventory in the backroom, 2) Tidying up the messy sales floor, and 3) Assisting any customers who need help. How do you approach your day?"
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "고객 응대를 하면서 틈틈이 매대를 정리하고, 손님이 없을 때 창고 일을 하는 식으로 동시에 진행할 거야.",
+                "en": "I'll handle all tasks simultaneously: assisting customers, tidying the sales floor in between, and working in the backroom when it's quiet."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "일단 창고 정리를 완벽하게 끝내서 공간을 확보한 뒤, 매장으로 나와 다른 업무를 시작할 거야.",
+                "en": "I'll finish the backroom task completely first to clear the space, then I'll come out to the sales floor to start on the other tasks."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "A04",
+          "dimension": "Interpersonal Style",
+          "is_core": true,
+          "status": "active",
+          "content": {
+            "ko": "매장에서 대대적인 'Back to School' 프로모션을 시작하게 되어, 팀원들과 함께 매장 입구의 메인 디스플레이를 오늘 안에 완전히 새롭게 바꿔야 합니다. 당신이 선호하는 방식은?",
+            "en": "The store is launching a big 'Back to School' promotion, and your team's task is to completely redesign the main entrance display by the end of the day. What's your preferred way to work?"
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "다 같이 모여 '어떤 컨셉이 좋을까?' 브레인스토밍을 하고, 함께 물건을 나르고 배치하며 완성하고 싶어.",
+                "en": "I want to get everyone together to brainstorm concepts, then move and arrange items together to complete the display as a group."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "리더가 컨셉을 정해주면, '너는 포스터, 나는 상품 진열' 이런 식으로 각자 역할을 나눠서 효율적으로 끝내고 싶어.",
+                "en": "Once a leader sets the concept, I prefer to divide the tasks clearly—like 'you do the posters, I'll arrange the products'—to finish efficiently."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "A05",
+          "dimension": "Learning Style",
+          "is_core": true,
+          "status": "active",
+          "content": {
+            "ko": "당신은 물류 창고에서 일하게 되었습니다. 오늘 처음으로 '제브라 스캐너(Zebra Scanner)'라는 재고 관리용 휴대 단말기 사용법을 배워야 합니다. 트레이너가 당신에게 어떻게 배우고 싶은지 묻습니다. 당신의 선택은?",
+            "en": "You've started a job at a warehouse. Today, you need to learn how to use a handheld inventory device called a 'Zebra Scanner.' The trainer asks how you'd like to learn. What's your choice?"
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "일단 제 손에 쥐여주세요. 직접 스캔하고 버튼을 눌러보면서 몸으로 익히는 게 빨라요.",
+                "en": "Just hand it to me. I learn fastest by doing—scanning items and pressing buttons myself."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "먼저 시범을 보여주시겠어요? 어떻게 작동하는지 충분히 보고 순서를 익힌 다음에 해보고 싶어요.",
+                "en": "Could you show me a demonstration first? I'd like to watch how it works and understand the steps before trying it myself."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "A06",
+          "dimension": "Customer Handling",
+          "is_core": true,
+          "status": "active",
+          "content": {
+            "ko": "당신은 '샤퍼스 드럭 마트(Shoppers Drug Mart)'에서 일하고 있습니다. 한 고객이 화난 표정으로 다가와 어제 산 화장품에 문제가 있다며 환불을 강력하게 요구합니다. 하지만 영수증은 가지고 있지 않은 상황입니다.",
+            "en": "You're working at Shoppers Drug Mart. An upset customer approaches you, demanding a refund for a cosmetic product they bought yesterday, claiming it's defective. However, they don't have the receipt."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "우선 고객의 말을 끝까지 들어주며 불편에 공감하고, 도울 방법을 함께 찾아보겠다고 안심시킬 거야.",
+                "en": "First, I'll listen to the customer's full story, empathize with their frustration, and reassure them that I'll find a way to help."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "침착하게 영수증이 없을 경우의 환불 규정을 설명하고, 규정 내에서 처리하기 위해 매니저에게 바로 문의할 거야.",
+                "en": "I'll calmly explain the store's return policy regarding receipts and immediately consult my manager to handle the exception by the book."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "set_id": "B",
+      "name": {
+        "ko": "핵심 퀴즈 세트 B",
+        "en": "Core Quiz Set B"
+      },
+      "questions": [
+        {
+          "question_code": "B01",
+          "dimension": "Work Pace",
+          "is_core": false,
+          "status": "active",
+          "content": {
+            "ko": "캐나다의 가장 큰 세일 기간인 '박싱 데이(Boxing Day)'에 당신은 '베스트바이(Best Buy)' 같은 대형 전자제품 매장에서 일하고 있습니다. 매장 안은 발 디딜 틈 없이 붐비고, 고객들은 사방에서 질문을 던지며, 계산대 줄은 끝이 보이지 않습니다.",
+            "en": "It's Boxing Day, Canada's biggest sale event, and you're working at a large electronics store like Best Buy. The store is packed, customers are asking questions from all directions, and the checkout line is endless."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "이런 혼돈이야말로 살아있음을 느끼게 해! 최대한 많은 고객을 빠르게 응대하며 목표를 달성하는 데서 희열을 느껴.",
+                "en": "This chaos makes me feel alive! I get a thrill from helping as many customers as possible and hitting targets."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "한 번에 한 고객에게만 집중하겠어. 시간이 좀 걸리더라도, 정확한 정보를 주고 제대로 돕는 것이 더 중요해.",
+                "en": "I'll focus on one customer at a time. It's more important to give them correct information and proper help, even if it's slower."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "B02",
+          "dimension": "Problem-Solving",
+          "is_core": false,
+          "status": "active",
+          "content": {
+            "ko": "당신은 아마존(Amazon) 배송기사로 일하고 있습니다. 배송 경로를 따라 운전하던 중, 도로가 예기치 않은 공사로 완전히 막혀 있습니다. 배송 스케줄은 빡빡한 상황입니다.",
+            "en": "You're working as an Amazon delivery driver. Following your route, you find a road is unexpectedly closed for construction. Your schedule is tight."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "즉시 스마트폰 지도를 켜서 최적의 우회 경로를 직접 찾아서 이동하겠어. 이게 가장 빠른 방법이야.",
+                "en": "I'll immediately use my phone's map to find the best alternate route myself. It's the fastest way."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "일단 차를 세우고 본부(Dispatcher)에 연락해서 상황을 보고하고, 공식적인 다음 행동 지침을 받을 거야.",
+                "en": "I'll pull over, report the situation to the dispatcher, and wait for official instructions on how to proceed."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "B03",
+          "dimension": "Work Focus",
+          "is_core": false,
+          "status": "active",
+          "content": {
+            "ko": "당신은 사무실의 어시스턴트로, 오늘 해야 할 가장 큰 업무는 산더미 같은 문서를 스캔하고 파일링하는 것입니다. 하지만 동료들이 계속 자리로 찾아와 자잘하고 급한 부탁들을 합니다.",
+            "en": "You're an office assistant, and your main task today is to scan and file a large stack of documents. However, colleagues keep stopping by your desk with small, urgent requests."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "동료들의 부탁을 처리하는 게 오히려 집중 업무 중 좋은 휴식이 돼. 오는 순서대로 요청들을 처리하며 일하겠어.",
+                "en": "Handling my colleagues' requests is a welcome break from the focused task. I'll handle them as they come."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "한 시간만 집중하겠다'고 양해를 구하고, 스캔 업무를 끝낸 뒤 동료들의 요청을 한 번에 처리하겠어.",
+                "en": "I'll ask for an hour of focused time to finish the scanning, and then I'll address all the other requests."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "B04",
+          "dimension": "Interpersonal Style",
+          "is_core": false,
+          "status": "active",
+          "content": {
+            "ko": "매니저가 팀원들에게 '업무 효율을 높일 좋은 아이디어가 있으면 공유해 주세요'라고 요청했습니다. 당신이 아이디어를 내는 방식은?",
+            "en": "Your manager asks the team for ideas to improve work efficiency. How do you prefer to contribute?"
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "팀 회의를 잡아서 다 같이 모인 자리에서 서로의 아이디어를 즉흥적으로 주고받으며 발전시키고 싶어.",
+                "en": "I'd like to schedule a team meeting to brainstorm and bounce ideas off each other in real-time."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "혼자 조용히 생각해 본 뒤, 내 아이디어를 잘 정리해서 문서로 작성한 다음 팀에 공유하고 싶어.",
+                "en": "I prefer to think about it alone, write down my detailed suggestions, and then share the document with the team."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "B05",
+          "dimension": "Learning Style",
+          "is_core": false,
+          "status": "active",
+          "content": {
+            "ko": "당신은 주문, 테이블 관리, 결제 기능이 모두 포함된 복잡한 태블릿 기반의 주문 시스템을 사용하는 레스토랑에서 일을 시작했습니다.",
+            "en": "You've started a job at a restaurant that uses a complex tablet-based system for orders, table maps, and payments."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "일단 테스트용 테이블로 태블릿을 직접 눌러보면서 이것저것 시도해볼래요. 그게 제일 빨리 익숙해져요.",
+                "en": "Just let me play around with it on a test table. I get familiar with things fastest by trying them out myself."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "주문부터 결제까지 전체 과정을 먼저 한번 쭉 시범으로 보여주시겠어요? 전체 흐름을 이해하고 싶어요.",
+                "en": "Could you walk me through the entire process from ordering to payment once? I want to understand the full flow."
+              }
+            }
+          ]
+        },
+        {
+          "question_code": "B06",
+          "dimension": "Customer Handling",
+          "is_core": false,
+          "status": "active",
+          "content": {
+            "ko": "당신은 레스토랑 서버입니다. 고객이 주문한 '미디엄 레어' 스테이크가 '웰던'으로 나왔다며 불만을 표합니다. 누가 봐도 주방의 실수인 상황입니다.",
+            "en": "You're a server at a restaurant. A customer complains that the 'medium-rare' steak they ordered came out 'well-done'. It's clearly a mistake from the kitchen."
+          },
+          "choices": [
+            {
+              "label": "A",
+              "content": {
+                "ko": "정말 죄송합니다! 즉시 다시 가져가서 원하시는 굽기로 완벽하게 새로 준비해 드리겠습니다.",
+                "en": "I'm so sorry about that! Let me take this back and get a new one cooked perfectly for you right away."
+              }
+            },
+            {
+              "label": "B",
+              "content": {
+                "ko": "그러셨군요, 확인해 보겠습니다. 우선 주방장님과 상의해서 이 문제를 어떻게 해결해 드리는 게 좋을지 확인하고 오겠습니다.",
+                "en": "I see. Let me check with the chef to see how we can best resolve this for you."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,9 @@
     "lint": "next lint",
     "postinstall": "prisma generate"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed_quiz.ts"
+  },
   "dependencies": {
     "@prisma/client": "^6.10.1",
     "@supabase/auth-ui-react": "^0.4.7",
