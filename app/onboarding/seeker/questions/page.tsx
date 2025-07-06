@@ -9,19 +9,18 @@ import { Button } from "@/components/ui/Button";
 
 const questions = [
   {
-    question:
-      "You're working at a popular downtown café like Tim Hortons. It was quiet, but suddenly the lunch crowd rushes in. The line is out the door, online order alerts are pinging nonstop, and your coworker is calling for help from the milk-steaming station.",
+    question: "You're working a weekend café shift. Which suits you better?",
     options: [
       {
         icon: <Sparkles className="w-8 h-8 mb-2" />,
-        label:
-          "I feel a rush of adrenaline! I get energized by moving quickly and resolving the situation",
+        headline: "사람들과 대화가 좋아요!",
+        description: "손님과 소통하며 일하는 게 즐거워요.",
         value: "talking",
       },
       {
         icon: <BookOpen className="w-8 h-8 mb-2" />,
-        label:
-          " I'll take a deep breath first, and then tackle the most important tasks systematically, one by one.",
+        headline: "조용한 업무가 좋아요!",
+        description: "차분하게 일하는 게 더 편해요.",
         value: "quiet",
       },
     ],
@@ -31,16 +30,34 @@ const questions = [
       "You're on the closing shift at a retail store like Canadian Tire. The credit card machine suddenly freezes and won't process payments. A customer is waiting, and your manager is on an important call in the back office.",
     options: [
       {
-        icon: <Sparkles className="w-8 h-8 mb-2" />,
-        label:
-          "I'll first try to solve it based on my own judgment, like rebooting the terminal. It's more efficient.",
-        value: "talking",
+        icon: <span className="text-3xl mb-2">⚡️</span>,
+        headline: "직접 해결 시도",
+        description: "내 판단으로 먼저 처리해요. (예: 터미널 재부팅)",
+        value: "try",
       },
       {
-        icon: <BookOpen className="w-8 h-8 mb-2" />,
-        label:
-          "I'll look for the manual or ask the customer for a moment of patience and wait until my manager finishes the call.",
-        value: "quiet",
+        icon: <span className="text-3xl mb-2">📖</span>,
+        headline: "매뉴얼/매니저 기다림",
+        description: "매뉴얼을 찾거나 매니저를 기다려요.",
+        value: "wait",
+      },
+    ],
+  },
+  {
+    question:
+      "You're working at a popular downtown café like Tim Hortons. It was quiet, but suddenly the lunch crowd rushes in. The line is out the door, online order alerts are pinging nonstop, and your coworker is calling for help from the milk-steaming station.",
+    options: [
+      {
+        icon: <span className="text-3xl mb-2">🔥</span>,
+        headline: "에너지가 솟아요!",
+        description: "빠르게 움직이며 상황을 해결해요.",
+        value: "rush",
+      },
+      {
+        icon: <span className="text-3xl mb-2">🧘‍♂️</span>,
+        headline: "차분하게 정리",
+        description: "심호흡 후, 하나씩 차근차근 처리해요.",
+        value: "calm",
       },
     ],
   },
@@ -55,12 +72,14 @@ export default function SeekerQuestionsPage() {
 
   function OptionCard({
     icon,
-    label,
+    headline,
+    description,
     selected,
     onClick,
   }: {
     icon: React.ReactNode;
-    label: string;
+    headline: string;
+    description: string;
     selected: boolean;
     onClick: () => void;
   }) {
@@ -68,16 +87,23 @@ export default function SeekerQuestionsPage() {
       <button
         type="button"
         onClick={onClick}
-        className={`aspect-square h-full w-full flex flex-col items-center justify-center rounded-2xl px-2 py-6 transition-all duration-200 transition-transform active:scale-95 relative
+        className={`aspect-[3/4] h-full w-full flex flex-col items-center justify-start rounded-2xl px-2 py-6 transition-all duration-200 transition-transform active:scale-95 relative
           ${selected ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-gray-100 text-gray-400"}`}
       >
-        {icon}
+        <div className="mb-2">{icon}</div>
         <Typography
           as="span"
-          variant="bodyLg"
-          className={`text-center ${selected ? "text-white" : "text-gray-500"}`}
+          variant="titleBold"
+          className={`mb-1 ${selected ? "text-white" : "text-gray-900"}`}
         >
-          {label}
+          {headline}
+        </Typography>
+        <Typography
+          as="span"
+          variant="bodySm"
+          className={`text-center ${selected ? "text-white/80" : "text-gray-500"}`}
+        >
+          {description}
         </Typography>
       </button>
     );
@@ -106,7 +132,8 @@ export default function SeekerQuestionsPage() {
                 <OptionCard
                   key={opt.value}
                   icon={opt.icon}
-                  label={opt.label}
+                  headline={opt.headline}
+                  description={opt.description}
                   selected={selected === opt.value}
                   onClick={() => setSelected(opt.value)}
                 />
