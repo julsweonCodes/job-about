@@ -1,76 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Briefcase, Users, SquarePen, UserRound, AlertTriangle } from "lucide-react";
-import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
 import JobCard, { JobCardJob } from "@/components/common/JobCard";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function EmployerPage() {
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: "Frontend Developer",
-      company: "Tech Corp",
-      location: "Seoul",
-      type: "Full-time",
-      salary: "$50,000 - $70,000",
-      postedDate: "2024-01-15",
-      applications: 12,
-      imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg-Hu63xpLSz-T8LeMQrBt09rk4fhAkts_EQ&s",
-    },
-    {
-      id: 2,
-      title: "UX Designer",
-      company: "Tech Corp",
-      location: "Remote",
-      type: "Contract",
-      salary: "$40,000 - $60,000",
-      postedDate: "2024-01-10",
-      applications: 8,
-      imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_vguO_Tb6WmaoO95UhQL7YGkMORACrcgR2w&s",
-    },
-  ]);
-
-  const [showJobForm, setShowJobForm] = useState(false);
-  const [jobForm, setJobForm] = useState({
-    title: "",
-    description: "",
-    location: "",
-    type: "",
-    salary: "",
-    requirements: "",
-    imageUrl: "",
-  });
-
-  const handleAddJob = () => {
-    const newJob = {
-      id: Date.now(),
-      ...jobForm,
-      company: "Tech Corp",
-      postedDate: new Date().toISOString().split("T")[0],
-      applications: 0,
-      imageUrl: jobForm.imageUrl || "https://randomuser.me/api/portraits/men/32.jpg",
-    };
-    setJobs([...jobs, newJob]);
-    setJobForm({
-      title: "",
-      description: "",
-      location: "",
-      type: "",
-      salary: "",
-      requirements: "",
-      imageUrl: "",
-    });
-    setShowJobForm(false);
-  };
-
   // Stats 예시 데이터
   const stats = [
     { icon: <Briefcase className="w-6 h-6" />, value: 2, label: "Active Jobs" },
@@ -80,8 +19,6 @@ export default function EmployerPage() {
 
   // Stats section에는 Status Update Needed 제외
   const statsForSection = stats.filter((s) => s.label !== "Status Update Needed");
-
-  const router = useRouter();
 
   // Status Update Needed 배너 노출 조건
   const statusUpdateStat = stats.find((s) => s.label === "Status Update Needed");
@@ -134,9 +71,9 @@ export default function EmployerPage() {
           {/* Status Update Needed Banner */}
           <div className="px-4 md:px-8 mt-4">
             {needsUpdate && (
-              <button
+              <Link
                 className="w-full flex items-center gap-2 bg-yellow-100 text-yellow-800 rounded-lg px-4 py-3 font-medium hover:bg-yellow-200 transition cursor-pointer"
-                onClick={() => router.push("/employer/status-update")}
+                href="/employer/status-update"
                 aria-label="Go to status update page"
               >
                 <AlertTriangle className="w-5 h-5 mr-1 text-yellow-800" />
@@ -144,7 +81,7 @@ export default function EmployerPage() {
                   {statusUpdateStat.value} job posts need status update.{" "}
                   <br className="md:hidden" /> Please check!
                 </span>
-              </button>
+              </Link>
             )}
           </div>
 

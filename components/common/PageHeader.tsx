@@ -22,7 +22,7 @@ export default function PageHeader({
         className={`flex items-center justify-center w-8 h-8 ${leftIcon && onClickLeft ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
         tabIndex={leftIcon && onClickLeft ? 0 : -1}
         role={leftIcon && onClickLeft ? "button" : undefined}
-        aria-label={leftIcon ? leftAriaLabel : undefined}
+        aria-label={leftIcon ? "왼쪽 아이콘" : undefined}
         onClick={leftIcon && onClickLeft ? onClickLeft : undefined}
       >
         {leftIcon ? leftIcon : null}
