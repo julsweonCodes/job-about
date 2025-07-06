@@ -6,6 +6,7 @@ import LogoHeader from "@/components/common/LogoHeader";
 import { Card } from "@/components/ui/Card";
 import Typography from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
+import BottomButton from "@/components/common/BottomButton";
 
 interface RoleCardProps {
   selected: boolean;
@@ -25,7 +26,7 @@ function RoleCard({ selected, onClick, icon, title, description }: RoleCardProps
         if (e.key === "Enter" || e.key === " ") onClick();
       }}
       aria-pressed={selected}
-      className={`flex flex-col items-center w-full rounded-xl border px-6 py-7 cursor-pointer text-center relative shadow-md bg-white
+      className={`h-full aspect-square flex flex-col items-center justify-center w-full rounded-xl border px-6 py-7 cursor-pointer text-center relative shadow-md bg-white
         transition-all duration-200
         ${selected ? "border-[#7A73F1] ring-2 ring-[#edeafd]" : "border-gray-200 hover:border-[#a59cf7]"}
         focus:outline-none focus:ring-2 focus:ring-[#a59cf7]
@@ -45,11 +46,12 @@ function RoleCard({ selected, onClick, icon, title, description }: RoleCardProps
       </Typography>
       <Typography
         as="div"
-        variant="bodyLg"
-        className="text-gray-500 mb-2 transition-colors duration-200"
+        variant="titleRegular"
+        className="text-gray-500 mb-2 transition-colors duration-200 hidden md:block"
       >
         {description}
       </Typography>
+
       <span
         className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${selected ? "border-[#7A73F1] bg-[#7A73F1]" : "border-gray-200 bg-white"}`}
       >
@@ -68,14 +70,14 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-gray-50 flex justify-center">
       <div className="w-full max-w-6xl min-h-screen bg-white flex flex-col">
         <LogoHeader className="bg-background-primary" />
-        <main className="flex-1 flex flex-col items-center justify-center">
+        <main className="flex sm:flex-1 flex-col items-center justify-center">
           <section className="w-full max-w-2xl bg-white rounded-xl p-5 flex flex-col items-center">
-            <Typography as="h1" variant="headlineLg" className="text-center mb-3 mt-2">
+            <Typography as="h1" variant="headlineMd" className="text-center mb-5 md:text-3xl">
               Select your role
             </Typography>
             <Typography
               as="p"
-              variant="titleRegular"
+              variant="bodyLg"
               className="text-gray-500 text-center mb-10 max-w-xs mx-auto"
             >
               A job matching platform for international students
@@ -85,7 +87,7 @@ export default function OnboardingPage() {
             </Typography>
 
             {/* Role Selection Cards */}
-            <div className="w-full grid gap-4 md:grid-cols-2 mb-8">
+            <div className="w-full grid gap-4 grid-cols-2 mb-8 items-stretch">
               <RoleCard
                 selected={selected === "seeker"}
                 onClick={() => setSelected("seeker")}
@@ -109,12 +111,11 @@ export default function OnboardingPage() {
                 description="Connect with talented international students and working holiday participants."
               />
             </div>
-
-            {/* 확인 버튼 */}
+            {/* 데스크탑 확인 버튼 */}
             <Button
               type="button"
               size="lg"
-              className="shadow-md"
+              className="shadow-md hidden md:block"
               onClick={() => {
                 if (selected === "seeker") {
                   window.location.href = "/onboarding/seeker/profile";
@@ -127,6 +128,23 @@ export default function OnboardingPage() {
             </Button>
           </section>
         </main>
+        {/* 모바일 확인 버튼 */}
+        <div className="block md:hidden">
+          <BottomButton
+            type="button"
+            size="lg"
+            className="shadow-md"
+            onClick={() => {
+              if (selected === "seeker") {
+                window.location.href = "/onboarding/seeker/profile";
+              } else {
+                window.location.href = "/onboarding/employer/profile";
+              }
+            }}
+          >
+            Confirm
+          </BottomButton>
+        </div>
       </div>
     </div>
   );
