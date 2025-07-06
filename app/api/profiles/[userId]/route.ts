@@ -1,3 +1,4 @@
+import { ProfileDto, profileDtoToCreateData, profileDtoToUpdateData } from '@/types/profile';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -44,11 +45,9 @@ export const GET = async (request: NextRequest,
 
 export const PUT = async (request: NextRequest,
     { params: { userId } }: { params: { userId: string } }) => {
-    const body: Prisma.profilesCreateInput = await request.json();
-    const { skill_id1, ...rest } = body;
+    const body: ProfileDto = await request.json();
 
     try {
-
         const user = await prisma.users.findUnique({
             where: { id: BigInt(userId) }
         });
@@ -65,23 +64,15 @@ export const PUT = async (request: NextRequest,
         });
 
         if (profile) {
-            const updated = await prisma.profiles.updateManyAndReturn({
+            const updated = await prisma.profiles.update({
                 where: { id: profile.id },
-                data: {
-                    ...rest,
-                    updated_at: new Date(),
-                },
+                data: profileDtoToUpdateData(body)
             });
-
             return NextResponse.json(parseBigInt(updated));
         } else {
             const created = await prisma.profiles.create({
                 data: {
-                    ...rest,
-                    user: { connect: { id: BigInt(userId) } },
-                    skill1: { connect: { id: BigInt(skill_id1) } },
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    ...profileDtoToCreateData(body, userId)
                 },
             });
 
@@ -95,7 +86,6 @@ export const PUT = async (request: NextRequest,
                 { status: 400 }
             );
         }
-
         return NextResponse.json(
             { error: "Internal Server Error" },
             { status: 500 }
