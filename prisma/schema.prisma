@@ -16,26 +16,199 @@ model test {
   content    String?
 }
 
+model users {
+  id                BigInt            @id @default(autoincrement())
+  users_id          String            @db.VarChar(255)
+  name              String            @db.VarChar(100)
+  phone_number      String?           @db.VarChar(20)
+  email             String            @db.VarChar(255)
+  img_url           String?           @db.VarChar(2048)
+  job_fit_type_id_1 BigInt?
+  job_fit_type_id_2 BigInt?
+  job_fit_type_id_3 BigInt?
+  role              Role
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  deleted_at        DateTime?         @db.Timestamptz(6)
+  updated_at        DateTime          @default(now()) @db.Timestamptz(6)
+  bookmarked_jobs   bookmarked_jobs[]
+  business_locs     business_loc[]
+  job_posts         job_posts[]
+  profiles          profiles[]
+  jobFit1           job_fit_types?    @relation("UserFit1", fields: [job_fit_type_id_1], references: [id], onDelete: Restrict)
+  jobFit2           job_fit_types?    @relation("UserFit2", fields: [job_fit_type_id_2], references: [id], onDelete: Restrict)
+  jobFit3           job_fit_types?    @relation("UserFit3", fields: [job_fit_type_id_3], references: [id], onDelete: Restrict)
+}
+
+model business_loc {
+  id              BigInt        @id @default(autoincrement())
+  name            String        @db.VarChar(100)
+  phone_number    String        @db.VarChar(20)
+  address         String        @db.VarChar(255)
+  operating_start String        @db.VarChar(20)
+  operating_end   String        @db.VarChar(20)
+  logo_url        String        @db.VarChar(2048)
+  img_url1        String        @db.VarChar(2048)
+  img_url2        String        @db.VarChar(2048)
+  img_url3        String        @db.VarChar(2048)
+  img_url4        String        @db.VarChar(2048)
+  img_url5        String        @db.VarChar(2048)
+  language_level  LanguageLevel
+  description     String
+  user_id         BigInt
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  deleted_at      DateTime?     @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  user            users         @relation(fields: [user_id], references: [id])
+  job_posts       job_posts[]
+}
+
+model profiles {
+  id               BigInt             @id @default(autoincrement())
+  user_id          BigInt
+  job_type1        JobType
+  job_type2        JobType?
+  job_type3        JobType?
+  work_type        WorkType
+  available_day    AvailableDay
+  available_hour   AvailableHour
+  location         Location
+  language_level   LanguageLevel
+  description      String             @unique
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @default(now()) @db.Timestamptz(6)
+  deleted_at       DateTime?          @db.Timestamptz(6)
+  skill_id1        BigInt
+  skill_id2        BigInt?
+  skill_id3        BigInt?
+  applications     applications[]
+  skill1           skills             @relation("ProfileSkill1", fields: [skill_id1], references: [id])
+  skill2           skills?            @relation("ProfileSkill2", fields: [skill_id2], references: [id], onDelete: Restrict)
+  skill3           skills?            @relation("ProfileSkill3", fields: [skill_id3], references: [id], onDelete: Restrict)
+  user             users              @relation(fields: [user_id], references: [id])
+  work_experiences work_experiences[]
+}
+
+model work_experiences {
+  id           BigInt    @id @default(autoincrement())
+  profile_id   BigInt
+  company_name String    @db.VarChar(100)
+  job_type     JobType
+  start_date   DateTime  @db.Timestamptz(6)
+  end_date     DateTime  @db.Timestamptz(6)
+  work_type    WorkType
+  description  String?
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  profile      profiles  @relation(fields: [profile_id], references: [id])
+}
+
+model skills {
+  id         BigInt      @id @unique @default(autoincrement())
+  name       String      @db.VarChar(50)
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime?   @db.Timestamptz(6)
+  updated_at DateTime    @default(now()) @db.Timestamptz(6)
+  job1       job_posts[] @relation("JobSkill1")
+  job2       job_posts[] @relation("JobSkill2")
+  job3       job_posts[] @relation("JobSkill3")
+  profile1   profiles[]  @relation("ProfileSkill1")
+  profile2   profiles[]  @relation("ProfileSkill2")
+  profile3   profiles[]  @relation("ProfileSkill3")
+}
+
+model job_fit_types {
+  id         BigInt      @id @default(autoincrement())
+  name       String      @db.VarChar(50)
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime?   @db.Timestamptz(6)
+  updated_at DateTime    @default(now()) @db.Timestamptz(6)
+  jobFit1    job_posts[] @relation("JobFit1")
+  jobFit2    job_posts[] @relation("JobFit2")
+  jobFit3    job_posts[] @relation("JobFit3")
+  userFit1   users[]     @relation("UserFit1")
+  userFit2   users[]     @relation("UserFit2")
+  userFit3   users[]     @relation("UserFit3")
+}
+
+model job_posts {
+  id               BigInt            @id @default(autoincrement())
+  business_loc_id  BigInt
+  user_id          BigInt
+  title            String            @db.VarChar(100)
+  job_type         JobType
+  deadline         DateTime          @db.Timestamptz(6)
+  work_schedule    String            @db.VarChar(100)
+  wage             Float
+  location         Location
+  description      String
+  status           JobStatus
+  created_at       DateTime          @default(now()) @db.Timestamptz(6)
+  deleted_at       DateTime?         @db.Timestamptz(6)
+  job_fit_type_id1 BigInt
+  job_fit_type_id2 BigInt
+  job_fit_type_id3 BigInt
+  skill_id1        BigInt
+  skill_id2        BigInt
+  skill_id3        BigInt
+  updated_at       DateTime          @default(now()) @db.Timestamptz(6)
+  applications     applications[]
+  bookmarked_jobs  bookmarked_jobs[]
+  business_loc     business_loc      @relation(fields: [business_loc_id], references: [id])
+  jobFit1          job_fit_types     @relation("JobFit1", fields: [job_fit_type_id1], references: [id])
+  jobFit2          job_fit_types     @relation("JobFit2", fields: [job_fit_type_id2], references: [id])
+  jobFit3          job_fit_types     @relation("JobFit3", fields: [job_fit_type_id3], references: [id])
+  skill1           skills            @relation("JobSkill1", fields: [skill_id1], references: [id])
+  skill2           skills            @relation("JobSkill2", fields: [skill_id2], references: [id])
+  skill3           skills            @relation("JobSkill3", fields: [skill_id3], references: [id])
+  user             users             @relation(fields: [user_id], references: [id])
+}
+
+model applications {
+  id          BigInt            @id @default(autoincrement())
+  job_post_id BigInt
+  profile_id  BigInt
+  status      ApplicationStatus
+  reg_date    DateTime          @db.Timestamptz(6)
+  chg_date    DateTime          @db.Timestamptz(6)
+  created_at  DateTime          @default(now()) @db.Timestamptz(6)
+  deleted_at  DateTime?         @db.Timestamptz(6)
+  updated_at  DateTime          @default(now()) @db.Timestamptz(6)
+  job_post    job_posts         @relation(fields: [job_post_id], references: [id])
+  profile     profiles          @relation(fields: [profile_id], references: [id])
+}
+
+model bookmarked_jobs {
+  id          BigInt    @id @default(autoincrement())
+  user_id     BigInt
+  job_post_id BigInt
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at  DateTime? @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  job_post    job_posts @relation(fields: [job_post_id], references: [id])
+  user        users     @relation(fields: [user_id], references: [id])
+}
+
 enum Role {
-  applicant
-  employer
+  APPLICANT
+  EMPLOYER
 }
 
 enum LanguageLevel {
-  beginner
-  intermediate
-  fluent
+  BEGINNER
+  INTERMEDIATE
+  FLUENT
 }
 
 enum WorkType {
-  remote
-  on_site
-  hybrid
+  REMOTE
+  ON_SITE
+  HYBRID
 }
 
 enum AvailableDay {
-  weekdays
-  weekends
+  WEEKDAYS
+  WEEKENDS
 }
 
 enum AvailableHour {
@@ -44,218 +217,70 @@ enum AvailableHour {
 }
 
 enum Location {
-  city1
-  city2
+  TORONTO
+  NORTH_YORK
+  SCARBOROUGH
+  ETOBICOKE
+  MISSISSAUGA
+  BRAMPTON
+  VAUGHAN
+  RICHMOND_HILL
+  MARKHAM
+  THORNHILL
+  PICKERING
+  AJAX
+  WHITBY
+  OSHAWA
+  OAKVILLE
+  BURLINGTON
+  MILTON
+  NEWHAMBURG
 }
 
 enum JobType {
-  server
-  kitchen
-  delivery
+  SERVER
+  KITCHEN
+  DELIVERY
+  CASHIER
+  CLEANING
+  CUSTOMER_SERVICE
+  SALES
+  DRIVER
+  RECEPTIONIST
+  SECURITY
+  MANAGER
+  BARISTA
+  CHEF
+  STOCKER
+  TECH_SUPPORT
+  WAREHOUSE
+  ACCOUNTANT
+  MARKETING
+  HR
+  DESIGNER
+  DEVELOPER
+  ENGINEER
+  TEACHER
+  TRANSLATOR
+  PHARMACIST
+  NURSE
+  DOCTOR
+  FARMER
+  ELECTRICIAN
+  PLUMBER
+  JANITOR
 }
 
 enum JobStatus {
-  draft
-  published
-  closed
+  DRAFT
+  PUBLISHED
+  CLOSED
 }
 
 enum ApplicationStatus {
-  applied
-  in_review
-  rejected
-  withdrawn
-  hired
+  APPLIED
+  IN_REVIEW
+  REJECTED
+  WITHDRAWN
+  HIRED
 }
-
-model users {
-  id                  BigInt     @id @default(autoincrement()) @db.BigInt
-  users_id            String     @db.VarChar(255)
-  name                String     @db.VarChar(100)
-  phone_number        String     @db.VarChar(20)
-  email               String     @db.VarChar(255)
-  img_url             String     @db.VarChar(2048)
-  job_fit_type_id_1   BigInt
-  job_fit_type_id_2   BigInt
-  job_fit_type_id_3   BigInt
-  role                Role
-
-  jobFit1             job_fit_types @relation("UserFit1", fields: [job_fit_type_id_1], references: [id])
-  jobFit2             job_fit_types @relation("UserFit2", fields: [job_fit_type_id_2], references: [id])
-  jobFit3             job_fit_types @relation("UserFit3", fields: [job_fit_type_id_3], references: [id])
-
-  profiles            profiles[]
-  bookmarked_jobs     bookmarked_jobs[]
-  job_posts           job_posts[]
-  business_locs       business_loc[]
-
-  createdAt           DateTime   @default(now()) @db.Timestamptz
-  updatedAt           DateTime   @updatedAt @db.Timestamptz
-  deletedAt           DateTime?  @db.Timestamptz
-}
-
-model business_loc {
-  id               BigInt       @id @default(autoincrement()) @db.BigInt
-  name             String       @db.VarChar(100)
-  phone_number     String       @db.VarChar(20)
-  address          String       @db.VarChar(255)
-  operating_start  String       @db.VarChar(20)
-  operating_end    String       @db.VarChar(20)
-  logo_url         String       @db.VarChar(2048)
-  img_url1         String       @db.VarChar(2048)
-  img_url2         String       @db.VarChar(2048)
-  img_url3         String       @db.VarChar(2048)
-  img_url4         String       @db.VarChar(2048)
-  img_url5         String       @db.VarChar(2048)
-  language_level   LanguageLevel
-  description      String       @db.Text
-  user_id          BigInt
-  user             users        @relation(fields: [user_id], references: [id])
-
-  job_posts        job_posts[]
-
-  createdAt        DateTime     @default(now()) @db.Timestamptz
-  updatedAt        DateTime     @updatedAt @db.Timestamptz
-  deletedAt        DateTime?    @db.Timestamptz
-}
-
-model profiles {
-  id              BigInt        @id @default(autoincrement()) @db.BigInt
-  user_id         BigInt
-  user            users         @relation(fields: [user_id], references: [id])
-  skill_id_1      BigInt
-  skill_id_2      BigInt
-  skill_id_3      BigInt
-  skill1          skills        @relation("ProfileSkill1", fields: [skill_id_1], references: [id])
-  skill2          skills        @relation("ProfileSkill2", fields: [skill_id_2], references: [id])
-  skill3          skills        @relation("ProfileSkill3", fields: [skill_id_3], references: [id])
-  job_type1       JobType
-  job_type2       JobType
-  job_type3       JobType
-  work_type       WorkType
-  available_day   AvailableDay
-  available_hour  AvailableHour
-  location        Location
-  language_level  LanguageLevel
-  description     String        @db.Text
-
-  applications     applications[]
-  work_experiences work_experiences[]
-
-  createdAt        DateTime     @default(now()) @db.Timestamptz
-  updatedAt        DateTime     @updatedAt @db.Timestamptz
-  deletedAt        DateTime?    @db.Timestamptz
-}
-
-model work_experiences {
-  id            BigInt      @id @default(autoincrement()) @db.BigInt
-  profile_id    BigInt
-  profile       profiles    @relation(fields: [profile_id], references: [id])
-  company_name  String      @db.VarChar(100)
-  job_type      JobType
-  start_date    DateTime    @db.Timestamptz
-  end_date      DateTime    @db.Timestamptz
-  work_type     WorkType
-  description   String      @db.Text
-
-  createdAt     DateTime    @default(now()) @db.Timestamptz
-  updatedAt     DateTime    @updatedAt @db.Timestamptz
-  deletedAt     DateTime?   @db.Timestamptz
-}
-
-model skills {
-  id        BigInt      @id @default(autoincrement()) @db.BigInt
-  name      String      @db.VarChar(50)
-
-  profile1  profiles[]  @relation("ProfileSkill1")
-  profile2  profiles[]  @relation("ProfileSkill2")
-  profile3  profiles[]  @relation("ProfileSkill3")
-  job1      job_posts[] @relation("JobSkill1")
-  job2      job_posts[] @relation("JobSkill2")
-  job3      job_posts[] @relation("JobSkill3")
-
-  createdAt DateTime    @default(now()) @db.Timestamptz
-  updatedAt DateTime    @updatedAt @db.Timestamptz
-  deletedAt DateTime?   @db.Timestamptz
-}
-
-model job_fit_types {
-  id        BigInt       @id @default(autoincrement()) @db.BigInt
-  name      String       @db.VarChar(50)
-
-  userFit1  users[]      @relation("UserFit1")
-  userFit2  users[]      @relation("UserFit2")
-  userFit3  users[]      @relation("UserFit3")
-  jobFit1   job_posts[]  @relation("JobFit1")
-  jobFit2   job_posts[]  @relation("JobFit2")
-  jobFit3   job_posts[]  @relation("JobFit3")
-
-  createdAt DateTime     @default(now()) @db.Timestamptz
-  updatedAt DateTime     @updatedAt @db.Timestamptz
-  deletedAt DateTime?    @db.Timestamptz
-}
-
-model job_posts {
-  id                BigInt       @id @default(autoincrement()) @db.BigInt
-  business_loc_id   BigInt
-  user_id           BigInt
-  title             String       @db.VarChar(100)
-  job_type          JobType
-  deadline          DateTime     @db.Timestamptz
-  work_schedule     String       @db.VarChar(100)
-  job_fit_type_id_1 BigInt
-  job_fit_type_id_2 BigInt
-  job_fit_type_id_3 BigInt
-  skill_id_1        BigInt
-  skill_id_2        BigInt
-  skill_id_3        BigInt
-  wage              Float
-  location          Location
-  description       String       @db.Text
-  status            JobStatus
-
-  business_loc      business_loc @relation(fields: [business_loc_id], references: [id])
-  user              users        @relation(fields: [user_id], references: [id])
-  jobFit1           job_fit_types @relation("JobFit1", fields: [job_fit_type_id_1], references: [id])
-  jobFit2           job_fit_types @relation("JobFit2", fields: [job_fit_type_id_2], references: [id])
-  jobFit3           job_fit_types @relation("JobFit3", fields: [job_fit_type_id_3], references: [id])
-  skill1            skills        @relation("JobSkill1", fields: [skill_id_1], references: [id])
-  skill2            skills        @relation("JobSkill2", fields: [skill_id_2], references: [id])
-  skill3            skills        @relation("JobSkill3", fields: [skill_id_3], references: [id])
-  applications      applications[]
-  bookmarked_jobs   bookmarked_jobs[]
-
-  createdAt         DateTime     @default(now()) @db.Timestamptz
-  updatedAt         DateTime     @updatedAt @db.Timestamptz
-  deletedAt         DateTime?    @db.Timestamptz
-}
-
-model applications {
-  id            BigInt           @id @default(autoincrement()) @db.BigInt
-  job_post_id   BigInt
-  profile_id    BigInt
-  status        ApplicationStatus
-  reg_date      DateTime         @db.Timestamptz
-  chg_date      DateTime         @db.Timestamptz
-
-  job_post      job_posts        @relation(fields: [job_post_id], references: [id])
-  profile       profiles         @relation(fields: [profile_id], references: [id])
-
-  createdAt     DateTime         @default(now()) @db.Timestamptz
-  updatedAt     DateTime         @updatedAt @db.Timestamptz
-  deletedAt     DateTime?        @db.Timestamptz
-}
-
-model bookmarked_jobs {
-  id            BigInt        @id @default(autoincrement()) @db.BigInt
-  user_id       BigInt
-  job_post_id   BigInt
-
-  user          users         @relation(fields: [user_id], references: [id])
-  job_post      job_posts     @relation(fields: [job_post_id], references: [id])
-
-  createdAt     DateTime      @default(now()) @db.Timestamptz
-  updatedAt     DateTime      @updatedAt @db.Timestamptz
-  deletedAt     DateTime?     @db.Timestamptz
-}
-
