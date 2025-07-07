@@ -45,3 +45,7 @@
     @apply sm:px-4 sm:py-3 sm:text-base; /* 데스크탑(sm 이상) */
   }
 }
+
+.rdp-root {
+  --rdp-accent-color: black !important;
+}

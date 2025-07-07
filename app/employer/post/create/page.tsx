@@ -13,10 +13,12 @@ import {
   SelectItem,
 } from "@/components/ui/Select";
 import TextArea from "@/components/ui/TextArea";
-import { Switch } from "@/components/ui/Switch";
-import { useRouter } from "next/navigation";
 import PageHeader from "@/components/common/PageHeader";
 import ProgressBar from "@/components/common/ProgressBar";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+import { Dialog } from "@/components/common/Dialog";
+import { enUS } from "date-fns/locale";
 
 const JOB_TYPES = ["Server", "Kitchen Help", "Delivery", "Cashier", "Other"];
 const LOCATIONS = [
@@ -39,10 +41,10 @@ const LANGUAGE_LEVELS = [
 ];
 
 export default function JobPostCreatePage() {
-  const router = useRouter();
   const [jobTitle, setJobTitle] = useState("");
   const [jobType, setJobType] = useState<string[]>([]);
-  const [deadline, setDeadline] = useState("");
+  const [tempDeadline, setTempDeadline] = useState<Date | undefined>(undefined);
+  const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [workSchedule, setWorkSchedule] = useState("");
   const [skills, setSkills] = useState("");
   const [personality, setPersonality] = useState("");
@@ -50,9 +52,16 @@ export default function JobPostCreatePage() {
   const [location, setLocation] = useState("");
   const [languageLevel, setLanguageLevel] = useState("");
   const [description, setDescription] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const handleJobTypeClick = (type: string) => {
     setJobType((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
+  };
+
+  // 캘린더 열 때마다 tempDeadline 초기화
+  const openCalendar = () => {
+    setTempDeadline(deadline);
+    setCalendarOpen(true);
   };
 
   // 진행률 계산 (총 10개)
@@ -69,6 +78,18 @@ export default function JobPostCreatePage() {
   if (languageLevel) filledCount++;
   if (description) filledCount++;
   const progressPercent = Math.round((filledCount / totalFields) * 100);
+
+  const isFormValid =
+    jobTitle &&
+    jobType.length > 0 &&
+    deadline &&
+    workSchedule &&
+    skills &&
+    personality &&
+    wage &&
+    location &&
+    languageLevel &&
+    description;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -112,10 +133,50 @@ export default function JobPostCreatePage() {
                 Deadline for applications
               </Typography>
               <Input
-                placeholder="e.g., August 15"
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
+                readOnly
+                placeholder="Select Date"
+                className="cursor-pointer"
+                value={
+                  deadline
+                    ? deadline.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : ""
+                }
+                onClick={openCalendar}
               />
+              {/* 날짜 선택 다이얼로그 */}
+              <Dialog open={calendarOpen} onClose={() => setCalendarOpen(false)} type="bottomSheet">
+                <div>
+                  <div className="p-4 md:p-6">
+                    <DayPicker
+                      animate
+                      mode="single"
+                      selected={tempDeadline}
+                      onSelect={setTempDeadline}
+                      locale={enUS}
+                      navLayout="around"
+                      modifiersClassNames={{
+                        selected: "bg-indigo-500 text-white rounded-2xl",
+                        today: "font-bold rounded-2xl",
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    className="w-full mt-4"
+                    onClick={() => {
+                      setDeadline(tempDeadline);
+                      setCalendarOpen(false);
+                    }}
+                    disabled={!tempDeadline}
+                  >
+                    Select
+                  </Button>
+                </div>
+              </Dialog>
             </div>
             <div>
               <Typography variant="titleBold" className="mb-1">
@@ -193,15 +254,16 @@ export default function JobPostCreatePage() {
               </div>
             </div>
             <div>
-              <Typography variant="titleBold" className="mb-1">
-                Job Description
-              </Typography>
+              <Typography variant="titleBold">Job Description</Typography>
               <TextArea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
               />
             </div>
+            <Button size="lg" disabled={!isFormValid}>
+              Post with AI
+            </Button>
           </form>
         </div>
       </div>
