@@ -11,6 +11,7 @@ import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import Checkbox from "@/components/ui/Checkbox";
 import LogoHeader from "@/components/common/LogoHeader";
 import ProgressBar from "@/components/common/ProgressBar";
+import { Chip } from "@/components/ui/Chip";
 
 export default function EmployerProfilePage() {
   const [companyName, setCompanyName] = useState("");
@@ -159,21 +160,18 @@ export default function EmployerProfilePage() {
                 </label>
                 <div className="flex gap-2">
                   {["Basic English", "Intermediate", "Bilingual"].map((level) => (
-                    <button
+                    <Chip
                       key={level}
-                      type="button"
+                      selected={languageLevel === level}
                       onClick={() => {
                         setLanguageLevel(level);
                         setTouched((t) => ({ ...t, languageLevel: true }));
                       }}
-                      className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
-                        languageLevel === level
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
+                      size="md"
+                      variant="default"
                     >
                       {level}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
                 {touched.languageLevel && !languageLevel && (

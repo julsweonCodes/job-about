@@ -91,7 +91,11 @@ export default function JobPostCreatePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto bg-white min-h-screen">
-        <PageHeader title={"Generate a Job Post with AI"} leftIcon={<ArrowLeftIcon />} />
+        <PageHeader
+          title={"Generate a Job Post with AI"}
+          leftIcon={<ArrowLeftIcon />}
+          onClickLeft={() => window.history.back()}
+        />
         <div className="sticky top-14 z-20 bg-white px-4 md:px-8 py-2 border-b border-gray-100">
           <ProgressBar value={progressPercent} className="mb-4" />
         </div>

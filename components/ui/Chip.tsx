@@ -7,8 +7,7 @@ const chipVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-background-primary text-text-secondary border border-background-secondary hover:bg-background-tertiary",
+        default: "border-transparent bg-gray-100 text-gray-900 hover:bg-gray-200",
         solid:
           "bg-gradient-to-r from-accent1 to-accent2 text-white border-transparent hover:opacity-90",
         outline: "bg-white text-text-primary border border-background-secondary",
