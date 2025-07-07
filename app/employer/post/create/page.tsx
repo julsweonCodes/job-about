@@ -101,7 +101,6 @@ export default function JobPostCreatePage() {
                     key={type}
                     type="button"
                     variant={jobType.includes(type) ? "default" : "outline"}
-                    className={`flex items-center gap-2 ${jobType.includes(type) ? "bg-black text-white" : ""}`}
                     onClick={() => handleJobTypeClick(type)}
                   >
                     {type}
