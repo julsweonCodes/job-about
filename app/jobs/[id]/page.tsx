@@ -1,237 +1,231 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/useAuthStore";
+import React, { useState } from "react";
 import PageHeader from "@/components/common/PageHeader";
-import BottomButton from "@/components/common/BottomButton";
-import Typography from "@/components/ui/Typography";
-import { Card } from "@/components/ui/Card";
 import {
-  Bookmark,
-  Trash,
-  ArrowLeft,
   MapPin,
-  Calendar,
   DollarSign,
-  Briefcase,
-  Building,
+  Clock,
+  Calendar,
+  Heart,
+  Bookmark,
+  Building2,
+  Star,
+  ChevronLeft,
 } from "lucide-react";
-import React from "react";
-import { Button } from "@/components/ui/Button";
 
-// 임시 mock 데이터 (실제 API 연동 시 교체)
-const mockJob = {
-  id: "1",
-  title: "Server - Full Time",
-  company: "Starbucks",
-  location: "Gangnam, Seoul",
-  wage: "₩12,000/hr",
-  schedule: "Flexible, 10-20 hrs/week",
+const jobDetails = {
+  title: "Cashier",
+  company: "Fresh Market Grocery",
+  rating: 4.5,
+  location: "123 Main St, Anytown",
+  hourlyWage: "$15/hr",
+  schedule: "Flexible, 10–20 hrs/week",
   deadline: "August 15",
   description:
     "Join our team as a friendly cashier! You'll handle transactions, assist customers, and keep the store tidy. No experience needed, just a positive attitude and willingness to learn. Perfect for students or those seeking a flexible schedule.",
-  companyImages: [
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_vguO_Tb6WmaoO95UhQL7YGkMORACrcgR2w&s",
+  companyPhotos: [
+    "https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
+    "https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
+    "https://images.pexels.com/photos/2292837/pexels-photo-2292837.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
+    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
+    "https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
   ],
-  locationImages: ["https://example.com/location1.jpg", "https://example.com/location2.jpg"],
-  type: "Part-Time",
-  applicants: 12,
-  views: 89,
 };
 
-export default function JobDetailPage() {
-  const router = useRouter();
-  const { appUser } = useAuthStore();
-  const role = appUser?.role;
+const jobDetailItems = [
+  {
+    icon: MapPin,
+    label: "Location",
+    value: jobDetails.location,
+    color: "text-red-500",
+  },
+  {
+    icon: DollarSign,
+    label: "Hourly Wage",
+    value: jobDetails.hourlyWage,
+    color: "text-green-500",
+  },
+  {
+    icon: Clock,
+    label: "Schedule",
+    value: jobDetails.schedule,
+    color: "text-blue-500",
+  },
+  {
+    icon: Calendar,
+    label: "Application Deadline",
+    value: jobDetails.deadline,
+    color: "text-orange-500",
+  },
+];
 
-  // 헤더 우측 아이콘 및 클릭 핸들러 분기
-  const rightIcon =
-    role === "employer" ? (
-      <Trash className="w-5 h-5 md:w-6 md:h-6" />
-    ) : (
-      <Bookmark className="w-5 h-5 md:w-6 md:h-6" />
-    );
-  const handleRightClick = () => {
-    if (role === "employer") {
-      // 삭제 로직
-      alert("삭제 기능 (구현 예정)");
-    } else {
-      // 북마크 로직
-      alert("북마크 기능 (구현 예정)");
-    }
-  };
-
-  // 모바일 하단 버튼 분기
-  const getMobileBottomButton = () => {
-    if (role === "employer") {
-      return (
-        <BottomButton
-          type="button"
-          size="lg"
-          className="shadow-md"
-          onClick={() => router.push(`/jobs/${mockJob.id}/edit`)}
-        >
-          Edit
-        </BottomButton>
-      );
-    } else {
-      return (
-        <BottomButton
-          type="button"
-          size="lg"
-          className="shadow-md"
-          onClick={() => alert("지원하기 (구현 예정)")}
-        >
-          Apply
-        </BottomButton>
-      );
-    }
-  };
-
+function JobDetailCard({
+  icon: Icon,
+  label,
+  value,
+  color,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  color: string;
+}) {
   return (
-    <div className="min-h-screen bg-gray-50 font-pretendard">
-      <div className="md:max-w-6xl mx-auto bg-white min-h-screen">
-        {/* Header */}
-        <PageHeader
-          title="job:about"
-          leftIcon={<ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />}
-          onClickLeft={() => router.back()}
-          rightIcon={rightIcon}
-          onClickRight={handleRightClick}
-        />
-        <main className="flex flex-col gap-6 px-5 md:px-8 pb-20">
-          {/* Job Title & Company Section */}
-          <section className="mt-4">
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <Building className="w-8 h-8 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <Typography variant="headlineMd" className="font-bold text-gray-900 mb-1">
-                    {mockJob.title}
-                  </Typography>
-                  <Typography variant="bodyLg" className="text-gray-600 mb-2">
-                    {mockJob.company}
-                  </Typography>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
-                      {mockJob.type}
-                    </span>
-                    <span className="text-gray-500 text-sm">
-                      {mockJob.applicants} applicants • {mockJob.views} views
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Job Details */}
-          <section>
-            <Typography
-              variant="headlineMd"
-              className="text-xl md:text-2xl font-bold text-gray-900 mb-4"
-            >
-              Job Details
-            </Typography>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="flex items-center gap-4 p-4">
-                <MapPin className="w-6 h-6 text-purple-600" />
-                <div>
-                  <Typography variant="bodySm" className="font-semibold text-gray-900">
-                    Location
-                  </Typography>
-                  <Typography variant="bodySm" className="text-gray-600">
-                    {mockJob.location}
-                  </Typography>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-4 p-4">
-                <DollarSign className="w-6 h-6 text-purple-600" />
-                <div>
-                  <Typography variant="bodySm" className="font-semibold text-gray-900">
-                    Hourly Wage
-                  </Typography>
-                  <Typography variant="bodySm" className="text-gray-600">
-                    {mockJob.wage}
-                  </Typography>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-4 p-4">
-                <Calendar className="w-6 h-6 text-purple-600" />
-                <div>
-                  <Typography variant="bodySm" className="font-semibold text-gray-900">
-                    Schedule
-                  </Typography>
-                  <Typography variant="bodySm" className="text-gray-600">
-                    {mockJob.schedule}
-                  </Typography>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-4 p-4">
-                <Briefcase className="w-6 h-6 text-purple-600" />
-                <div>
-                  <Typography variant="bodySm" className="font-semibold text-gray-900">
-                    Deadline
-                  </Typography>
-                  <Typography variant="bodySm" className="text-gray-600">
-                    {mockJob.deadline}
-                  </Typography>
-                </div>
-              </Card>
-            </div>
-          </section>
-
-          {/* Job Description */}
-          <section className="p-4 md:p-8 bg-gradient-to-b from-purple-50 to-white">
-            <div className="flex items-center mb-4">
-              <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" />
-              <Typography
-                variant="headlineMd"
-                className="text-xl md:text-2xl font-bold text-gray-900"
-              >
-                Job Description
-              </Typography>
-            </div>
-            <Typography variant="bodyLg" className="text-gray-700 leading-relaxed mb-6">
-              {mockJob.description}
-            </Typography>
-          </section>
-
-          {/* Company & Location Images */}
-          <section>
-            <div className="space-y-6">
-              {/* Company Images */}
-              {mockJob.companyImages && mockJob.companyImages.length > 0 && (
-                <div>
-                  <Typography
-                    variant="titleBold"
-                    className="text-lg font-semibold text-gray-900 mb-3"
-                  >
-                    Company
-                  </Typography>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mockJob.companyImages.map((imageUrl, index) => (
-                      <div key={index} className="rounded-2xl overflow-hidden shadow-sm">
-                        <img
-                          src={imageUrl}
-                          alt={`Company image ${index + 1}`}
-                          width={400}
-                          height={300}
-                          className="w-full h-48 md:h-64 object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        </main>
+    <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-soft border border-gray-100">
+      <div className="flex items-center space-x-3 lg:space-x-4">
+        <div className={`p-2 lg:p-3 rounded-xl bg-gray-50 ${color}`}>
+          <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm lg:text-base font-medium text-gray-500 mb-1">{label}</p>
+          <p className="text-base lg:text-lg font-semibold text-gray-900">{value}</p>
+        </div>
       </div>
-
-      {/* 모바일 하단 버튼 */}
-      <div className="block md:hidden">{getMobileBottomButton()}</div>
     </div>
   );
 }
+
+const JobDetailPage: React.FC = () => {
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 font-pretendard">
+      <div className="md:max-w-6xl mx-auto bg-white min-h-screen">
+        <PageHeader
+          leftIcon={<ChevronLeft className="w-6 h-6 text-gray-700" />}
+          onClickLeft={handleBack}
+          rightIcon={<Bookmark className="w-5 h-5 md:w-6 md:h-6" />}
+          onClickRight={() => {}}
+        />
+        {/* Job Header */}
+        <div className="bg-white px-5 lg:px-8 py-6 lg:py-8 border-b border-gray-100">
+          <div className="flex items-start space-x-4 lg:space-x-6">
+            <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-1 lg:mb-2">
+                {jobDetails.title}
+              </h1>
+              <p className="text-lg lg:text-xl text-gray-600 mb-2 lg:mb-3">{jobDetails.company}</p>
+              <div className="flex items-center space-x-1">
+                <Star className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-400 fill-yellow-400" />
+                <span className="text-sm lg:text-base font-medium text-gray-700">
+                  {jobDetails.rating}
+                </span>
+                <span className="text-sm lg:text-base text-gray-500">(124 reviews)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Main Content - Responsive Layout */}
+        <div className="mx-auto px-5 lg:px-8 py-6 lg:py-8 bg-gray-50">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start">
+            {/* Left Column - Job Details */}
+            <div className="space-y-6 lg:space-y-8">
+              {/* Job Details Cards */}
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">
+                  Job Details
+                </h2>
+                <div className="space-y-3 lg:space-y-4">
+                  {jobDetailItems.map((item) => (
+                    <JobDetailCard
+                      key={item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      value={item.value}
+                      color={item.color}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Job Description & Company Photos */}
+            <div className="space-y-6 lg:space-y-8 mt-6 lg:mt-0">
+              {/* Job Description */}
+              <div className="lg:bg-transparent border-t lg:border-t-0 border-gray-100 pt-6 lg:pt-0">
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">
+                  About This Job
+                </h2>
+                <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-soft border border-gray-100">
+                  <p className="text-base lg:text-lg text-gray-700 leading-relaxed">
+                    {jobDetails.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Company Photos */}
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">
+                  Workplace Photos
+                </h2>
+                {/* Main Photo */}
+                <div className="mb-4 lg:mb-6">
+                  <img
+                    key={selectedPhotoIndex}
+                    src={jobDetails.companyPhotos[selectedPhotoIndex]}
+                    alt="Workplace"
+                    className="w-full h-48 lg:h-64 object-cover rounded-2xl shadow-card"
+                  />
+                </div>
+
+                {/* Photo Thumbnails */}
+                <div className="flex space-x-3 lg:space-x-4 overflow-x-auto pb-2">
+                  {jobDetails.companyPhotos.map((photo, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className={`flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedPhotoIndex === index
+                          ? "border-purple-500 shadow-lg"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <img
+                        src={photo}
+                        alt={`Workplace ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 데스크탑(PC)용 Apply Now 버튼: 두 컬럼 아래 전체 너비 */}
+            <div className="hidden lg:block lg:col-span-2 mt-8">
+              <button
+                onClick={() => alert("지원하기 (구현 예정)")}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 lg:py-5 rounded-2xl font-bold text-lg lg:text-xl shadow-purple hover:shadow-lg transition-all duration-200"
+              >
+                Apply Now
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Apply Button - Mobile Only */}
+        <div className="lg:hidden px-5 py-6 bg-white border-t border-gray-100 sticky bottom-0">
+          <button
+            onClick={() => alert("지원하기 (구현 예정)")}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-purple hover:shadow-lg transition-all duration-200"
+          >
+            Apply Now
+          </button>
+          <p className="text-center text-sm text-gray-500 mt-3">
+            Application deadline: {jobDetails.deadline}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default JobDetailPage;

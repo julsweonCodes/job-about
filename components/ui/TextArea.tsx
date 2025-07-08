@@ -25,7 +25,7 @@ export default function TextArea({
       <textarea
         value={value}
         onChange={onChange}
-        className={`w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300 resize-none ${
+        className={`w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300 resize-none ${
           error ? "border-red-400" : ""
         }`}
         {...props}
