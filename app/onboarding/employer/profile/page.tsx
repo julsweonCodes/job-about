@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Phone, MapPin, Upload, CircleCheckBig, X } from "lucide-react";
+import { Phone, MapPin, CircleCheckBig, X } from "lucide-react";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import { Chip } from "@/components/ui/Chip";
 import Typography from "@/components/ui/Typography";

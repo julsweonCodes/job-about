@@ -253,7 +253,11 @@ export default function TimeRangePicker({
       <div className="grid grid-cols-2 gap-4">
         {/* 시작 시간 */}
         <Select value={startTime} onValueChange={onStartTimeChange}>
-          <SelectTrigger>{startTime ? formatTimeForDisplay(startTime) : "시작 시간"}</SelectTrigger>
+          <SelectTrigger>
+            <Typography variant="bodySm" className="text-text-tertiary font-normal">
+              {startTime ? formatTimeForDisplay(startTime) : "Start Time"}
+            </Typography>
+          </SelectTrigger>
           <SelectContent>
             {timeOptions.map((time) => (
               <SelectItem key={time} value={time}>
@@ -264,7 +268,11 @@ export default function TimeRangePicker({
         </Select>
         {/* 종료 시간 */}
         <Select value={endTime} onValueChange={onEndTimeChange}>
-          <SelectTrigger>{endTime ? formatTimeForDisplay(endTime) : "종료 시간"}</SelectTrigger>
+          <SelectTrigger>
+            <Typography variant="bodySm" className="text-text-tertiary font-normal">
+              {endTime ? formatTimeForDisplay(endTime) : "End Time"}
+            </Typography>
+          </SelectTrigger>
           <SelectContent>
             {timeOptions.map((time) => (
               <SelectItem key={time} value={time}>
