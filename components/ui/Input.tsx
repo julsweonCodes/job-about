@@ -1,4 +1,5 @@
 import React from "react";
+import Typography from "./Typography";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -33,9 +34,14 @@ export default function Input({
   return (
     <div className={`w-full mb-2 ${className}`}>
       {label && (
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
+        <Typography as="label" variant="bodySm" className="block font-semibold text-gray-700 mb-2">
+          {label}{" "}
+          {required && (
+            <Typography as="span" variant="bodySm" className="text-red-500">
+              *
+            </Typography>
+          )}
+        </Typography>
       )}
       {rightIcon ? (
         <div className="flex items-center relative w-full">

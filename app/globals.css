@@ -40,9 +40,9 @@
   }
 
   .input-style {
-    @apply w-full bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300;
-    @apply px-3 py-3 text-sm; /* 모바일(기본) */
-    @apply sm:px-4 sm:py-3 sm:text-base; /* 데스크탑(sm 이상) */
+    @apply w-full bg-gray-50 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300;
+    @apply px-3 py-3 text-sm border-[2px]; /* 모바일(기본) */
+    @apply sm:px-4 sm:py-4 sm:text-base sm:border-[3px]; /* 데스크탑(sm 이상) */
   }
 }
 

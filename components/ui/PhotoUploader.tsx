@@ -46,11 +46,11 @@ export default function PhotoUploader({ photos, setPhotos, maxCount = 5 }: Photo
 
   return (
     <div>
-      <div className={`mb-2 gap-2 grid ${gridColsClass} sm:flex sm:flex-wrap`}>
+      <div className={`mb-2 gap-2 flex flex-wrap`}>
         {photos.map((file, idx) => (
           <div
             key={idx}
-            className="relative group w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center cursor-move"
+            className="relative group w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-lg overflow-hidden border border-[6px] border-gray-200 bg-gray-50 flex items-center justify-center cursor-move"
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData("from", idx.toString());
@@ -68,17 +68,17 @@ export default function PhotoUploader({ photos, setPhotos, maxCount = 5 }: Photo
             />
             <button
               type="button"
-              className="absolute top-1 right-1 bg-white/80 rounded-full w-4 h-4 sm:w-6 sm:h-6 flex items-center justify-center text-gray-700 hover:bg-red-100 p-0"
+              className="absolute top-1 right-1 bg-black rounded-full w-4 h-4 sm:w-6 sm:h-6 flex items-center justify-center text-gray-700 hover:bg-red-100 p-0"
               onClick={() => handleRemove(idx)}
             >
-              <X className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2.2} />
+              <X className="w-3 h-3 sm:w-4 sm:h-4 text-white" strokeWidth={2.2} />
             </button>
           </div>
         ))}
         {photos.length < maxCount && (
           <button
             type="button"
-            className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:border-indigo-400"
+            className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 border-[2px] sm:border-[3px] border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:border-indigo-400"
             onClick={() => inputRef.current?.click()}
           >
             <Plus className="w-5 h-5 sm:w-7 sm:h-7" strokeWidth={2.2} />
