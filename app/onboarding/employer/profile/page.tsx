@@ -10,7 +10,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import PhotoUploader from "@/components/ui/PhotoUploader";
 
-interface FormData {
+interface EmployerFormData {
   businessName: string;
   phoneNumber: string;
   address: string;
@@ -27,7 +27,7 @@ interface FormData {
 }
 
 function EmployerProfile() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<EmployerFormData>({
     businessName: "",
     phoneNumber: "",
     address: "",
@@ -43,41 +43,20 @@ function EmployerProfile() {
     },
   });
 
-  const handleInputChange = (field: keyof FormData, value: any) => {
+  const handleInputChange = (field: keyof EmployerFormData, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleTagChange = (tag: keyof FormData["tags"]) => {
+  const handleTagChange = (tag: keyof EmployerFormData["tags"]) => {
     setFormData((prev) => ({
       ...prev,
       tags: {
         ...prev.tags,
         [tag]: !prev.tags[tag],
       },
-    }));
-  };
-
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const remainingSlots = 5 - formData.photos.length;
-    const filesToAdd = files.slice(0, remainingSlots);
-
-    setFormData((prev) => ({
-      ...prev,
-      photos: [...prev.photos, ...filesToAdd],
-    }));
-
-    // Reset input value to allow re-uploading the same file
-    event.target.value = "";
-  };
-
-  const removePhoto = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index),
     }));
   };
 
@@ -91,7 +70,8 @@ function EmployerProfile() {
   // Calculate progress based on filled fields
   const calculateProgress = () => {
     let filledFields = 0;
-    const totalFields = 7; // 필수 항목 개수
+    // required fields: businessName, phoneNumber, address, startTime, endTime, languageLevel, description
+    const totalFields = 7;
 
     if (formData.businessName.trim()) filledFields++;
     if (formData.phoneNumber.trim()) filledFields++;
@@ -99,7 +79,6 @@ function EmployerProfile() {
     if (formData.startTime) filledFields++;
     if (formData.endTime) filledFields++;
     if (formData.languageLevel) filledFields++;
-    // 사진 또는 설명만 필수, optional tag는 제외
     if (formData.description.trim()) filledFields++;
 
     return Math.round((filledFields / totalFields) * 100);
@@ -111,7 +90,7 @@ function EmployerProfile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Sticky Progress Bar */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-3">
             <Typography
               as="h3"
@@ -129,7 +108,7 @@ function EmployerProfile() {
       </div>
 
       <div className="py-8 px-5 lg:py-16">
-        <div className="max-w-6xl mx-auto lg:max-w-5xl">
+        <div className="mx-auto lg:max-w-4xl">
           {/* Header */}
           <div className="text-center mb-10 lg:mb-16">
             <Typography variant="headlineLg" as="h1" className="mb-4 tracking-tight">
@@ -140,12 +119,12 @@ function EmployerProfile() {
               as="p"
               className="text-gray-600 lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
             >
-              Set up your business profile to attract the right candidates and streamline your
-              hiring process
+              Set up your business profile to attract <br /> the right candidates and streamline
+              your hiring process
             </Typography>
           </div>
 
-          <div className="lg:grid lg:grid-cols-2 lg:gap-12">
+          <div className="flex flex-col gap-5 sm:gap-10">
             {/* Business Information Section */}
             <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 md:p-8 mb-8 lg:mb-0 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
               <div className="mb-8">
@@ -305,8 +284,8 @@ function EmployerProfile() {
                     ].map(({ key, label }) => (
                       <Chip
                         key={key}
-                        selected={formData.tags[key as keyof FormData["tags"]]}
-                        onClick={() => handleTagChange(key as keyof FormData["tags"])}
+                        selected={formData.tags[key as keyof EmployerFormData["tags"]]}
+                        onClick={() => handleTagChange(key as keyof EmployerFormData["tags"])}
                       >
                         {label}
                       </Chip>
@@ -318,7 +297,7 @@ function EmployerProfile() {
           </div>
 
           {/* Confirm Button */}
-          <div className="mt-16 lg:mt-20">
+          <div className="mt-8 lg:mt-10">
             <Button
               onClick={handleSubmit}
               size="xl"

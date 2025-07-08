@@ -1,72 +1,160 @@
 "use client";
-
 import React, { useState } from "react";
+import { User, MapPin, Clock, Briefcase, Languages, FileText, Pencil, Trash2 } from "lucide-react";
+import Input from "@/components/ui/Input";
+import TextArea from "@/components/ui/TextArea";
+import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
+import ProgressBar from "@/components/common/ProgressBar";
 import {
   Select,
+  SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
 import { Dialog } from "@/components/common/Dialog";
-import Input from "@/components/ui/Input";
-import TextArea from "@/components/ui/TextArea";
-import TimeRangePicker from "@/components/ui/TimeRangePicker";
-import LogoHeader from "@/components/common/LogoHeader";
-import ProgressBar from "@/components/common/ProgressBar";
+import { workedPeriodOptions } from "@/constants/options";
 
-export default function SeekerProfilePage() {
-  const [skills, setSkills] = useState<string[]>([]);
-  const [newSkill, setNewSkill] = useState("");
-  const [workType, setWorkType] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [weekAvailability, setWeekAvailability] = useState("");
-  const [startTime, setStartTime] = useState("08:00");
-  const [endTime, setEndTime] = useState("17:00");
-  const [location, setLocation] = useState("");
-  const [language, setLanguage] = useState("");
-  const [workExperiences, setWorkExperiences] = useState<any[]>([]);
+interface JobSeekerFormData {
+  skills: string[];
+  currentSkillInput: string;
+  workType: "Remote" | "On-site" | "Hybrid" | null;
+  preferredJobTypes: string[];
+  currentJobTypeInput: string;
+  availability: {
+    days: {
+      weekdays: boolean;
+      weekends: boolean;
+    };
+    time: {
+      am: boolean;
+      pm: boolean;
+    };
+  };
+  location: string;
+  experiences: ExperienceForm[];
+  currentExperienceInput: string;
+  languageProficiency: "Beginner" | "Intermediate" | "Fluent" | null;
+  selfIntroduction: string;
+}
+
+interface ExperienceForm {
+  company: string;
+  jobType: string;
+  startYear: string;
+  workedPeriod: string;
+  description: string;
+}
+
+// ExperienceCard
+type ExperienceCardProps = {
+  experience: ExperienceForm;
+  onEdit: () => void;
+  onDelete: () => void;
+};
+
+function ExperienceCard({ experience, onEdit, onDelete }: ExperienceCardProps) {
+  return (
+    <div className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow">
+      <div>
+        <Typography as="div" className="font-bold text-gray-800 text-base mb-1">
+          {experience.company}
+        </Typography>
+        <Typography as="div" className="text-gray-500 text-sm">
+          {experience.startYear}, {experience.workedPeriod}
+        </Typography>
+      </div>
+      <div className="flex items-center gap-2 ml-4">
+        <button
+          type="button"
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-indigo-500 transition-colors"
+          onClick={onEdit}
+          aria-label="Edit"
+        >
+          <Pencil className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-rose-500 transition-colors"
+          onClick={onDelete}
+          aria-label="Delete"
+        >
+          <Trash2 className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function JobSeekerProfile() {
   const [showExperienceForm, setShowExperienceForm] = useState(false);
-  const [experienceForm, setExperienceForm] = useState({
+  const [formData, setFormData] = useState<JobSeekerFormData>({
+    skills: [],
+    currentSkillInput: "",
+    workType: null,
+    preferredJobTypes: [],
+    currentJobTypeInput: "",
+    availability: {
+      days: {
+        weekdays: false,
+        weekends: false,
+      },
+      time: {
+        am: false,
+        pm: false,
+      },
+    },
+    location: "",
+    experiences: [],
+    currentExperienceInput: "",
+    languageProficiency: null,
+    selfIntroduction: "",
+  });
+
+  const [workExperiences, setWorkExperiences] = useState<ExperienceForm[]>([]);
+
+  const [experienceForm, setExperienceForm] = useState<ExperienceForm>({
     company: "",
     jobType: "",
     startYear: new Date().getFullYear().toString(),
-    workedPeriod: "Short-term",
+    workedPeriod: workedPeriodOptions[0],
     description: "",
   });
 
-  const skillSuggestions = [
-    "Leadership",
-    "Teamwork",
-    "Time Management",
-    "Sales",
-    "Marketing",
-    "Data Analysis",
-    "Customer Service",
-    "Communication",
-    "Problem Solving",
-  ];
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // Select 옵션 배열 선언
-  const workedPeriodOptions = [
-    "Short-term",
-    "Under 3 months",
-    "Under 6 months",
-    "6~12 months",
-    "1~2 years",
-    "2~3 years",
-    "Over 3 years",
-  ];
+  // Select 옵션 배열 선언 (컴포넌트 함수 바깥, 파일 import 바로 아래)
+  const years = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() - i).toString());
 
-  const locationOptions = [
-    { value: "downtown", label: "Downtown" },
-    { value: "uptown", label: "Uptown" },
-    { value: "midtown", label: "Midtown" },
-    { value: "suburbs", label: "Suburbs" },
-    { value: "remote", label: "Remote" },
-  ];
+  const handleInputChange = (field: keyof JobSeekerFormData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleAddExperience = () => {
+    if (editingIndex === null) {
+      // 새로 추가
+      setWorkExperiences([...workExperiences, experienceForm]);
+    } else {
+      // 수정
+      setWorkExperiences((prev) =>
+        prev.map((exp, idx) => (idx === editingIndex ? experienceForm : exp))
+      );
+    }
+    setExperienceForm({
+      company: "",
+      jobType: "",
+      startYear: new Date().getFullYear().toString(),
+      workedPeriod: workedPeriodOptions[0],
+      description: "",
+    });
+    setShowExperienceForm(false);
+    setEditingIndex(null);
+  };
 
   // 공통 Select 렌더 함수 (타입 명시, 컴포넌트 바깥에 선언)
   type RenderSelectOption = string | { value: string; label: string };
@@ -100,358 +188,544 @@ export default function SeekerProfilePage() {
   }
 
   const addSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()]);
-      setNewSkill("");
-    }
-  };
-
-  const addSuggestedSkill = (skill: string) => {
-    if (!skills.includes(skill)) {
-      setSkills([...skills, skill]);
+    if (
+      formData.currentSkillInput.trim() &&
+      !formData.skills.includes(formData.currentSkillInput.trim())
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, prev.currentSkillInput.trim()],
+        currentSkillInput: "",
+      }));
     }
   };
 
   const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter((skill) => skill !== skillToRemove));
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
+    }));
   };
 
-  const handleAddExperience = () => {
-    setWorkExperiences([...workExperiences, experienceForm]);
-    setExperienceForm({
-      company: "",
-      jobType: "",
-      startYear: new Date().getFullYear().toString(),
-      workedPeriod: "Short-term",
-      description: "",
-    });
-    setShowExperienceForm(false);
+  const addJobType = () => {
+    if (
+      formData.currentJobTypeInput.trim() &&
+      !formData.preferredJobTypes.includes(formData.currentJobTypeInput.trim())
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        preferredJobTypes: [...prev.preferredJobTypes, prev.currentJobTypeInput.trim()],
+        currentJobTypeInput: "",
+      }));
+    }
   };
 
-  const completionPercentage = Math.round(
-    (((skills.length > 0 ? 1 : 0) +
-      (workType ? 1 : 0) +
-      (industry ? 1 : 0) +
-      (startTime && endTime ? 1 : 0) +
-      (location ? 1 : 0) +
-      (language ? 1 : 0)) /
-      6) *
-      100
-  );
+  const removeJobType = (jobTypeToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      preferredJobTypes: prev.preferredJobTypes.filter((jobType) => jobType !== jobTypeToRemove),
+    }));
+  };
+
+  const removeExperience = (index: number) => {
+    setWorkExperiences((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAvailabilityChange = (category: "days" | "time", key: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      availability: {
+        ...prev.availability,
+        [category]: {
+          ...prev.availability[category],
+          [key]:
+            !prev.availability[category][key as keyof (typeof prev.availability)[typeof category]],
+        },
+      },
+    }));
+  };
+
+  const handleSubmit = () => {
+    console.log("Job Seeker Profile submitted:", formData);
+    // Handle form submission logic here
+  };
+
+  const workTypes = ["Remote", "On-site", "Hybrid"] as const;
+  const languageLevels = ["Beginner", "Intermediate", "Fluent"] as const;
+  const cities = [
+    "Toronto",
+    "North York",
+    "Scarborough",
+    "Etobicoke",
+    "Mississauga",
+    "Brampton",
+    "Vaughan",
+    "Richmond Hill",
+    "Markham",
+    "Thornhill",
+  ];
+
+  // Calculate progress based on filled fields
+  const calculateProgress = () => {
+    let filledFields = 0;
+    const totalFields = 7; // Required sections count
+
+    if (formData.skills.length > 0) filledFields++;
+    if (formData.workType && formData.preferredJobTypes.length > 0) filledFields++;
+    if (
+      Object.values(formData.availability.days).some(Boolean) &&
+      Object.values(formData.availability.time).some(Boolean)
+    )
+      filledFields++;
+    if (formData.location.trim()) filledFields++;
+    if (formData.experiences.length > 0) filledFields++;
+    if (formData.languageProficiency) filledFields++;
+    if (formData.selfIntroduction.trim()) filledFields++;
+
+    return Math.round((filledFields / totalFields) * 100);
+  };
+
+  const progress = calculateProgress();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto bg-white min-h-screen">
-        {/* Header */}
-        <LogoHeader borderless shadowless />
-
-        {/* Sticky Progress Bar + 타이틀 */}
-        <div className="sticky top-14 z-20 bg-white px-4 md:px-8 py-2 border-b border-gray-100">
-          <Typography as="h1" variant="headlineSm" className="text-center mb-6">
-            Create Your Profile
-          </Typography>
-          <ProgressBar value={completionPercentage} className="mb-4" />
-        </div>
-
-        {/* Content */}
-        <div className="px-4 md:px-8 py-6 space-y-6">
-          {/* Skills Section */}
-          <div>
-            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
-              Skills & Expertise
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
+      {/* Sticky Progress Bar */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <Typography
+              as="h3"
+              variant="bodySm"
+              className="font-semibold text-gray-700 tracking-wide"
+            >
+              Profile Setup
             </Typography>
+            <Typography as="span" variant="bodySm" className="font-medium text-gray-500">
+              {progress}% Complete
+            </Typography>
+          </div>
+          <ProgressBar value={progress} className="h-1.5" />
+        </div>
+      </div>
+
+      <div className="py-8 px-5">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <Typography variant="headlineLg" as="h1" className="mb-4 tracking-tight">
+              Create Job Seeker Profile
+            </Typography>
+            <Typography
+              variant="bodyMd"
+              as="p"
+              className="text-gray-600 lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
+            >
+              Build your profile to connect with
+              <br /> the right employers and opportunities
+            </Typography>
+          </div>
+
+          {/* Skills Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-200">
+                <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Skills
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                Add your key skills and competencies
+              </Typography>
+            </div>
 
             <div className="space-y-4">
-              <div className="relative">
+              <div className="flex gap-2">
                 <Input
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addSkill();
-                    }
-                  }}
-                  placeholder="Add a skill..."
-                  label={undefined}
-                  className="mb-0"
+                  value={formData.currentSkillInput}
+                  onChange={(e) => handleInputChange("currentSkillInput", e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addSkill()}
+                  placeholder="e.g., communication"
+                  className="flex-1"
                 />
-                {newSkill.trim() && (
-                  <button
-                    onClick={addSkill}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                  >
-                    +
-                  </button>
-                )}
               </div>
 
-              {/* Skill Suggestions */}
-              <div className="space-y-2">
-                <Typography as="p" variant="bodySm" className="text-gray-600 font-medium">
-                  Suggested Skills:
-                </Typography>
+              {formData.skills.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {skillSuggestions
-                    .filter((skill) => !skills.includes(skill))
-                    .map((skill) => (
-                      <button
-                        key={skill}
-                        onClick={() => addSuggestedSkill(skill)}
-                        className="px-3 py-1.5 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full text-sm font-medium hover:from-indigo-200 hover:to-purple-200 transition-all duration-200"
-                      >
-                        + {skill}
-                      </button>
-                    ))}
+                  {formData.skills.map((skill, index) => (
+                    <Chip key={index} selected onClick={() => removeSkill(skill)}>
+                      {skill} <span className="ml-1">×</span>
+                    </Chip>
+                  ))}
                 </div>
-              </div>
-
-              {/* Skill Tags */}
-              <div className="flex flex-wrap gap-2">
-                {skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full text-sm font-medium"
-                  >
-                    {skill}
-                    <button
-                      onClick={() => removeSkill(skill)}
-                      className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Job Preferences */}
-          <div>
-            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
-              Job Preferences
-            </Typography>
+          {/* Job Preferences Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-green-200">
+                <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Job Preferences
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                Define your work preferences and job types
+              </Typography>
+            </div>
 
             <div className="space-y-6">
               {/* Work Type */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Work Type</label>
-                <div className="flex gap-2">
-                  {["Remote", "On-site", "Hybrid"].map((type) => (
-                    <button
+                <Typography
+                  as="label"
+                  variant="bodySm"
+                  className="block font-semibold text-gray-800 mb-3"
+                >
+                  Work Type
+                </Typography>
+                <div className="grid grid-cols-3 gap-2">
+                  {workTypes.map((type) => (
+                    <Button
                       key={type}
-                      onClick={() => setWorkType(type)}
-                      className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
-                        workType === type
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      onClick={() =>
+                        handleInputChange("workType", formData.workType === type ? null : type)
+                      }
+                      className={`px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                        formData.workType === type
+                          ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 shadow-lg shadow-green-200"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                       }`}
                     >
                       {type}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
 
-              {/* Preferred Industries */}
+              {/* Preferred Job Types */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Preferred Industries
-                </label>
-                <Select value={industry} onValueChange={setIndustry}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="technology">Technology</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="retail">Retail</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="hospitality">Hospitality</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Available Days */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Available Days
-                </label>
-                <div className="flex gap-2">
-                  {["Weekdays", "Weekends"].map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setWeekAvailability(option)}
-                      className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
-                        weekAvailability === option
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
+                <Typography
+                  as="label"
+                  variant="bodySm"
+                  className="block font-semibold text-gray-800 mb-3"
+                >
+                  Preferred Job Types
+                </Typography>
+                <div className="flex gap-2 mb-3">
+                  <Input
+                    type="text"
+                    value={formData.currentJobTypeInput}
+                    onChange={(e) => handleInputChange("currentJobTypeInput", e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && addJobType()}
+                    placeholder="e.g., Serving, Hotel Manager"
+                    className="flex-1"
+                  />
                 </div>
-              </div>
 
-              {/* Available Hours */}
-              <div>
-                <TimeRangePicker
-                  startTime={startTime}
-                  endTime={endTime}
-                  onStartTimeChange={setStartTime}
-                  onEndTimeChange={setEndTime}
-                  label="Available Hours"
-                  required
-                />
-              </div>
-
-              {/* Location */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Location</label>
-                <RenderSelect
-                  value={location}
-                  onValueChange={setLocation}
-                  options={locationOptions}
-                  placeholder="Select location"
-                />
+                {formData.preferredJobTypes.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.preferredJobTypes.map((jobType, index) => (
+                      <Chip key={index} selected onClick={() => removeJobType(jobType)}>
+                        {jobType} <span className="ml-1">×</span>
+                      </Chip>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Language Proficiency */}
-          <div>
-            <Typography as="h2" variant="titleBold" className="text-gray-800 mb-4">
-              Language Proficiency
-            </Typography>
-            <div className="flex gap-2">
-              {["Beginner", "Intermediate", "Fluent"].map((level) => (
-                <button
+          {/* Availability Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-200">
+                <Clock className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Availability
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                When are you available to work?
+              </Typography>
+            </div>
+
+            <div className="space-y-6">
+              {/* Days */}
+              <div>
+                <Typography
+                  as="label"
+                  variant="bodySm"
+                  className="block font-semibold text-gray-800 mb-3"
+                >
+                  Days
+                </Typography>
+                <div className="flex gap-3">
+                  {[
+                    { key: "weekdays", label: "Weekdays" },
+                    { key: "weekends", label: "Weekends" },
+                  ].map(({ key, label }) => (
+                    <Button
+                      key={key}
+                      onClick={() => handleAvailabilityChange("days", key)}
+                      className={`flex-1 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                        formData.availability.days[key as keyof typeof formData.availability.days]
+                          ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-500 shadow-lg shadow-orange-200"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                      }`}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Time */}
+              <div>
+                <Typography
+                  as="label"
+                  variant="bodySm"
+                  className="block font-semibold text-gray-800 mb-3"
+                >
+                  Time
+                </Typography>
+                <div className="flex gap-3">
+                  {[
+                    { key: "am", label: "AM" },
+                    { key: "pm", label: "PM" },
+                  ].map(({ key, label }) => (
+                    <Button
+                      key={key}
+                      onClick={() => handleAvailabilityChange("time", key)}
+                      className={`flex-1 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                        formData.availability.time[key as keyof typeof formData.availability.time]
+                          ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-500 shadow-lg shadow-orange-200"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                      }`}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Location Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-200">
+                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Location
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                Select your preferred work location
+              </Typography>
+            </div>
+
+            <div className="relative">
+              <Select
+                value={formData.location}
+                onValueChange={(value) => handleInputChange("location", value)}
+              >
+                <SelectTrigger className="w-full px-4 py-4 rounded-2xl border border-gray-200/80 bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 outline-none text-gray-900 font-medium shadow-sm hover:shadow-md hover:border-gray-300 appearance-none">
+                  <SelectValue placeholder="Select preferred city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city} selectedValue={formData.location}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Experiences Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-200">
+                <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Experiences
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                Add your previous work experiences
+              </Typography>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  type="text"
+                  className="cursor-pointer hover:bg-gray-50 hover:border-gray-300"
+                  placeholder="+ Add your experience"
+                  onClick={() => setShowExperienceForm(true)}
+                />
+              </div>
+
+              {workExperiences.length > 0 && (
+                <div className="space-y-3">
+                  {workExperiences.map((experience, index) => (
+                    <ExperienceCard
+                      key={index}
+                      experience={experience}
+                      onEdit={() => {
+                        setEditingIndex(index);
+                        setExperienceForm(experience);
+                        setShowExperienceForm(true);
+                      }}
+                      onDelete={() => removeExperience(index)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Language Proficiency Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-teal-200">
+                <Languages className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Language Proficiency
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                Select your language skill level
+              </Typography>
+            </div>
+
+            <div className="flex gap-2 sm:grid sm:grid-cols-3">
+              {languageLevels.map((level) => (
+                <Chip
                   key={level}
-                  onClick={() => setLanguage(level)}
-                  className={`px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
-                    language === level
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent"
-                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                  size="lg"
+                  onClick={() =>
+                    handleInputChange(
+                      "languageProficiency",
+                      formData.languageProficiency === level ? null : level
+                    )
+                  }
+                  className={`px-2 sm:py-6 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                    formData.languageProficiency === level
+                      ? "bg-gradient-to-r from-teal-500 to-teal-600 text-white border-teal-500 shadow-lg shadow-teal-200"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                   }`}
                 >
                   {level}
-                </button>
+                </Chip>
               ))}
             </div>
           </div>
 
-          {/* Work Experience */}
-          <div>
-            <div className="flex items-center mb-4 justify-between">
-              <Typography as="h2" variant="titleBold" className="text-gray-800">
-                Work Experience
-                <span className="text-sm text-gray-500 font-normal ml-2">(Optional)</span>
+          {/* Self Introduction Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-10 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
+            <div className="mb-6">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-pink-200">
+                <FileText className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
+                Self Introduction
+              </Typography>
+              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
+                Tell employers about yourself and your experience
               </Typography>
             </div>
-            {/* Experience List (Add Experience가 첫 항목) */}
-            <div className="space-y-3">
-              {/* Add Experience 리스트 스타일 버튼 */}
-              <div
-                className="flex items-center gap-2 px-3 py-3 sm:px-4 sm:py-3  bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-100 hover:border-indigo-300  transition-all duration-200"
-                onClick={() => setShowExperienceForm(true)}
-              >
-                <span className="flex-1 text-left select-none text-sm sm:text-base text-gray-500">
-                  + Add Experience
-                </span>
-              </div>
-              {/* 실제 경력 리스트 */}
-              {workExperiences.map((exp, idx) => (
-                <div key={idx} className="p-4 bg-gray-50 rounded-xl">
-                  <Typography as="div" variant="titleBold" className="text-gray-900">
-                    {exp.company}
-                  </Typography>
-                  <Typography as="div" variant="bodySm" className="text-gray-700">
-                    {exp.jobType}
-                  </Typography>
-                  <Typography as="div" variant="bodyXs" className="text-gray-500">
-                    {exp.startYear} / {exp.workedPeriod}
-                  </Typography>
-                  <Typography as="div" variant="bodySm" className="text-gray-700 mt-2">
-                    {exp.description}
-                  </Typography>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Create Profile Button */}
-          <Button
-            size="lg"
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white mt-8"
-            disabled={completionPercentage < 100}
-          >
-            Create My Profile
-          </Button>
-        </div>
-
-        {/* Experience Form Dialog */}
-        <Dialog
-          open={showExperienceForm}
-          onClose={() => setShowExperienceForm(false)}
-          type="bottomSheet"
-        >
-          <div className="space-y-4">
-            <Typography as="h3" variant="titleBold" className="mb-4">
-              Add Job Experience
-            </Typography>
-            <Input
-              label="Company Name"
-              value={experienceForm.company}
-              onChange={(e) => setExperienceForm((f) => ({ ...f, company: e.target.value }))}
-              required
-            />
-            <Input
-              label="Job Type"
-              value={experienceForm.jobType}
-              onChange={(e) => setExperienceForm((f) => ({ ...f, jobType: e.target.value }))}
-              required
-            />
-            <div className="flex gap-2">
-              <div className="w-1/2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Start Year</label>
-                <RenderSelect
-                  value={experienceForm.startYear}
-                  onValueChange={(val) => setExperienceForm((f) => ({ ...f, startYear: val }))}
-                  options={Array.from({ length: 50 }, (_, i) =>
-                    (new Date().getFullYear() - i).toString()
-                  )}
-                  placeholder="Select year"
-                />
-              </div>
-              <div className="w-1/2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Worked Period
-                </label>
-                <RenderSelect
-                  value={experienceForm.workedPeriod}
-                  onValueChange={(val) => setExperienceForm((f) => ({ ...f, workedPeriod: val }))}
-                  options={workedPeriodOptions}
-                  placeholder="Select period"
-                />
-              </div>
-            </div>
             <TextArea
-              label="Description"
-              rows={3}
-              value={experienceForm.description}
-              onChange={(e) => setExperienceForm((f) => ({ ...f, description: e.target.value }))}
+              value={formData.selfIntroduction}
+              onChange={(e) => handleInputChange("selfIntroduction", e.target.value)}
+              placeholder="Description of your work experience, skills, and what makes you a great candidate..."
+              rows={5}
+              className="w-full"
             />
-            <Button
-              onClick={handleAddExperience}
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
-            >
-              Add
-            </Button>
           </div>
-        </Dialog>
+
+          {/* 최종 제출 버튼 */}
+          <Button onClick={handleSubmit} size="xl" className="w-full" disabled={progress < 100}>
+            Confirm Profile
+          </Button>
+
+          {/* Experience Form Dialog */}
+          <Dialog
+            open={showExperienceForm}
+            onClose={() => {
+              setShowExperienceForm(false);
+              setEditingIndex(null);
+            }}
+            type="bottomSheet"
+          >
+            <div className="space-y-4">
+              <Typography as="h3" variant="titleBold" className="mb-4">
+                Add Job Experience
+              </Typography>
+              <Input
+                label="Company Name"
+                placeholder="Enter company name"
+                value={experienceForm.company}
+                onChange={(e) => setExperienceForm((f) => ({ ...f, company: e.target.value }))}
+                required
+              />
+              <Input
+                label="Job Type"
+                placeholder="Enter job type"
+                value={experienceForm.jobType}
+                onChange={(e) => setExperienceForm((f) => ({ ...f, jobType: e.target.value }))}
+                required
+              />
+              <div className="flex gap-2">
+                <div className="w-1/2">
+                  <Typography as="label" variant="bodySm" className="block mb-2">
+                    Start Year
+                  </Typography>
+                  <RenderSelect
+                    value={experienceForm.startYear}
+                    onValueChange={(val) => setExperienceForm((f) => ({ ...f, startYear: val }))}
+                    options={years}
+                    placeholder="Year"
+                  />
+                </div>
+                <div className="w-1/2">
+                  <Typography as="label" variant="bodySm" className="block mb-2">
+                    Worked Period
+                  </Typography>
+                  <RenderSelect
+                    value={experienceForm.workedPeriod}
+                    onValueChange={(val) => setExperienceForm((f) => ({ ...f, workedPeriod: val }))}
+                    options={workedPeriodOptions}
+                    placeholder="Period"
+                  />
+                </div>
+              </div>
+              <TextArea
+                label="Description"
+                placeholder="Enter description"
+                rows={3}
+                value={experienceForm.description}
+                onChange={(e) => setExperienceForm((f) => ({ ...f, description: e.target.value }))}
+              />
+              <Button
+                onClick={handleAddExperience}
+                size="lg"
+                className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+              >
+                {editingIndex === null ? "Add" : "Save"}
+              </Button>
+            </div>
+          </Dialog>
+        </div>
       </div>
     </div>
   );
 }
+
+export default JobSeekerProfile;
