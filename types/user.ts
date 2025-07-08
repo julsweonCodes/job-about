@@ -1,0 +1,25 @@
+// Supabase에서 받아오는 유저 타입
+export interface SupabaseUser {
+  id: string;
+  email: string;
+  user_metadata: {
+    name?: string;
+    picture?: string;
+    [key: string]: any;
+  };
+  // 기타 필요한 필드 추가 가능
+}
+
+// 우리 서비스 DB 유저 타입
+export interface AppUser {
+  id: string; // DB PK
+  user_id: string; // supabase id (FK)
+  name: string;
+  email: string;
+  img_url?: string | null;
+  role: "applicant" | "employer" | null;
+  personality_profile_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}

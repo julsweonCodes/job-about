@@ -20,6 +20,7 @@ import "react-day-picker/dist/style.css";
 import { Dialog } from "@/components/common/Dialog";
 import { enUS } from "date-fns/locale";
 import { Chip } from "@/components/ui/Chip";
+import { useRouter } from "next/navigation";
 
 const JOB_TYPES = ["Server", "Kitchen Help", "Delivery", "Cashier", "Other"];
 const LOCATIONS = [
@@ -54,6 +55,7 @@ export default function JobPostCreatePage() {
   const [languageLevel, setLanguageLevel] = useState("");
   const [description, setDescription] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const router = useRouter();
 
   // 캘린더 열 때마다 tempDeadline 초기화
   const openCalendar = () => {
