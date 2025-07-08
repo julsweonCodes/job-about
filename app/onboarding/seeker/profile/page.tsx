@@ -16,11 +16,12 @@ import {
 } from "@/components/ui/Select";
 import { Dialog } from "@/components/common/Dialog";
 import { workedPeriodOptions } from "@/constants/options";
+import { LanguageLevel, WorkType, LANGUAGE_LEVELS, WORK_TYPES } from "@/constants/enums";
 
 interface JobSeekerFormData {
   skills: string[];
   currentSkillInput: string;
-  workType: "Remote" | "On-site" | "Hybrid" | null;
+  workType: WorkType | null;
   preferredJobTypes: string[];
   currentJobTypeInput: string;
   availability: {
@@ -36,7 +37,7 @@ interface JobSeekerFormData {
   location: string;
   experiences: ExperienceForm[];
   currentExperienceInput: string;
-  languageProficiency: "Beginner" | "Intermediate" | "Fluent" | null;
+  languageProficiency: LanguageLevel | null;
   selfIntroduction: string;
 }
 
@@ -250,8 +251,8 @@ function JobSeekerProfile() {
     // Handle form submission logic here
   };
 
-  const workTypes = ["Remote", "On-site", "Hybrid"] as const;
-  const languageLevels = ["Beginner", "Intermediate", "Fluent"] as const;
+  const workTypes = WORK_TYPES;
+  const languageLevels = LANGUAGE_LEVELS;
   const cities = [
     "Toronto",
     "North York",

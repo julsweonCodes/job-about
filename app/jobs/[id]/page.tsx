@@ -113,13 +113,6 @@ const JobDetailPage: React.FC = () => {
                 {jobDetails.title}
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 mb-2 lg:mb-3">{jobDetails.company}</p>
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-400 fill-yellow-400" />
-                <span className="text-sm lg:text-base font-medium text-gray-700">
-                  {jobDetails.rating}
-                </span>
-                <span className="text-sm lg:text-base text-gray-500">(124 reviews)</span>
-              </div>
             </div>
           </div>
         </div>
