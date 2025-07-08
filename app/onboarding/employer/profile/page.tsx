@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import PhotoUploader from "@/components/ui/PhotoUploader";
+import PhotoComponent from "@/components/ui/PhotoComponent";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import Checkbox from "@/components/ui/Checkbox";
 import LogoHeader from "@/components/common/LogoHeader";
 import ProgressBar from "@/components/common/ProgressBar";
+import { deleteSingleEmployerImage } from "@/app/services/employer-services";
 
 export default function EmployerProfilePage() {
   const [companyName, setCompanyName] = useState("");
@@ -18,7 +19,8 @@ export default function EmployerProfilePage() {
   const [businessAddress, setBusinessAddress] = useState("");
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("17:00");
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [photos, setPhotos] = useState<(File | string)[]>([]);
+  const [logoPhoto, setLogoPhoto] = useState<File | string>();
   const [languageLevel, setLanguageLevel] = useState("");
   const [description, setDescription] = useState("");
   const [optionalTags, setOptionalTags] = useState<string[]>([]);
@@ -63,6 +65,41 @@ export default function EmployerProfilePage() {
     endTime &&
     languageLevel;
 
+  // Confirm 버튼 클릭 시 FormData로 전송
+  const handleConfirm = async() => {
+    const formFields = {
+      name: companyName,
+      phone_number : businessPhone,
+      address : businessAddress,
+      operating_start : startTime,
+      operating_end : endTime,
+      language_level : languageLevel.toUpperCase().replace("_", " "),
+      description,
+      // optional 태그는 백엔드에서 처리
+    };
+
+    const formData = new FormData();
+    formData.append("profile", JSON.stringify(formFields)); // 폼데이터에서 "profile" JSON형식으로 변환
+    //formData.append("logoImg", file);
+    photos.forEach( (file) => {
+      if (file instanceof File && file.size>0) {
+        formData.append("photos", file);
+      }
+    });
+
+    const res =await fetch("/api/employer/profile", {
+      method: "PUT",
+      body: formData,
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      alert("저장 완료!");
+    } else {
+      alert(result.error || "저장 중 오류 발생");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto bg-white min-h-screen">
@@ -96,7 +133,7 @@ export default function EmployerProfilePage() {
               />
               <Input
                 label="Business Phone Number"
-                type="phone"
+                type="tel"
                 value={businessPhone}
                 onChange={(e) => setBusinessPhone(e.target.value)}
                 onBlur={() => setTouched((t) => ({ ...t, businessPhone: true }))}
@@ -140,7 +177,16 @@ export default function EmployerProfilePage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Detail Photo (Optional)
                 </label>
-                <PhotoUploader photos={photos} setPhotos={setPhotos} maxCount={5} />
+                <PhotoComponent
+                  photos={photos}
+                  setPhotos={setPhotos}
+                  maxCount={5}
+                  onRemove={async (urlOrFile) => {
+                    if (typeof urlOrFile === "string") {
+                      await deleteSingleEmployerImage(urlOrFile);
+                    }
+                  }}
+                />
                 <Typography as="p" variant="bodySm" className="text-gray-500 mt-1">
                   Add a Photo of your storefront to help applicants recognize your business.
                 </Typography>
@@ -158,7 +204,7 @@ export default function EmployerProfilePage() {
                   Required Language Level
                 </label>
                 <div className="flex gap-2">
-                  {["Basic English", "Intermediate", "Bilingual"].map((level) => (
+                  {["Beginner", "Intermediate", "Fluent"].map((level) => (
                     <button
                       key={level}
                       type="button"
@@ -212,6 +258,7 @@ export default function EmployerProfilePage() {
             size="lg"
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white mt-8"
             disabled={!isFormValid}
+            onClick={handleConfirm}
           >
             Confirm
           </Button>
