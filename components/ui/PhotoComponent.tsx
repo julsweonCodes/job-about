@@ -47,7 +47,6 @@ function SortableImage({
     <div
       ref={setNodeRef}
       {...attributes}
-      {...listeners}
       style={style}
       className="relative group"
     >
@@ -55,14 +54,16 @@ function SortableImage({
         src={src}
         alt="photo"
         className="w-28 h-28 object-cover rounded border"
+        {...listeners}
       />
       <button
         type="button"
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           onRemove(item);
         }}
-        className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hidden group-hover:flex"
+        className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
       >
         ×
       </button>
@@ -80,10 +81,21 @@ export default function PhotoComponent({
   const [activeId, setActiveId] = useState<number | null>(null);
 
   const handleRemove = (item: File | string) => {
-    if (typeof item === "string" && onRemove) {
+    if (onRemove) {
       onRemove(item);
     }
-    setPhotos((prev) => prev.filter((photo) => photo !== item));
+
+    setPhotos((prev) =>
+      prev.filter((photo) => {
+        if (typeof item === "string" && typeof photo === "string") {
+          return photo !== item;
+        }
+        if (item instanceof File && photo instanceof File) {
+          return photo.name !== item.name || photo.lastModified !== item.lastModified;
+        }
+        return true;
+      })
+    );
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
