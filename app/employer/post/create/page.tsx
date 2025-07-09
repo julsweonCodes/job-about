@@ -228,10 +228,10 @@ function JobPostCreatePage() {
               {/* Deadline */}
               <div>
                 <Input
+                  readOnly
                   type="date"
                   label="Deadline for Applications"
                   value={formData.deadline}
-                  onChange={(e: any) => handleInputChange("deadline", e.target.value)}
                   required
                 />
               </div>

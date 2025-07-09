@@ -1,10 +1,14 @@
 import React from "react";
-import { MapPin, Calendar, Eye, Users, ChevronRight, Clock } from "lucide-react";
+import { Users, ChevronRight } from "lucide-react";
+import { WorkType } from "@/constants/enums";
+import Typography from "@/components/ui/Typography";
+import { Chip } from "@/components/ui/Chip";
+import { Button } from "@/components/ui/Button";
 
 interface JobPost {
   id: string;
   title: string;
-  type: "Full-Time" | "Part-Time";
+  type: WorkType;
   wage: string;
   location: string;
   dateRange: string;
@@ -12,8 +16,8 @@ interface JobPost {
   description: string;
   applicants: number;
   views: number;
-  needsUpdate: boolean;
   coverImage?: string;
+  pending?: number; // Added for pending applications
 }
 
 interface JobPostCardProps {
@@ -23,92 +27,104 @@ interface JobPostCardProps {
 }
 
 export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApplicants }) => {
+  // WorkType에 따른 라벨/색상 분기 (예시)
+  const typeLabel =
+    job.type === WorkType.OnSite ? "On-Site" : job.type === WorkType.Remote ? "Remote" : job.type;
+  const typeClass =
+    job.type === WorkType.OnSite
+      ? "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
+      : job.type === WorkType.Remote
+        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-100/80";
+
+  const defaultImage = "/images/img-default-part-time-work.png";
+
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      {job.coverImage && (
-        <div className="h-40 lg:h-48 bg-gradient-to-r from-blue-400 to-purple-500 relative overflow-hidden">
-          <img
-            src={job.coverImage}
-            alt={job.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-          {job.needsUpdate && (
-            <div className="absolute top-4 right-4 flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-orange-700">Update needed</span>
-            </div>
-          )}
-        </div>
-      )}
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col p-6 lg:p-8">
+      {/* 상단: 썸네일 + 제목/타입 */}
+      <div className="flex items-center gap-4 mb-4">
+        <img
+          src={job.coverImage || defaultImage}
+          alt={job.title}
+          className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl object-cover flex-shrink-0"
+        />
 
-      <div className="p-6 lg:p-8">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-3">
-              <h3 className="font-bold text-gray-900 text-lg lg:text-xl">{job.title}</h3>
-              {job.needsUpdate && !job.coverImage && (
-                <div className="flex items-center space-x-1 bg-orange-50 rounded-full px-2 py-1">
-                  <Clock className="w-3 h-3 text-orange-600" />
-                  <span className="text-xs font-medium text-orange-700">Update</span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center space-x-3 mb-3">
-              <span
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                  job.type === "Full-Time"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-emerald-100 text-emerald-800"
-                }`}
-              >
-                {job.type}
-              </span>
-              <span className="text-sm lg:text-base font-bold text-gray-900">{job.wage}</span>
+        <div>
+          <div className="flex flex-col gap-1 mb-1">
+            <Typography as="h3" variant="headlineSm" className="font-bold text-gray-900 truncate">
+              {job.title}
+            </Typography>
+            <div className="flex items-center gap-2">
+              <Chip size="sm" className={`${typeClass} font-semibold`}>
+                {typeLabel}
+              </Chip>
+              {/* 월급 */}
+              <Typography as="span" variant="bodySm" className="text-gray-700">
+                {job.wage}
+              </Typography>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-3 mb-5">
-          <div className="flex items-center text-sm lg:text-base text-gray-600">
-            <MapPin className="w-4 h-4 lg:w-5 lg:h-5 mr-3 text-gray-400" />
+      {/* 회사명, 위치, 기간 */}
+      <div className="space-y-2 mb-5">
+        <div className="flex items-center text-sm text-gray-700">
+          <span className="mr-2">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path
+                d="M12 2C7.03 2 3 6.03 3 11c0 5.25 7.5 11 9 11s9-5.75 9-11c0-4.97-4.03-9-9-9Zm0 13a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
+                stroke="#9CA3AF"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <Typography as="span" variant="bodySm" className="text-gray-700">
             {job.location}
-          </div>
-          <div className="flex items-center text-sm lg:text-base text-gray-600">
-            <Calendar className="w-4 h-4 lg:w-5 lg:h-5 mr-3 text-gray-400" />
+          </Typography>
+        </div>
+        <div className="flex items-center text-sm text-gray-700">
+          <span className="mr-2">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path
+                d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"
+                stroke="#9CA3AF"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <Typography as="span" variant="bodySm" className="text-gray-700">
             {job.dateRange}
-          </div>
+          </Typography>
         </div>
+      </div>
 
-        <p className="text-sm lg:text-base text-gray-700 mb-6 leading-relaxed">{job.description}</p>
+      <p className="text-sm lg:text-base text-gray-700 mb-6 leading-relaxed">{job.description}</p>
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center text-sm lg:text-base text-gray-600">
-              <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-2">
-                <Users className="w-4 h-4 text-blue-600" />
-              </div>
-              <span className="font-medium">{job.applicants}</span>
-              <span className="ml-1 text-gray-500">applicants</span>
+      {/* 지원자 통계 및 버튼 */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center text-sm lg:text-base text-gray-600">
+            <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-2">
+              <Users className="w-4 h-4 text-blue-600" />
             </div>
+            <span className="font-semibold text-gray-900">{job.applicants}</span>
+            <span className="ml-1 text-gray-600">applicants</span>
           </div>
         </div>
+      </div>
 
-        <div className="flex space-x-3">
-          <button
-            onClick={() => onView(job.id)}
-            className="flex-1 bg-gray-50 text-gray-700 py-3 lg:py-4 px-6 rounded-2xl font-semibold hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95"
-          >
-            View Details
-          </button>
-          <button
-            onClick={() => onViewApplicants(job.id)}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 lg:py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center shadow-lg"
-          >
-            <span>View Applicants</span>
-            <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2" />
-          </button>
-        </div>
+      <div className="flex space-x-3">
+        <Button variant="secondary" className="h-14" onClick={() => onView(job.id)}>
+          View Details
+        </Button>
+        <Button variant="default" className="h-14" onClick={() => onViewApplicants(job.id)}>
+          View Applicants
+        </Button>
       </div>
     </div>
   );

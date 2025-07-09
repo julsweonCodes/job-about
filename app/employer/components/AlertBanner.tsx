@@ -1,13 +1,17 @@
 import React from "react";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 interface AlertBannerProps {
   message: string;
+  onClick?: () => void;
 }
 
-export const AlertBanner: React.FC<AlertBannerProps> = ({ message }) => {
+export const AlertBanner: React.FC<AlertBannerProps> = ({ message, onClick }) => {
   return (
-    <div className="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 border-2 border-orange-200 rounded-3xl p-4 lg:p-6 flex items-start space-x-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div
+      className="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 border-2 border-orange-200 rounded-3xl p-4 lg:p-6 flex items-start space-x-4 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+      onClick={onClick}
+    >
       <div className="flex-shrink-0">
         <div className="w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
           <AlertCircle className="w-5 h-5 lg:w-6 lg:h-6 text-orange-600" />
