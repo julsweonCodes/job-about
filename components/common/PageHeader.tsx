@@ -2,7 +2,7 @@ import React from "react";
 import Typography from "@/components/ui/Typography";
 
 interface PageHeaderProps {
-  title: string;
+  title?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   onClickLeft?: () => void;

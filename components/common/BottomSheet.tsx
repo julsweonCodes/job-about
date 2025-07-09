@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { createPortal } from "react-dom";
 
 const bottomSheetVariants = cva("fixed inset-0 z-50 flex items-end justify-center bg-black/40", {
   variants: {
@@ -77,7 +78,7 @@ export function BottomSheet({
 
   if (!open) return null;
 
-  return (
+  const sheet = (
     <div className={cn(bottomSheetVariants({ size, align }), className)} onClick={onClose}>
       <div
         className={cn(bottomSheetContentVariants({ size }), "min-h-[60vh]")}
@@ -107,4 +108,10 @@ export function BottomSheet({
       `}</style>
     </div>
   );
+
+  // Portal로 body에 렌더링
+  if (typeof window !== "undefined") {
+    return createPortal(sheet, document.body);
+  }
+  return null;
 }

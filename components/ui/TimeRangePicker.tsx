@@ -44,9 +44,9 @@ const formatTimeForDisplay = (time: string) => {
 
 // 시간 범위 표시
 const formatTimeRange = (start: string, end: string) => {
-  if (!start && !end) return "시간을 선택해주세요";
-  if (!start) return `종료: ${formatTimeForDisplay(end)}`;
-  if (!end) return `시작: ${formatTimeForDisplay(start)}`;
+  if (!start && !end) return "";
+  if (!start) return `${formatTimeForDisplay(end)}`;
+  if (!end) return `${formatTimeForDisplay(start)}`;
   return `${formatTimeForDisplay(start)} - ${formatTimeForDisplay(end)}`;
 };
 
@@ -176,7 +176,7 @@ export default function TimeRangePicker({
       <Input
         label={label}
         value=""
-        placeholder="시간을 선택해주세요"
+        placeholder="Select Time"
         readOnly
         rightIcon={<Clock className="w-5 h-5" />}
         error={error}
@@ -192,7 +192,7 @@ export default function TimeRangePicker({
         <Input
           label={label}
           value={formatTimeRange(startTime, endTime)}
-          placeholder="시간을 선택해주세요"
+          placeholder="Select Time"
           readOnly
           rightIcon={<Clock className="w-5 h-5" />}
           error={error}
@@ -246,18 +246,18 @@ export default function TimeRangePicker({
   return (
     <div className={className}>
       {label && (
-        <Typography
-          as="label"
-          variant="bodyMd"
-          className="block text-sm font-semibold text-gray-700 mb-2"
-        >
+        <Typography as="label" variant="bodySm" className="block font-semibold text-gray-800 mb-3">
           {label} {required && <span className="text-red-500">*</span>}
         </Typography>
       )}
       <div className="grid grid-cols-2 gap-4">
         {/* 시작 시간 */}
         <Select value={startTime} onValueChange={onStartTimeChange}>
-          <SelectTrigger>{startTime ? formatTimeForDisplay(startTime) : "시작 시간"}</SelectTrigger>
+          <SelectTrigger>
+            <Typography variant="bodySm" className="text-text-tertiary font-normal">
+              {startTime ? formatTimeForDisplay(startTime) : "Start Time"}
+            </Typography>
+          </SelectTrigger>
           <SelectContent>
             {timeOptions.map((time) => (
               <SelectItem key={time} value={time}>
@@ -268,7 +268,11 @@ export default function TimeRangePicker({
         </Select>
         {/* 종료 시간 */}
         <Select value={endTime} onValueChange={onEndTimeChange}>
-          <SelectTrigger>{endTime ? formatTimeForDisplay(endTime) : "종료 시간"}</SelectTrigger>
+          <SelectTrigger>
+            <Typography variant="bodySm" className="text-text-tertiary font-normal">
+              {endTime ? formatTimeForDisplay(endTime) : "End Time"}
+            </Typography>
+          </SelectTrigger>
           <SelectContent>
             {timeOptions.map((time) => (
               <SelectItem key={time} value={time}>

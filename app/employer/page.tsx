@@ -1,153 +1,169 @@
 "use client";
+import React, { useState } from "react";
+import { StatsCard } from "./components/StatsCard";
+import { JobPostCard } from "./components/JobPostCard";
+import { AlertBanner } from "./components/AlertBanner";
+import { Header } from "./components/Header";
 
-import React from "react";
-import { Briefcase, Users, SquarePen, UserRound, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import Typography from "@/components/ui/Typography";
-import PageHeader from "@/components/common/PageHeader";
-import JobCard, { JobCardJob } from "@/components/common/JobCard";
-import Link from "next/link";
+interface JobPost {
+  id: string;
+  title: string;
+  type: "Full-Time" | "Part-Time";
+  wage: string;
+  location: string;
+  dateRange: string;
+  businessName: string;
+  description: string;
+  applicants: number;
+  views: number;
+  needsUpdate: boolean;
+  coverImage?: string;
+}
 
-export default function EmployerPage() {
-  // Stats 예시 데이터
-  const stats = [
-    { icon: <Briefcase className="w-6 h-6" />, value: 2, label: "Active Jobs" },
-    { icon: <Users className="w-6 h-6" />, value: 30, label: "Total Applicants" },
-    { icon: <AlertTriangle className="w-6 h-6" />, value: 2, label: "Status Update Needed" },
-  ];
+const mockJobPosts: JobPost[] = [
+  {
+    id: "1",
+    title: "Senior Product Designer",
+    type: "Full-Time",
+    wage: "$85,000 - $110,000",
+    location: "San Francisco, CA",
+    dateRange: "Jan 15 - Mar 15, 2025",
+    businessName: "TechFlow Solutions",
+    description:
+      "Join our design team to create innovative user experiences for our flagship product. We're looking for someone passionate about user-centered design and modern design systems.",
+    applicants: 18,
+    views: 127,
+    needsUpdate: true,
+    coverImage:
+      "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800",
+  },
+  {
+    id: "2",
+    title: "Marketing Specialist",
+    type: "Part-Time",
+    wage: "$35 - $45/hour",
+    location: "Remote",
+    dateRange: "Feb 1 - May 1, 2025",
+    businessName: "TechFlow Solutions",
+    description:
+      "Drive marketing campaigns and content strategy for our growing startup. Perfect opportunity for someone looking to make a real impact in a fast-paced environment.",
+    applicants: 12,
+    views: 89,
+    needsUpdate: false,
+    coverImage:
+      "https://images.pexels.com/photos/3184302/pexels-photo-3184302.jpeg?auto=compress&cs=tinysrgb&w=800",
+  },
+  {
+    id: "3",
+    title: "Frontend Developer",
+    type: "Full-Time",
+    wage: "$75,000 - $95,000",
+    location: "Austin, TX",
+    dateRange: "Mar 1 - Jun 1, 2025",
+    businessName: "TechFlow Solutions",
+    description:
+      "Build responsive web applications using modern JavaScript frameworks. Join our engineering team and help shape the future of our platform.",
+    applicants: 24,
+    views: 203,
+    needsUpdate: true,
+  },
+  {
+    id: "4",
+    title: "UX Researcher",
+    type: "Full-Time",
+    wage: "$70,000 - $90,000",
+    location: "Seattle, WA",
+    dateRange: "Apr 1 - Jul 1, 2025",
+    businessName: "TechFlow Solutions",
+    description:
+      "Conduct user research and usability testing to inform product decisions. Help us understand our users better and improve their experience.",
+    applicants: 8,
+    views: 156,
+    needsUpdate: false,
+    coverImage:
+      "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800",
+  },
+];
 
-  // Stats section에는 Status Update Needed 제외
-  const statsForSection = stats.filter((s) => s.label !== "Status Update Needed");
+function App() {
+  const [showAlert, setShowAlert] = useState(true);
+  const [jobPosts] = useState<JobPost[]>(mockJobPosts);
 
-  // Status Update Needed 배너 노출 조건
-  const statusUpdateStat = stats.find((s) => s.label === "Status Update Needed");
-  const needsUpdate = statusUpdateStat && statusUpdateStat.value > 0;
+  const user = {
+    name: "Sophia Lee",
+    subtitle: "Verified Business Owner",
+  };
 
-  // Active Job Posts 예시 데이터
-  const activeJobPosts = [
-    {
-      id: 1,
-      type: "Part-Time",
-      title: "Server - Full Time",
-      rate: "₩12,000/hr",
-      city: "Gangnam",
-      dateRange: "Dec 15 - Feb 28",
-      company: "Starbucks",
-      desc: "Experience preferred, weekend availability required",
-      applicants: 12,
-      views: 89,
-      imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg-Hu63xpLSz-T8LeMQrBt09rk4fhAkts_EQ&s",
-    },
-    {
-      id: 2,
-      type: "Part-Time",
-      title: "Kitchen Staff - Part Time",
-      rate: "₩13,500/hr",
-      city: "Insadong",
-      dateRange: "Dec 18 - Feb 14",
-      company: "Fashion Store",
-      desc: "Evening shifts, no experience required",
-      applicants: 8,
-      views: 124,
-      imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_vguO_Tb6WmaoO95UhQL7YGkMORACrcgR2w&s",
-    },
-  ];
+  const stats = {
+    activeJobs: jobPosts.length,
+    statusUpdateNeeded: jobPosts.filter((job) => job.needsUpdate).length,
+    totalApplicants: jobPosts.reduce((sum, job) => sum + job.applicants, 0),
+  };
 
+  const handleViewJob = (id: string) => {
+    console.log("View job:", id);
+  };
+
+  const handleViewApplicants = (id: string) => {
+    console.log("View applicants for job:", id);
+  };
   return (
-    <div className="min-h-screen bg-gray-50 font-pretendard">
-      <div className="md:max-w-6xl mx-auto bg-white min-h-screen">
-        {/* Header */}
-        <PageHeader
-          title="job:about"
-          leftIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />}
-          rightIcon={<SquarePen className="w-5 h-5 md:w-6 md:h-6" />}
-          onClickRight={() => {}}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+      {/* Header */}
+      <Header name={user.name} subtitle={user.subtitle} />
 
-        <div className="flex flex-col gap-6">
-          {/* Status Update Needed Banner */}
-          <div className="px-4 md:px-8 mt-4">
-            {needsUpdate && (
-              <Link
-                className="w-full flex items-center gap-2 bg-yellow-100 text-yellow-800 rounded-lg px-4 py-3 font-medium hover:bg-yellow-200 transition cursor-pointer"
-                href="/employer/status-update"
-                aria-label="Go to status update page"
-              >
-                <AlertTriangle className="w-5 h-5 mr-1 text-yellow-800" />
-                <span className="text-start text-sm md:text-base">
-                  {statusUpdateStat.value} job posts need status update.{" "}
-                  <br className="md:hidden" /> Please check!
-                </span>
-              </Link>
-            )}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Page Title */}
+        <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
+          <div className="text-center lg:text-left">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
+            <p className="text-base lg:text-lg text-gray-600">
+              Manage your job posts and track applications
+            </p>
           </div>
-
-          {/* Stats */}
-          <section className="grid grid-cols-2 gap-4 px-4 md:px-8 pb-6">
-            {statsForSection.map((s, i) => (
-              <Card
-                key={i}
-                className="flex flex-col items-center justify-center text-center w-full md:aspect-auto md:min-w-0 md:max-w-none py-5"
-              >
-                {s.icon}
-                <Typography as="div" variant="headlineMd">
-                  {s.value}
-                </Typography>
-                <Typography as="div" variant="bodyLg" className="text-gray-600">
-                  {s.label}
-                </Typography>
-              </Card>
-            ))}
-          </section>
         </div>
 
-        {/* Active Job Posts (이미지 스타일) */}
-        <section className="p-4 md:p-8 bg-gradient-to-b from-purple-50 to-white">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center">
-              <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" />
-              <Typography
-                as="h2"
-                variant="headlineMd"
-                className="text-xl md:text-2xl font-bold text-gray-900"
-              >
-                Active Job Posts
-              </Typography>
+        {/* Main Content */}
+        <div className="space-y-6 lg:space-y-8 pb-12">
+          {/* Alert Banner */}
+          {showAlert && (
+            <AlertBanner message={`${stats.statusUpdateNeeded} job posts need status updates`} />
+          )}
+
+          {/* Stats */}
+          <StatsCard
+            activeJobs={stats.activeJobs}
+            statusUpdateNeeded={stats.statusUpdateNeeded}
+            totalApplicants={stats.totalApplicants}
+          />
+
+          {/* Job Posts */}
+          <div className="space-y-6 lg:space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Job Posts</h2>
+              <div className="text-sm lg:text-base text-gray-600 bg-white px-4 py-2 rounded-full border border-gray-200">
+                {jobPosts.length} active
+              </div>
             </div>
-            <Typography
-              as="span"
-              variant="bodySm"
-              className="text-purple-600 hover:text-purple-700 cursor-pointer text-sm md:text-base hidden md:inline"
-            >
-              See more
-            </Typography>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {jobPosts.map((job) => (
+                <JobPostCard
+                  key={job.id}
+                  job={job}
+                  onView={handleViewJob}
+                  onViewApplicants={handleViewApplicants}
+                />
+              ))}
+            </div>
           </div>
-          <Typography as="p" variant="bodySm" className="text-gray-600 text-sm md:text-base mb-4">
-            Manage your job posts and check applicants
-          </Typography>
-          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-1 md:gap-4">
-            {activeJobPosts.map((job, i) => (
-              <JobCard
-                key={i}
-                job={job as JobCardJob}
-                actionButtons={
-                  <>
-                    <Button variant="outline" className="flex-1 border-gray-300 hover:bg-gray-100">
-                      View
-                    </Button>
-                    <Button variant="default" className="flex-1">
-                      Applicants
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </div>
-        </section>
+        </div>
+
+        {/* Bottom Safe Area */}
+        <div className="h-8 lg:h-12"></div>
       </div>
     </div>
   );
 }
+
+export default App;
