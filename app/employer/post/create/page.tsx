@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import "react-day-picker/dist/style.css";
+import { DayPicker } from "react-day-picker";
+import { enUS } from "date-fns/locale";
 import {
   ArrowLeft,
   Server,
@@ -30,6 +33,8 @@ import {
 } from "@/components/ui/Select";
 import ProgressBar from "@/components/common/ProgressBar";
 import PageHeader from "@/components/common/PageHeader";
+import { Dialog } from "@/components/common/Dialog";
+import { LanguageLevel, LANGUAGE_LEVELS } from "@/constants/enums";
 
 interface JobType {
   id: string;
@@ -59,17 +64,19 @@ const cities = [
 ];
 
 function JobPostCreatePage() {
+  const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
-    deadline: "",
+    deadline: undefined as Date | undefined,
     workSchedule: "",
     requiredSkills: "",
     requiredPersonality: "",
     wage: "",
     location: "",
-    englishRequired: false,
     jobDescription: "",
+    languageLevel: null as LanguageLevel | null,
   });
 
   const handleJobTypeSelect = (type: string) => {
@@ -79,7 +86,7 @@ function JobPostCreatePage() {
     }));
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | Date | undefined) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -107,9 +114,15 @@ function JobPostCreatePage() {
       formData.wage,
       formData.location,
       formData.jobDescription,
+      formData.languageLevel,
     ];
     const completed = fields.filter(Boolean).length;
     return Math.round((completed / fields.length) * 100);
+  };
+
+  const openCalendar = () => {
+    setTempDeadline(formData.deadline ?? null);
+    setCalendarOpen(true);
   };
 
   const progress = calculateCompletion();
@@ -229,11 +242,57 @@ function JobPostCreatePage() {
               <div>
                 <Input
                   readOnly
-                  type="date"
-                  label="Deadline for Applications"
-                  value={formData.deadline}
+                  label="Deadline for applications"
                   required
+                  placeholder="Select Date"
+                  className="cursor-pointer"
+                  value={
+                    formData.deadline
+                      ? new Date(formData.deadline).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : ""
+                  }
+                  onClick={openCalendar}
                 />
+                {/* 날짜 선택 다이얼로그 */}
+                <Dialog
+                  open={calendarOpen}
+                  onClose={() => setCalendarOpen(false)}
+                  type="bottomSheet"
+                >
+                  <div>
+                    <div className="p-4 md:p-6 flex justify-center">
+                      <DayPicker
+                        animate
+                        mode="single"
+                        required={false}
+                        selected={tempDeadline ?? undefined}
+                        onSelect={(date) => setTempDeadline(date ?? null)}
+                        locale={enUS}
+                        navLayout="around"
+                        modifiersClassNames={{
+                          selected: "bg-indigo-500 text-white rounded-2xl",
+                          today: "font-bold rounded-2xl",
+                        }}
+                        className="w-[340px] max-w-full"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full mt-4"
+                      onClick={() => {
+                        handleInputChange("deadline", tempDeadline ?? undefined);
+                        setCalendarOpen(false);
+                      }}
+                      disabled={!tempDeadline}
+                    >
+                      Select
+                    </Button>
+                  </div>
+                </Dialog>
               </div>
 
               {/* Work Schedule */}
@@ -296,21 +355,25 @@ function JobPostCreatePage() {
               </div>
 
               {/* Language Requirement */}
-              <div className="flex items-center justify-between py-2">
-                <Typography as="label" variant="bodySm" className="text-gray-700">
-                  English Required
-                </Typography>
-                <Button
-                  type="button"
-                  onClick={() => handleInputChange("englishRequired", !formData.englishRequired)}
-                  variant="outline"
-                  size="sm"
-                  className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:ring-offset-2 touch-manipulation"
+              <div className="py-2">
+                <Typography
+                  variant="bodySm"
+                  as="label"
+                  className="block mb-2 font-semibold text-gray-700"
                 >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${formData.englishRequired ? "translate-x-6" : "translate-x-1"}`}
-                  />
-                </Button>
+                  Required Language Level
+                </Typography>
+                <div className="flex flex-wrap gap-3">
+                  {LANGUAGE_LEVELS.map((level) => (
+                    <Chip
+                      key={level}
+                      selected={formData.languageLevel === level}
+                      onClick={() => handleInputChange("languageLevel", level)}
+                    >
+                      {level}
+                    </Chip>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -353,8 +416,8 @@ function JobPostCreatePage() {
                   value={formData.location}
                   onValueChange={(value) => handleInputChange("location", value)}
                 >
-                  <SelectTrigger className="w-full px-4 py-4 rounded-2xl border border-gray-200/80 bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 outline-none text-gray-900 font-medium shadow-sm hover:shadow-md hover:border-gray-300 appearance-none">
-                    <SelectValue placeholder="Select a city" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a city" />{" "}
                   </SelectTrigger>
                   <SelectContent>
                     {cities.map((city) => (
