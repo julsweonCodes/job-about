@@ -309,6 +309,7 @@ function JobSeekerProfile() {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="py-8 px-5">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

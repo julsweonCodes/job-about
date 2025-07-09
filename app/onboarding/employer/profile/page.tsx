@@ -107,6 +107,7 @@ function EmployerProfile() {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="py-8 px-5 lg:py-16">
         <div className="mx-auto lg:max-w-4xl">
           {/* Header */}
