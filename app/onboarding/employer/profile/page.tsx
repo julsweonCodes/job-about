@@ -20,7 +20,7 @@ export default function EmployerProfilePage() {
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("17:00");
   const [photos, setPhotos] = useState<(File | string)[]>([]);
-  const [logoPhoto, setLogoPhoto] = useState<File | string>();
+  const [logoImg, setLogoImg] = useState<(File | string)[]>([]);
   const [languageLevel, setLanguageLevel] = useState("");
   const [description, setDescription] = useState("");
   const [optionalTags, setOptionalTags] = useState<string[]>([]);
@@ -80,12 +80,19 @@ export default function EmployerProfilePage() {
 
     const formData = new FormData();
     formData.append("profile", JSON.stringify(formFields)); // 폼데이터에서 "profile" JSON형식으로 변환
-    //formData.append("logoImg", file);
+
+    logoImg.forEach( (file) => {
+      if (file instanceof File && file.size>0) {
+        formData.append("logoImg", file);
+      }
+    });
+
     photos.forEach( (file) => {
       if (file instanceof File && file.size>0) {
         formData.append("photos", file);
       }
     });
+
 
     const res =await fetch("/api/employer/profile", {
       method: "PUT",
@@ -173,6 +180,20 @@ export default function EmployerProfilePage() {
                     : ""
                 }
               />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Logo Image
+                </label>
+                <PhotoComponent photos={logoImg}
+                                setPhotos={setLogoImg}
+                                maxCount={1}
+                                onRemove={async (urlOrFile) => {
+                                  if (typeof urlOrFile === "string") {
+                                    await deleteSingleEmployerImage(urlOrFile);
+                                  }
+                                }}
+                              />
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Detail Photo (Optional)

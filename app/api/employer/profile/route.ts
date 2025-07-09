@@ -14,6 +14,7 @@ export async function PUT(
 
   const profileRaw = formData.get('profile') as string;
   const files = formData.getAll('photos') as File[];
+  const logoImg = formData.getAll('logoImg') as File[];
 
   if (!profileRaw) {
     return NextResponse.json({ error: 'Profile data missing' }, { status: 400 });
@@ -21,14 +22,21 @@ export async function PUT(
 
   try {
     const profile = JSON.parse(profileRaw);
+    const userId = 1;
     let imageUrls: string[] = [];
+    let logoImgUrl : string[] = [];
+
+    if (logoImg && logoImg.length === 1) {
+      logoImgUrl = await uploadEmployerImages(logoImg, userId);
+    }
 
     if (files && files.length > 0) {
-      imageUrls = await uploadEmployerImages(files);
+      imageUrls = await uploadEmployerImages(files, userId);
     }
 
     const payload = {
       ...profile,
+      logo_url: logoImgUrl[0],
       ...(imageUrls.length > 0 && {
         img_url1: imageUrls[0] || null,
         img_url2: imageUrls[1] || null,
