@@ -78,7 +78,7 @@ function ReviewPostsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleViewApplicants = (jobId: string) => {
-    router.push(`/employer/review-posts/${jobId}`);
+    router.push(`/employer/post/${jobId}/applicants`);
   };
 
   const getTotalPendingApplicants = () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, ChevronRight } from "lucide-react";
+import { Users } from "lucide-react";
 import { WorkType } from "@/constants/enums";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";

@@ -105,12 +105,12 @@ export default function EmployerDashboard() {
 
   const handleViewJob = (id: string) => {
     // 상세 페이지 이동 등 구현
-    console.log("View job:", id);
+    router.push(`/employer/post/${id}`);
   };
 
   const handleViewApplicants = (id: string) => {
     // 지원자 목록 페이지 이동 등 구현
-    console.log("View applicants for job:", id);
+    router.push(`/employer/post/${id}/applicants`);
   };
 
   return (
@@ -134,7 +134,7 @@ export default function EmployerDashboard() {
             <AlertBanner
               message={`${stats.statusUpdateNeeded} job posts need status updates`}
               onClick={() => {
-                router.push("/employer/review-posts");
+                router.push("/employer/post/list");
               }}
             />
           </div>
@@ -144,8 +144,8 @@ export default function EmployerDashboard() {
         <div className="mb-10">
           <StatsCard
             activeJobs={stats.activeJobs}
+            activeApplicants={stats.totalApplicants}
             statusUpdateNeeded={stats.statusUpdateNeeded}
-            totalApplicants={stats.totalApplicants}
           />
         </div>
 

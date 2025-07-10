@@ -3,106 +3,120 @@
 import React, { useState } from "react";
 import { Users, Clock, CheckCircle, XCircle, Eye, Calendar, User } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
+import { useRouter } from "next/navigation";
+import { Applicant, JobPostWithRelations } from "@/types/job";
+import { JobStatus, ApplicantStatus } from "@/constants/enums";
 
-interface Applicant {
-  id: string;
-  name: string;
-  avatar: string;
-  intro: string;
-  appliedDate: string;
-  status: "pending" | "shortlisted" | "interviewed" | "hired" | "rejected";
-  experience: string;
-  skills: string[];
-}
-
-interface JobPost {
-  id: string;
-  title: string;
-  employmentType: string;
-  businessName: string;
-  applicants: Applicant[];
-}
-
-const mockJobPost: JobPost = {
+const mockJobPost: JobPostWithRelations = {
   id: "1",
+  business_loc_id: "business1",
+  user_id: "user1",
   title: "Server - Full Time",
-  employmentType: "Full-Time",
-  businessName: "Starbucks Gangnam",
+  job_type: "server",
+  deadline: "2024-12-31",
+  work_schedule: "Full-Time",
+  job_fit_type_id_1: "fit1",
+  skill_id_1: "skill1",
+  wage: "15/hour",
+  location: "Gangnam",
+  description: "Server position at Starbucks Gangnam",
+  status: JobStatus.Published,
   applicants: [
     {
       id: "1",
+      user_id: "user1",
+      job_post_id: "1",
+      created_at: "2024-01-15",
       name: "Sarah Johnson",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "3 years of restaurant experience with excellent customer service skills",
-      appliedDate: "2024-01-15",
-      status: "pending",
+      description: "3 years of restaurant experience with excellent customer service skills",
+      applied_date: "2024-01-15",
+      status: ApplicantStatus.Applied,
       experience: "3 years",
       skills: ["Customer Service", "Team Work", "Fast Learner"],
     },
     {
       id: "2",
+      user_id: "user2",
+      job_post_id: "1",
+      created_at: "2024-01-14",
       name: "Mike Chen",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "Friendly server with experience in high-volume restaurants",
-      appliedDate: "2024-01-14",
-      status: "shortlisted",
+      description: "Friendly server with experience in high-volume restaurants",
+      applied_date: "2024-01-14",
+      status: ApplicantStatus.InReview,
       experience: "2 years",
       skills: ["Communication", "Multitasking", "POS Systems"],
     },
     {
       id: "3",
+      user_id: "user3",
+      job_post_id: "1",
+      created_at: "2024-01-13",
       name: "Emma Davis",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "Experienced server looking for a stable full-time position",
-      appliedDate: "2024-01-13",
-      status: "interviewed",
+      description: "Experienced server looking for a stable full-time position",
+      applied_date: "2024-01-13",
+      status: ApplicantStatus.InReview,
       experience: "4 years",
       skills: ["Leadership", "Training", "Customer Relations"],
     },
     {
       id: "4",
+      user_id: "user4",
+      job_post_id: "1",
+      created_at: "2024-01-12",
       name: "Alex Rodriguez",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "Recent hospitality graduate eager to start career in service",
-      appliedDate: "2024-01-12",
-      status: "hired",
+      description: "Recent hospitality graduate eager to start career in service",
+      applied_date: "2024-01-12",
+      status: ApplicantStatus.Hired,
       experience: "1 year",
       skills: ["Enthusiasm", "Quick Learner", "Reliability"],
     },
     {
       id: "5",
+      user_id: "user5",
+      job_post_id: "1",
+      created_at: "2024-01-11",
       name: "Lisa Wang",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "Part-time server with flexible schedule availability",
-      appliedDate: "2024-01-11",
-      status: "rejected",
+      description: "Part-time server with flexible schedule availability",
+      applied_date: "2024-01-11",
+      status: ApplicantStatus.Rejected,
       experience: "1 year",
       skills: ["Flexibility", "Weekend Availability"],
     },
     {
       id: "6",
+      user_id: "user6",
+      job_post_id: "1",
+      created_at: "2024-01-10",
       name: "David Kim",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "Experienced server with barista skills and morning availability",
-      appliedDate: "2024-01-10",
-      status: "pending",
+      description: "Experienced server with barista skills and morning availability",
+      applied_date: "2024-01-10",
+      status: ApplicantStatus.Applied,
       experience: "5 years",
       skills: ["Barista", "Morning Shifts", "Training Others"],
     },
     {
       id: "7",
+      user_id: "user7",
+      job_post_id: "1",
+      created_at: "2024-01-09",
       name: "Maria Garcia",
-      avatar:
+      profile_image_url:
         "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150",
-      intro: "Bilingual server with strong communication and sales skills",
-      appliedDate: "2024-01-09",
-      status: "shortlisted",
+      description: "Bilingual server with strong communication and sales skills",
+      applied_date: "2024-01-09",
+      status: ApplicantStatus.InReview,
       experience: "3 years",
       skills: ["Bilingual", "Sales", "Customer Service"],
     },
@@ -111,15 +125,15 @@ const mockJobPost: JobPost = {
 
 const statusTabs = [
   { key: "all", label: "All", count: 0 },
-  { key: "pending", label: "Pending", count: 0 },
-  { key: "shortlisted", label: "Shortlisted", count: 0 },
-  { key: "interviewed", label: "Interviewed", count: 0 },
+  { key: "applied", label: "Applied", count: 0 },
+  { key: "in_review", label: "In Review", count: 0 },
   { key: "hired", label: "Hired", count: 0 },
   { key: "rejected", label: "Rejected", count: 0 },
 ];
 
-function ReviewPostsPage() {
-  const [jobPost] = useState<JobPost>(mockJobPost);
+function ReviewApplicantsPage() {
+  const router = useRouter();
+  const [jobPost] = useState<JobPostWithRelations>(mockJobPost);
   const [activeTab, setActiveTab] = useState("all");
 
   const formatDate = (dateString: string) => {
@@ -131,7 +145,7 @@ function ReviewPostsPage() {
   };
 
   const handleReviewApplicant = (applicantId: string) => {
-    console.log("Review applicant:", applicantId);
+    router.push(`/employer/post/${jobPost.id}/applicants/${applicantId}`);
   };
 
   const handleViewProfile = (applicantId: string) => {
@@ -140,55 +154,61 @@ function ReviewPostsPage() {
 
   const getStatusCounts = () => {
     const counts = {
-      all: jobPost.applicants.length,
-      pending: 0,
-      shortlisted: 0,
-      interviewed: 0,
+      all: jobPost.applicants?.length || 0,
+      applied: 0,
+      in_review: 0,
       hired: 0,
       rejected: 0,
     };
 
-    jobPost.applicants.forEach((applicant) => {
-      counts[applicant.status]++;
+    jobPost.applicants?.forEach((applicant) => {
+      switch (applicant.status) {
+        case ApplicantStatus.Applied:
+          counts.applied++;
+          break;
+        case ApplicantStatus.InReview:
+          counts.in_review++;
+          break;
+        case ApplicantStatus.Hired:
+          counts.hired++;
+          break;
+        case ApplicantStatus.Rejected:
+          counts.rejected++;
+          break;
+      }
     });
 
     return counts;
   };
 
   const statusCounts = getStatusCounts();
-  const pendingCount = statusCounts.pending;
+  const appliedCount = statusCounts.applied;
   const totalCount = statusCounts.all;
-  const reviewedCount = totalCount - pendingCount;
-  const completionPercentage = totalCount > 0 ? Math.round((reviewedCount / totalCount) * 100) : 0;
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ApplicantStatus) => {
     switch (status) {
-      case "pending":
+      case ApplicantStatus.Applied:
         return "bg-amber-100 text-amber-700 border-amber-200";
-      case "shortlisted":
+      case ApplicantStatus.InReview:
         return "bg-blue-100 text-blue-700 border-blue-200";
-      case "interviewed":
-        return "bg-purple-100 text-purple-700 border-purple-200";
-      case "hired":
+      case ApplicantStatus.Hired:
         return "bg-green-100 text-green-700 border-green-200";
-      case "rejected":
+      case ApplicantStatus.Rejected:
         return "bg-red-100 text-red-700 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: ApplicantStatus) => {
     switch (status) {
-      case "pending":
+      case ApplicantStatus.Applied:
         return <Clock className="w-3 h-3" />;
-      case "shortlisted":
+      case ApplicantStatus.InReview:
         return <Eye className="w-3 h-3" />;
-      case "interviewed":
-        return <User className="w-3 h-3" />;
-      case "hired":
+      case ApplicantStatus.Hired:
         return <CheckCircle className="w-3 h-3" />;
-      case "rejected":
+      case ApplicantStatus.Rejected:
         return <XCircle className="w-3 h-3" />;
       default:
         return <Clock className="w-3 h-3" />;
@@ -197,7 +217,7 @@ function ReviewPostsPage() {
 
   const getActionButton = (applicant: Applicant) => {
     switch (applicant.status) {
-      case "pending":
+      case ApplicantStatus.Applied:
         return (
           <button
             onClick={() => handleReviewApplicant(applicant.id)}
@@ -218,10 +238,11 @@ function ReviewPostsPage() {
     }
   };
 
-  const filteredApplicants =
-    activeTab === "all"
-      ? jobPost.applicants
-      : jobPost.applicants.filter((applicant) => applicant.status === activeTab);
+  const filteredApplicants = React.useMemo(() => {
+    if (!jobPost.applicants) return [];
+    if (activeTab === "all") return jobPost.applicants;
+    return jobPost.applicants.filter((applicant) => applicant.status === activeTab);
+  }, [activeTab, jobPost.applicants]);
 
   const tabsWithCounts = statusTabs.map((tab) => ({
     ...tab,
@@ -234,7 +255,7 @@ function ReviewPostsPage() {
       <BackHeader title="Review Applicants" />
 
       {/* Status Tabs */}
-      <div className="bg-white border-b border-gray-100 sticky top-[55px] lg:top-[70px] z-10">
+      <div className="bg-white border-b border-gray-100 sticky top-[64px] lg:top-[78px] z-10">
         <div className="max-w-6xl mx-auto px-4 lg:px-6">
           <div className="flex gap-1 overflow-x-auto scrollbar-hide py-3">
             {tabsWithCounts.map((tab) => (
@@ -263,17 +284,17 @@ function ReviewPostsPage() {
 
       {/* Applicant Cards */}
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6">
-        <div className="lg:grid lg:grid-cols-2 lg:gap-6">
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-6">
           {filteredApplicants.map((applicant) => (
             <div
               key={applicant.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:p-6 mb-4 lg:mb-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02]"
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:p-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02]"
             >
               {/* Applicant Header */}
               <div className="flex items-start gap-4 mb-4">
                 <img
-                  src={applicant.avatar}
-                  alt={applicant.name}
+                  src={applicant.profile_image_url || ""}
+                  alt={applicant.name || ""}
                   className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover shadow-sm flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
@@ -282,10 +303,12 @@ function ReviewPostsPage() {
                   </h3>
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs lg:text-sm font-medium border ${getStatusColor(applicant.status)}`}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs lg:text-sm font-medium border ${getStatusColor(applicant.status as ApplicantStatus)}`}
                     >
-                      {getStatusIcon(applicant.status)}
-                      <span className="capitalize">{applicant.status.replace("-", " ")}</span>
+                      {getStatusIcon(applicant.status as ApplicantStatus)}
+                      <span className="capitalize">
+                        {String(applicant.status).replace("_", " ")}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -294,19 +317,21 @@ function ReviewPostsPage() {
               {/* Applicant Info */}
               <div className="mb-4">
                 <p className="text-sm lg:text-base text-gray-600 mb-3 leading-relaxed">
-                  {applicant.intro}
+                  {applicant.description}
                 </p>
 
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                   <Calendar className="w-4 h-4" />
-                  <span>Applied {formatDate(applicant.appliedDate)}</span>
+                  <span>
+                    Applied {applicant.applied_date ? formatDate(applicant.applied_date) : ""}
+                  </span>
                   <span className="text-gray-300">•</span>
                   <span>{applicant.experience} experience</span>
                 </div>
 
                 {/* Skills */}
                 <div className="flex flex-wrap gap-2">
-                  {applicant.skills.map((skill, index) => (
+                  {applicant.skills?.map((skill, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs lg:text-sm font-medium rounded-full transition-colors duration-200"
@@ -333,24 +358,22 @@ function ReviewPostsPage() {
             <p className="text-gray-500">
               {activeTab === "all"
                 ? "No applications have been received yet"
-                : `No applicants are currently ${activeTab.replace("-", " ")}`}
+                : `No applicants are currently ${activeTab.replace("_", " ")}`}
             </p>
           </div>
         )}
 
         {/* All Reviewed State */}
-        {activeTab === "pending" &&
+        {activeTab === "applied" &&
           filteredApplicants.length === 0 &&
-          pendingCount === 0 &&
+          appliedCount === 0 &&
           totalCount > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <h3 className="text-lg font-semibold text-green-900 mb-2">All caught up! 🎉</h3>
-              <p className="text-green-700">
-                You've reviewed all pending applications for this position.
-              </p>
+              <p className="text-green-700">You've reviewed all applications for this position.</p>
             </div>
           )}
       </div>
@@ -358,4 +381,4 @@ function ReviewPostsPage() {
   );
 }
 
-export default ReviewPostsPage;
+export default ReviewApplicantsPage;
