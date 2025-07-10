@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, MapPin, Clock, Globe, Calendar } from "lucide-react";
+import { MapPin, Clock, Globe, Calendar, User } from "lucide-react";
+import BackHeader from "@/components/common/BackHeader";
 
 function ApplicantDetailPage() {
   const workStyleTags = ["#QuietEnvironment", "#Teamwork", "#FastPacedPreferred"];
@@ -60,36 +61,23 @@ function ApplicantDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-white/20">
-        <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between max-w-4xl mx-auto">
-          <button className="p-2 -ml-2 rounded-full hover:bg-gray-100/80 transition-all duration-200 active:scale-95">
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
-          </button>
-          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
-            Applicant Profile
-          </h1>
-          <div className="w-9"></div>
-        </div>
-      </header>
+      <BackHeader title="Applicant Profile" />
 
       {/* Main Content */}
-      <main className="pb-32 lg:pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="pb-32 lg:pb-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Grid Layout */}
-        <div className="lg:grid lg:grid-cols-3 lg:gap-8 lg:mt-8">
+        <div className="lg:grid lg:grid-cols-3 lg:gap-8 lg:mt-10">
           {/* Left Column - Applicant Info & Work Style (Desktop) */}
           <div className="lg:col-span-1 space-y-6">
             {/* Applicant Info */}
-            <section className="bg-white/70 backdrop-blur-sm mt-6 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+            <section className="bg-white backdrop-blur-sm mt-6 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
               <div className="flex lg:flex-col lg:items-center lg:text-center items-center space-x-4 lg:space-x-0 lg:space-y-4">
                 <div className="relative">
                   <div className="w-20 lg:w-24 h-20 lg:h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-rose-400 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white/50">
-                    <span className="text-white font-bold text-2xl lg:text-3xl tracking-wide">
-                      SC
-                    </span>
+                    <User className="w-10 lg:w-12 h-10 lg:h-12 text-white" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-3 border-white shadow-sm"></div>
                 </div>
                 <div className="flex-1 lg:flex-none">
                   <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 tracking-tight">
@@ -104,7 +92,7 @@ function ApplicantDetailPage() {
             </section>
 
             {/* Work Style Summary */}
-            <section className="bg-white/70 backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+            <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
               <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 lg:mb-6 tracking-tight">
                 Work Style Summary
               </h3>
@@ -130,7 +118,7 @@ function ApplicantDetailPage() {
           {/* Right Column - Skills, Experience & Preferences (Desktop) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Skills & Experience */}
-            <section className="bg-white/70 backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+            <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
               <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 lg:mb-6 tracking-tight">
                 Skills & Experience
               </h3>
@@ -172,7 +160,7 @@ function ApplicantDetailPage() {
             </section>
 
             {/* Job Preferences */}
-            <section className="bg-white/70 backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+            <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
               <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-5 lg:mb-6 tracking-tight">
                 Job Preferences
               </h3>
