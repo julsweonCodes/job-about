@@ -3,6 +3,7 @@
 import React from "react";
 import { MapPin, Clock, Globe, Calendar, User } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
+import { Button } from "@/components/ui/Button";
 
 function ApplicantDetailPage() {
   const workStyleTags = ["#QuietEnvironment", "#Teamwork", "#FastPacedPreferred"];
@@ -88,6 +89,11 @@ function ApplicantDetailPage() {
                     Applied 2 days ago
                   </p>
                 </div>
+              </div>
+              {/* 데스크탑용 버튼 */}
+              <div className="hidden lg:flex gap-4 mt-8">
+                <Button variant="black">Deny</Button>
+                <Button variant="default">Accept</Button>
               </div>
             </section>
 
@@ -194,16 +200,14 @@ function ApplicantDetailPage() {
         </div>
       </main>
 
-      {/* Sticky Action Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl">
-        <div className="flex space-x-4 lg:space-x-6 max-w-4xl mx-auto lg:max-w-md">
-          <button className="flex-1 bg-gray-900 text-white py-4 lg:py-5 px-6 lg:px-8 rounded-2xl font-semibold text-sm lg:text-base hover:bg-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 active:scale-95 transform shadow-lg">
-            Deny
-          </button>
-          <button className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 lg:py-5 px-6 lg:px-8 rounded-2xl font-semibold text-sm lg:text-base hover:from-purple-700 hover:to-pink-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:scale-95 transform shadow-lg">
-            Accept
-          </button>
-        </div>
+      {/* 모바일 하단 고정 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl flex gap-4 lg:hidden">
+        <Button variant="black" size="xl">
+          Deny
+        </Button>
+        <Button variant="default" size="xl">
+          Accept
+        </Button>
       </div>
     </div>
   );
