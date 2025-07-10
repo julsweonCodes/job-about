@@ -3,6 +3,7 @@ import { Calendar } from "lucide-react";
 import { Applicant } from "@/types/job";
 import { ApplicantStatus } from "@/constants/enums";
 import { Button } from "@/components/ui/Button";
+import Typography from "@/components/ui/Typography";
 
 interface ApplicantCardProps {
   applicant: Applicant;
@@ -31,7 +32,9 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover shadow-sm flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-1">{applicant.name}</h3>
+          <Typography as="h3" variant="headlineSm" className="mb-1 text-gray-900">
+            {applicant.name}
+          </Typography>
           <div className="flex items-center gap-2 mb-2">
             <span
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs lg:text-sm font-medium border ${getStatusColor(applicant.status as ApplicantStatus)}`}
@@ -45,26 +48,32 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
       {/* Applicant Info */}
       <div className="flex-1 mb-4">
-        <p className="text-sm lg:text-base text-gray-600 mb-3 leading-relaxed">
+        <p className="text-sm md:text-base text-gray-600 mb-3 leading-relaxed">
           {applicant.description}
         </p>
 
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-          <Calendar className="w-4 h-4" />
-          <span>Applied {applicant.applied_date ? formatDate(applicant.applied_date) : ""}</span>
+        <div className="flex items-center gap-2 mb-3">
+          <Calendar className="w-4 h-4 text-gray-400" />
+          <Typography as="span" variant="bodyXs" className="text-gray-500">
+            Applied {applicant.applied_date ? formatDate(applicant.applied_date) : ""}
+          </Typography>
           <span className="text-gray-300">•</span>
-          <span>{applicant.experience} experience</span>
+          <Typography as="span" variant="bodyXs" className="text-gray-500">
+            {applicant.experience} experience
+          </Typography>
         </div>
 
         {/* Skills */}
         <div className="flex flex-wrap gap-2">
           {applicant.skills?.map((skill, index) => (
-            <span
+            <Typography
+              as="span"
+              variant="bodyXs"
               key={index}
               className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs lg:text-sm font-medium rounded-full transition-colors duration-200"
             >
               {skill}
-            </span>
+            </Typography>
           ))}
         </div>
       </div>
