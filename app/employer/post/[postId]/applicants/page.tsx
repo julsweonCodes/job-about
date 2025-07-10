@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { Applicant, JobPostWithRelations } from "@/types/job";
 import { JobStatus, ApplicantStatus } from "@/constants/enums";
 import ApplicantCard from "@/app/employer/components/ApplicantCard";
+import { Dialog } from "@/components/common/Dialog";
+import { Button } from "@/components/ui/Button";
+import ApplicantStatusDialog from "@/app/employer/components/ApplicantStatusDialog";
 
 const mockJobPost: JobPostWithRelations = {
   id: "1",
@@ -124,6 +127,30 @@ const mockJobPost: JobPostWithRelations = {
   ],
 };
 
+const statusList = [
+  {
+    value: ApplicantStatus.InReview,
+    label: "In Review",
+    icon: <Eye className="w-5 h-5 text-blue-500" />,
+
+    color: "border-blue-500",
+  },
+  {
+    value: ApplicantStatus.Rejected,
+    label: "Rejected",
+    icon: <XCircle className="w-5 h-5 text-red-500" />,
+
+    color: "border-red-500",
+  },
+  {
+    value: ApplicantStatus.Hired,
+    label: "Hired",
+    icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+
+    color: "border-green-500",
+  },
+];
+
 const statusTabs = [
   { key: "all", label: "All", count: 0 },
   { key: "applied", label: "Applied", count: 0 },
@@ -136,6 +163,10 @@ function ReviewApplicantsPage() {
   const router = useRouter();
   const [jobPost] = useState<JobPostWithRelations>(mockJobPost);
   const [activeTab, setActiveTab] = useState("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<ApplicantStatus | null>(null);
+  const [applicants, setApplicants] = useState(jobPost.applicants);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -145,7 +176,19 @@ function ReviewApplicantsPage() {
     return `${month}/${day}/${year}`;
   };
 
-  const handleReviewApplicant = (applicantId: string) => {};
+  const handleReviewApplicant = (applicantId: string) => {
+    setSelectedApplicantId(applicantId);
+    setDialogOpen(true);
+    setSelectedStatus(null);
+  };
+
+  const handleSaveStatus = () => {
+    if (!selectedApplicantId || !selectedStatus) return;
+    setApplicants((prev) =>
+      prev?.map((a) => (a.id === selectedApplicantId ? { ...a, status: selectedStatus } : a))
+    );
+    setDialogOpen(false);
+  };
 
   const handleViewProfile = (applicantId: string) => {
     router.push(`/employer/post/${jobPost.id}/applicants/${applicantId}`);
@@ -214,29 +257,6 @@ function ReviewApplicantsPage() {
     }
   };
 
-  const getActionButton = (applicant: Applicant) => {
-    switch (applicant.status) {
-      case ApplicantStatus.Applied:
-        return (
-          <button
-            onClick={() => handleReviewApplicant(applicant.id)}
-            className="bg-[#7C3AED] hover:bg-[#6D28D9] active:bg-[#5B21B6] text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
-          >
-            Review
-          </button>
-        );
-      default:
-        return (
-          <button
-            onClick={() => handleViewProfile(applicant.id)}
-            className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
-          >
-            View Profile
-          </button>
-        );
-    }
-  };
-
   const filteredApplicants = React.useMemo(() => {
     if (!jobPost.applicants) return [];
     if (activeTab === "all") return jobPost.applicants;
@@ -284,7 +304,7 @@ function ReviewApplicantsPage() {
       {/* Applicant Cards */}
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6">
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-6">
-          {filteredApplicants.map((applicant) => (
+          {(applicants || []).map((applicant) => (
             <ApplicantCard
               key={applicant.id}
               applicant={applicant}
@@ -326,6 +346,14 @@ function ReviewApplicantsPage() {
             </div>
           )}
       </div>
+
+      <ApplicantStatusDialog
+        open={dialogOpen}
+        selectedStatus={selectedStatus}
+        onSelect={(status) => setSelectedStatus(status as ApplicantStatus)}
+        onSave={handleSaveStatus}
+        onCancel={() => setDialogOpen(false)}
+      />
     </div>
   );
 }

@@ -22,7 +22,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   onViewProfile,
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:p-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02]">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:p-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02] h-full flex flex-col">
       {/* Applicant Header */}
       <div className="flex items-start gap-4 mb-4">
         <img
@@ -44,7 +44,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
       </div>
 
       {/* Applicant Info */}
-      <div className="mb-4">
+      <div className="flex-1 mb-4">
         <p className="text-sm lg:text-base text-gray-600 mb-3 leading-relaxed">
           {applicant.description}
         </p>
@@ -71,10 +71,10 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
       {/* Action Buttons */}
       {(onReview || onViewProfile) && (
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-auto">
           {onReview && (
             <Button className="flex-1" variant="default" size="md" onClick={onReview}>
-              Review
+              Update Status
             </Button>
           )}
           {onViewProfile && (
