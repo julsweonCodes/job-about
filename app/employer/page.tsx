@@ -1,14 +1,16 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { StatsCard } from "./components/StatsCard";
 import { JobPostCard } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
-import { Header } from "./components/Header";
+import { ProfileHeader } from "../../components/common/ProfileHeader";
+import { WorkType } from "@/constants/enums";
 
 interface JobPost {
   id: string;
   title: string;
-  type: "Full-Time" | "Part-Time";
+  type: WorkType;
   wage: string;
   location: string;
   dateRange: string;
@@ -24,7 +26,7 @@ const mockJobPosts: JobPost[] = [
   {
     id: "1",
     title: "Senior Product Designer",
-    type: "Full-Time",
+    type: WorkType.OnSite,
     wage: "$85,000 - $110,000",
     location: "San Francisco, CA",
     dateRange: "Jan 15 - Mar 15, 2025",
@@ -40,7 +42,7 @@ const mockJobPosts: JobPost[] = [
   {
     id: "2",
     title: "Marketing Specialist",
-    type: "Part-Time",
+    type: WorkType.OnSite,
     wage: "$35 - $45/hour",
     location: "Remote",
     dateRange: "Feb 1 - May 1, 2025",
@@ -56,7 +58,7 @@ const mockJobPosts: JobPost[] = [
   {
     id: "3",
     title: "Frontend Developer",
-    type: "Full-Time",
+    type: WorkType.OnSite,
     wage: "$75,000 - $95,000",
     location: "Austin, TX",
     dateRange: "Mar 1 - Jun 1, 2025",
@@ -70,7 +72,7 @@ const mockJobPosts: JobPost[] = [
   {
     id: "4",
     title: "UX Researcher",
-    type: "Full-Time",
+    type: WorkType.OnSite,
     wage: "$70,000 - $90,000",
     location: "Seattle, WA",
     dateRange: "Apr 1 - Jul 1, 2025",
@@ -85,7 +87,8 @@ const mockJobPosts: JobPost[] = [
   },
 ];
 
-function App() {
+export default function EmployerDashboard() {
+  const router = useRouter();
   const [showAlert, setShowAlert] = useState(true);
   const [jobPosts] = useState<JobPost[]>(mockJobPosts);
 
@@ -101,18 +104,20 @@ function App() {
   };
 
   const handleViewJob = (id: string) => {
-    console.log("View job:", id);
+    // 상세 페이지 이동 등 구현
+    router.push(`/employer/post/${id}`);
   };
 
   const handleViewApplicants = (id: string) => {
-    console.log("View applicants for job:", id);
+    // 지원자 목록 페이지 이동 등 구현
+    router.push(`/employer/post/${id}/applicants`);
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       {/* Header */}
-      <Header name={user.name} subtitle={user.subtitle} />
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ProfileHeader />
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
         {/* Page Title */}
         <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
           <div className="text-center lg:text-left">
@@ -123,47 +128,46 @@ function App() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="space-y-6 lg:space-y-8 pb-12">
-          {/* Alert Banner */}
-          {showAlert && (
-            <AlertBanner message={`${stats.statusUpdateNeeded} job posts need status updates`} />
-          )}
+        {/* Alert Banner */}
+        {showAlert && (
+          <div className="mb-8">
+            <AlertBanner
+              message={`${stats.statusUpdateNeeded} job posts need status updates`}
+              onClick={() => {
+                router.push("/employer/post/list");
+              }}
+            />
+          </div>
+        )}
 
-          {/* Stats */}
+        {/* Stats */}
+        <div className="mb-10">
           <StatsCard
             activeJobs={stats.activeJobs}
+            activeApplicants={stats.totalApplicants}
             statusUpdateNeeded={stats.statusUpdateNeeded}
-            totalApplicants={stats.totalApplicants}
           />
-
-          {/* Job Posts */}
-          <div className="space-y-6 lg:space-y-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Job Posts</h2>
-              <div className="text-sm lg:text-base text-gray-600 bg-white px-4 py-2 rounded-full border border-gray-200">
-                {jobPosts.length} active
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-              {jobPosts.map((job) => (
-                <JobPostCard
-                  key={job.id}
-                  job={job}
-                  onView={handleViewJob}
-                  onViewApplicants={handleViewApplicants}
-                />
-              ))}
-            </div>
-          </div>
         </div>
 
+        {/* Job Posts Section */}
+        <div className="space-y-6 lg:space-y-8 pb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+            {jobPosts.map((job) => (
+              <JobPostCard
+                key={job.id}
+                job={job}
+                onView={handleViewJob}
+                onViewApplicants={handleViewApplicants}
+              />
+            ))}
+          </div>
+        </div>
         {/* Bottom Safe Area */}
         <div className="h-8 lg:h-12"></div>
       </div>
     </div>
   );
 }
-
-export default App;

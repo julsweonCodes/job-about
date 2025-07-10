@@ -617,7 +617,7 @@ function JobSeekerProfile() {
                       formData.languageProficiency === level ? null : level
                     )
                   }
-                  className={`px-2 sm:py-6 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                  className={`px-2 w-full sm:py-6 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
                     formData.languageProficiency === level
                       ? "bg-gradient-to-r from-teal-500 to-teal-600 text-white border-teal-500 shadow-lg shadow-teal-200"
                       : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"

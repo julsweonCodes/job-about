@@ -3,11 +3,11 @@ import { Briefcase, AlertCircle, Users } from "lucide-react";
 
 interface StatsCardProps {
   activeJobs: number;
+  activeApplicants: number;
   statusUpdateNeeded: number;
-  totalApplicants: number;
 }
 
-export const StatsCard: React.FC<StatsCardProps> = ({ activeJobs, totalApplicants }) => {
+export const StatsCard: React.FC<StatsCardProps> = ({ activeJobs, activeApplicants }) => {
   const stats = [
     {
       label: "Active Jobs",
@@ -17,8 +17,8 @@ export const StatsCard: React.FC<StatsCardProps> = ({ activeJobs, totalApplicant
       gradient: "from-blue-500 to-blue-600",
     },
     {
-      label: "Total Applicants",
-      value: totalApplicants,
+      label: "Active Applicants",
+      value: activeApplicants,
       icon: Users,
       color: "text-emerald-600 bg-emerald-50",
       gradient: "from-emerald-500 to-green-600",

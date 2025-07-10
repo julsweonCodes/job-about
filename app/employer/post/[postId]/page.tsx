@@ -86,7 +86,6 @@ function JobDetailCard({
 }
 
 const JobDetailPage: React.FC = () => {
-  const [isFavorited, setIsFavorited] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   const handleBack = () => {

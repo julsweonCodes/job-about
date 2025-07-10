@@ -13,6 +13,7 @@ import {
 import Typography from "@/components/ui/Typography";
 import PageHeader from "@/components/common/PageHeader";
 import JobCard from "@/components/common/JobCard";
+import { ProfileHeader } from "@/components/common/ProfileHeader";
 
 const SeekerHome = () => {
   const [jobType, setJobType] = useState("");
@@ -186,12 +187,6 @@ const SeekerHome = () => {
     { value: "20000+", label: "₩20k+" },
   ];
 
-  const Header = () => {
-    return (
-      <PageHeader title="job:about" rightIcon={<UserRound className="w-5 h-5 md:w-6 md:h-6" />} />
-    );
-  };
-
   const FilterBar = () => {
     return (
       <div className="px-4 md:px-8 py-4 bg-white border-b border-gray-100">
@@ -323,9 +318,10 @@ const SeekerHome = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
+      <ProfileHeader />
       <div className="md:max-w-6xl mx-auto bg-white min-h-screen">
         {/* Header */}
-        <Header></Header>
+
         {/* Filter Bar */}
         <FilterBar></FilterBar>
         {/* Recommended Jobs Section */}

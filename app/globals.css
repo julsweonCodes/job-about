@@ -49,3 +49,8 @@
 .rdp-root {
   --rdp-accent-color: black !important;
 }
+
+/* Radix Select placeholder만 회색으로 */
+[data-placeholder] {
+  color: #9ca3af !important; /* Tailwind text-gray-400 */
+}
