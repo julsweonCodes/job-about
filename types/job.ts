@@ -69,3 +69,5 @@ export interface JobPostWithRelations extends JobPost {
     name: string;
   }>;
 }
+export { ApplicantStatus };
+
