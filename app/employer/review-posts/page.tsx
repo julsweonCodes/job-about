@@ -115,7 +115,7 @@ function ReviewPostsPage() {
       {/* Status Banner */}
       {totalPending > 10 && (
         <div className="bg-amber-50 border-b border-amber-200">
-          <div className="max-w-md mx-auto lg:max-w-4xl xl:max-w-6xl px-4 lg:px-6 py-3">
+          <div className="max-w-6xl mx-auto px-4 lg:px-6 py-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-600" />
               <p className="text-sm lg:text-base text-amber-800">
@@ -128,7 +128,7 @@ function ReviewPostsPage() {
       )}
 
       {/* Search Bar */}
-      <div className="max-w-md mx-auto lg:max-w-4xl xl:max-w-6xl px-4 lg:px-6 py-4">
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 py-4">
         <div className="relative">
           <input
             type="text"
@@ -156,7 +156,7 @@ function ReviewPostsPage() {
       </div>
 
       {/* Job Posts List */}
-      <div className="max-w-md mx-auto lg:max-w-4xl xl:max-w-6xl px-4 lg:px-6 pb-6">
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pb-6">
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
           {filteredJobPosts.map((jobPost) => (
             <div

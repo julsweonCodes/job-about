@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowLeft, Users, Clock, CheckCircle, XCircle, Eye, Calendar, User } from "lucide-react";
+import { Users, Clock, CheckCircle, XCircle, Eye, Calendar, User } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 
 interface Applicant {
@@ -235,7 +235,7 @@ function ReviewPostsPage() {
 
       {/* Status Tabs */}
       <div className="bg-white border-b border-gray-100 sticky top-[55px] lg:top-[70px] z-10">
-        <div className="max-w-md mx-auto lg:max-w-4xl xl:max-w-6xl px-4 lg:px-6">
+        <div className="max-w-6xl mx-auto px-4 lg:px-6">
           <div className="flex gap-1 overflow-x-auto scrollbar-hide py-3">
             {tabsWithCounts.map((tab) => (
               <button
@@ -262,7 +262,7 @@ function ReviewPostsPage() {
       </div>
 
       {/* Applicant Cards */}
-      <div className="max-w-md mx-auto lg:max-w-4xl xl:max-w-6xl px-4 lg:px-6 py-6">
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6">
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
           {filteredApplicants.map((applicant) => (
             <div

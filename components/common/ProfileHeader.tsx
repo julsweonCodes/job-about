@@ -5,14 +5,16 @@ interface HeaderProps {
   subtitle: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ name }) => {
+export const ProfileHeader: React.FC<HeaderProps> = ({ name }) => {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Left side - Logo/Brand */}
           <div className="flex items-center">
-            <div className="text-xl md:text-2xl font-bold text-black">job:about</div>
+            <div className="text-xl md:text-2xl font-bold text-black hover:text-[#7A73F1]  transition-colors duration-200 cursor-pointer">
+              job:about
+            </div>
           </div>
 
           {/* Center - (비워둠, 필요시 추가) */}

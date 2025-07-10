@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { StatsCard } from "./components/StatsCard";
 import { JobPostCard } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
-import { Header } from "../../components/common/ProfileHeader";
+import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { WorkType } from "@/constants/enums";
 
 interface JobPost {
@@ -116,7 +116,7 @@ export default function EmployerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       {/* Header */}
-      <Header name={user.name} subtitle={user.subtitle} />
+      <ProfileHeader name={user.name} subtitle={user.subtitle} />
       <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
         {/* Page Title */}
         <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
