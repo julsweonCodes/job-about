@@ -22,13 +22,17 @@ const SelectValue = SelectPrimitive.Value;
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & { inputStyle?: boolean }
+>(({ className, children, inputStyle = true, ...props }, ref) => {
   const open = React.useContext(SelectOpenContext);
   return (
     <SelectPrimitive.Trigger
       ref={ref}
-      className={cn("input-style flex items-center justify-between text-base", className)}
+      className={cn(
+        inputStyle !== false && "input-style",
+        "flex items-center justify-between text-base",
+        className
+      )}
       {...props}
     >
       {children}
