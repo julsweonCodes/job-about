@@ -145,12 +145,10 @@ function ReviewApplicantsPage() {
     return `${month}/${day}/${year}`;
   };
 
-  const handleReviewApplicant = (applicantId: string) => {
-    router.push(`/employer/post/${jobPost.id}/applicants/${applicantId}`);
-  };
+  const handleReviewApplicant = (applicantId: string) => {};
 
   const handleViewProfile = (applicantId: string) => {
-    console.log("View profile:", applicantId);
+    router.push(`/employer/post/${jobPost.id}/applicants/${applicantId}`);
   };
 
   const getStatusCounts = () => {
@@ -292,8 +290,9 @@ function ReviewApplicantsPage() {
               applicant={applicant}
               getStatusColor={getStatusColor}
               getStatusIcon={getStatusIcon}
-              getActionButton={getActionButton}
               formatDate={formatDate}
+              onReview={() => handleReviewApplicant(applicant.id)}
+              onViewProfile={() => handleViewProfile(applicant.id)}
             />
           ))}
         </div>

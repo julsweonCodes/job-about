@@ -2,21 +2,24 @@ import React from "react";
 import { Calendar } from "lucide-react";
 import { Applicant } from "@/types/job";
 import { ApplicantStatus } from "@/constants/enums";
+import { Button } from "@/components/ui/Button";
 
 interface ApplicantCardProps {
   applicant: Applicant;
   getStatusColor: (status: ApplicantStatus) => string;
   getStatusIcon: (status: ApplicantStatus) => React.ReactNode;
-  getActionButton: (applicant: Applicant) => React.ReactNode;
   formatDate: (dateString: string) => string;
+  onReview?: () => void;
+  onViewProfile?: () => void;
 }
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({
   applicant,
   getStatusColor,
   getStatusIcon,
-  getActionButton,
   formatDate,
+  onReview,
+  onViewProfile,
 }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:p-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02]">
@@ -66,8 +69,21 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
         </div>
       </div>
 
-      {/* Action Button */}
-      <div className="flex justify-end">{getActionButton(applicant)}</div>
+      {/* Action Buttons */}
+      {(onReview || onViewProfile) && (
+        <div className="flex gap-3 mt-6">
+          {onReview && (
+            <Button className="flex-1" variant="default" size="md" onClick={onReview}>
+              Review
+            </Button>
+          )}
+          {onViewProfile && (
+            <Button className="flex-1" variant="outline" size="md" onClick={onViewProfile}>
+              View Profile
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
