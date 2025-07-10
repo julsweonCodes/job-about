@@ -26,7 +26,7 @@ export default function Input({
       val = val.replace(/[^0-9]/g, "");
       if (val.length < 4) val = val;
       else if (val.length < 7) val = val.replace(/(\d{3})(\d{1,3})/, "$1-$2");
-      else val = val.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3");
+      else val = val.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
     }
     if (onChange) onChange({ ...e, target: { ...e.target, value: val } });
   };

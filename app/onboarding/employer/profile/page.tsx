@@ -140,32 +140,49 @@ export default function EmployerProfilePage() {
   };
 
   // touched state for validation
-  // const [touched, setTouched] = useState({
-  //   businessName: false,
-  //   phoneNumber: false,
-  //   address: false,
-  //   startTime: false,
-  //   endTime: false,
-  //   languageLevel: false,
-  // });
+  const [touched, setTouched] = useState({
+    businessName: false,
+    phoneNumber: false,
+    address: false,
+    startTime: false,
+    endTime: false,
+    languageLevel: false,
+    description: false,
+  });
 
   // validation functions
+  const validateRequired = (val: string, msg: string) => (!val ? msg : "");
+
   const validatePhone = (phone: string) => {
     if (!phone) return "전화번호를 입력해주세요.";
-    // 캐나다 전화번호: (555) 123-4567, 555-123-4567, 5551234567
-    const re = /^(\(\d{3}\) ?|\d{3}-?)\d{3}-?\d{4}$/;
+    // 캐나다 전화번호: (555) 123-4567, 555-123-4567, 5551234567, 555.123.4567 등
+    const re = /^(\d{3})[-.\s]?(\d{3})[-.\s]?(\d{4})|\(\d{3}\)\s?\d{3}[-.\s]?\d{4}|\d{10}$/;
     return re.test(phone) ? "" : "전화번호 형식이 올바르지 않습니다.";
   };
 
-  // progress 계산 (필수값 5개)
-  const requiredCount = 5;
-  let validCount = 0;
-  if (profileFormData.businessName) validCount++;
-  if (validatePhone(profileFormData.phoneNumber) === "") validCount++;
-  if (profileFormData.address) validCount++;
-  if (profileFormData.startTime && profileFormData.endTime) validCount++;
-  if (profileFormData.languageLevel) validCount++;
-  const completionPercentage = Math.round((validCount / requiredCount) * 100);
+  const calculateProgress = () => {
+    let filledFields = 0;
+
+    // 체크할 필드들을 배열로 관리
+    const requiredFields = [
+      { check: () => !!profileFormData.businessName, name: "businessName" },
+      { check: () => validatePhone(profileFormData.phoneNumber) === "", name: "phoneNumber" },
+      { check: () => !!profileFormData.address, name: "address" },
+      {
+        check: () => !!(profileFormData.startTime && profileFormData.endTime),
+        name: "operatingHours",
+      },
+      { check: () => !!profileFormData.languageLevel, name: "languageLevel" },
+      { check: () => !!profileFormData.description, name: "description" },
+    ];
+
+    filledFields = requiredFields.filter((field) => field.check()).length;
+    const totalFields = requiredFields.length;
+
+    return Math.round((filledFields / totalFields) * 100);
+  };
+
+  const progress = calculateProgress();
 
   // Confirm 버튼 클릭 시 FormData로 전송
   const handleConfirm = async () => {
@@ -202,16 +219,16 @@ export default function EmployerProfilePage() {
 
     const result = await res.json();
     if (res.ok) {
-      alert("저장 완료!");
+      alert("Profile saved successfully!");
     } else {
-      alert(result.error || "저장 중 오류 발생");
+      alert(result.error || "Error saving profile");
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Sticky Progress Bar */}
-      <ProfileProgressHeader completionPercentage={completionPercentage} />
+      <ProfileProgressHeader completionPercentage={progress} />
 
       {/* Main Content */}
       <div className="py-8 px-5 lg:py-16">
@@ -229,8 +246,17 @@ export default function EmployerProfilePage() {
                     label="Business Name"
                     value={profileFormData.businessName}
                     onChange={(e) => handleInputChange("businessName", e.target.value)}
-                    placeholder="e.g., Lee's Cafe"
+                    onBlur={() => setTouched((t) => ({ ...t, businessName: true }))}
                     required
+                    error={
+                      touched.businessName
+                        ? validateRequired(
+                            profileFormData.businessName,
+                            "Business name is required"
+                          )
+                        : ""
+                    }
+                    placeholder="e.g., Lee's Cafe"
                   />
                 </div>
 
@@ -240,10 +266,12 @@ export default function EmployerProfilePage() {
                     label="Business Phone Number"
                     value={profileFormData.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, phoneNumber: true }))}
                     placeholder="(555) 123-4567"
                     type="phone"
                     required
                     rightIcon={<Phone className="w-5 h-5" />}
+                    error={touched.phoneNumber ? validatePhone(profileFormData.phoneNumber) : ""}
                   />
                 </div>
 
@@ -253,9 +281,15 @@ export default function EmployerProfilePage() {
                     label="Business Address"
                     value={profileFormData.address}
                     onChange={(e) => handleInputChange("address", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, address: true }))}
                     placeholder="123 Main Street, City, State"
                     required
                     rightIcon={<MapPin className="w-5 h-5" />}
+                    error={
+                      touched.address
+                        ? validateRequired(profileFormData.address, "Address is required")
+                        : ""
+                    }
                   />
                 </div>
 
@@ -264,10 +298,22 @@ export default function EmployerProfilePage() {
                   <TimeRangePicker
                     startTime={profileFormData.startTime}
                     endTime={profileFormData.endTime}
-                    onStartTimeChange={(time) => handleInputChange("startTime", time)}
-                    onEndTimeChange={(time) => handleInputChange("endTime", time)}
+                    onStartTimeChange={(time) => {
+                      handleInputChange("startTime", time);
+                      setTouched((t) => ({ ...t, startTime: true }));
+                    }}
+                    onEndTimeChange={(time) => {
+                      handleInputChange("endTime", time);
+                      setTouched((t) => ({ ...t, endTime: true }));
+                    }}
                     label="Operating Hours"
                     required
+                    error={
+                      (touched.startTime && !profileFormData.startTime) ||
+                      (touched.endTime && !profileFormData.endTime)
+                        ? "Operating hours are required"
+                        : ""
+                    }
                   />
                 </div>
 
@@ -314,7 +360,7 @@ export default function EmployerProfilePage() {
                 {/* Required Language Level */}
                 <div>
                   <Typography variant="bodySm" as="label" className="block mb-4">
-                    Required Language Level
+                    Required Language Level <span className="text-red-500">*</span>
                   </Typography>
                   <div className="flex flex-wrap gap-3">
                     {LANGUAGE_LEVELS.map((level: LanguageLevel) => (
@@ -332,6 +378,10 @@ export default function EmployerProfilePage() {
                       </Chip>
                     ))}
                   </div>
+                  {/* 언어레벨 validation */}
+                  {touched.languageLevel && !profileFormData.languageLevel && (
+                    <div className="text-xs text-red-500 mt-1">Language level is required</div>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -341,15 +391,21 @@ export default function EmployerProfilePage() {
                     variant="bodySm"
                     className="block font-semibold text-gray-800 mb-3"
                   >
-                    Description
+                    Description <span className="text-red-500">*</span>
                   </Typography>
                   <TextArea
                     label={undefined}
                     value={profileFormData.description}
                     onChange={(e) => handleInputChange("description", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, description: true }))}
                     placeholder="Tell us more about your business and what you're looking for in candidates..."
                     required
                     rows={5}
+                    error={
+                      touched.description
+                        ? validateRequired(profileFormData.description, "Description is required")
+                        : ""
+                    }
                   />
                 </div>
 
@@ -390,7 +446,7 @@ export default function EmployerProfilePage() {
               onClick={handleConfirm}
               size="xl"
               className="w-full lg:mx-auto lg:block"
-              disabled={completionPercentage < 100}
+              disabled={progress < 100}
             >
               Confirm
             </Button>
