@@ -6,6 +6,7 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: ["data-[state=open]:rotate-180", "data-[state=checked]:font-semibold"],
   theme: {
     extend: {
       backgroundImage: {

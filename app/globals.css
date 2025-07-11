@@ -1,33 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+
+/* 스크롤바 완전 숨기기 */
+.scrollbar-hide {
+  -ms-overflow-style: none !important; /* IE, Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-} */
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .input-style {
+    @apply w-full bg-gray-50 border-gray-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all duration-300;
+    @apply px-3 py-3 text-sm border-[2px]; /* 모바일(기본) */
+    @apply sm:px-4 sm:py-4 sm:text-base sm:border-[3px]; /* 데스크탑(sm 이상) */
+  }
+}
+
+.rdp-root {
+  --rdp-accent-color: black !important;
+}
+
+/* Radix Select placeholder만 회색으로 */
+[data-placeholder] {
+  color: #9ca3af !important; /* Tailwind text-gray-400 */
+}
