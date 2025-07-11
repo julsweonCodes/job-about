@@ -1,6 +1,6 @@
-import { PrismaClient, QuizLabel } from "@prisma/client";
-import fs from "fs";
-import path from "path";
+const { PrismaClient } = require("@prisma/client");
+const fs = require("fs");
+const path = require("path");
 
 const prisma = new PrismaClient();
 
@@ -31,8 +31,13 @@ async function main() {
         name_en: profile.name_en,
         description_ko: profile.description_ko,
         description_en: profile.description_en,
+        updated_at: new Date(), // 추가
       },
-      create: profile,
+      create: {
+        ...profile,
+        updated_at: new Date(), // 추가
+        created_at: new Date(), // (created_at도 명시적으로 넣는 것이 안전)
+      },
     });
   }
   console.log("Personality profiles seeded.");
@@ -53,7 +58,7 @@ async function main() {
           },
           choices: {
             create: q.choices.map((c: any) => ({
-              label: c.label as QuizLabel,
+              label: c.label,
               content_ko: c.content_ko,
               content_en: c.content_en,
             })),
