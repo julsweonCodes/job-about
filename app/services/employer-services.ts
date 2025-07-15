@@ -6,8 +6,6 @@ import {formatDateYYYYMMDD} from "@/lib/utils";
 
 // uploading images to supabase storage
 export async function uploadEmployerImages(photos: File[], userId: number): Promise<string[]> {
-  for (const photo in photos) {
-  }
   const urls: string[] = [];
 
   for (const photo of photos) {
@@ -19,7 +17,10 @@ export async function uploadEmployerImages(photos: File[], userId: number): Prom
       .from('job-about')
       .upload("biz-loc-photo/".concat(filePath), photo);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("uploadError");
+      throw uploadError;
+    }
 
     urls.push(filePath);
   }
@@ -46,7 +47,7 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
   const safePayload = {
     ...payload,
     description: payload.description ?? "",
-    user_id : Number(payload.user_id?? 1),
+    user_id : Number(payload.user_id),
   };
   console.log(safePayload);
   const { data, error } = await supabaseClient
@@ -54,7 +55,10 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
     .insert([safePayload])
   ;
 
-  if (error) throw error;
+  if (error) {
+    console.log("error inserting");
+    throw error;
+  }
   return data;
 }
 
