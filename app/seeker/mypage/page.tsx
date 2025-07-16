@@ -1,8 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import {
-  User,
-  Settings,
   Briefcase,
   Heart,
   Calendar,
@@ -11,168 +9,190 @@ import {
   ChevronRight,
   Mail,
   Phone,
+  Target,
 } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
+import { Button } from "@/components/ui/Button";
 
 function MyPage() {
   const user = {
     name: "Sarah Johnson",
-    title: "Product Designer",
-    description:
-      "Passionate about creating intuitive user experiences. Looking for opportunities to make a meaningful impact through design.",
+    title: "Senior Product Designer",
+    tagline: "Crafting meaningful digital experiences that connect people and solve real problems",
     avatar:
       "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&dpr=2",
     joinDate: "March 2024",
     location: "San Francisco, CA",
     email: "sarah.johnson@email.com",
     phone: "+1 (555) 123-4567",
+    profileCompletion: 85,
   };
+
+  const stats = [
+    {
+      label: "Applications",
+      value: "8",
+      icon: Briefcase,
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-600",
+    },
+    {
+      label: "Saved Jobs",
+      value: "12",
+      icon: Heart,
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-600",
+    },
+  ];
 
   const menuItems = [
     {
       id: "preferences",
-      icon: Settings,
+      icon: Target,
       title: "Job Preferences",
-      description: "Edit your job preferences",
-      count: null,
-      color: "bg-blue-50 text-blue-600",
+      description: "Define your ideal role and workplace",
+      color: "from-indigo-500 to-indigo-600",
+      bgColor: "bg-indigo-50",
+      iconColor: "text-indigo-600",
     },
     {
       id: "applied",
       icon: Briefcase,
-      title: "Applied Jobs",
-      description: "Track your applications",
-      count: 8,
-      color: "bg-green-50 text-green-600",
+      title: "Application History",
+      description: "Track and manage your applications",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
     },
     {
       id: "saved",
       icon: Heart,
-      title: "Saved Jobs",
-      description: "Jobs you want to apply to",
-      count: 12,
-      color: "bg-purple-50 text-purple-600",
+      title: "Saved Opportunities",
+      description: "Your bookmarked positions",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
     },
-  ];
-
-  const stats = [
-    { label: "Applications", value: "8", color: "text-blue-600" },
-    { label: "Saved", value: "12", color: "text-purple-600" },
-    { label: "Interviews", value: "3", color: "text-green-600" },
   ];
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Header */}
+      {/* Header - Mobile Optimized */}
       <BackHeader title="My Page" />
 
-      <div className="max-w-6xl mx-auto px-5 py-6 space-y-6">
-        {/* Profile Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-purple-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-              <div className="relative">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                />
+      <div className="max-w-6xl mx-auto px-5 py-6 space-y-6 sm:space-y-8">
+        {/* Profile Section - Mobile First */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
+          <div className="p-5 sm:p-8">
+            <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left gap-4 sm:gap-6">
+              <div className="relative flex-shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden ring-3 sm:ring-4 ring-white shadow-xl">
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                </div>
               </div>
 
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-2xl font-bold text-slate-800 mb-1">{user.name}</h2>
-                <p className="text-slate-600 text-sm leading-relaxed max-w-md">
-                  {user.description}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">{user.name}</h2>
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
+                  {user.tagline}
                 </p>
 
-                <div className="flex flex-col items-center md:items-start  justify-center sm:justify-start gap-1 mt-4 text-sm text-slate-500">
-                  <div className="flex items-center gap-1">
-                    <MapPin size={14} />
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
                     <span>{user.location}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar size={14} />
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
                     <span>Joined {user.joinDate}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Stats */}
-          <div className="p-6 border-t border-purple-50">
-            <div className="grid grid-cols-3 gap-4">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className={`text-2xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
-                  <div className="text-sm text-slate-500">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid gap-4">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                className="bg-white rounded-2xl shadow-sm border border-purple-100 p-6 hover:shadow-md hover:border-purple-200 transition-all duration-200 group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className={`w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}
-                    >
-                      <Icon size={20} />
-                    </div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-800">{item.title}</h3>
-                        {item.count && (
-                          <span className="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full font-medium">
-                            {item.count}
-                          </span>
-                        )}
+        {/* Quick Actions - Mobile Optimized */}
+        <div className="space-y-4 sm:space-y-5">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Quick Actions</h3>
+          <div className="space-y-3 sm:space-y-4">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  className="w-full bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-4 sm:p-6 hover:shadow-xl hover:shadow-slate-200/60 hover:bg-white/90 transition-all duration-300 group touch-manipulation active:scale-[0.98]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+                      <div
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${item.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 flex-shrink-0`}
+                      >
+                        <Icon size={20} className={`sm:w-6 sm:h-6 ${item.iconColor}`} />
                       </div>
-                      <p className="text-sm text-slate-500 mt-1">{item.description}</p>
+                      <div className="text-left min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1">
+                          <h4 className="text-base sm:text-lg font-semibold text-slate-900 truncate">
+                            {item.title}
+                          </h4>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-500 line-clamp-2">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
+                    <ChevronRight
+                      size={18}
+                      className="sm:w-5 sm:h-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 ml-2"
+                    />
                   </div>
-                  <ChevronRight
-                    size={20}
-                    className="text-slate-400 group-hover:text-purple-600 transition-colors duration-200"
-                  />
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="bg-white rounded-2xl shadow-sm border border-purple-100 p-6">
-          <h3 className="font-semibold text-slate-800 mb-4">Contact Information</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Mail size={16} className="text-blue-600" />
+        {/* Contact Information - Compact Mobile Design */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-4 sm:p-6">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6 px-1">
+            Contact Information
+          </h3>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-lg sm:rounded-xl border border-blue-100/50 hover:from-blue-100/50 hover:to-blue-100/30 transition-all duration-200 touch-manipulation">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <Mail size={16} className="sm:w-5 sm:h-5 text-blue-600" />
               </div>
-              <span className="text-slate-600">{user.email}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-slate-600">Email Address</p>
+                <p className="text-sm sm:text-base text-slate-900 font-medium truncate">
+                  {user.email}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                <Phone size={16} className="text-green-600" />
+            <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 to-emerald-50/50 rounded-lg sm:rounded-xl border border-emerald-100/50 hover:from-emerald-100/50 hover:to-emerald-100/30 transition-all duration-200 touch-manipulation">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <Phone size={16} className="sm:w-5 sm:h-5 text-emerald-600" />
               </div>
-              <span className="text-slate-600">{user.phone}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-slate-600">Phone Number</p>
+                <p className="text-sm sm:text-base text-slate-900 font-medium">{user.phone}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Edit Profile Button */}
-        <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-4 px-6 rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-          Edit Profile
-        </button>
+        {/* Edit Profile Button - Touch Optimized */}
+        <Button size="xl" variant="black">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            <Edit3 size={18} className="sm:w-5 sm:h-5" />
+            <span className="text-base sm:text-lg">Edit Profile</span>
+          </div>
+        </Button>
+
+        {/* Bottom Spacing for Mobile */}
+        <div className="h-4 sm:h-0"></div>
       </div>
     </div>
   );
