@@ -39,7 +39,10 @@ export default function Typography<T extends React.ElementType = "p">({
 }: TypographyProps<T> & Omit<React.ComponentPropsWithoutRef<T>, keyof TypographyProps>) {
   const Component = as || "p";
   return (
-    <Component className={cn(typographyVariants({ variant }), className)} {...props}>
+    <Component
+      className={cn("block w-full truncate", typographyVariants({ variant }), className)}
+      {...props}
+    >
       {children}
     </Component>
   );
