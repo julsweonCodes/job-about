@@ -92,11 +92,6 @@ export default function EmployerDashboard() {
   const [showAlert, setShowAlert] = useState(true);
   const [jobPosts] = useState<JobPost[]>(mockJobPosts);
 
-  const user = {
-    name: "Sophia Lee",
-    subtitle: "Verified Business Owner",
-  };
-
   const stats = {
     activeJobs: jobPosts.length,
     statusUpdateNeeded: jobPosts.filter((job) => job.needsUpdate).length,
@@ -121,9 +116,7 @@ export default function EmployerDashboard() {
         {/* Page Title */}
         <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
           <div className="text-center lg:text-left">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-              Welcome back!
-              </h1>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
             <p className="text-base lg:text-lg text-gray-600">
               Manage your job posts and track applications
             </p>

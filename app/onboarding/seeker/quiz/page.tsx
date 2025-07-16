@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import LogoHeader from "@/components/common/LogoHeader";
-import Typography from "@/components/ui/Typography";
 import ProgressBar from "@/components/common/ProgressBar";
-import BottomButton from "@/components/common/BottomButton";
+import BottomButtons from "@/components/common/BottomButtons";
 import { Button } from "@/components/ui/Button";
+import { ProfileHeader } from "@/components/common/ProfileHeader";
 
 const questions = [
   {
@@ -86,62 +85,68 @@ export default function SeekerQuestionsPage() {
       <button
         type="button"
         onClick={onClick}
-        className={`aspect-[3/4] h-full w-full flex flex-col items-center justify-start rounded-2xl px-2 py-6 transition-all duration-200 transition-transform active:scale-95 relative
-          ${selected ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-gray-100 text-gray-400"}`}
+        className={`aspect-[3/4] h-full w-full flex flex-col items-center justify-start rounded-2xl px-2 py-6 transition-all duration-200 transition-transform active:scale-95 relative overflow-hidden
+          ${selected ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-white text-gray-400"}`}
       >
         <div className="mb-2">{icon}</div>
-        <Typography
-          as="span"
-          variant="titleBold"
-          className={`mb-1 ${selected ? "text-white" : "text-gray-900"}`}
+        <span
+          className={`mb-1 text-[16px] sm:text-[22px] font-bold ${selected ? "text-white" : "text-gray-900"}`}
         >
           {headline}
-        </Typography>
-        <Typography
-          as="span"
-          variant="bodySm"
-          className={`text-center ${selected ? "text-white/80" : "text-gray-500"}`}
+        </span>
+        <span
+          className={`text-center text-[14px] sm:text-[16px] font-medium ${selected ? "text-white/80" : "text-gray-500"}`}
         >
           {description}
-        </Typography>
+        </span>
       </button>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center">
-      <div className="w-full max-w-6xl min-h-screen bg-white flex flex-col">
-        <LogoHeader />
-        <main className="flex sm:flex-1 flex-col items-center justify-center">
-          <section className="w-full max-w-2xl bg-white rounded-xl p-5 flex flex-col items-center">
-            {/* 진행률 바 */}
-            <div className="w-full mb-6">
-              <Typography as="h1" variant="headlineMd" className="text-center mb-5 md:text-3xl">
-                Tell us about yourself
-              </Typography>
-              <ProgressBar value={((step + 1) / totalSteps) * 100} className="mb-4" />
-            </div>
-            {/* 질문 */}
-            <Typography as="h3" variant="bodyLg" className="text-center mb-8">
-              {current.question}
-            </Typography>
-            {/* 옵션 */}
-            <div className="w-full grid gap-4 grid-cols-2 mb-8 items-stretch">
-              {current.options.map((opt) => (
-                <OptionCard
-                  key={opt.value}
-                  icon={opt.icon}
-                  headline={opt.headline}
-                  description={opt.description}
-                  selected={selected === opt.value}
-                  onClick={() => setSelected(opt.value)}
-                />
-              ))}
-            </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <ProfileHeader />
+      <main className="flex-1 flex p-5 md:p-0 md:items-center justify-center">
+        <section className="w-full max-w-2xl flex flex-col items-center">
+          {/* 진행률 바 */}
+          <div className="w-full mb-4 md:mb-6">
+            <h1 className="text-center mb-5 text-[22px] sm:text-[28px] font-bold">
+              Tell us about yourself
+            </h1>
+            <ProgressBar value={((step + 1) / totalSteps) * 100} className="mb-4" />
+          </div>
+          {/* 질문 */}
+          <p className="text-center text-[14px] sm:text-[20px] font-normal text-gray-600 mb-8">
+            {current.question}
+          </p>
+          {/* 옵션 */}
+          <div className="w-full grid gap-4 grid-cols-2 mb-8 items-stretch">
+            {current.options.map((opt) => (
+              <OptionCard
+                key={opt.value}
+                icon={opt.icon}
+                headline={opt.headline}
+                description={opt.description}
+                selected={selected === opt.value}
+                onClick={() => setSelected(opt.value)}
+              />
+            ))}
+          </div>
+          {/* 데스크탑(즉, md 이상)에서만 보이는 Prev/Next 버튼 */}
+          <div className="hidden md:flex gap-2 w-full mt-4">
+            {step > 0 && (
+              <Button
+                className="flex-1"
+                size="lg"
+                variant="secondary"
+                onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
+              >
+                Prev
+              </Button>
+            )}
             <Button
-              type="button"
+              className="flex-1"
               size="lg"
-              className="shadow-md hidden md:block"
               disabled={!selected}
               onClick={() => {
                 setSelected(null);
@@ -150,22 +155,34 @@ export default function SeekerQuestionsPage() {
             >
               Next
             </Button>
-          </section>
-        </main>
-        <div className="block md:hidden">
-          <BottomButton
-            className=""
+          </div>
+        </section>
+      </main>
+
+      {/* 모바일 버전 버튼 */}
+      <BottomButtons className="block md:hidden">
+        {step > 0 && (
+          <Button
+            className="flex-1"
             size="lg"
-            disabled={!selected}
-            onClick={() => {
-              setSelected(null);
-              setStep((prev) => Math.min(prev + 1, totalSteps - 1));
-            }}
+            variant="secondary"
+            onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
           >
-            Next
-          </BottomButton>
-        </div>
-      </div>
+            Prev
+          </Button>
+        )}
+        <Button
+          className="flex-1"
+          size="lg"
+          disabled={!selected}
+          onClick={() => {
+            setSelected(null);
+            setStep((prev) => Math.min(prev + 1, totalSteps - 1));
+          }}
+        >
+          Next
+        </Button>
+      </BottomButtons>
     </div>
   );
 }

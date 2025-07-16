@@ -154,7 +154,7 @@ function SeekerPage() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
+        <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
           <p className="text-base lg:text-lg text-gray-600">
             Discover opportunities that match your skills and interests
@@ -162,7 +162,7 @@ function SeekerPage() {
         </div>
 
         {/* Filters */}
-        <div className=" rounded-xl mb-4 md:mb-8">
+        <div className="py-5 md:py-8 md:mb-8">
           <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown
               filter={{
@@ -215,7 +215,12 @@ function SeekerPage() {
         {/* Recommended Jobs */}
         {filterJobs(recommendedJobs).length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended for You</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl lg:text-3xl font-bold text-gray-900">Recommended for You</h2>
+              <button className="text-sm font-medium text-purple-700 cursor-pointer">
+                Show more
+              </button>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filterJobs(recommendedJobs).map((job) => (
                 <JobPostCard key={job.id} job={job} onView={handleViewJob} isRecommended />
@@ -227,7 +232,12 @@ function SeekerPage() {
         {/* Recent Jobs */}
         {filterJobs(latestJobs).length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recently Posted</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl lg:text-3xl font-bold text-gray-900">Recently Posted</h2>
+              <button className="text-sm font-medium text-purple-700 cursor-pointer">
+                Show more
+              </button>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filterJobs(latestJobs).map((job) => (
                 <JobPostCard key={job.id} job={job} onView={handleViewJob} />

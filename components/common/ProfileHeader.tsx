@@ -1,8 +1,11 @@
 import React from "react";
+import Image from "next/image";
 
-interface HeaderProps {}
+interface HeaderProps {
+  profileImage?: string;
+}
 
-export const ProfileHeader: React.FC<HeaderProps> = ({}) => {
+export const ProfileHeader: React.FC<HeaderProps> = ({ profileImage }) => {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,7 +24,17 @@ export const ProfileHeader: React.FC<HeaderProps> = ({}) => {
           <div className="flex items-center space-x-3 lg:space-x-4">
             {/* Profile Avatar */}
             <div className="relative">
-              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-md"></div>
+              {profileImage && (
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-md">
+                  <Image
+                    src={profileImage}
+                    alt="Profile"
+                    width={48}
+                    height={48}
+                    className="rounded-full"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
