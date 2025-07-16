@@ -4,6 +4,7 @@ import { Applicant } from "@/types/job";
 import { ApplicantStatus } from "@/constants/enums";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
+import { Chip } from "@/components/ui/Chip";
 
 interface ApplicantCardProps {
   applicant: Applicant;
@@ -66,14 +67,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
         {/* Skills */}
         <div className="flex flex-wrap gap-2">
           {applicant.skills?.map((skill, index) => (
-            <Typography
-              as="span"
-              variant="bodyXs"
+            <Chip
               key={index}
-              className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs lg:text-sm font-medium rounded-full transition-colors duration-200"
+              asChild={true}
+              size="sm"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs lg:text-sm font-medium"
             >
-              {skill}
-            </Typography>
+              <span>{skill}</span>
+            </Chip>
           ))}
         </div>
       </div>

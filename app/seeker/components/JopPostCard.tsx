@@ -22,11 +22,11 @@ export interface JobPost {
 
 interface JobPostCardProps {
   job: JobPost;
+  isRecommended?: boolean;
   onView: (id: string) => void;
-  onViewApplicants?: (id: string) => void;
 }
 
-export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApplicants }) => {
+export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, onView }) => {
   // WorkType에 따른 라벨/색상 분기 (예시)
   const typeLabel =
     job.type === WorkType.OnSite ? "On-Site" : job.type === WorkType.Remote ? "Remote" : job.type;
@@ -119,14 +119,13 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApp
       </div>
 
       <div className="flex space-x-3">
-        <Button variant="secondary" className="h-14" onClick={() => onView(job.id)}>
+        <Button
+          variant={isRecommended ? "default" : "secondary"}
+          className="h-14"
+          onClick={() => onView(job.id)}
+        >
           View Details
         </Button>
-        {onViewApplicants && (
-          <Button variant="default" className="h-14" onClick={() => onViewApplicants(job.id)}>
-            View Applicants
-          </Button>
-        )}
       </div>
     </div>
   );

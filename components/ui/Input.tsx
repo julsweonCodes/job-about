@@ -35,12 +35,7 @@ export default function Input({
     <div className={`w-full mb-2 ${className}`}>
       {label && (
         <Typography as="label" variant="bodySm" className="block font-semibold text-gray-700 mb-2">
-          {label}{" "}
-          {required && (
-            <Typography as="span" variant="bodySm" className="text-red-500">
-              *
-            </Typography>
-          )}
+          {label} {required && <span className="text-red-500">*</span>}
         </Typography>
       )}
       {rightIcon ? (
