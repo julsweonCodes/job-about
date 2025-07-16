@@ -218,7 +218,7 @@ function SeekerPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended for You</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filterJobs(recommendedJobs).map((job) => (
-                <JobPostCard key={job.id} job={job} onView={handleViewJob} />
+                <JobPostCard key={job.id} job={job} onView={handleViewJob} isRecommended />
               ))}
             </div>
           </section>
