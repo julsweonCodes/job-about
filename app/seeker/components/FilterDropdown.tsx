@@ -18,7 +18,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, selectedValue, 
   return (
     <Select value={selectedValue} onValueChange={onSelect}>
       <SelectTrigger
-        className="min-w-[180px] px-4 py-2.5 rounded-xl border text-sm bg-white"
+        className={`min-w-[180px] focus:outline-none px-4 py-2.5 rounded-xl border text-sm ${selectedValue !== "All" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600"}`}
         inputStyle={false}
       >
         <div className="flex items-center space-x-2">

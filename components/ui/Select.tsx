@@ -30,17 +30,14 @@ const SelectTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         inputStyle !== false && "input-style",
-        "flex items-center justify-between text-base",
+        "flex items-center justify-between text-base focus:outline-none",
         className
       )}
       {...props}
     >
       {children}
       <ChevronDown
-        className={cn(
-          "w-5 h-5 text-gray-400 transition-transform duration-200",
-          open && "rotate-180"
-        )}
+        className={cn("ml-2 w-5 h-5  transition-transform duration-200", open && "rotate-180")}
       />
     </SelectPrimitive.Trigger>
   );
