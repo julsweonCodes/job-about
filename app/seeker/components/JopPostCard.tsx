@@ -121,7 +121,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
       <div className="flex space-x-3">
         <Button
           variant={isRecommended ? "default" : "secondary"}
-          className="h-14"
+          className="h-10 md:h-14"
           onClick={() => onView(job.id)}
         >
           View Details

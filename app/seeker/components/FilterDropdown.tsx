@@ -18,19 +18,24 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, selectedValue, 
   return (
     <Select value={selectedValue} onValueChange={onSelect}>
       <SelectTrigger
-        className={`min-w-[180px] focus:outline-none px-4 py-2.5 rounded-xl border text-sm ${selectedValue !== "All" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600"}`}
+        className={`min-w-[120px] md:min-w-[180px] focus:outline-none px-4 py-2 md:py-2.5 rounded-xl border text-sm ${selectedValue !== "All" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600"}`}
         inputStyle={false}
       >
         <div className="flex items-center space-x-2">
           {filter.icon}
-          <span className="font-medium">
+          <span className="text-xs md:text-base font-medium">
             {selectedValue === "All" ? filter.label : selectedValue}
           </span>
         </div>
       </SelectTrigger>
       <SelectContent>
         {filter.options.map((option) => (
-          <SelectItem key={option} value={option} selectedValue={selectedValue}>
+          <SelectItem
+            className="text-xs md:text-base"
+            key={option}
+            value={option}
+            selectedValue={selectedValue}
+          >
             {option}
           </SelectItem>
         ))}

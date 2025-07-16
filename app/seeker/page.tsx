@@ -162,13 +162,13 @@ function SeekerPage() {
         </div>
 
         {/* Filters */}
-        <div className=" rounded-xl mb-8">
-          <div className="flex flex-wrap gap-4">
+        <div className=" rounded-xl mb-4 md:mb-8">
+          <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown
               filter={{
                 id: "jobType",
                 label: "Job Type",
-                icon: <Briefcase />,
+                icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
                 options: ["All", "Remote", "OnSite"],
               }}
               selectedValue={selectedJobType}
@@ -178,7 +178,7 @@ function SeekerPage() {
               filter={{
                 id: "location",
                 label: "Location",
-                icon: <MapPin />,
+                icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
                 options: [
                   "All",
                   "Remote",
@@ -196,7 +196,7 @@ function SeekerPage() {
               filter={{
                 id: "salary",
                 label: "Salary",
-                icon: <DollarSign />,
+                icon: <DollarSign className="w-4 h-4 md:w-5 md:h-5" />,
                 options: [
                   "All",
                   "$70 - $90/hour",
