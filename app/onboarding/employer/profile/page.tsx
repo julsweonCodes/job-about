@@ -8,7 +8,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import PhotoComponent from "@/components/ui/PhotoComponent";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
-import ProgressBar from "@/components/common/ProgressBar";
+import ProgressHeader from "@/components/common/ProgressHeader";
 import { deleteSingleEmployerImage } from "@/app/services/employer-services";
 import { Chip } from "@/components/ui/Chip";
 import { LANGUAGE_LEVELS, LanguageLevel } from "@/constants/enums";
@@ -78,29 +78,6 @@ function JobConditionsSection({ children }: { children: React.ReactNode }) {
         </Typography>
       </div>
       {children}
-    </div>
-  );
-}
-
-// 프로필 진행률 헤더 컴포넌트 분리
-function ProfileProgressHeader({ completionPercentage }: { completionPercentage: number }) {
-  return (
-    <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
-      <div className="max-w-4xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between mb-3">
-          <Typography
-            as="h3"
-            variant="bodySm"
-            className="font-semibold text-gray-700 tracking-wide"
-          >
-            Profile Setup
-          </Typography>
-          <Typography as="span" variant="bodySm" className="font-medium text-gray-500">
-            {completionPercentage}% Complete
-          </Typography>
-        </div>
-        <ProgressBar value={completionPercentage} className="h-1.5" />
-      </div>
     </div>
   );
 }
@@ -228,7 +205,7 @@ export default function EmployerProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Sticky Progress Bar */}
-      <ProfileProgressHeader completionPercentage={progress} />
+      <ProgressHeader completionPercentage={progress} title="Profile Setup" />
 
       {/* Main Content */}
       <div className="py-8 px-5 lg:py-16">

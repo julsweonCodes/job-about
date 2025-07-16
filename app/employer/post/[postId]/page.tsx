@@ -6,10 +6,8 @@ import {
   DollarSign,
   Clock,
   Calendar,
-  Heart,
   Bookmark,
   Building2,
-  Star,
   ChevronLeft,
 } from "lucide-react";
 
