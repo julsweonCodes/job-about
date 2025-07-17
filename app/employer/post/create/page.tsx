@@ -19,13 +19,12 @@ import {
   Smile,
   Settings,
 } from "lucide-react";
+import PageProgressHeader from "@/components/common/PageProgressHeader";
 import { Chip } from "@/components/ui/Chip";
 import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import ProgressBar from "@/components/common/ProgressBar";
-import PageHeader from "@/components/common/PageHeader";
 import { Dialog } from "@/components/common/Dialog";
 import { LanguageLevel, LANGUAGE_LEVELS } from "@/constants/enums";
 
@@ -43,9 +42,29 @@ const jobTypes: JobType[] = [
   { id: "other", label: "Other", icon: MoreHorizontal },
 ];
 
+const personalityTraits = [
+  "Fast-Paced",
+  "Calm Approach",
+  "Quick Fix",
+  "Detail-Oriented",
+  "Team Player",
+  "Independent Worker",
+  "Creative Problem Solver",
+  "Systematic Thinker",
+  "Adaptable",
+  "Consistent",
+  "Innovative",
+  "Traditional",
+  "Risk-Taker",
+  "Cautious",
+  "Energetic",
+];
+
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedPersonalities, setSelectedPersonalities] = useState<string[]>([]);
+
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
@@ -108,31 +127,12 @@ function JobPostCreatePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <PageHeader
-            title={"Generate a Job Post with AI"}
-            leftIcon={<ArrowLeft />}
-            onClickLeft={handleBack}
-          />
-
-          {/* Progress Bar */}
-          <div className="flex items-center justify-between mb-3">
-            <Typography
-              as="h3"
-              variant="bodySm"
-              className="font-semibold text-gray-700 tracking-wide"
-            >
-              Job Post Setup
-            </Typography>
-            <Typography as="span" variant="bodySm" className="font-medium text-gray-500">
-              {progress}% Complete
-            </Typography>
-          </div>
-
-          <ProgressBar value={progress} className="h-2 mb-6" />
-        </div>
-      </div>
+      <PageProgressHeader
+        title="Generate a Job Post with AI"
+        progress={progress}
+        leftIcon={<ArrowLeft />}
+        onClickLeft={handleBack}
+      />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -322,12 +322,11 @@ function JobPostCreatePage() {
               {/* Required Personality */}
               <div>
                 <Input
-                  type="text"
+                  readOnly
                   label="Required Personality"
-                  value={formData.requiredPersonality}
-                  onChange={(e: any) => handleInputChange("requiredPersonality", e.target.value)}
-                  placeholder="Friendly, Quick learner"
                   required
+                  placeholder="Select Preferred Personality"
+                  className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
                 />
               </div>

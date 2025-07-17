@@ -17,7 +17,7 @@ export default function PageHeader({
   onClickRight,
 }: PageHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 bg-white flex items-center justify-between h-14">
+    <header className="sticky top-0 z-30 bg-white flex items-center justify-between h-14 px-4">
       <div
         className={`flex items-center justify-center w-8 h-8 ${leftIcon && onClickLeft ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
         tabIndex={leftIcon && onClickLeft ? 0 : -1}
