@@ -11,7 +11,6 @@ import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import ProgressHeader from "@/components/common/ProgressHeader";
 import { deleteSingleEmployerImage } from "@/app/services/employer-services";
 import { Chip } from "@/components/ui/Chip";
-import { LANGUAGE_LEVELS, LanguageLevel } from "@/constants/enums";
 
 interface EmployerFormData {
   businessName: string;
