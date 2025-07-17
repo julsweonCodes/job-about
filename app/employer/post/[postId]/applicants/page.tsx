@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Users, Clock, CheckCircle, XCircle, Eye, Calendar, User } from "lucide-react";
+import { Users, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { useRouter } from "next/navigation";
-import { Applicant, JobPostWithRelations } from "@/types/job";
+import { JobPostWithRelations } from "@/types/job";
 import { JobStatus, ApplicantStatus } from "@/constants/enums";
 import ApplicantCard from "@/app/employer/components/ApplicantCard";
-import { Dialog } from "@/components/common/Dialog";
-import { Button } from "@/components/ui/Button";
 import ApplicantStatusDialog from "@/app/employer/components/ApplicantStatusDialog";
 
 const mockJobPost: JobPostWithRelations = {
@@ -126,30 +124,6 @@ const mockJobPost: JobPostWithRelations = {
     },
   ],
 };
-
-const statusList = [
-  {
-    value: ApplicantStatus.InReview,
-    label: "In Review",
-    icon: <Eye className="w-5 h-5 text-blue-500" />,
-
-    color: "border-blue-500",
-  },
-  {
-    value: ApplicantStatus.Rejected,
-    label: "Rejected",
-    icon: <XCircle className="w-5 h-5 text-red-500" />,
-
-    color: "border-red-500",
-  },
-  {
-    value: ApplicantStatus.Hired,
-    label: "Hired",
-    icon: <CheckCircle className="w-5 h-5 text-green-500" />,
-
-    color: "border-green-500",
-  },
-];
 
 const statusTabs = [
   { key: "all", label: "All", count: 0 },

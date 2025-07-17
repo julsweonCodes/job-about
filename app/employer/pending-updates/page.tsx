@@ -81,6 +81,10 @@ function ReviewPostsPage() {
     router.push(`/employer/post/${jobId}/applicants`);
   };
 
+  const handleViewDetail = (jobId: string) => {
+    router.push(`/employer/post/${jobId}`);
+  };
+
   const getTotalPendingApplicants = () => {
     return jobPosts.reduce((total, post) => total + post.pendingApplicants, 0);
   };
@@ -219,14 +223,21 @@ function ReviewPostsPage() {
                   </div>
                 </div>
 
-                {/* View Applicants Button */}
-                <button
-                  onClick={() => handleViewApplicants(jobPost.id)}
-                  className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] active:bg-[#5B21B6] text-white py-3 lg:py-4 px-4 rounded-xl font-semibold text-sm lg:text-base transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-                >
-                  <span>View Applicants</span>
-                  <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
-                </button>
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleViewDetail(jobPost.id)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 py-3 lg:py-4 px-4 rounded-xl font-semibold text-sm lg:text-base transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                  >
+                    <span>View Details</span>
+                  </button>
+                  <button
+                    onClick={() => handleViewApplicants(jobPost.id)}
+                    className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] active:bg-[#5B21B6] text-white py-3 lg:py-4 px-4 rounded-xl font-semibold text-sm lg:text-base transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                  >
+                    <span>View Applicants</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

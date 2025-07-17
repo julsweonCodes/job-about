@@ -2,15 +2,8 @@
 
 import React, { useState } from "react";
 import "react-day-picker/dist/style.css";
-import { DayPicker } from "react-day-picker";
-import { enUS } from "date-fns/locale";
 import {
   ArrowLeft,
-  Server,
-  Utensils,
-  Truck,
-  CreditCard,
-  MoreHorizontal,
   Calendar,
   DollarSign,
   User,
@@ -19,62 +12,37 @@ import {
   Smile,
   Settings,
 } from "lucide-react";
+import PageProgressHeader from "@/components/common/PageProgressHeader";
 import { Chip } from "@/components/ui/Chip";
 import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/Select";
-import ProgressBar from "@/components/common/ProgressBar";
-import PageHeader from "@/components/common/PageHeader";
-import { Dialog } from "@/components/common/Dialog";
-import { LanguageLevel, LANGUAGE_LEVELS } from "@/constants/enums";
+import { LanguageLevel, LANGUAGE_LEVELS, JobType } from "@/constants/enums";
+import { getCommonJobTypes } from "@/constants/jobTypes";
+import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
+import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
+import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
+import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 
-interface JobType {
-  id: string;
-  label: string;
-  icon: React.ComponentType<any>;
-}
-
-const jobTypes: JobType[] = [
-  { id: "server", label: "Server", icon: Server },
-  { id: "kitchen", label: "Kitchen Help", icon: Utensils },
-  { id: "delivery", label: "Delivery", icon: Truck },
-  { id: "cashier", label: "Cashier", icon: CreditCard },
-  { id: "other", label: "Other", icon: MoreHorizontal },
-];
-
-const cities = [
-  "New York, NY",
-  "Los Angeles, CA",
-  "Chicago, IL",
-  "Houston, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Antonio, TX",
-  "San Diego, CA",
-  "Dallas, TX",
-  "San Jose, CA",
-];
+const jobTypes = getCommonJobTypes();
 
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [personalityDialogOpen, setPersonalityDialogOpen] = useState(false);
+  const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
+  const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
+    selectedJobTypes: [] as JobType[],
     deadline: undefined as Date | undefined,
     workSchedule: "",
-    requiredSkills: "",
-    requiredPersonality: "",
+    requiredSkills: [],
+    requiredPersonalities: [],
     wage: "",
-    location: "",
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
   });
@@ -86,7 +54,10 @@ function JobPostCreatePage() {
     }));
   };
 
-  const handleInputChange = (field: string, value: string | boolean | Date | undefined) => {
+  const handleInputChange = (
+    field: string,
+    value: string | boolean | Date | string[] | undefined
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -106,13 +77,12 @@ function JobPostCreatePage() {
   const calculateCompletion = () => {
     const fields = [
       formData.jobTitle,
-      formData.jobType,
+      formData.selectedJobTypes.length > 0,
       formData.deadline,
       formData.workSchedule,
-      formData.requiredSkills,
-      formData.requiredPersonality,
+      formData.requiredSkills.length > 0,
+      formData.requiredPersonalities.length > 0,
       formData.wage,
-      formData.location,
       formData.jobDescription,
       formData.languageLevel,
     ];
@@ -120,44 +90,20 @@ function JobPostCreatePage() {
     return Math.round((completed / fields.length) * 100);
   };
 
-  const openCalendar = () => {
-    setTempDeadline(formData.deadline ?? null);
-    setCalendarOpen(true);
-  };
-
   const progress = calculateCompletion();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <PageHeader
-            title={"Generate a Job Post with AI"}
-            leftIcon={<ArrowLeft />}
-            onClickLeft={handleBack}
-          />
-
-          {/* Progress Bar */}
-          <div className="flex items-center justify-between mb-3">
-            <Typography
-              as="h3"
-              variant="bodySm"
-              className="font-semibold text-gray-700 tracking-wide"
-            >
-              Job Post Setup
-            </Typography>
-            <Typography as="span" variant="bodySm" className="font-medium text-gray-500">
-              {progress}% Complete
-            </Typography>
-          </div>
-
-          <ProgressBar value={progress} className="h-2 mb-6" />
-        </div>
-      </div>
+      <PageProgressHeader
+        title="Generate a Job Post with AI"
+        progress={progress}
+        leftIcon={<ArrowLeft />}
+        onClickLeft={handleBack}
+      />
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-5 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Job Title Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -179,7 +125,7 @@ function JobPostCreatePage() {
               label="Job Title"
               value={formData.jobTitle}
               onChange={(e: any) => handleInputChange("jobTitle", e.target.value)}
-              placeholder="Input"
+              placeholder="Enter Job Title"
               required
             />
           </div>
@@ -192,32 +138,28 @@ function JobPostCreatePage() {
               </div>
               <div>
                 <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Job Type
+                  Job Types
                 </Typography>
                 <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Select applicable job categories
+                  Select multiple job categories
                 </Typography>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {jobTypes.map((type) => {
-                const Icon = type.icon;
-                const isSelected = formData.jobType === type.id;
-                return (
-                  <Chip
-                    key={type.id}
-                    selected={isSelected}
-                    onClick={() => handleJobTypeSelect(type.id)}
-                    size="md"
-                    variant="outline"
-                    className="font-medium"
-                  >
-                    <Icon size={16} />
-                    <span className="text-sm font-medium">{type.label}</span>
-                  </Chip>
-                );
-              })}
+            <div>
+              <Input
+                readOnly
+                label="Job Types"
+                required
+                placeholder="Select Job Types"
+                className="cursor-pointer"
+                value={
+                  formData.selectedJobTypes.length > 0
+                    ? `${formData.selectedJobTypes.length} job types selected`
+                    : ""
+                }
+                onClick={() => setJobTypesDialogOpen(true)}
+              />
             </div>
           </div>
 
@@ -255,44 +197,20 @@ function JobPostCreatePage() {
                         })
                       : ""
                   }
-                  onClick={openCalendar}
+                  onClick={() => setCalendarOpen(true)}
                 />
                 {/* 날짜 선택 다이얼로그 */}
-                <Dialog
+                <DatePickerDialog
                   open={calendarOpen}
                   onClose={() => setCalendarOpen(false)}
-                  type="bottomSheet"
-                >
-                  <div>
-                    <div className="p-4 md:p-6 flex justify-center">
-                      <DayPicker
-                        animate
-                        mode="single"
-                        required={false}
-                        selected={tempDeadline ?? undefined}
-                        onSelect={(date) => setTempDeadline(date ?? null)}
-                        locale={enUS}
-                        navLayout="around"
-                        modifiersClassNames={{
-                          selected: "bg-indigo-500 text-white rounded-2xl",
-                          today: "font-bold rounded-2xl",
-                        }}
-                        className="w-[340px] max-w-full"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      className="w-full mt-4"
-                      onClick={() => {
-                        handleInputChange("deadline", tempDeadline ?? undefined);
-                        setCalendarOpen(false);
-                      }}
-                      disabled={!tempDeadline}
-                    >
-                      Select
-                    </Button>
-                  </div>
-                </Dialog>
+                  value={tempDeadline}
+                  onChange={(date) => {
+                    handleInputChange("deadline", date ?? undefined);
+                    setTempDeadline(date);
+                  }}
+                  confirmLabel="Select"
+                  required
+                />
               </div>
 
               {/* Work Schedule */}
@@ -332,25 +250,45 @@ function JobPostCreatePage() {
               {/* Required Skills */}
               <div>
                 <Input
-                  type="text"
+                  readOnly
                   label="Required Skills"
                   required
-                  value={formData.requiredSkills}
-                  onChange={(e: any) => handleInputChange("requiredSkills", e.target.value)}
-                  placeholder="Customer Service, Serving Skill"
+                  placeholder="Select Required Skills"
+                  className="cursor-pointer"
+                  value={formData.requiredSkills.join(", ")}
+                  onClick={() => setSkillsDialogOpen(true)}
+                />
+                <RequiredSkillsDialog
+                  open={skillsDialogOpen}
+                  onClose={() => setSkillsDialogOpen(false)}
+                  selectedSkills={formData.requiredSkills}
+                  onConfirm={(skills) => {
+                    handleInputChange("requiredSkills", skills);
+                    setSkillsDialogOpen(false);
+                  }}
                 />
               </div>
 
               {/* Required Personality */}
               <div>
                 <Input
-                  type="text"
+                  readOnly
                   label="Required Personality"
-                  value={formData.requiredPersonality}
-                  onChange={(e: any) => handleInputChange("requiredPersonality", e.target.value)}
-                  placeholder="Friendly, Quick learner"
                   required
+                  placeholder="Select Preferred Personality"
+                  className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
+                  value={formData.requiredPersonalities.join(", ")}
+                  onClick={() => setPersonalityDialogOpen(true)}
+                />
+                <PreferredPersonalityDialog
+                  open={personalityDialogOpen}
+                  onClose={() => setPersonalityDialogOpen(false)}
+                  selectedTraits={formData.requiredPersonalities}
+                  onConfirm={(traits) => {
+                    handleInputChange("requiredPersonalities", traits as string[]);
+                    setPersonalityDialogOpen(false);
+                  }}
                 />
               </div>
 
@@ -378,7 +316,7 @@ function JobPostCreatePage() {
             </div>
           </div>
 
-          {/* Compensation & Location Section */}
+          {/* Compensation Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -386,10 +324,10 @@ function JobPostCreatePage() {
               </div>
               <div>
                 <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Compensation & Location
+                  Compensation
                 </Typography>
                 <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Set wage and work location
+                  Set wage in hourly basis
                 </Typography>
               </div>
             </div>
@@ -402,31 +340,9 @@ function JobPostCreatePage() {
                   label="Wage"
                   value={formData.wage}
                   onChange={(e: any) => handleInputChange("wage", e.target.value)}
-                  placeholder="15.00"
+                  placeholder="Enter Wage"
                   required
                 />
-              </div>
-
-              {/* Location */}
-              <div>
-                <Typography as="label" variant="bodySm" className="mb-2 block">
-                  Location <span className="text-red-500">*</span>
-                </Typography>
-                <Select
-                  value={formData.location}
-                  onValueChange={(value) => handleInputChange("location", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a city" />{" "}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -467,6 +383,17 @@ function JobPostCreatePage() {
             </Button>
           </div>
         </form>
+
+        {/* JobTypesDialog */}
+        <JobTypesDialog
+          open={jobTypesDialogOpen}
+          onClose={() => setJobTypesDialogOpen(false)}
+          selectedJobTypes={formData.selectedJobTypes}
+          onConfirm={(jobTypes) => {
+            handleInputChange("selectedJobTypes", jobTypes);
+            setJobTypesDialogOpen(false);
+          }}
+        />
       </div>
     </div>
   );

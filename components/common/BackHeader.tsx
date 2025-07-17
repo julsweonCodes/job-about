@@ -23,7 +23,7 @@ export default function BackHeader({ title, onClickBack }: BackHeaderProps) {
           <div className="flex items-center">
             <button
               onClick={handleBack}
-              className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+              className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none"
             >
               <ArrowLeft className="w-6 h-6 text-gray-700" />
             </button>

@@ -81,7 +81,7 @@ export function BottomSheet({
   const sheet = (
     <div className={cn(bottomSheetVariants({ size, align }), className)} onClick={onClose}>
       <div
-        className={cn(bottomSheetContentVariants({ size }), "min-h-[10vh]")}
+        className={cn(bottomSheetContentVariants({ size }), "min-h-[10vh]", className)}
         onClick={(e) => e.stopPropagation()}
         {...props}
       >

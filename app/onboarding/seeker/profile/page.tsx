@@ -7,6 +7,7 @@ import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import ProgressBar from "@/components/common/ProgressBar";
+import ProgressHeader from "@/components/common/ProgressHeader";
 import {
   Select,
   SelectTrigger,
@@ -291,23 +292,7 @@ function JobSeekerProfile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Sticky Progress Bar */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <Typography
-              as="h3"
-              variant="bodySm"
-              className="font-semibold text-gray-700 tracking-wide"
-            >
-              Profile Setup
-            </Typography>
-            <Typography as="span" variant="bodySm" className="font-medium text-gray-500">
-              {progress}% Complete
-            </Typography>
-          </div>
-          <ProgressBar value={progress} className="h-1.5" />
-        </div>
-      </div>
+      <ProgressHeader completionPercentage={progress} title="Profile Setup" />
 
       {/* Main Content */}
       <div className="py-8 px-5">

@@ -30,17 +30,17 @@ export const StatsCard: React.FC<StatsCardProps> = ({ activeJobs, activeApplican
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+          className="bg-white rounded-3xl p-4 md:p-6 lg:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
         >
           <div className="flex items-center justify-between mb-4">
             <div
               className={`inline-flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 rounded-2xl ${stat.color}`}
             >
-              <stat.icon className="w-6 h-6 lg:w-7 lg:h-7" />
+              <stat.icon className="w-6 h-6 md:w-7 md:h-7" />
             </div>
           </div>
-          <div className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{stat.value}</div>
-          <div className="text-sm lg:text-base text-gray-600 font-medium">{stat.label}</div>
+          <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">{stat.value}</div>
+          <div className="text-sm md:text-base text-gray-600 font-medium">{stat.label}</div>
         </div>
       ))}
     </div>

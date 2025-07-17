@@ -19,12 +19,8 @@ function JobCard({
   return (
     <Card className="flex flex-col justify-center items-center p-6 w-full gap-2 transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-[#3B82F6] cursor-pointer">
       {icon}
-      <Typography as="span" variant="bodyMd" className="text-center">
-        {title}
-      </Typography>
-      <Typography as="span" variant="bodyMd" className="text-center text-gray-500">
-        {description}
-      </Typography>
+      <span className="text-center text-[14px] sm:text-[20px] font-medium">{title}</span>
+      <span className="text-center text-gray-500 text-xs md:text-base">{description}</span>
     </Card>
   );
 }

@@ -11,6 +11,7 @@ const chipVariants = cva(
         solid:
           "bg-gradient-to-r from-accent1 to-accent2 text-white border-transparent hover:opacity-90",
         outline: "bg-white text-text-primary border border-background-secondary",
+        accent: "bg-background-accent1 text-white border-transparent hover:opacity-90",
       },
       size: {
         sm: "h-7 px-3 text-xs",
@@ -21,11 +22,16 @@ const chipVariants = cva(
         true: "bg-background-bk text-white border-transparent hover:bg-background-bk",
         false: "",
       },
+      disabled: {
+        true: "bg-gray-100 text-gray-500 cursor-not-allowed",
+        false: "",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "md",
       selected: false,
+      disabled: false,
     },
   }
 );
@@ -35,14 +41,23 @@ export interface ChipProps
     VariantProps<typeof chipVariants> {
   asChild?: boolean;
   selected?: boolean;
+  disabled?: boolean;
 }
 
 const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
-  ({ className, variant, size, selected, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, selected, disabled, asChild = false, ...props }, ref) => {
     const Comp = asChild ? "span" : "button";
     return (
       <Comp
-        className={cn(chipVariants({ variant, size, selected: !!selected, className }))}
+        className={cn(
+          chipVariants({
+            variant,
+            size,
+            selected: !!selected,
+            disabled: !!disabled,
+            className,
+          })
+        )}
         ref={ref}
         {...props}
         type={asChild ? undefined : "button"}
