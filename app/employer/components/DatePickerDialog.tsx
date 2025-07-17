@@ -34,7 +34,7 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
 
   return (
     <Dialog className="px-0 pb-0" open={open} onClose={onClose} type="bottomSheet">
-      <div className="p-4 md:p-6 flex flex-col items-center">
+      <div className="p-4 md:p-6 flex flex-col gap-4 items-center">
         <DayPicker
           animate
           mode="single"
@@ -47,7 +47,7 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
             selected: "bg-indigo-500 text-white rounded-2xl",
             today: "font-bold rounded-2xl",
           }}
-          className="w-[340px] max-w-full"
+          className="w-[310px] max-w-full"
         />
         <Button
           type="button"

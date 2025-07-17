@@ -48,7 +48,6 @@
 
 .rdp-root {
   --rdp-accent-color: black !important;
-  width: 300px !important;
 }
 
 /* Radix Select placeholder만 회색으로 */
