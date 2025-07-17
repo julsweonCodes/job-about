@@ -6,6 +6,7 @@ import { JobPostCard } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { WorkType } from "@/constants/enums";
+import { Plus } from "lucide-react";
 
 interface JobPost {
   id: string;
@@ -112,7 +113,7 @@ export default function EmployerDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       {/* Header */}
       <ProfileHeader />
-      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 relative">
         {/* Page Title */}
         <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
           <div className="text-center lg:text-left">
@@ -163,6 +164,15 @@ export default function EmployerDashboard() {
         {/* Bottom Safe Area */}
         <div className="h-8 lg:h-12"></div>
       </div>
+      {/* Floating Action Button */}
+      <button
+        className="fixed bottom-6 z-50 bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 rounded-xl flex items-center justify-center p-3 md:p-4"
+        style={{ right: "max(calc((100vw - 1536px) / 2 + 1.5rem), 1.5rem)" }}
+        onClick={() => router.push("/employer/post/create")}
+        aria-label="Create Job Post"
+      >
+        <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+      </button>
     </div>
   );
 }

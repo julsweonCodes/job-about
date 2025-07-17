@@ -24,13 +24,6 @@ import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/Select";
 import ProgressBar from "@/components/common/ProgressBar";
 import PageHeader from "@/components/common/PageHeader";
 import { Dialog } from "@/components/common/Dialog";
@@ -50,19 +43,6 @@ const jobTypes: JobType[] = [
   { id: "other", label: "Other", icon: MoreHorizontal },
 ];
 
-const cities = [
-  "New York, NY",
-  "Los Angeles, CA",
-  "Chicago, IL",
-  "Houston, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Antonio, TX",
-  "San Diego, CA",
-  "Dallas, TX",
-  "San Jose, CA",
-];
-
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -74,7 +54,6 @@ function JobPostCreatePage() {
     requiredSkills: "",
     requiredPersonality: "",
     wage: "",
-    location: "",
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
   });
@@ -112,7 +91,6 @@ function JobPostCreatePage() {
       formData.requiredSkills,
       formData.requiredPersonality,
       formData.wage,
-      formData.location,
       formData.jobDescription,
       formData.languageLevel,
     ];
@@ -211,7 +189,7 @@ function JobPostCreatePage() {
                     onClick={() => handleJobTypeSelect(type.id)}
                     size="md"
                     variant="outline"
-                    className="font-medium"
+                    className="font-medium flex items-center gap-2"
                   >
                     <Icon size={16} />
                     <span className="text-sm font-medium">{type.label}</span>
@@ -378,7 +356,7 @@ function JobPostCreatePage() {
             </div>
           </div>
 
-          {/* Compensation & Location Section */}
+          {/* Compensation Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -386,10 +364,10 @@ function JobPostCreatePage() {
               </div>
               <div>
                 <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Compensation & Location
+                  Compensation
                 </Typography>
                 <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Set wage and work location
+                  Set wage in hourly basis
                 </Typography>
               </div>
             </div>
@@ -405,28 +383,6 @@ function JobPostCreatePage() {
                   placeholder="15.00"
                   required
                 />
-              </div>
-
-              {/* Location */}
-              <div>
-                <Typography as="label" variant="bodySm" className="mb-2 block">
-                  Location <span className="text-red-500">*</span>
-                </Typography>
-                <Select
-                  value={formData.location}
-                  onValueChange={(value) => handleInputChange("location", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a city" />{" "}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
