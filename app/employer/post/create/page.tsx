@@ -103,7 +103,7 @@ function JobPostCreatePage() {
       />
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-5 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Job Title Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6">

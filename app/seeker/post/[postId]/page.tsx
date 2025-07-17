@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import PageHeader from "@/components/common/PageHeader";
+import PostHeader from "@/components/common/PostHeader";
 import {
   MapPin,
   DollarSign,
@@ -94,7 +94,7 @@ const JobDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 font-pretendard">
       <div className="md:max-w-6xl mx-auto bg-white min-h-screen">
-        <PageHeader
+        <PostHeader
           leftIcon={<ChevronLeft className="w-6 h-6 text-gray-700" />}
           onClickLeft={handleBack}
           rightIcon={<Bookmark className="w-5 h-5 md:w-6 md:h-6" />}

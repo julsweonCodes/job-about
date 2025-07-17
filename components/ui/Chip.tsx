@@ -11,6 +11,7 @@ const chipVariants = cva(
         solid:
           "bg-gradient-to-r from-accent1 to-accent2 text-white border-transparent hover:opacity-90",
         outline: "bg-white text-text-primary border border-background-secondary",
+        accent: "bg-background-accent1 text-white border-transparent hover:opacity-90",
       },
       size: {
         sm: "h-7 px-3 text-xs",
