@@ -19,7 +19,6 @@ interface EmployerFormData {
   address: string;
   startTime: string;
   endTime: string;
-  languageLevel: LanguageLevel | null;
   description: string;
   optionalTags: string[];
   logoImgs: (File | string)[];
@@ -89,7 +88,6 @@ export default function EmployerProfilePage() {
     address: "",
     startTime: "",
     endTime: "",
-    languageLevel: null,
     description: "",
     optionalTags: [],
     logoImgs: [],
@@ -123,7 +121,6 @@ export default function EmployerProfilePage() {
     address: false,
     startTime: false,
     endTime: false,
-    languageLevel: false,
     description: false,
   });
 
@@ -149,7 +146,6 @@ export default function EmployerProfilePage() {
         check: () => !!(profileFormData.startTime && profileFormData.endTime),
         name: "operatingHours",
       },
-      { check: () => !!profileFormData.languageLevel, name: "languageLevel" },
       { check: () => !!profileFormData.description, name: "description" },
     ];
 
@@ -169,7 +165,6 @@ export default function EmployerProfilePage() {
       address: profileFormData.address,
       operating_start: profileFormData.startTime,
       operating_end: profileFormData.endTime,
-      language_level: profileFormData.languageLevel?.toUpperCase().replace("_", " "),
       description: profileFormData.description,
       // optional 태그는 백엔드에서 처리
     };
@@ -334,33 +329,6 @@ export default function EmployerProfilePage() {
             {/* Job Conditions & Preferences Section */}
             <JobConditionsSection>
               <div className="space-y-8">
-                {/* Required Language Level */}
-                <div>
-                  <Typography variant="bodySm" as="label" className="block mb-4">
-                    Required Language Level <span className="text-red-500">*</span>
-                  </Typography>
-                  <div className="flex flex-wrap gap-3">
-                    {LANGUAGE_LEVELS.map((level: LanguageLevel) => (
-                      <Chip
-                        key={level}
-                        selected={profileFormData.languageLevel === level}
-                        onClick={() =>
-                          handleInputChange(
-                            "languageLevel",
-                            profileFormData.languageLevel === level ? null : level
-                          )
-                        }
-                      >
-                        {level}
-                      </Chip>
-                    ))}
-                  </div>
-                  {/* 언어레벨 validation */}
-                  {touched.languageLevel && !profileFormData.languageLevel && (
-                    <div className="text-xs text-red-500 mt-1">Language level is required</div>
-                  )}
-                </div>
-
                 {/* Description */}
                 <div>
                   <Typography
