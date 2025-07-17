@@ -9,9 +9,17 @@ interface DialogProps {
   type?: "alert" | "bottomSheet";
   children: React.ReactNode;
   className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
-export function Dialog({ open, onClose, type = "alert", children, className }: DialogProps) {
+export function Dialog({
+  open,
+  onClose,
+  type = "alert",
+  children,
+  className,
+  size = "md",
+}: DialogProps) {
   const isMobile = useIsMobile();
 
   React.useEffect(() => {
@@ -30,7 +38,7 @@ export function Dialog({ open, onClose, type = "alert", children, className }: D
   if (!isMobile) {
     // 데스크탑: 무조건 Modal
     return (
-      <Modal open={open} onClose={onClose} className={className}>
+      <Modal open={open} onClose={onClose} className={className} size={size}>
         {children}
       </Modal>
     );
@@ -46,7 +54,7 @@ export function Dialog({ open, onClose, type = "alert", children, className }: D
   }
   // 모바일 + alert
   return (
-    <Modal open={open} onClose={onClose} className={className}>
+    <Modal open={open} onClose={onClose} className={className} size={size}>
       {children}
     </Modal>
   );

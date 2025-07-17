@@ -78,7 +78,7 @@ const PreferredPersonalityDialog: React.FC<{
             variant="default"
             size="lg"
             onClick={() => onConfirm(localSelected)}
-            disabled={!selectedTraits}
+            disabled={localSelected.length === 0}
           >
             Save
           </Button>

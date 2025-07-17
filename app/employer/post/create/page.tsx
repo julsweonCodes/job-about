@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 import "react-day-picker/dist/style.css";
-import { DayPicker } from "react-day-picker";
-import { enUS } from "date-fns/locale";
 import {
   ArrowLeft,
   Server,
@@ -27,7 +25,8 @@ import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import { LanguageLevel, LANGUAGE_LEVELS } from "@/constants/enums";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
-import PreferredPersonalityDialog from "@/app/employer/components/PreferredPersonalityDialog";
+import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
+import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 
 interface JobType {
   id: string;
@@ -47,14 +46,15 @@ function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [personalityDialogOpen, setPersonalityDialogOpen] = useState(false);
+  const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
     deadline: undefined as Date | undefined,
     workSchedule: "",
-    requiredSkills: "",
-    requiredPersonality: "",
+    requiredSkills: [],
+    requiredPersonalities: [],
     wage: "",
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
@@ -67,7 +67,10 @@ function JobPostCreatePage() {
     }));
   };
 
-  const handleInputChange = (field: string, value: string | boolean | Date | undefined) => {
+  const handleInputChange = (
+    field: string,
+    value: string | boolean | Date | string[] | undefined
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -90,8 +93,8 @@ function JobPostCreatePage() {
       formData.jobType,
       formData.deadline,
       formData.workSchedule,
-      formData.requiredSkills,
-      formData.requiredPersonality,
+      formData.requiredSkills.length > 0,
+      formData.requiredPersonalities.length > 0,
       formData.wage,
       formData.jobDescription,
       formData.languageLevel,
@@ -264,12 +267,22 @@ function JobPostCreatePage() {
               {/* Required Skills */}
               <div>
                 <Input
-                  type="text"
+                  readOnly
                   label="Required Skills"
                   required
-                  value={formData.requiredSkills}
-                  onChange={(e: any) => handleInputChange("requiredSkills", e.target.value)}
-                  placeholder="Customer Service, Serving Skill"
+                  placeholder="Select Required Skills"
+                  className="cursor-pointer"
+                  value={formData.requiredSkills.join(", ")}
+                  onClick={() => setSkillsDialogOpen(true)}
+                />
+                <RequiredSkillsDialog
+                  open={skillsDialogOpen}
+                  onClose={() => setSkillsDialogOpen(false)}
+                  selectedSkills={formData.requiredSkills}
+                  onConfirm={(skills) => {
+                    handleInputChange("requiredSkills", skills);
+                    setSkillsDialogOpen(false);
+                  }}
                 />
               </div>
 
@@ -282,14 +295,17 @@ function JobPostCreatePage() {
                   placeholder="Select Preferred Personality"
                   className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
-                  value={formData.requiredPersonality}
+                  value={formData.requiredPersonalities.join(", ")}
                   onClick={() => setPersonalityDialogOpen(true)}
                 />
                 <PreferredPersonalityDialog
                   open={personalityDialogOpen}
                   onClose={() => setPersonalityDialogOpen(false)}
-                  selectedTraits={[]}
-                  onConfirm={() => {}}
+                  selectedTraits={formData.requiredPersonalities}
+                  onConfirm={(traits) => {
+                    handleInputChange("requiredPersonalities", traits as string[]);
+                    setPersonalityDialogOpen(false);
+                  }}
                 />
               </div>
 
