@@ -4,11 +4,6 @@ import React, { useState } from "react";
 import "react-day-picker/dist/style.css";
 import {
   ArrowLeft,
-  Server,
-  Utensils,
-  Truck,
-  CreditCard,
-  MoreHorizontal,
   Calendar,
   DollarSign,
   User,
@@ -23,34 +18,26 @@ import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import { LanguageLevel, LANGUAGE_LEVELS } from "@/constants/enums";
+import { LanguageLevel, LANGUAGE_LEVELS, JobType } from "@/constants/enums";
+import { getCommonJobTypes } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
+import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 
-interface JobType {
-  id: string;
-  label: string;
-  icon: React.ComponentType<any>;
-}
-
-const jobTypes: JobType[] = [
-  { id: "server", label: "Server", icon: Server },
-  { id: "kitchen", label: "Kitchen Help", icon: Utensils },
-  { id: "delivery", label: "Delivery", icon: Truck },
-  { id: "cashier", label: "Cashier", icon: CreditCard },
-  { id: "other", label: "Other", icon: MoreHorizontal },
-];
+const jobTypes = getCommonJobTypes();
 
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [personalityDialogOpen, setPersonalityDialogOpen] = useState(false);
   const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
+  const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
+    selectedJobTypes: [] as JobType[],
     deadline: undefined as Date | undefined,
     workSchedule: "",
     requiredSkills: [],
@@ -90,7 +77,7 @@ function JobPostCreatePage() {
   const calculateCompletion = () => {
     const fields = [
       formData.jobTitle,
-      formData.jobType,
+      formData.selectedJobTypes.length > 0,
       formData.deadline,
       formData.workSchedule,
       formData.requiredSkills.length > 0,
@@ -138,7 +125,7 @@ function JobPostCreatePage() {
               label="Job Title"
               value={formData.jobTitle}
               onChange={(e: any) => handleInputChange("jobTitle", e.target.value)}
-              placeholder="Input"
+              placeholder="Enter Job Title"
               required
             />
           </div>
@@ -151,32 +138,28 @@ function JobPostCreatePage() {
               </div>
               <div>
                 <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Job Type
+                  Job Types
                 </Typography>
                 <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Select applicable job categories
+                  Select multiple job categories
                 </Typography>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {jobTypes.map((type) => {
-                const Icon = type.icon;
-                const isSelected = formData.jobType === type.id;
-                return (
-                  <Chip
-                    key={type.id}
-                    selected={isSelected}
-                    onClick={() => handleJobTypeSelect(type.id)}
-                    size="md"
-                    variant="outline"
-                    className="font-medium flex items-center gap-2"
-                  >
-                    <Icon size={16} />
-                    <span className="text-sm font-medium">{type.label}</span>
-                  </Chip>
-                );
-              })}
+            <div>
+              <Input
+                readOnly
+                label="Job Types"
+                required
+                placeholder="Select Job Types"
+                className="cursor-pointer"
+                value={
+                  formData.selectedJobTypes.length > 0
+                    ? `${formData.selectedJobTypes.length} job types selected`
+                    : ""
+                }
+                onClick={() => setJobTypesDialogOpen(true)}
+              />
             </div>
           </div>
 
@@ -357,7 +340,7 @@ function JobPostCreatePage() {
                   label="Wage"
                   value={formData.wage}
                   onChange={(e: any) => handleInputChange("wage", e.target.value)}
-                  placeholder="15.00"
+                  placeholder="Enter Wage"
                   required
                 />
               </div>
@@ -400,6 +383,17 @@ function JobPostCreatePage() {
             </Button>
           </div>
         </form>
+
+        {/* JobTypesDialog */}
+        <JobTypesDialog
+          open={jobTypesDialogOpen}
+          onClose={() => setJobTypesDialogOpen(false)}
+          selectedJobTypes={formData.selectedJobTypes}
+          onConfirm={(jobTypes) => {
+            handleInputChange("selectedJobTypes", jobTypes);
+            setJobTypesDialogOpen(false);
+          }}
+        />
       </div>
     </div>
   );

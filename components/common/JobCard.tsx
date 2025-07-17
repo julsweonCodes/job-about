@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import { MapPin, Calendar } from "lucide-react";
+import { getJobTypeName } from "@/utils/client/jobTypeUtils";
 
 export type JobCardJob = {
   id: number;
@@ -36,7 +37,7 @@ export default function JobCard({
         <div className="flex items-center justify-between gap-4 flex-1 min-h-0">
           <div className="flex-1 min-w-0">
             <Badge variant="secondary" className="text-xs font-medium mb-1">
-              {job.type}
+              {getJobTypeName(job.type)}
             </Badge>
             <Typography
               as="h3"

@@ -9,7 +9,7 @@ interface DialogProps {
   type?: "alert" | "bottomSheet";
   children: React.ReactNode;
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export function Dialog({

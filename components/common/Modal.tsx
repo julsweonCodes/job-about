@@ -6,7 +6,7 @@ export interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export function Modal({ open, onClose, children, className, size = "md" }: ModalProps) {
@@ -22,6 +22,7 @@ export function Modal({ open, onClose, children, className, size = "md" }: Modal
           size === "sm" && "max-w-sm",
           size === "md" && "max-w-md",
           size === "lg" && "max-w-lg",
+          size === "xl" && "max-w-2xl",
           className
         )}
         onClick={(e) => e.stopPropagation()}
