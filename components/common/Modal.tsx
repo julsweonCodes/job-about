@@ -5,9 +5,10 @@ export interface ModalProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-export function Modal({ open, onClose, children }: ModalProps) {
+export function Modal({ open, onClose, children, className }: ModalProps) {
   if (!open) return null;
   return (
     <div
@@ -16,7 +17,8 @@ export function Modal({ open, onClose, children }: ModalProps) {
     >
       <div
         className={cn(
-          "bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative transition-all duration-300 transform scale-100 animate-modalIn"
+          "bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative transition-all duration-300 transform scale-100 animate-modalIn",
+          className
         )}
         onClick={(e) => e.stopPropagation()}
       >

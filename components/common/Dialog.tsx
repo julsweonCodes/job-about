@@ -8,9 +8,10 @@ interface DialogProps {
   onClose: () => void;
   type?: "alert" | "bottomSheet";
   children: React.ReactNode;
+  className?: string;
 }
 
-export function Dialog({ open, onClose, type = "alert", children }: DialogProps) {
+export function Dialog({ open, onClose, type = "alert", children, className }: DialogProps) {
   const isMobile = useIsMobile();
 
   React.useEffect(() => {
@@ -29,7 +30,7 @@ export function Dialog({ open, onClose, type = "alert", children }: DialogProps)
   if (!isMobile) {
     // 데스크탑: 무조건 Modal
     return (
-      <Modal open={open} onClose={onClose}>
+      <Modal open={open} onClose={onClose} className={className}>
         {children}
       </Modal>
     );
@@ -38,14 +39,14 @@ export function Dialog({ open, onClose, type = "alert", children }: DialogProps)
   // 모바일: type에 따라 분기
   if (type === "bottomSheet") {
     return (
-      <BottomSheet open={open} onClose={onClose}>
+      <BottomSheet open={open} onClose={onClose} className={className}>
         {children}
       </BottomSheet>
     );
   }
   // 모바일 + alert
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} className={className}>
       {children}
     </Modal>
   );

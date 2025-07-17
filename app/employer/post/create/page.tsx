@@ -25,8 +25,9 @@ import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import { Dialog } from "@/components/common/Dialog";
 import { LanguageLevel, LANGUAGE_LEVELS } from "@/constants/enums";
+import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
+import PreferredPersonalityDialog from "@/app/employer/components/PreferredPersonalityDialog";
 
 interface JobType {
   id: string;
@@ -42,28 +43,10 @@ const jobTypes: JobType[] = [
   { id: "other", label: "Other", icon: MoreHorizontal },
 ];
 
-const personalityTraits = [
-  "Fast-Paced",
-  "Calm Approach",
-  "Quick Fix",
-  "Detail-Oriented",
-  "Team Player",
-  "Independent Worker",
-  "Creative Problem Solver",
-  "Systematic Thinker",
-  "Adaptable",
-  "Consistent",
-  "Innovative",
-  "Traditional",
-  "Risk-Taker",
-  "Cautious",
-  "Energetic",
-];
-
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedPersonalities, setSelectedPersonalities] = useState<string[]>([]);
+  const [personalityDialogOpen, setPersonalityDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     jobTitle: "",
@@ -115,11 +98,6 @@ function JobPostCreatePage() {
     ];
     const completed = fields.filter(Boolean).length;
     return Math.round((completed / fields.length) * 100);
-  };
-
-  const openCalendar = () => {
-    setTempDeadline(formData.deadline ?? null);
-    setCalendarOpen(true);
   };
 
   const progress = calculateCompletion();
@@ -233,44 +211,20 @@ function JobPostCreatePage() {
                         })
                       : ""
                   }
-                  onClick={openCalendar}
+                  onClick={() => setCalendarOpen(true)}
                 />
                 {/* 날짜 선택 다이얼로그 */}
-                <Dialog
+                <DatePickerDialog
                   open={calendarOpen}
                   onClose={() => setCalendarOpen(false)}
-                  type="bottomSheet"
-                >
-                  <div>
-                    <div className="p-4 md:p-6 flex justify-center">
-                      <DayPicker
-                        animate
-                        mode="single"
-                        required={false}
-                        selected={tempDeadline ?? undefined}
-                        onSelect={(date) => setTempDeadline(date ?? null)}
-                        locale={enUS}
-                        navLayout="around"
-                        modifiersClassNames={{
-                          selected: "bg-indigo-500 text-white rounded-2xl",
-                          today: "font-bold rounded-2xl",
-                        }}
-                        className="w-[340px] max-w-full"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      className="w-full mt-4"
-                      onClick={() => {
-                        handleInputChange("deadline", tempDeadline ?? undefined);
-                        setCalendarOpen(false);
-                      }}
-                      disabled={!tempDeadline}
-                    >
-                      Select
-                    </Button>
-                  </div>
-                </Dialog>
+                  value={tempDeadline}
+                  onChange={(date) => {
+                    handleInputChange("deadline", date ?? undefined);
+                    setTempDeadline(date);
+                  }}
+                  confirmLabel="Select"
+                  required
+                />
               </div>
 
               {/* Work Schedule */}
@@ -328,6 +282,14 @@ function JobPostCreatePage() {
                   placeholder="Select Preferred Personality"
                   className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
+                  value={formData.requiredPersonality}
+                  onClick={() => setPersonalityDialogOpen(true)}
+                />
+                <PreferredPersonalityDialog
+                  open={personalityDialogOpen}
+                  onClose={() => setPersonalityDialogOpen(false)}
+                  selectedTraits={[]}
+                  onConfirm={() => {}}
                 />
               </div>
 
