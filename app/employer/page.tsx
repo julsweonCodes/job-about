@@ -130,7 +130,7 @@ export default function EmployerDashboard() {
             <AlertBanner
               message={`${stats.statusUpdateNeeded} job posts need status updates`}
               onClick={() => {
-                router.push("/employer/post/list");
+                router.push("/employer/pending-updates");
               }}
             />
           </div>
