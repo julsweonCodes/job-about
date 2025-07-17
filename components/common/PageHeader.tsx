@@ -17,9 +17,9 @@ export default function PageHeader({
   onClickRight,
 }: PageHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 bg-white flex items-center justify-between h-14 px-4">
+    <header className="sticky top-0 z-30 bg-white flex items-center justify-between h-16 lg:h-20 px-3 md:px-5">
       <div
-        className={`flex items-center justify-center w-8 h-8 ${leftIcon && onClickLeft ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
+        className={`flex items-center justify-center w-10 h-10 ${leftIcon && onClickLeft ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
         tabIndex={leftIcon && onClickLeft ? 0 : -1}
         role={leftIcon && onClickLeft ? "button" : undefined}
         aria-label={leftIcon ? "왼쪽 아이콘" : undefined}
@@ -37,7 +37,7 @@ export default function PageHeader({
         </Typography>
       </div>
       <div
-        className={`flex items-center justify-center w-8 h-8 ${rightIcon && onClickRight ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
+        className={`flex items-center justify-center w-10 h-10 ${rightIcon && onClickRight ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
         tabIndex={rightIcon && onClickRight ? 0 : -1}
         role={rightIcon && onClickRight ? "button" : undefined}
         aria-label={rightIcon ? "오른쪽 아이콘" : undefined}

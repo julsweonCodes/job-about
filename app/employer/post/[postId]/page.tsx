@@ -1,15 +1,40 @@
 "use client";
 import React, { useState } from "react";
 import PageHeader from "@/components/common/PageHeader";
+import { JobPostActionsDialog } from "@/components/employer/JobPostActionsDialog";
 import {
   MapPin,
   DollarSign,
   Clock,
   Calendar,
-  Bookmark,
   Building2,
   ChevronLeft,
+  EllipsisVertical,
 } from "lucide-react";
+import { JobStatus } from "@/constants/enums";
+
+// Action Button Components
+interface ActionButtonProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+}
+
+function ActionButton({ icon, title, description, onClick }: ActionButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 p-4 text-left hover:bg-gray-50 rounded-xl transition-colors border border-gray-200"
+    >
+      {icon}
+      <div className="flex-1">
+        <div className="font-medium text-gray-900">{title}</div>
+        <div className="text-sm text-gray-500">{description}</div>
+      </div>
+    </button>
+  );
+}
 
 const jobDetails = {
   title: "Cashier",
@@ -85,9 +110,28 @@ function JobDetailCard({
 
 const JobDetailPage: React.FC = () => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [showActionsDialog, setShowActionsDialog] = useState(false);
+
+  // Mock job post data
+  const jobPost = {
+    id: "1",
+    title: jobDetails.title,
+    status: JobStatus.Published,
+  };
 
   const handleBack = () => {
     window.history.back();
+  };
+
+  const handleStatusChange = (newStatus: JobStatus) => {
+    // TODO: API call to update job post status
+    console.log("Status changed to:", newStatus);
+    // Update local state or refetch data
+  };
+
+  const handleEdit = () => {
+    // TODO: Navigate to edit page
+    console.log("Navigate to edit page");
   };
 
   return (
@@ -96,8 +140,8 @@ const JobDetailPage: React.FC = () => {
         <PageHeader
           leftIcon={<ChevronLeft className="w-6 h-6 text-gray-700" />}
           onClickLeft={handleBack}
-          rightIcon={<Bookmark className="w-5 h-5 md:w-6 md:h-6" />}
-          onClickRight={() => {}}
+          rightIcon={<EllipsisVertical className="w-6 h-6 text-gray-500" />}
+          onClickRight={() => setShowActionsDialog(true)}
         />
         {/* Job Header */}
         <div className="bg-white px-5 lg:px-8 py-6 lg:py-8 border-b border-gray-100">
@@ -188,32 +232,18 @@ const JobDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* 데스크탑(PC)용 Apply Now 버튼: 두 컬럼 아래 전체 너비 */}
-            <div className="hidden lg:block lg:col-span-2 mt-8">
-              <button
-                onClick={() => alert("지원하기 (구현 예정)")}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 lg:py-5 rounded-2xl font-bold text-lg lg:text-xl shadow-purple hover:shadow-lg transition-all duration-200"
-              >
-                Apply Now
-              </button>
-            </div>
           </div>
         </div>
-
-        {/* Apply Button - Mobile Only */}
-        <div className="lg:hidden px-5 py-6 bg-white border-t border-gray-100 sticky bottom-0">
-          <button
-            onClick={() => alert("지원하기 (구현 예정)")}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-purple hover:shadow-lg transition-all duration-200"
-          >
-            Apply Now
-          </button>
-          <p className="text-center text-sm text-gray-500 mt-3">
-            Application deadline: {jobDetails.deadline}
-          </p>
-        </div>
       </div>
+
+      {/* Job Post Actions Dialog */}
+      <JobPostActionsDialog
+        open={showActionsDialog}
+        onClose={() => setShowActionsDialog(false)}
+        jobPost={jobPost}
+        onStatusChange={handleStatusChange}
+        onEdit={handleEdit}
+      />
     </div>
   );
 };
