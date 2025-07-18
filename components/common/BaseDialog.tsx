@@ -31,9 +31,12 @@ const BaseDialog: React.FC<BaseDialogProps> = ({
       size={size}
       showCloseButton
     >
-      <div className="flex flex-col gap-4">
-        <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-        <div>{children}</div>
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 sm:gap-2">
+          <h3 className="text-[18px] sm:text-[24px] font-bold">{title}</h3>
+          <div>{children}</div>
+        </div>
+
         {actions && <div className="flex justify-between gap-2">{actions}</div>}
       </div>
     </Dialog>

@@ -11,12 +11,13 @@ import {
   Globe,
   Users,
   CheckCircle,
-  Award,
-  Zap,
   RefreshCw,
 } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
+import Input from "@/components/ui/Input";
+import TextArea from "@/components/ui/TextArea";
+import { Button } from "@/components/ui/Button";
 
 const JobPreviewEditPage: React.FC = () => {
   const [editingSection, setEditingSection] = useState<string | null>(null);
@@ -93,14 +94,6 @@ const JobPreviewEditPage: React.FC = () => {
     },
   ];
 
-  const employerTagIcons = {
-    "Family-friendly": CheckCircle,
-    "No experience required": Award,
-    "Quick hiring": Zap,
-    "Flexible scheduling": Clock,
-    "Staff discounts": DollarSign,
-  };
-
   const handleEdit = (section: string, initialData?: any) => {
     setTempEditData(initialData || {});
     setEditingSection(section);
@@ -133,7 +126,7 @@ const JobPreviewEditPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 font-pretendard">
       {/* Header */}
       <PostHeader previewMode />
-      <div className="max-w-6xl mx-auto px-4 lg:px-6">
+      <div className="max-w-6xl mx-auto px-5 lg:px-6">
         {/* Job Header */}
         <div className="py-6 lg:py-8">
           <div className="flex items-start space-x-4">
@@ -147,11 +140,6 @@ const JobPreviewEditPage: React.FC = () => {
                     {jobData.title}
                   </h1>
                   <p className="text-lg lg:text-xl text-gray-600 mb-3">{jobData.company}</p>
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-sm font-medium text-gray-700">{jobData.rating}</span>
-                    <span className="text-sm text-gray-500">({jobData.reviewCount} reviews)</span>
-                  </div>
                 </div>
                 <button
                   onClick={() =>
@@ -168,7 +156,7 @@ const JobPreviewEditPage: React.FC = () => {
         {/* Job Description */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">About This Role</h2>
+            <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleRegenerateDescription}
@@ -275,14 +263,11 @@ const JobPreviewEditPage: React.FC = () => {
               </h3>
               <div className="flex flex-wrap gap-3">
                 {jobData.employerTags.map((tag, index) => {
-                  const IconComponent =
-                    employerTagIcons[tag as keyof typeof employerTagIcons] || CheckCircle;
                   return (
                     <div
                       key={tag}
                       className="flex items-center space-x-2 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full border border-indigo-200 shadow-sm"
                     >
-                      <IconComponent className="w-4 h-4 text-indigo-600" />
                       <span className="text-sm font-medium text-indigo-800">{tag}</span>
                     </div>
                   );
@@ -294,24 +279,18 @@ const JobPreviewEditPage: React.FC = () => {
       </div>
       {/* Publish Button - Mobile Sticky */}
       <div className="lg:hidden px-4 py-6 bg-white border-t border-gray-100 sticky bottom-0 z-10">
-        <button
-          onClick={handlePublish}
-          className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200"
-        >
+        <Button onClick={handlePublish} size="lg" variant="gradient">
           Publish Job Post
-        </button>
+        </Button>
         <p className="text-center text-sm text-gray-500 mt-3">
           Your job post will be live immediately after publishing
         </p>
       </div>
       {/* Publish Button - Desktop */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pb-12">
-        <button
-          onClick={handlePublish}
-          className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 rounded-3xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200"
-        >
+        <Button onClick={handlePublish} size="lg" variant="gradient">
           Publish Job Post
-        </button>
+        </Button>
         <p className="text-center text-base text-gray-500 mt-4">
           Your job post will be live immediately after publishing
         </p>
@@ -321,28 +300,24 @@ const JobPreviewEditPage: React.FC = () => {
         type="bottomSheet"
         open={editingSection === "header"}
         onClose={() => setEditingSection(null)}
-        title="Edit Job Header"
+        title="Edit Job Title"
         actions={
           <>
-            <button
-              onClick={() => handleSave("header", tempEditData)}
-              className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
-            >
-              Save Changes
-            </button>
+            <Button onClick={() => handleSave("header", tempEditData)} size="lg">
+              Save
+            </Button>
           </>
         }
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
-            <input
-              type="text"
-              value={tempEditData.title || jobData.title}
-              onChange={(e) => setTempEditData((prev: any) => ({ ...prev, title: e.target.value }))}
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+        <div className="flex flex-col gap-1 sm:gap-2">
+          <span className="text-sm md:text-base text-gray-500">
+            You can edit the job title here
+          </span>
+          <Input
+            value={tempEditData.title || jobData.title}
+            onChange={(e) => setTempEditData((prev: any) => ({ ...prev, title: e.target.value }))}
+            className="w-full pt-3 pb-1"
+          />
         </div>
       </BaseDialog>
       <BaseDialog
@@ -352,28 +327,25 @@ const JobPreviewEditPage: React.FC = () => {
         title="Edit Job Description"
         actions={
           <>
-            <button
-              onClick={() => handleSave("description", tempEditData)}
-              className="flex-1 py-2 px-4 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
-            >
-              Save Changes
-            </button>
+            <Button onClick={() => handleSave("description", tempEditData)} size="lg">
+              Save
+            </Button>
           </>
         }
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Job Description</label>
-            <textarea
-              rows={6}
-              value={tempEditData.description || jobData.description}
-              onChange={(e) =>
-                setTempEditData((prev: any) => ({ ...prev, description: e.target.value }))
-              }
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-              placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
-            />
-          </div>
+        <div className="flex flex-col gap-1 sm:gap-2">
+          <span className="text-sm md:text-base text-gray-500">
+            You can edit the job description here
+          </span>
+          <TextArea
+            rows={6}
+            value={tempEditData.description || jobData.description}
+            onChange={(e) =>
+              setTempEditData((prev: any) => ({ ...prev, description: e.target.value }))
+            }
+            className="w-full pt-3 pb-1 scrollbar-none"
+            placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
+          />
         </div>
       </BaseDialog>
     </div>

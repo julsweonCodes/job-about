@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Dialog } from "@/components/common/Dialog";
-import { Button } from "@/components/ui/Button";
-import { Edit, Eye, EyeOff, X } from "lucide-react";
+import { Edit, Eye, EyeOff } from "lucide-react";
 import { JobStatus } from "@/constants/enums";
 import Typography from "../ui/Typography";
 

@@ -31,7 +31,7 @@ export default function TextArea({
       <textarea
         value={value}
         onChange={onChange}
-        className={`input-style resize-none ${error ? "border-red-400 " : ""}`}
+        className={`input-style resize-none scrollbar-hide ${error ? "border-red-400 " : ""} ${className}`}
         {...props}
       />
       {error && <div className="text-xs text-red-500 mt-1">{error}</div>}
