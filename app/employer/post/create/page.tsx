@@ -115,8 +115,9 @@ function JobPostCreatePage() {
       />
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-5 py-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/*<form onSubmit={handleSubmit} className="space-y-6"> */}
+        <div className="space-y-6">
           {/* Job Title Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-5">
@@ -387,14 +388,15 @@ function JobPostCreatePage() {
           {/* Submit Button */}
           <div className="pb-8">
             <Button
-              type="submit"
+              //type="submit"
+              onClick={handleSubmit}
               size="xl"
               className="w-full bg-[#7C3AED] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-[#6D28D9] active:bg-[#5B21B6] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
             >
               Generate Job Posting with AI
             </Button>
           </div>
-        </form>
+        </div>
 
         {/* JobTypesDialog */}
         <JobTypesDialog
