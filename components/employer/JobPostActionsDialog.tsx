@@ -81,9 +81,9 @@ export function JobPostActionsDialog({
           <ActionButton
             icon={
               jobPost.status === JobStatus.Published ? (
-                <EyeOff className="w-5 h-5 text-gray-600" />
+                <EyeOff className="w-5 h-5 text-red-500" />
               ) : (
-                <Eye className="w-5 h-5 text-gray-600" />
+                <Eye className="w-5 h-5 text-green-600" />
               )
             }
             title={jobPost.status === JobStatus.Published ? "Close Job Post" : "Open Job Post"}

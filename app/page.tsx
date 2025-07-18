@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import {
-  Menu,
-  X,
   Users,
   Briefcase,
   ArrowRight,
@@ -19,10 +17,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { createSupabaseBrowserClient } from "@/lib/client/supabase";
 
 function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("seekers");
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const setIsLoggedIn = useAuthStore((state) => state.setIsLoggedIn);
   const supabase = createSupabaseBrowserClient();
 
   const handleLogout = async () => {
