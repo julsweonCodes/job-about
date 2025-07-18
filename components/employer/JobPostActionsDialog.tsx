@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Dialog } from "@/components/common/Dialog";
-import { Button } from "@/components/ui/Button";
-import { Edit, Eye, EyeOff, X } from "lucide-react";
+import { Edit, Eye, EyeOff } from "lucide-react";
 import { JobStatus } from "@/constants/enums";
 import Typography from "../ui/Typography";
 
@@ -21,7 +20,7 @@ function ActionButton({ icon, title, description, onClick }: ActionButtonProps) 
     >
       {icon}
       <div className="flex-1">
-        <div className="text-sm font-medium md:text-base text-gray-900">{title}</div>
+        <div className="text-sm font-semibold md:text-base text-gray-900">{title}</div>
         <div className="text-xs md:text-base text-gray-500">{description}</div>
       </div>
     </button>
@@ -65,7 +64,7 @@ export function JobPostActionsDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} type="bottomSheet" size="md">
+    <Dialog open={open} onClose={onClose} type="bottomSheet" size="md" showCloseButton>
       <div className="flex flex-col gap-5">
         {/* Header */}
         <div className="flex flex-col items-start  gap-3">
@@ -81,9 +80,9 @@ export function JobPostActionsDialog({
           <ActionButton
             icon={
               jobPost.status === JobStatus.Published ? (
-                <EyeOff className="w-5 h-5 text-gray-600" />
+                <EyeOff className="w-5 h-5 text-red-500" />
               ) : (
-                <Eye className="w-5 h-5 text-gray-600" />
+                <Eye className="w-5 h-5 text-green-600" />
               )
             }
             title={jobPost.status === JobStatus.Published ? "Close Job Post" : "Open Job Post"}
@@ -102,13 +101,6 @@ export function JobPostActionsDialog({
             description="Modify job details and requirements"
             onClick={handleEdit}
           />
-        </div>
-
-        {/* Footer */}
-        <div>
-          <Button variant="secondary" size="lg" onClick={onClose} className="w-full">
-            Close
-          </Button>
         </div>
       </div>
     </Dialog>

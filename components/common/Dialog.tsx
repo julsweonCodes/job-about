@@ -10,6 +10,7 @@ interface DialogProps {
   children: React.ReactNode;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
+  showCloseButton?: boolean;
 }
 
 export function Dialog({
@@ -19,6 +20,7 @@ export function Dialog({
   children,
   className,
   size = "md",
+  showCloseButton = false,
 }: DialogProps) {
   const isMobile = useIsMobile();
 
@@ -38,7 +40,13 @@ export function Dialog({
   if (!isMobile) {
     // 데스크탑: 무조건 Modal
     return (
-      <Modal open={open} onClose={onClose} className={className} size={size}>
+      <Modal
+        open={open}
+        onClose={onClose}
+        className={className}
+        size={size}
+        showCloseButton={showCloseButton}
+      >
         {children}
       </Modal>
     );
@@ -54,7 +62,13 @@ export function Dialog({
   }
   // 모바일 + alert
   return (
-    <Modal open={open} onClose={onClose} className={className} size={size}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      className={className}
+      size={size}
+      showCloseButton={showCloseButton}
+    >
       {children}
     </Modal>
   );
