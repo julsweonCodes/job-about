@@ -1,5 +1,6 @@
 import React from "react";
-import Typography from "@/components/ui/Typography";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface PostHeaderProps {
   title?: string;
@@ -9,41 +10,32 @@ interface PostHeaderProps {
   onClickRight?: () => void;
 }
 
-export default function PostHeader({
-  title,
-  leftIcon,
-  rightIcon,
-  onClickLeft,
-  onClickRight,
-}: PostHeaderProps) {
+export default function PostHeader({ rightIcon, onClickLeft, onClickRight }: PostHeaderProps) {
+  const router = useRouter();
+
   return (
-    <header className="sticky top-0 z-30 bg-white flex items-center justify-between h-16 lg:h-20 px-3 md:px-5">
-      <div
-        className={`flex items-center justify-center w-10 h-10 ${leftIcon && onClickLeft ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
-        tabIndex={leftIcon && onClickLeft ? 0 : -1}
-        role={leftIcon && onClickLeft ? "button" : undefined}
-        aria-label={leftIcon ? "왼쪽 아이콘" : undefined}
-        onClick={leftIcon && onClickLeft ? onClickLeft : undefined}
-      >
-        {leftIcon ? leftIcon : null}
-      </div>
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex justify-center pointer-events-none">
-        <Typography
-          as="span"
-          variant="headlineMd"
-          className="text-center pointer-events-none select-none"
-        >
-          {title}
-        </Typography>
-      </div>
-      <div
-        className={`flex items-center justify-center w-10 h-10 ${rightIcon && onClickRight ? "hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors duration-150 cursor-pointer" : ""}`}
-        tabIndex={rightIcon && onClickRight ? 0 : -1}
-        role={rightIcon && onClickRight ? "button" : undefined}
-        aria-label={rightIcon ? "오른쪽 아이콘" : undefined}
-        onClick={rightIcon && onClickRight ? onClickRight : undefined}
-      >
-        {rightIcon ? rightIcon : null}
+    <header className="bg-white lg:px-6 sticky top-0 z-20 border-b border-gray-100  h-16 lg:h-20 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto w-full px-5 lg:px-6">
+        <div className="flex items-center justify-between w-full">
+          <button
+            onClick={
+              onClickLeft ||
+              (() => {
+                router.back();
+              })
+            }
+            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-700" />
+          </button>
+
+          <button
+            onClick={onClickRight}
+            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            {rightIcon}
+          </button>
+        </div>
       </div>
     </header>
   );
