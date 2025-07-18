@@ -3,16 +3,20 @@ import Image from "next/image";
 
 interface HeaderProps {
   profileImage?: string;
+  onClickLogo?: () => void;
 }
 
-export const ProfileHeader: React.FC<HeaderProps> = ({ profileImage }) => {
+export const ProfileHeader: React.FC<HeaderProps> = ({ profileImage, onClickLogo }) => {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Left side - Logo/Brand */}
           <div className="flex items-center">
-            <div className="text-xl md:text-2xl font-bold text-black hover:text-[#7A73F1]  transition-colors duration-200 cursor-pointer">
+            <div
+              className="text-xl md:text-2xl font-bold text-black hover:text-[#7A73F1] transition-colors duration-200 cursor-pointer"
+              onClick={onClickLogo}
+            >
               job:about
             </div>
           </div>

@@ -6,7 +6,7 @@ import { JobPostCard } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { WorkType } from "@/constants/enums";
-import { Plus, CirclePlus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface JobPost {
   id: string;
