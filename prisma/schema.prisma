@@ -126,7 +126,6 @@ model job_posts {
   job_type                           JobType
   deadline                           String                        @db.VarChar(8)
   work_schedule                      String                        @db.VarChar(100)
-  wage                               Float
   location                           Location
   description                        String
   status                             JobStatus
