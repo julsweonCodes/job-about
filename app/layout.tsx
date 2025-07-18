@@ -1,10 +1,8 @@
 import React from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import AuthProvider from "@/app/AuthProvider";
 
 export const metadata: Metadata = {
   title: "job:about",
@@ -24,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={pretendard.className}>
-      <body className="flex flex-col min-h-screen">{children}</body>
+      <body className="flex flex-col min-h-screen">
+        <AuthProvider />
+        {children}
+      </body>
     </html>
   );
 }
