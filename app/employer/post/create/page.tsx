@@ -19,13 +19,11 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import { LanguageLevel, LANGUAGE_LEVELS, JobType } from "@/constants/enums";
-import { getCommonJobTypes } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
-
-const jobTypes = getCommonJobTypes();
+import { useRouter } from "next/navigation";
 
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
@@ -47,6 +45,8 @@ function JobPostCreatePage() {
     languageLevel: null as LanguageLevel | null,
   });
 
+  const router = useRouter();
+
   const handleJobTypeSelect = (type: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -64,9 +64,21 @@ function JobPostCreatePage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    // 1. AI로 공고 생성 & DB 저장 (예시: /api/employer/job-post 호출)
+    const res = await fetch("/api/employer/job-post", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    if (!res.ok) {
+      alert("공고 생성에 실패했습니다.");
+      return;
+    }
+    const { postId } = await res.json();
+    // 2. 미리보기 페이지로 이동
+    router.push(`/employer/post/preview/${postId}`);
   };
 
   const handleBack = () => {

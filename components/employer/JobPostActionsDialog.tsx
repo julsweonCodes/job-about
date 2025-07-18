@@ -21,7 +21,7 @@ function ActionButton({ icon, title, description, onClick }: ActionButtonProps) 
     >
       {icon}
       <div className="flex-1">
-        <div className="text-sm font-medium md:text-base text-gray-900">{title}</div>
+        <div className="text-sm font-semibold md:text-base text-gray-900">{title}</div>
         <div className="text-xs md:text-base text-gray-500">{description}</div>
       </div>
     </button>
@@ -65,7 +65,7 @@ export function JobPostActionsDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} type="bottomSheet" size="md">
+    <Dialog open={open} onClose={onClose} type="bottomSheet" size="md" showCloseButton>
       <div className="flex flex-col gap-5">
         {/* Header */}
         <div className="flex flex-col items-start  gap-3">
@@ -102,13 +102,6 @@ export function JobPostActionsDialog({
             description="Modify job details and requirements"
             onClick={handleEdit}
           />
-        </div>
-
-        {/* Footer */}
-        <div>
-          <Button variant="secondary" size="lg" onClick={onClose} className="w-full">
-            Close
-          </Button>
         </div>
       </div>
     </Dialog>

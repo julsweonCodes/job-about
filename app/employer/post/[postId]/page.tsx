@@ -93,7 +93,7 @@ export const JobDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-pretendard">
+    <div className="min-h-scrxeen bg-gray-50 font-pretendard">
       {/* Header */}
       <PostHeader
         rightIcon={<EllipsisVertical className="w-5 h-5 text-gray-700" />}
