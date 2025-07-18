@@ -10,9 +10,9 @@ export async function POST (request: NextRequest) {
 
   try {
     const result = await createJobPost(body);
-    return NextResponse.json(result);
+    return NextResponse.json( {data: result}, {status: 200});
   } catch (error) {
-    console.log("error on creating job post");
+    console.error("❌ error on creating job post:", error);
     return NextResponse.json({ error: "Failed to create job post" }, { status: 500 });
   }
 }

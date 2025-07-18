@@ -13,23 +13,25 @@ import { JobPostPayload } from "@/types/employer";
   console.log(userId, bizLocId);
 
   const createdPost = await prisma.job_posts.create({
-      data: {
-        deadline: formatDateYYYYMMDD(),
-        description: payload.jobDescription ?? "description none.",
-        job_type: "CHEF",
-        location: "BRAMPTON",
-        status: "DRAFT",
-        title: payload.jobTitle,
-        wage: payload.wage,
-        work_schedule: payload.workSchedule,
-        business_loc_id: bizLocId,
-        skill_id1: 1,
-        user_id: userId,
-        language_
-      }
-    })
-   ;
-  return createdPost;
+    data: {
+      deadline: "20250810",
+      description: payload.jobDescription ?? "description none.",
+      job_type: "CHEF",
+      location: "BRAMPTON",
+      status: "DRAFT",
+      title: payload.jobTitle,
+      wage: payload.wage,
+      work_schedule: payload.workSchedule,
+      business_loc_id: bizLocId,
+      skill_id1: 1,
+      user_id: userId,
+    },
+    select: {
+      id: true
+    },
+  });
+  console.log(createdPost);
+  return createdPost.id.toString();
  }
 
 // Edit Job Post
