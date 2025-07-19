@@ -1,140 +1,137 @@
-import React, { useRef, useState } from "react";
-import { Upload } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Upload, X } from "lucide-react";
 import BaseDialog from "./BaseDialog";
-import { Button } from "../ui/Button";
+import { Button } from "@/components/ui/Button";
 
 interface ImageUploadDialogProps {
   open: boolean;
   onClose: () => void;
-  currentImage?: string;
-  onImageChange: (imageUrl: string) => void;
-  title?: string;
-  type?: "logo" | "profile";
-  defaultImage?: string;
+  onSave: (file: File) => void;
+  title: string;
+  type: "logo" | "profile";
+  currentImages?: string[];
 }
 
 const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
   open,
   onClose,
-  currentImage,
-  onImageChange,
+  onSave,
   title,
-  type = "logo",
-  defaultImage,
+  type,
+  currentImages = [],
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
-        if (e.target?.result) {
-          setPreviewImage(e.target.result as string);
-        }
+        setPreviewImage(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleClose = () => {
+    setPreviewImage(null);
+    setSelectedFile(null);
+    onClose();
+  };
+
   const handleSave = () => {
-    // TODO: 이미지 업로드 로직 추가
-    if (previewImage) {
-      onImageChange(previewImage);
+    if (selectedFile) {
+      onSave(selectedFile);
       setPreviewImage(null);
+      setSelectedFile(null);
       onClose();
     }
   };
 
-  const handleCancel = () => {
-    setPreviewImage(null);
-    onClose();
-  };
-
-  const handleFileSelect = () => {
+  const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  // 기본 이미지 설정
-  const getDefaultImage = () => {
-    if (defaultImage) return defaultImage;
-    return type === "logo"
-      ? "/images/img-default-business-profile.png"
-      : "/images/img-default-profile.png";
-  };
-
-  const displayImage = previewImage || currentImage || getDefaultImage();
-
-  // 제목 설정
-  const getTitle = () => {
-    if (title) return title;
-    return type === "logo" ? "Change Business Logo" : "Change Profile Photo";
-  };
-
-  // 버튼 텍스트 설정
-  const getButtonText = () => {
-    return type === "logo" ? "Choose Logo" : "Choose Photo";
-  };
-
-  // 가이드라인 텍스트 설정
-  const getGuidelines = () => {
-    if (type === "logo") {
-      return {
-        line1: "Upload a square image for best results",
-        line2: "Recommended size: 512x512 pixels",
-      };
-    } else {
-      return {
-        line1: "Upload a clear photo of yourself",
-        line2: "Recommended size: 400x400 pixels",
-      };
-    }
-  };
-
-  const guidelines = getGuidelines();
-
   return (
-    <BaseDialog open={open} onClose={handleCancel} title={getTitle()} size="sm" type="bottomSheet">
-      <div className="space-y-6">
-        {/* Image Preview */}
-        <div className="text-center">
-          <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-slate-100 mt-4 mb-4">
-            <img
-              src={displayImage}
-              alt={`${type} preview`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Instructions */}
-          <div className="text-center text-sm sm:text-base text-slate-600 mb-4">
-            <p>{guidelines.line1}</p>
-            <p>{guidelines.line2}</p>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {/* Upload Button */}
-            <Button onClick={handleFileSelect} variant="secondary" size="md">
-              <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
-              <span className="text-sm sm:text-base">{getButtonText()}</span>
-            </Button>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <Button onClick={handleSave} disabled={!previewImage} size="md">
-                <span className="text-sm sm:text-base">Save Changes</span>
-              </Button>
+    <BaseDialog open={open} onClose={handleClose} title={title} size="md" type="bottomSheet">
+      <div className="space-y-4">
+        {/* Current Images Display */}
+        {currentImages.length > 0 && (
+          <div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {currentImages.map((image, index) => (
+                <div key={index} className="relative flex-shrink-0">
+                  <img
+                    src={image}
+                    alt={`Current ${type}`}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                </div>
+              ))}
             </div>
           </div>
+        )}
+
+        {/* Upload Section */}
+        <div className="space-y-3 flex flex-col items-center w-full">
+          <div className="flex flex-col items-start w-full">
+            <h4 className="text-sm sm:text-base text-gray-500">Upload New Image</h4>
+            <p className="text-sm sm:text-base text-gray-500">
+              Please upload a new image for your {type === "logo" ? "logo" : "profile"}.
+            </p>
+          </div>
+
+          {previewImage ? (
+            <div className="relative">
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="h-32 sm:h-48 aspect-square object-cover rounded-lg"
+              />
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-1"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <Button
+              onClick={handleUploadClick}
+              variant="outline"
+              size="lg"
+              className="h-32 sm:h-48 aspect-square border-dashed border-2 border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 py-10"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <Upload className="text-gray-400 w-10 h-10" />
+                <span className="text-sm text-slate-500">Click to upload image</span>
+              </div>
+            </Button>
+          )}
 
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={handleImageUpload}
+            onChange={handleFileSelect}
             className="hidden"
           />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
+          <Button
+            onClick={handleSave}
+            variant="gradient"
+            size="md"
+            className="flex-1"
+            disabled={!selectedFile}
+          >
+            Save
+          </Button>
         </div>
       </div>
     </BaseDialog>

@@ -20,6 +20,7 @@ import MypageActionButtons from "@/components/common/MypageActionButtons";
 import BaseDialog from "@/components/common/BaseDialog";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import InfoSection from "@/components/common/InfoSection";
+import { Button } from "@/components/ui/Button";
 
 function EmployerMypage() {
   const [isEditing, setIsEditing] = useState({
@@ -29,21 +30,13 @@ function EmployerMypage() {
     contact: false,
   });
 
-  const [businessData, setBusinessData] = useState({
-    phone: "+1 (555) 987-6543",
-    address: "123 Innovation Drive, San Francisco, CA 94105",
-    startTime: "09:00",
-    endTime: "17:00",
-  });
-
   const [detailImages, setDetailImages] = useState<string[]>([]);
   const [originalImages, setOriginalImages] = useState<string[]>([
     "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
   ]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [showLogoDialog, setShowLogoDialog] = useState(false);
-  const [logoImageUrl, setLogoImageUrl] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const businessLocation = {
@@ -54,10 +47,25 @@ function EmployerMypage() {
     address: "123 Innovation Drive, San Francisco, CA 94105",
     startTime: "09:00",
     endTime: "17:00",
-    logoImageUrl: logoImageUrl,
+    logoImageUrl: "",
     detailImages: detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages,
     joinDate: "March 2024",
   };
+
+  const [tempProfileData, setTempProfileData] = useState({
+    name: businessLocation.name,
+    description: businessLocation.description,
+  });
+
+  const [businessData, setBusinessData] = useState({
+    name: businessLocation.name,
+    description: businessLocation.description,
+    phone: businessLocation.phone,
+    address: businessLocation.address,
+    startTime: businessLocation.startTime,
+    endTime: businessLocation.endTime,
+    logoImageUrl: businessLocation.logoImageUrl || "",
+  });
 
   // 변경사항 감지
   React.useEffect(() => {
@@ -137,13 +145,6 @@ function EmployerMypage() {
       const currentImages = [...originalImages, ...detailImages];
       console.log("Saving images to server:", currentImages);
 
-      // 서버 요청 예시
-      // const response = await fetch('/api/employer/images', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ images: currentImages })
-      // });
-
       // 성공 시 원본 이미지 업데이트
       setOriginalImages(currentImages);
       setDetailImages([]); // 새로 추가된 이미지 배열 초기화
@@ -162,35 +163,39 @@ function EmployerMypage() {
     console.log("Image changes cancelled");
   };
 
+  const handleLogoSave = async (file: File) => {
+    try {
+      // 파일을 읽어서 이미지 URL로 변환
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        // 로고 이미지 상태 업데이트
+        setBusinessData((prev) => ({
+          ...prev,
+          logoImageUrl: imageUrl,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error updating logo:", error);
+    }
+  };
+
+  const handleImageUploadDialog = () => {
+    setShowImageUploadDialog(true);
+  };
+
   const handleProfileEdit = () => {
+    // 다이얼로그를 열 때 현재 데이터로 임시 상태 초기화
+    setTempProfileData({
+      name: businessData.name,
+      description: businessData.description,
+    });
     setShowProfileDialog(true);
-  };
-
-  const handleCloseProfileDialog = () => {
-    setShowProfileDialog(false);
-  };
-
-  const handleLogoEdit = () => {
-    setShowLogoDialog(true);
-  };
-
-  const handleCloseLogoDialog = () => {
-    setShowLogoDialog(false);
-  };
-
-  const handleLogoChange = (newLogoUrl: string) => {
-    // 로고 이미지 상태 업데이트
-    setLogoImageUrl(newLogoUrl);
-    console.log("Logo changed to:", newLogoUrl);
-    // 실제로는 서버에 업로드하고 URL을 받아와야 합니다
   };
 
   const handleEdit = (section: string) => {
     setIsEditing((prev) => ({ ...prev, [section]: true }));
-  };
-
-  const handleSave = (section: string) => {
-    setIsEditing((prev) => ({ ...prev, [section]: false }));
   };
 
   const handleCancel = (section: string) => {
@@ -199,6 +204,28 @@ function EmployerMypage() {
 
   const handleInputChange = (field: string, value: string) => {
     setBusinessData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCloseProfileDialog = () => {
+    setShowProfileDialog(false);
+  };
+
+  const handleOptionsSave = (section: string) => {
+    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  };
+
+  const handleProfileSave = () => {
+    setBusinessData((prev) => ({
+      ...prev,
+      name: tempProfileData.name,
+      description: tempProfileData.description,
+    }));
+    console.log("Saving basic information");
+    handleCloseProfileDialog();
+  };
+
+  const handleTempInputChange = (field: string, value: string) => {
+    setTempProfileData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -224,15 +251,13 @@ function EmployerMypage() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={
-                      businessLocation.logoImageUrl || "/images/img-default-business-profile.png"
-                    }
+                    src={businessData.logoImageUrl || "/images/img-default-business-profile.png"}
                     alt={businessLocation.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <button
-                  onClick={handleLogoEdit}
+                  onClick={handleImageUploadDialog}
                   className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200"
                 >
                   <Camera className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
@@ -241,11 +266,11 @@ function EmployerMypage() {
 
               <div className="flex-1">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
-                  {businessLocation.name}
+                  {businessData.name}
                 </h2>
 
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
-                  {businessLocation.description}
+                  {businessData.description}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
@@ -270,7 +295,7 @@ function EmployerMypage() {
           subtitle="Your business location"
           onEdit={() => handleEdit("address")}
           isEditing={isEditing.address}
-          onSave={() => handleSave("address")}
+          onSave={() => handleOptionsSave("address")}
           onCancel={() => handleCancel("address")}
         >
           {isEditing.address ? (
@@ -293,7 +318,7 @@ function EmployerMypage() {
           subtitle="When your business is open"
           onEdit={() => handleEdit("hours")}
           isEditing={isEditing.hours}
-          onSave={() => handleSave("hours")}
+          onSave={() => handleOptionsSave("hours")}
           onCancel={() => handleCancel("hours")}
         >
           {isEditing.hours ? (
@@ -332,7 +357,7 @@ function EmployerMypage() {
           subtitle="How customers can reach you"
           onEdit={() => handleEdit("contact")}
           isEditing={isEditing.contact}
-          onSave={() => handleSave("contact")}
+          onSave={() => handleOptionsSave("contact")}
           onCancel={() => handleCancel("contact")}
         >
           {isEditing.contact ? (
@@ -493,7 +518,8 @@ function EmployerMypage() {
               <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
               <input
                 type="text"
-                defaultValue={businessLocation.name}
+                value={tempProfileData.name}
+                onChange={(e) => handleTempInputChange("name", e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -501,7 +527,8 @@ function EmployerMypage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
               <textarea
-                defaultValue={businessLocation.description}
+                value={tempProfileData.description}
+                onChange={(e) => handleTempInputChange("description", e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -509,18 +536,19 @@ function EmployerMypage() {
           </div>
         </div>
 
-        <button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+        <Button onClick={handleProfileSave} variant="gradient" size="md" className="w-full">
           Save Changes
-        </button>
+        </Button>
       </BaseDialog>
 
       {/* Logo Image Dialog */}
       <ImageUploadDialog
-        open={showLogoDialog}
-        onClose={handleCloseLogoDialog}
-        currentImage={businessLocation.logoImageUrl}
-        onImageChange={handleLogoChange}
+        open={showImageUploadDialog}
+        onClose={() => setShowImageUploadDialog(false)}
+        onSave={handleLogoSave}
+        title="Change Business Logo"
         type="logo"
+        currentImages={businessData.logoImageUrl ? [businessData.logoImageUrl] : []}
       />
     </div>
   );
