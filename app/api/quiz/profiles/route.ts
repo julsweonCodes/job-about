@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import "next/server";
 import { getAllPersonalityProfiles, getPersonalityProfile } from "@/app/services/quiz-services";
+import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 
 /**
  * GET: 모든 성향 프로필 목록을 가져오는 API
@@ -14,35 +15,14 @@ export async function GET() {
 
     if (!profiles) {
       console.error("성향 프로필을 찾을 수 없음");
-      return NextResponse.json(
-        {
-          status: "error",
-          code: 404,
-          message: "Personality profiles not found.",
-          data: null,
-        },
-        { status: 404 }
-      );
+      return errorResponse("Personality profiles not found.", 404);
     }
 
     console.log(`성향 프로필 ${profiles.length}개 조회 성공`);
     
-    return NextResponse.json({
-      status: "success",
-      code: 200,
-      message: "Personality profiles fetched successfully.",
-      data: profiles,
-    });
+    return successResponse(profiles, 200, "Personality profiles fetched successfully.");
   } catch (error) {
     console.error("API Error GET /api/quiz/profiles:", error);
-    return NextResponse.json(
-      {
-        status: "error",
-        code: 500,
-        message: "An internal server error occurred.",
-        data: null,
-      },
-      { status: 500 }
-    );
+    return errorResponse("An internal server error occurred.", 500);
   }
 }
