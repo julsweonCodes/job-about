@@ -2,52 +2,27 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
-
+import { Skill } from "@/types/profile"
 const MAX_SELECTED = 3;
 
-const SKILLS = [
-  "Customer Service",
-  "Communication",
-  "Problem Solving",
-  "Teamwork",
-  "Leadership",
-  "Time Management",
-  "Organization",
-  "Adaptability",
-  "Creativity",
-  "Critical Thinking",
-  "Technical Skills",
-  "Sales",
-  "Marketing",
-  "Data Analysis",
-  "Project Management",
-  "Research",
-  "Writing",
-  "Presentation",
-  "Negotiation",
-  "Conflict Resolution",
-  "Decision Making",
-  "Strategic Planning",
-  "Quality Assurance",
-  "Training",
-  "Mentoring",
-];
 
 const RequiredSkillsDialog: React.FC<{
   open: boolean;
   onClose: () => void;
-  selectedSkills: string[];
-  onConfirm: (skills: string[]) => void;
-}> = ({ open, onClose, selectedSkills, onConfirm }) => {
-  const [localSelected, setLocalSelected] = useState<string[]>(selectedSkills);
+  selectedSkills: Skill[];
+  onConfirm: (skills: Skill[]) => void;
+  skills: Skill[];
+}> = ({ open, onClose, selectedSkills, onConfirm, skills }) => {
+  const [localSelected, setLocalSelected] = useState<Skill[]>(selectedSkills);
 
   useEffect(() => {
     setLocalSelected(selectedSkills);
   }, [selectedSkills, open]);
 
-  const toggleSkill = (skill: string) => {
-    if (localSelected.includes(skill)) {
-      setLocalSelected(localSelected.filter((s) => s !== skill));
+
+  const toggleSkill = (skill: Skill) => {
+    if (localSelected.find((s) => s.id === skill.id)) {
+      setLocalSelected(localSelected.filter((s) => s.id !== skill.id));
     } else if (localSelected.length < MAX_SELECTED) {
       setLocalSelected([...localSelected, skill]);
     }
@@ -64,19 +39,19 @@ const RequiredSkillsDialog: React.FC<{
         </p>
 
         <div className="flex flex-wrap gap-2 w-full py-6 max-h-[50vh] overflow-y-auto">
-          {SKILLS.map((skill) => {
-            const selected = localSelected.includes(skill);
+          {skills.map((skill) => {
+            const selected = localSelected.find((s) => s.id === skill.id);
             const disabled = !selected && localSelected.length >= MAX_SELECTED;
             return (
               <Chip
-                key={skill}
-                id={skill}
+                key={skill.id}
+                id={skill.id.toString()}
                 variant="outline"
-                selected={selected}
+                selected={!!selected}
                 onClick={() => toggleSkill(skill)}
                 disabled={disabled}
               >
-                {skill}
+                {skill.name}
               </Chip>
             );
           })}

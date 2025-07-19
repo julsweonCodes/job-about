@@ -67,3 +67,8 @@ export function profileDtoToCreateData(
         updated_at: new Date(),
     };
 };
+
+export interface Skill {
+    id: number;
+    name: string;
+}

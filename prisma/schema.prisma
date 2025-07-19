@@ -126,7 +126,7 @@ model job_posts {
   job_type                           JobType
   deadline                           String                        @db.VarChar(8)
   work_schedule                      String                        @db.VarChar(100)
-  location                           Location
+  wage                               String
   description                        String
   status                             JobStatus
   created_at                         DateTime                      @default(now()) @db.Timestamptz(6)

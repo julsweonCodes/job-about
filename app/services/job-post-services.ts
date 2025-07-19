@@ -14,10 +14,9 @@ import { JobPostPayload } from "@/types/employer";
 
   const createdPost = await prisma.job_posts.create({
     data: {
-      deadline: "20250810",
-      description: payload.jobDescription ?? "description none.",
+      deadline: payload.deadline,
+      description: payload.jobDescription ?? "no description.",
       job_type: "CHEF",
-      location: "BRAMPTON",
       status: "DRAFT",
       title: payload.jobTitle,
       wage: payload.wage,

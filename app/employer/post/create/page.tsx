@@ -1,6 +1,6 @@
 "use client";
-
-import React, { useState } from "react";
+import { createClient } from "@/utils/supabase/server"
+import React, { useEffect, useState } from "react";
 import "react-day-picker/dist/style.css";
 import {
   ArrowLeft,
@@ -24,14 +24,15 @@ import PreferredPersonalityDialog from "@/app/employer/components/RequiredPerson
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 import { useRouter } from "next/navigation";
-
+import { Skill } from "@/types/profile";
+import { capitalize } from "@/lib/utils";
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [personalityDialogOpen, setPersonalityDialogOpen] = useState(false);
   const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
   const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
-
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
@@ -44,6 +45,19 @@ function JobPostCreatePage() {
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
   });
+  const fetchSkills = async () => {
+    const res = await fetch("/api/utils");
+    const data = await res.json();
+
+    if (res.ok) {
+      setSkills(data.skills);
+    } else {
+      console.error("Failed to fetch:", data.error);
+    }
+  };
+  useEffect(() => {
+    fetchSkills();
+  }, []);
 
   const router = useRouter();
 
@@ -56,7 +70,7 @@ function JobPostCreatePage() {
 
   const handleInputChange = (
     field: string,
-    value: string | boolean | Date | string[] | undefined
+    value: string | boolean | Date | string[] | Skill[] | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -67,7 +81,7 @@ function JobPostCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // 1. AI로 공고 생성 & DB 저장 (예시: /api/employer/job-post 호출)
-    const res = await fetch("/api/employer/job-post", {
+    const res = await fetch("/api/employer/post/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
@@ -268,7 +282,14 @@ function JobPostCreatePage() {
                   required
                   placeholder="Select Required Skills"
                   className="cursor-pointer"
-                  value={formData.requiredSkills.join(", ")}
+                  value={formData.requiredSkills
+                    .map((skill) =>
+                      typeof skill === "string"
+                        ? capitalize(skill)
+                        : capitalize(skill.name)
+                    )
+                    .join(", ")
+                  }
                   onClick={() => setSkillsDialogOpen(true)}
                 />
                 <RequiredSkillsDialog
@@ -279,6 +300,7 @@ function JobPostCreatePage() {
                     handleInputChange("requiredSkills", skills);
                     setSkillsDialogOpen(false);
                   }}
+                  skills = {skills}
                 />
               </div>
 
