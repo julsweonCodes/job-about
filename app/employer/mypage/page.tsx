@@ -13,16 +13,34 @@ import {
   Plus,
   X,
   Star,
-  Save,
 } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
+import MypageActionButtons from "@/components/common/MypageActionButtons";
 
 function EmployerMypage() {
+  const [isEditing, setIsEditing] = useState({
+    businessInfo: false,
+    address: false,
+    hours: false,
+    contact: false,
+  });
+
+  const [businessData, setBusinessData] = useState({
+    businessName: "TechFlow Solutions",
+    description:
+      "We're a forward-thinking technology company focused on creating innovative solutions that make work more efficient and enjoyable. Our team values collaboration, creativity, and work-life balance.",
+    phone: "+1 (555) 987-6543",
+    address: "123 Innovation Drive, San Francisco, CA 94105",
+    startTime: "09:00",
+    endTime: "17:00",
+  });
+
   const [detailImages, setDetailImages] = useState<string[]>([]);
   const [originalImages, setOriginalImages] = useState<string[]>([
     "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
   ]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const businessLocation = {
@@ -100,7 +118,6 @@ function EmployerMypage() {
   const handleRemoveImage = (index: number) => {
     const currentImages =
       detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages;
-    const newImages = currentImages.filter((_, i) => i !== index);
 
     // 원본 이미지에서 제거된 것인지 새로 추가된 이미지에서 제거된 것인지 확인
     if (index < originalImages.length) {
@@ -137,6 +154,37 @@ function EmployerMypage() {
     }
   };
 
+  const handleCancelImages = () => {
+    // 변경사항을 취소하고 원본 상태로 되돌리기
+    setDetailImages([]); // 새로 추가된 이미지 배열 초기화
+    setHasChanges(false);
+    console.log("Image changes cancelled");
+  };
+
+  const handleProfileEdit = () => {
+    setShowProfileDialog(true);
+  };
+
+  const handleCloseProfileDialog = () => {
+    setShowProfileDialog(false);
+  };
+
+  const handleEdit = (section: string) => {
+    setIsEditing((prev) => ({ ...prev, [section]: true }));
+  };
+
+  const handleSave = (section: string) => {
+    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  };
+
+  const handleCancel = (section: string) => {
+    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setBusinessData((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
@@ -144,8 +192,13 @@ function EmployerMypage() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
         <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
-          <span>Business Profile</span>
-          <Edit3 size={20} className="text-slate-600" />
+          <span>Business Information</span>
+          <button
+            onClick={handleProfileEdit}
+            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors focus:outline-none"
+          >
+            <Edit3 size={20} className="text-slate-600" />
+          </button>
         </h3>
 
         {/* Business Profile */}
@@ -162,8 +215,11 @@ function EmployerMypage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <button className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200">
-                  <Camera size={12} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
+                <button
+                  onClick={handleProfileEdit}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200"
+                >
+                  <Camera size={20} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
                 </button>
               </div>
 
@@ -172,37 +228,191 @@ function EmployerMypage() {
                   {businessLocation.name}
                 </h2>
 
-                <p className="text-sm sm:text-base text-slate-600  mb-4 px-2 sm:px-0">
+                <p className="text-sm sm:text-base text-slate-600 px-2 sm:px-0">
                   {businessLocation.description}
                 </p>
-
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
-                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <Phone size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                      <span>{businessLocation.phone}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <MapPin size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                      <span>{businessLocation.address}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                      <span>
-                        {businessLocation.startTime} - {businessLocation.endTime}
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 2️⃣ Address Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-green-100 rounded-xl flex items-center justify-center">
+                <MapPin size={18} className="text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Business Address</h3>
+                <p className="text-sm text-slate-500">Your business location</p>
+              </div>
+            </div>
+            {!isEditing.address && (
+              <button
+                onClick={() => handleEdit("address")}
+                className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
+              >
+                <Edit3 size={16} className="text-slate-600" />
+              </button>
+            )}
+          </div>
+
+          {isEditing.address ? (
+            <div className="space-y-4">
+              <textarea
+                value={businessData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                rows={2}
+                className="w-full text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
+                placeholder="Enter your business address..."
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleSave("address")}
+                  className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => handleCancel("address")}
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-slate-700 leading-relaxed">{businessData.address}</p>
+          )}
+        </div>
+
+        {/* 3️⃣ Operating Hours Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                <Clock size={18} className="text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Operating Hours</h3>
+                <p className="text-sm text-slate-500">When your business is open</p>
+              </div>
+            </div>
+            {!isEditing.hours && (
+              <button
+                onClick={() => handleEdit("hours")}
+                className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
+              >
+                <Edit3 size={16} className="text-slate-600" />
+              </button>
+            )}
+          </div>
+
+          {isEditing.hours ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    value={businessData.startTime}
+                    onChange={(e) => handleInputChange("startTime", e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">End Time</label>
+                  <input
+                    type="time"
+                    value={businessData.endTime}
+                    onChange={(e) => handleInputChange("endTime", e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleSave("hours")}
+                  className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => handleCancel("hours")}
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-slate-700">
+              <span className="font-medium">Monday - Friday:</span> {businessData.startTime} -{" "}
+              {businessData.endTime}
+            </p>
+          )}
+        </div>
+
+        {/* 4️⃣ Contact Info Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
+                <Phone size={18} className="text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Contact Information</h3>
+                <p className="text-sm text-slate-500">How customers can reach you</p>
+              </div>
+            </div>
+            {!isEditing.contact && (
+              <button
+                onClick={() => handleEdit("contact")}
+                className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
+              >
+                <Edit3 size={16} className="text-slate-600" />
+              </button>
+            )}
+          </div>
+
+          {isEditing.contact ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={businessData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleSave("contact")}
+                  className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => handleCancel("contact")}
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Phone size={16} className="text-slate-400" />
+              <span className="text-slate-700 font-medium">{businessData.phone}</span>
+            </div>
+          )}
         </div>
 
         {/* Workplace Photos */}
@@ -283,15 +493,12 @@ function EmployerMypage() {
 
               {/* Save Button */}
               {hasChanges && (
-                <button
-                  onClick={handleSaveImages}
-                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30 touch-manipulation active:scale-[0.98]"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Save size={16} className="sm:w-5 sm:h-5" />
-                    <span className="text-sm sm:text-base">Save Changes</span>
-                  </div>
-                </button>
+                <MypageActionButtons
+                  onCancel={handleCancelImages}
+                  onSave={handleSaveImages}
+                  cancelText="Cancel"
+                  saveText="Save Changes"
+                />
               )}
             </div>
           </div>
@@ -332,6 +539,76 @@ function EmployerMypage() {
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Dialog */}
+      {showProfileDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900">Edit Profile</h3>
+              <button
+                onClick={handleCloseProfileDialog}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto rounded-full overflow-hidden ring-4 ring-slate-100 mb-4">
+                  <img
+                    src={
+                      businessLocation.logoImageUrl || "/images/img-default-business-profile.png"
+                    }
+                    alt={businessLocation.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+                  Change Photo
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Business Name
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={businessLocation.name}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    defaultValue={businessLocation.description}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCloseProfileDialog}
+                  className="flex-1 py-2 px-4 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
