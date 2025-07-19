@@ -3,7 +3,7 @@ import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/ge
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export async function geminiTest() {
+export async function geminiTest(jobDesc: string) {
   // Use the appropriate model
   const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
@@ -19,12 +19,27 @@ export async function geminiTest() {
     ],
   });
 
-  const prompt = "List a few popular cookie recipes, and include the amounts of ingredients.";
+  const prompt = `
+  Based on the following job description, write a **concise English summary** with the following structure. Make sure you don't leave out any information:
+  
+  [Main Responsibilities]
+  - {responsibility 1}
+  - {responsibility 2}
+  ...
+  
+  [Preferred Qualifications and Benefits]
+  - {qualification or benefit 1}
+  - {qualification or benefit 2}
+  ...
+  
+  Job Description (in Korean):
+  "${jobDesc}"`
+
 
   const result = await model.generateContent(prompt);
 
   const response = await result.response;
   const text = await response.text();
   console.log("Response:\n", text);
-  return response;
+  return text;
 }

@@ -36,6 +36,7 @@ export interface JobPostPayload {
   requiredPersonality: string;
   wage: string;
   location: string; // 이거 수정?
-  jobDescription?: string;
+  jobDescription: string;
   language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
+  triggerGemini?: boolean;
 }
