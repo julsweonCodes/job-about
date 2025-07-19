@@ -15,18 +15,18 @@ export async function GET() {
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
     
-    // 사용자 세션 확인
-    const { data, error: sessionError } = await supabase.auth.getSession();
+    // 인증된 사용자 정보 가져오기 (보안 권장사항에 따라 getUser 사용)
+    const { data, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("세션 조회 오류:", sessionError);
+    if (userError) {
+      console.error("사용자 인증 오류:", userError);
       return NextResponse.json(
-        { status: "error", code: 500, message: "Failed to retrieve session." },
+        { status: "error", code: 500, message: "Failed to authenticate user." },
         { status: 500 }
       );
     }
 
-    if (!data.session) {
+    if (!data.user) {
       console.error("인증되지 않은 요청");
       return NextResponse.json(
         { status: "error", code: 401, message: "Unauthorized." },
@@ -34,7 +34,7 @@ export async function GET() {
       );
     }
 
-    const authUserId = data.session.user.id;
+    const authUserId = data.user.id;
     console.log(`사용자 ${authUserId}의 성향 프로필 조회 시작`);
     
     const profile = await getUserPersonalityProfile(authUserId);

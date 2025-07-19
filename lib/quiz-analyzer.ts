@@ -33,21 +33,21 @@ export function determineProfileId(responses: QuizResponse[]): number {
     // 응답을 질문별로 매핑
     const responseMap: Record<string, string> = {};
     responses.forEach(response => {
-      const questionNum = response.question_code.substring(1, 2); // Q1 -> 1
+      const questionNum = response.question_code.substring(1); // A01 -> 01, A02 -> 02
       responseMap[questionNum] = response.choice_label;
     });
     
     console.log("질문별 응답 매핑:", responseMap);
     
-    // 공감형 코디네이터 판정: Q4(대인)=A && Q6(고객)=A
-    if (responseMap['4'] === 'A' && responseMap['6'] === 'A') {
-      console.log("공감형 코디네이터 프로필로 판정 (Q4=A, Q6=A)");
+    // 공감형 코디네이터 판정: A04(대인)=A && A06(고객)=A
+    if (responseMap['04'] === 'A' && responseMap['06'] === 'A') {
+      console.log("공감형 코디네이터 프로필로 판정 (A04=A, A06=A)");
       return 3; // 공감형 코디네이터
     }
     
-    // 독립적인 해결사 판정: Q2(해결)=A && Q4(대인)=B
-    if (responseMap['2'] === 'A' && responseMap['4'] === 'B') {
-      console.log("독립적인 해결사 프로필로 판정 (Q2=A, Q4=B)");
+    // 독립적인 해결사 판정: A02(해결)=A && A04(대인)=B
+    if (responseMap['02'] === 'A' && responseMap['04'] === 'B') {
+      console.log("독립적인 해결사 프로필로 판정 (A02=A, A04=B)");
       return 4; // 독립적인 해결사
     }
     
@@ -88,17 +88,17 @@ export function validateQuizResponses(responses: QuizResponse[]): boolean {
     }
   }
   
-  // 필수 질문 체크 (Q1~Q6이 모두 있어야 함)
+  // 필수 질문 체크 (A01~A06이 모두 있어야 함)
   const questionNumbers = new Set();
   responses.forEach(response => {
-    const questionNum = response.question_code.substring(1, 2); // Q1 -> 1
+    const questionNum = response.question_code.substring(1); // A01 -> 01, A02 -> 02
     questionNumbers.add(questionNum);
   });
   
-  const requiredQuestions = ['1', '2', '3', '4', '5', '6'];
+  const requiredQuestions = ['01', '02', '03', '04', '05', '06'];
   for (const required of requiredQuestions) {
     if (!questionNumbers.has(required)) {
-      console.error(`필수 질문 누락: Q${required}`);
+      console.error(`필수 질문 누락: A${required}`);
       return false;
     }
   }
@@ -159,7 +159,7 @@ export function analyzeQuizDetailed(responses: QuizResponse[]): QuizAnalysisResu
   // 응답을 질문별로 매핑
   const responseMap: Record<string, string> = {};
   responses.forEach(response => {
-    const questionNum = response.question_code.substring(1, 2);
+    const questionNum = response.question_code.substring(1); // A01 -> 01, A02 -> 02
     responseMap[questionNum] = response.choice_label;
   });
   
@@ -168,9 +168,9 @@ export function analyzeQuizDetailed(responses: QuizResponse[]): QuizAnalysisResu
   let specialCombination: 'empathetic_coordinator' | 'independent_solver' | undefined;
   
   if (aCount === 3 && bCount === 3) {
-    if (responseMap['4'] === 'A' && responseMap['6'] === 'A') {
+    if (responseMap['04'] === 'A' && responseMap['06'] === 'A') {
       specialCombination = 'empathetic_coordinator';
-    } else if (responseMap['2'] === 'A' && responseMap['4'] === 'B') {
+    } else if (responseMap['02'] === 'A' && responseMap['04'] === 'B') {
       specialCombination = 'independent_solver';
     }
   }

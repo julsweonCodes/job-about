@@ -69,19 +69,19 @@ export async function POST(req: NextRequest) {
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
 
-    // 만든 클라이언트로 로그인한 사용자 세션 가져오기
-    const { data, error: sessionError } = await supabase.auth.getSession();
+    // 인증된 사용자 정보 가져오기 (보안 권장사항에 따라 getUser 사용)
+    const { data, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("세션 조회 오류:", sessionError);
+    if (userError) {
+      console.error("사용자 인증 오류:", userError);
       return NextResponse.json(
-        { status: "error", code: 500, message: "Failed to retrieve session." },
+        { status: "error", code: 500, message: "Failed to authenticate user." },
         { status: 500 }
       );
     }
 
-    // 세션이 없는 경우(로그인 안 함) 401 Unauthorized
-    if (!data.session) {
+    // 인증되지 않은 경우 401 Unauthorized
+    if (!data.user) {
       console.error("인증되지 않은 요청");
       return NextResponse.json(
         { status: "error", code: 401, message: "Unauthorized." },
@@ -89,8 +89,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const session = data.session;
-    const authUserId = session.user.id; // Supabase Auth의 UUID(string)
+    const authUserId = data.user.id; // Supabase Auth의 UUID(string)
 
     console.log(`사용자 ${authUserId}의 퀴즈 제출 처리 시작`);
 
@@ -110,8 +109,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 프론트엔드 형식 { questionId, answer }을 백엔드 형식 { question_code, choice_label }로 변환
+    const convertedResponses = responses.map((resp: any) => {
+      // answer 1은 A, answer 2는 B로 변환
+      const choice_label = resp.answer === 1 ? 'A' : 'B';
+      
+      // questionId로부터 question_code 생성 (101 -> A01, 102 -> A02, ...)
+      const questionNum = (resp.questionId - 100).toString().padStart(2, '0');
+      const question_code = `A${questionNum}`;
+      
+      return {
+        question_code,
+        choice_label
+      };
+    });
+
+    console.log("변환된 응답 데이터:", convertedResponses);
+
     // 응답 데이터 유효성 검사
-    if (!validateQuizResponses(responses)) {
+    if (!validateQuizResponses(convertedResponses)) {
       console.error("퀴즈 응답 유효성 검사 실패");
       return NextResponse.json(
         {
@@ -124,7 +140,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 타입 결정
-    const profileId = determineProfileId(responses);
+    const profileId = determineProfileId(convertedResponses);
     console.log(`결정된 프로필 ID: ${profileId}`);
 
     // 사용자 성향 프로필 업데이트
