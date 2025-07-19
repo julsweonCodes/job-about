@@ -10,7 +10,7 @@ datasource db {
 
 model users {
   id                     BigInt                @id @default(autoincrement())
-  user_id                String                @db.VarChar(255)
+  user_id                String                @unique @db.VarChar(255)
   name                   String                @db.VarChar(100)
   phone_number           String?               @db.VarChar(20)
   email                  String                @unique @db.VarChar(255)
@@ -124,9 +124,8 @@ model job_posts {
   user_id                            BigInt
   title                              String                        @db.VarChar(100)
   job_type                           JobType
-  deadline                           DateTime?                     @db.Timestamptz(6)
+  deadline                           String                        @db.VarChar(8)
   work_schedule                      String                        @db.VarChar(100)
-  wage                               Float
   location                           Location
   description                        String
   status                             JobStatus

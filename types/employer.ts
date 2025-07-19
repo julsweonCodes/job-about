@@ -20,3 +20,22 @@ export interface EmployerProfilePayload {
 
   // created_at, updated_at은 백엔드에서 추가
 }
+
+export interface EmployerDashboardCnt {
+  active_job_post_cnt: number;
+  status_update_cnt: number;
+  applicants_cnt: number;
+}
+
+export interface JobPostPayload {
+  jobTitle: string;
+  jobType: string;
+  deadline: string; // extract yyyymmdd from calendar
+  workSchedule: string;
+  requiredSkills: string;
+  requiredPersonality: string;
+  wage: string;
+  location: string; // 이거 수정?
+  jobDescription?: string;
+  language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
+}

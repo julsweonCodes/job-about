@@ -367,7 +367,7 @@ export type Database = {
         Row: {
           business_loc_id: number
           created_at: string
-          deadline: string | null
+          deadline: string
           deleted_at: string | null
           description: string
           id: number
@@ -386,7 +386,7 @@ export type Database = {
         Insert: {
           business_loc_id: number
           created_at?: string
-          deadline?: string | null
+          deadline: string
           deleted_at?: string | null
           description: string
           id?: number
@@ -405,7 +405,7 @@ export type Database = {
         Update: {
           business_loc_id?: number
           created_at?: string
-          deadline?: string | null
+          deadline: string
           deleted_at?: string | null
           description?: string
           id?: number

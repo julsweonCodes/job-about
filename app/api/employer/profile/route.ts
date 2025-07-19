@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  deleteEmployerImages,
   saveEmployerProfile,
   updateEmployerProfile,
   uploadEmployerImages,
 } from "@/app/services/employer-services";
+import {getUserIdFromSession} from "@/utils/auth";
 
-export async function PUT(
+
+
+export async function POST(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
@@ -22,7 +24,8 @@ export async function PUT(
 
   try {
     const profile = JSON.parse(profileRaw);
-    const userId = 1;
+    const userId = await getUserIdFromSession();
+
     let imageUrls: string[] = [];
     let logoImgUrl : string[] = [];
 
@@ -36,6 +39,7 @@ export async function PUT(
 
     const payload = {
       ...profile,
+      user_id: userId,
       logo_url: logoImgUrl[0],
       ...(imageUrls.length > 0 && {
         img_url1: imageUrls[0] || null,
