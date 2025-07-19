@@ -1,121 +1,171 @@
 "use client";
-import React from "react";
-import { Calendar, Edit3, ChevronRight, Target } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Camera,
+  Edit3,
+  Save,
+  Phone,
+  MapPin,
+  Clock,
+  Plus,
+  X,
+  Check,
+  Star,
+  Zap,
+  Heart,
+  Image as ImageIcon,
+} from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 
 function EmployerMypage() {
-  const user = {
-    name: "Sarah Johnson",
-    title: "Senior Product Designer",
-    tagline: "Crafting meaningful digital experiences that connect people and solve real problems",
-    avatar: "/images/img-default-profile.png",
-    joinDate: "March 2024",
-    location: "San Francisco, CA",
-    email: "sarah.johnson@email.com",
-    phone: "+1 (555) 123-4567",
-    profileCompletion: 85,
-  };
-
-  const workStyle = {
-    type: "Empathetic Coordinator",
+  const businessLocation = {
+    name: "TechFlow Solutions",
+    address: "123 Innovation Drive, San Francisco, CA 94105",
+    phone: "+1 (555) 987-6543",
+    startTime: "09:00",
+    endTime: "17:00",
     description:
-      "You thrive in collaborative, people-oriented roles where communication and teamwork drive success.",
-    emoji: "🤝",
-    traits: ["#Empathy", "#Customer-Focused", "#Positive Attitude", "#Team Player"],
-    completedDate: "2 weeks ago",
+      "We're a forward-thinking technology company focused on creating innovative solutions that make work more efficient and enjoyable. Our team values collaboration, creativity, and work-life balance.",
+    logoImageUrl: undefined,
+    detailImages: [
+      "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
+      "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
+      "https://images.pexels.com/photos/3184317/pexels-photo-3184317.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
+    ],
   };
 
-  const quickActions = [
+  const [isEditing, setIsEditing] = useState({
+    businessInfo: false,
+    description: false,
+    hours: false,
+  });
+
+  const [businessData, setBusinessData] = useState({
+    businessName: "TechFlow Solutions",
+    phone: "+1 (555) 987-6543",
+    address: "123 Innovation Drive, San Francisco, CA 94105",
+    startTime: "09:00",
+    endTime: "17:00",
+    description:
+      "We're a forward-thinking technology company focused on creating innovative solutions that make work more efficient and enjoyable. Our team values collaboration, creativity, and work-life balance.",
+  });
+
+  const [selectedTags, setSelectedTags] = useState(["family-friendly", "quick-hiring"]);
+
+  const employer = {
+    businessName: businessData.businessName,
+    logoImageUrl: undefined,
+    detailImages: [
+      "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
+      "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
+      "https://images.pexels.com/photos/3184317/pexels-photo-3184317.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
+    ],
+  };
+
+  const tagOptions = [
     {
-      id: "preferences",
-      icon: Target,
-      title: "Job Preferences",
-      description: "Define your ideal role and workplace",
-      color: "from-indigo-500 to-indigo-600",
-      bgColor: "bg-indigo-50",
-      iconColor: "text-indigo-600",
+      id: "family-friendly",
+      label: "Family-friendly",
+      icon: Heart,
+      color: "from-pink-500 to-rose-500",
+    },
+    {
+      id: "no-experience",
+      label: "No experience required",
+      icon: Star,
+      color: "from-amber-500 to-orange-500",
+    },
+    {
+      id: "quick-hiring",
+      label: "Quick hiring",
+      icon: Zap,
+      color: "from-emerald-500 to-green-500",
     },
   ];
+
+  const handleEdit = (section: string) => {
+    setIsEditing((prev) => ({ ...prev, [section]: true }));
+  };
+
+  const handleSave = (section: string) => {
+    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setBusinessData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
-      <BackHeader title="My Page" />
+      <BackHeader title="My Business Profile" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
         <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
-          <span>My Profile</span>
+          <span>Business Profile</span>
           <Edit3 size={20} className="text-slate-600" />
         </h3>
 
-        {/* 1. Profile Summary Card */}
+        {/* Business Profile */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
           <div className="p-5 sm:p-8">
             <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left gap-4 sm:gap-6">
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
-                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                  <img
+                    src={employer.logoImageUrl || "/images/img-default-business-profile.png"}
+                    alt={businessLocation.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <button className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200">
+                  <Camera size={12} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
+                </button>
               </div>
 
               <div className="flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">{user.name}</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
+                  {businessLocation.name}
+                </h2>
 
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
-                  {user.tagline}
+                <p className="text-sm sm:text-base text-slate-600  mb-4 px-2 sm:px-0">
+                  {businessLocation.description}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                    <span>Joined {user.joinDate}</span>
+                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <Phone size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
+                      <span>{businessLocation.phone}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
+                      <span>{businessLocation.address}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
+                      <span>
+                        {businessLocation.startTime} - {businessLocation.endTime}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* 2. Quick Actions */}
-        <div className="space-y-4 sm:space-y-5">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Quick Actions</h3>
-          <div className="space-y-3 sm:space-y-4">
-            {quickActions.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  className="w-full bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-4 sm:p-6 hover:shadow-xl hover:shadow-slate-200/60 hover:bg-white/90 transition-all duration-300 group touch-manipulation active:scale-[0.98]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
-                      <div
-                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${item.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 flex-shrink-0`}
-                      >
-                        <Icon size={20} className={`sm:w-6 sm:h-6 ${item.iconColor}`} />
-                      </div>
-                      <div className="text-left min-w-0 flex-1">
-                        <h4 className="text-base sm:text-lg font-semibold text-slate-900 truncate mb-1">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs sm:text-sm text-slate-500 line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight
-                      size={18}
-                      className="sm:w-5 sm:h-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 ml-2"
-                    />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bottom Spacing for Mobile */}
-        <div className="h-4 sm:h-0"></div>
       </div>
     </div>
   );
