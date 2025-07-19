@@ -1,13 +1,9 @@
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
-
-// server.ts에서 만든 서버용 클라이언트 생성 함수 import
-// API 라우트는 서버 환경에서 실행, 반드시 서버용 클라이언트
-import { createClient } from "@/utils/supabase/server";
 
 import { getQuizQuestions, updateUserPersonality } from "@/app/services/quiz-services";
 import { determineProfileId, validateQuizResponses } from "@/lib/quiz-analyzer";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
+import { getUserIdFromSession } from "@/utils/auth";
 
 /**
  * GET: 퀴즈 질문 목록을 가져오는 API
@@ -45,27 +41,16 @@ export async function POST(req: NextRequest) {
   try {
     console.log("퀴즈 제출 API 호출");
 
-    // 쿠키를 이용해 서버용 Supabase 클라이언트 생성
-    const cookieStore = cookies();
-    const supabase = await createClient(cookieStore);
-
-    // 인증된 사용자 정보 가져오기 (보안 권장사항에 따라 getUser 사용)
-    const { data, error: userError } = await supabase.auth.getUser();
-
-    if (userError) {
-      console.error("사용자 인증 오류:", userError);
-      return errorResponse("Failed to authenticate user.", 500);
-    }
-
-    // 인증되지 않은 경우 401 Unauthorized
-    if (!data.user) {
-      console.error("인증되지 않은 요청");
+    // 인증된 사용자 ID 가져오기
+    let userId: number;
+    try {
+      userId = await getUserIdFromSession();
+    } catch (error) {
+      console.error("사용자 인증 실패:", error);
       return errorResponse("Unauthorized.", 401);
     }
 
-    const authUserId = data.user.id; // Supabase Auth의 UUID(string)
-
-    console.log(`사용자 ${authUserId}의 퀴즈 제출 처리 시작`);
+    console.log(`사용자 ${userId}의 퀴즈 제출 처리 시작`);
 
     const body = await req.json();
     const { responses } = body;
@@ -104,7 +89,7 @@ export async function POST(req: NextRequest) {
     console.log(`결정된 프로필 ID: ${profileId}`);
 
     // 사용자 성향 프로필 업데이트
-    const updatedUser = await updateUserPersonality(authUserId, profileId);
+    const updatedUser = await updateUserPersonality(userId.toString(), profileId);
 
     if (!updatedUser) {
       console.error("사용자 성향 업데이트 실패");

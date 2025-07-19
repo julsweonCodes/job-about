@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { NextResponse } from "next/server";
 import {prisma} from "@/app/lib/prisma/prisma-singleton";
 import { cookies } from "next/headers";
 
@@ -20,7 +19,7 @@ export async function getUserIdFromSession(): Promise<number> {
 
   const uid = data.session.user?.id;
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.users.findFirst({
     where: { user_id: uid },
     select: { id: true },
   });
