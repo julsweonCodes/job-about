@@ -380,7 +380,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: number
-          wage: number
+          wage: string
           work_schedule: string
         }
         Insert: {
