@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import BaseDialog from "./BaseDialog";
+import { Button } from "../ui/Button";
 
 interface ImageUploadDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
   };
 
   const handleSave = () => {
+    // TODO: 이미지 업로드 로직 추가
     if (previewImage) {
       onImageChange(previewImage);
       setPreviewImage(null);
@@ -97,7 +99,7 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
       <div className="space-y-6">
         {/* Image Preview */}
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-slate-100 mb-4">
+          <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-slate-100 mt-4 mb-4">
             <img
               src={displayImage}
               alt={`${type} preview`}
@@ -105,14 +107,26 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
             />
           </div>
 
-          {/* Upload Button */}
-          <button
-            onClick={handleFileSelect}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mx-auto"
-          >
-            <Upload size={16} />
-            <span>{getButtonText()}</span>
-          </button>
+          {/* Instructions */}
+          <div className="text-center text-sm sm:text-base text-slate-600 mb-4">
+            <p>{guidelines.line1}</p>
+            <p>{guidelines.line2}</p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {/* Upload Button */}
+            <Button onClick={handleFileSelect} variant="secondary" size="md">
+              <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+              <span className="text-sm sm:text-base">{getButtonText()}</span>
+            </Button>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button onClick={handleSave} disabled={!previewImage} size="md">
+                <span className="text-sm sm:text-base">Save Changes</span>
+              </Button>
+            </div>
+          </div>
 
           <input
             ref={fileInputRef}
@@ -122,29 +136,6 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
             className="hidden"
           />
         </div>
-
-        {/* Instructions */}
-        <div className="text-center text-sm text-slate-600">
-          <p>{guidelines.line1}</p>
-          <p>{guidelines.line2}</p>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-4">
-        <button
-          onClick={handleCancel}
-          className="flex-1 py-3 px-4 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={!previewImage}
-          className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200"
-        >
-          Save Changes
-        </button>
       </div>
     </BaseDialog>
   );
