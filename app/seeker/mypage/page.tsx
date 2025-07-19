@@ -1,25 +1,29 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Briefcase,
   Heart,
   Calendar,
   Edit3,
-  Camera,
   ChevronRight,
   Target,
   Lightbulb,
   RefreshCw,
+  Camera,
 } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
+import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 
 function App() {
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
+
   const user = {
     name: "Sarah Johnson",
     title: "Senior Product Designer",
     description:
       "Crafting meaningful digital experiences that connect people and solve real problems",
-    profileImageUrl: undefined,
+    profileImageUrl: profileImageUrl,
     joinDate: "March 2024",
     location: "San Francisco, CA",
     email: "sarah.johnson@email.com",
@@ -59,6 +63,21 @@ function App() {
     },
   ];
 
+  const handleProfileEdit = () => {
+    setShowProfileDialog(true);
+  };
+
+  const handleCloseProfileDialog = () => {
+    setShowProfileDialog(false);
+  };
+
+  const handleProfileImageChange = (newImageUrl: string) => {
+    // 프로필 이미지 상태 업데이트
+    setProfileImageUrl(newImageUrl);
+    console.log("Profile image changed to:", newImageUrl);
+    // 실제로는 서버에 업로드하고 URL을 받아와야 합니다
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
@@ -82,8 +101,11 @@ function App() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <button className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200">
-                  <Camera size={12} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
+                <button
+                  onClick={handleProfileEdit}
+                  className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200"
+                >
+                  <Camera className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
                 </button>
               </div>
 
@@ -232,6 +254,15 @@ function App() {
         {/* Bottom Spacing for Mobile */}
         <div className="h-4 sm:h-0"></div>
       </div>
+
+      {/* Profile Image Dialog */}
+      <ImageUploadDialog
+        open={showProfileDialog}
+        onClose={handleCloseProfileDialog}
+        currentImage={user.profileImageUrl}
+        onImageChange={handleProfileImageChange}
+        type="profile"
+      />
     </div>
   );
 }
