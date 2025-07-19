@@ -149,7 +149,7 @@ function SeekerPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <ProfileHeader />
+      <ProfileHeader onClickProfile={() => router.push("/seeker/mypage")} />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
