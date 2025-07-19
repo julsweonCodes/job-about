@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Check, Target, Zap, Heart, Award } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import ProgressHeader from "@/components/common/ProgressHeader";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ export interface QuestionChoice {
 }
 
 export interface Question {
+  id: number;
   question_code: string;
   dimension: string;
   is_core: boolean;
@@ -30,224 +31,7 @@ export interface Question {
   choices: QuestionChoice[];
 }
 
-const questions: Question[] = [
-  {
-    question_code: "A01",
-    dimension: "Work Pace",
-    is_core: true,
-    status: "active",
-    content: {
-      ko: "당신은 다운타운의 인기 카페 '팀홀튼(Tim Hortons)'에서 일하고 있습니다. 한가하던 매장에 갑자기 점심시간 직장인들이 몰려들기 시작합니다. 주문 줄은 문 밖까지 이어지고, 모바일 주문 알림이 쉴 새 없이 울리며, 동료는 우유 스팀을 만들며 도와달라고 외치고 있습니다.",
-      en: "You're working at a popular downtown café like Tim Hortons. It was quiet, but suddenly the lunch crowd rushes in. The line is out the door, online order alerts are pinging nonstop, and your coworker is calling for help from the milk-steaming station.",
-    },
-    choices: [
-      {
-        label: "A",
-        content: {
-          ko: "아드레날린이 솟는 기분이야! 바쁘게 움직이며 상황을 해결하는 데서 활력을 얻어.",
-          en: "I feel a rush of adrenaline! I get energized by moving quickly and resolving the situation.",
-        },
-        title: {
-          ko: "빠른 대응",
-          en: "Fast-Paced",
-        },
-        imogi: "⚡",
-      },
-      {
-        label: "B",
-        content: {
-          ko: "일단 심호흡을 하고, 가장 중요한 일부터 차근차근 순서대로 처리해 나갈 거야.",
-          en: "I'll take a deep breath first, and then tackle the most important tasks systematically, one by one.",
-        },
-        title: {
-          ko: "신중한 처리",
-          en: "Calm Approach",
-        },
-        imogi: "🧘",
-      },
-    ],
-  },
-  {
-    question_code: "A02",
-    dimension: "Problem-Solving",
-    is_core: true,
-    status: "active",
-    content: {
-      ko: "당신은 '캐네디언 타이어(Canadian Tire)'와 같은 리테일 스토어에서 마감 조로 일하고 있습니다. 갑자기 신용카드 단말기가 멈추며 결제가 되지 않습니다. 고객은 바로 앞에 서서 기다리고 있고, 매니저는 사무실에서 중요한 통화 중입니다.",
-      en: "You're on the closing shift at a retail store like Canadian Tire. The credit card machine suddenly freezes and won't process payments. A customer is waiting, and your manager is on an important call in the back office.",
-    },
-    choices: [
-      {
-        label: "A",
-        content: {
-          ko: "우선 내 판단에 따라 단말기를 재부팅하는 등 해결을 시도해 보겠어. 이게 더 효율적이야.",
-          en: "I'll first try to solve it based on my own judgment, like rebooting the terminal. It's more efficient.",
-        },
-        title: {
-          ko: "즉각 해결",
-          en: "Quick Fix",
-        },
-        imogi: "💨",
-      },
-      {
-        label: "B",
-        content: {
-          ko: "매뉴얼을 찾아보거나, 잠시 고객에게 양해를 구하고 매니저의 통화가 끝날 때까지 기다릴 거야.",
-          en: "I'll look for the manual or ask the customer for a moment of patience and wait until my manager finishes the call.",
-        },
-        title: {
-          ko: "절차 중시",
-          en: "Quick Fix",
-        },
-        imogi: "⚡",
-      },
-    ],
-  },
-  {
-    question_code: "A03",
-    dimension: "Work Focus",
-    is_core: true,
-    status: "active",
-    content: {
-      ko: "당신은 'H&M'이나 'Zara' 같은 의류 매장에서 일하고 있습니다. 오늘 당신의 할 일 목록에는 1) 창고에서 새 옷 상자 풀기, 2) 손님들이 헝클어 놓은 판매대 정리하기, 3) 도움이 필요한 고객 응대하기, 세 가지가 있습니다. 당신은 어떻게 하루 업무를 처리하겠습니까?",
-      en: "You're working at a clothing store like H&M or Zara. Your to-do list for today includes: 1) Unpacking a new box of inventory in the backroom, 2) Tidying up the messy sales floor, and 3) Assisting any customers who need help. How do you approach your day?",
-    },
-    choices: [
-      {
-        label: "A",
-        content: {
-          ko: "고객 응대를 하면서 틈틈이 매대를 정리하고, 손님이 없을 때 창고 일을 하는 식으로 동시에 진행할 거야.",
-          en: "I'll handle all tasks simultaneously: assisting customers, tidying the sales floor in between, and working in the backroom when it's quiet.",
-        },
-        title: {
-          ko: "멀티태스킹",
-          en: "Multitasker",
-        },
-        imogi: "🔄",
-      },
-      {
-        label: "B",
-        content: {
-          ko: "일단 창고 정리를 완벽하게 끝내서 공간을 확보한 뒤, 매장으로 나와 다른 업무를 시작할 거야.",
-          en: "I'll finish the backroom task completely first to clear the space, then I'll come out to the sales floor to start on the other tasks.",
-        },
-        title: {
-          ko: "단계적 접근",
-          en: "Option",
-        },
-        imogi: "🪜",
-      },
-    ],
-  },
-  {
-    question_code: "A04",
-    dimension: "Interpersonal Style",
-    is_core: true,
-    status: "active",
-    content: {
-      ko: "매장에서 대대적인 'Back to School' 프로모션을 시작하게 되어, 팀원들과 함께 매장 입구의 메인 디스플레이를 오늘 안에 완전히 새롭게 바꿔야 합니다. 당신이 선호하는 방식은?",
-      en: "The store is launching a big 'Back to School' promotion, and your team's task is to completely redesign the main entrance display by the end of the day. What's your preferred way to work?",
-    },
-    choices: [
-      {
-        label: "A",
-        content: {
-          ko: "다 같이 모여 '어떤 컨셉이 좋을까?' 브레인스토밍을 하고, 함께 물건을 나르고 배치하며 완성하고 싶어.",
-          en: "I want to get everyone together to brainstorm concepts, then move and arrange items together to complete the display as a group.",
-        },
-        title: {
-          ko: "팀워크",
-          en: "Team-Oriented",
-        },
-        imogi: "🤝",
-      },
-      {
-        label: "B",
-        content: {
-          ko: "리더가 컨셉을 정해주면, '너는 포스터, 나는 상품 진열' 이런 식으로 각자 역할을 나눠서 효율적으로 끝내고 싶어.",
-          en: "Once a leader sets the concept, I prefer to divide the tasks clearly—like 'you do the posters, I'll arrange the products'—to finish efficiently.",
-        },
-        title: {
-          ko: "즉각 해결",
-          en: "Task Divider",
-        },
-        imogi: "👬",
-      },
-    ],
-  },
-  {
-    question_code: "A05",
-    dimension: "Learning Style",
-    is_core: true,
-    status: "active",
-    content: {
-      ko: "당신은 물류 창고에서 일하게 되었습니다. 오늘 처음으로 '제브라 스캐너(Zebra Scanner)'라는 재고 관리용 휴대 단말기 사용법을 배워야 합니다. 트레이너가 당신에게 어떻게 배우고 싶은지 묻습니다. 당신의 선택은?",
-      en: "You've started a job at a warehouse. Today, you need to learn how to use a handheld inventory device called a 'Zebra Scanner.' The trainer asks how you'd like to learn. What's your choice?",
-    },
-    choices: [
-      {
-        label: "A",
-        content: {
-          ko: "일단 제 손에 쥐여주세요. 직접 스캔하고 버튼을 눌러보면서 몸으로 익히는 게 빨라요.",
-          en: "Just hand it to me. I learn fastest by doing—scanning items and pressing buttons myself.",
-        },
-        title: {
-          ko: "직접 실습",
-          en: "Option",
-        },
-        imogi: "🛠️",
-      },
-      {
-        label: "B",
-        content: {
-          ko: "먼저 시범을 보여주시겠어요? 어떻게 작동하는지 충분히 보고 순서를 익힌 다음에 해보고 싶어요.",
-          en: "Could you show me a demonstration first? I'd like to watch how it works and understand the steps before trying it myself.",
-        },
-        title: {
-          ko: "시범 우선",
-          en: "Option",
-        },
-        imogi: "🧪",
-      },
-    ],
-  },
-  {
-    question_code: "A06",
-    dimension: "Customer Handling",
-    is_core: true,
-    status: "active",
-    content: {
-      ko: "당신은 '샤퍼스 드럭 마트(Shoppers Drug Mart)'에서 일하고 있습니다. 한 고객이 화난 표정으로 다가와 어제 산 화장품에 문제가 있다며 환불을 강력하게 요구합니다. 하지만 영수증은 가지고 있지 않은 상황입니다.",
-      en: "You're working at Shoppers Drug Mart. An upset customer approaches you, demanding a refund for a cosmetic product they bought yesterday, claiming it's defective. However, they don't have the receipt.",
-    },
-    choices: [
-      {
-        label: "A",
-        content: {
-          ko: "우선 고객의 말을 끝까지 들어주며 불편에 공감하고, 도울 방법을 함께 찾아보겠다고 안심시킬 거야.",
-          en: "First, I'll listen to the customer's full story, empathize with their frustration, and reassure them that I'll find a way to help.",
-        },
-        title: {
-          ko: "팀워크",
-          en: "Empathetic",
-        },
-        imogi: "👬",
-      },
-      {
-        label: "B",
-        content: {
-          ko: "침착하게 영수증이 없을 경우의 환불 규정을 설명하고, 규정 내에서 처리하기 위해 매니저에게 바로 문의할 거야.",
-          en: "I'll calmly explain the store's return policy regarding receipts and immediately consult my manager to handle the exception by the book.",
-        },
-        title: {
-          ko: "규정 기반",
-          en: "Rule-Based",
-        },
-        imogi: "🧩",
-      },
-    ],
-  },
-];
+// 질문 데이터는 API에서 가져올 예정
 
 function QuizChoiceCard({
   choice,
@@ -322,28 +106,86 @@ function QuizPage() {
   const [answers, setAnswers] = useState<Record<string, "A" | "B">>({});
   const [selectedChoice, setSelectedChoice] = useState<"A" | "B" | null>(null);
   const [isComplete, setIsComplete] = useState(false);
-  const [progressWidth, setProgressWidth] = useState(0);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
 
+  // API에서 퀴즈 질문 가져오기
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProgressWidth(progress);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [progress]);
-
-  useEffect(() => {
-    if (isComplete) {
-      const responses = questions.map((q) => ({
-        question_code: q.question_code,
-        choice_label: answers[q.question_code],
-      }));
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("quizResponses", JSON.stringify(responses));
+    const fetchQuestions = async () => {
+      try {
+        console.log("퀴즈 질문 로딩 시작");
+        const response = await fetch('/api/quiz');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("퀴즈 질문 로딩 완료:", data);
+        
+        if (data.status === 'success' && data.data) {
+          setQuestions(data.data);
+        } else {
+          throw new Error(data.message || '퀴즈 질문을 불러오는데 실패했습니다.');
+        }
+      } catch (error) {
+        console.error("퀴즈 질문 로딩 실패:", error);
+        setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
       }
-      router.push("/onboarding/seeker/quiz/result");
+    };
+    
+    fetchQuestions();
+  }, []);
+
+
+  useEffect(() => {
+    if (isComplete && questions.length > 0) {
+      // 퀴즈 답변 제출
+      const submitQuiz = async () => {
+        try {
+          console.log("퀴즈 답변 제출 시작");
+          const responses = questions.map((q) => ({
+            questionId: q.id,
+            answer: answers[q.question_code] === 'A' ? 1 : 2
+          }));
+          
+          console.log("제출할 응답 데이터:", responses);
+          
+          const response = await fetch('/api/quiz', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ responses }),
+          });
+          
+          const data = await response.json();
+          console.log("퀴즈 제출 응답:", data);
+          
+          if (data.status === 'success') {
+            // 성공적으로 제출되면 결과 페이지로 이동
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("quizSubmitted", "true");
+              sessionStorage.setItem("profileId", data.data.profileId);
+            }
+            router.push("/onboarding/seeker/quiz/result");
+          } else {
+            console.error("퀴즈 제출 실패:", data.message);
+            alert(data.message || "퀴즈 제출에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("퀴즈 제출 중 오류:", error);
+          alert("퀴즈 제출 중 오류가 발생했습니다.");
+        }
+      };
+      
+      submitQuiz();
     }
   }, [isComplete, router, questions, answers]);
 
@@ -373,6 +215,45 @@ function QuizPage() {
 
   const canProceed = selectedChoice !== null;
 
+  // 로딩 상태
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">퀴즈를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">퀴즈를 불러올 수 없습니다</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} className="bg-blue-500 text-white px-6 py-2 rounded-lg">
+            다시 시도
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 질문이 없는 경우
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">퀴즈 질문이 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
   const question = questions[currentQuestion];
 
   return (
@@ -390,12 +271,22 @@ function QuizPage() {
           <div
             className={`bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-white/50 backdrop-blur-sm aspect-[4/3] flex flex-col items-center gap-4 md:gap-8`}
           >
-            {/* 일러스트 */}
-            <img
-              src="/images/img-quiz-ex1.png"
-              alt="Quiz Illustration"
-              className="w-full object-cover rounded-2xl aspect-[16/9] "
-            />
+            {/* 질문별 시각적 요소 */}
+            <div className="w-full aspect-[16/9] bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-6xl mb-4">
+                  {currentQuestion === 0 ? '⚡' : 
+                   currentQuestion === 1 ? '🔧' :
+                   currentQuestion === 2 ? '📋' :
+                   currentQuestion === 3 ? '🤝' :
+                   currentQuestion === 4 ? '📚' :
+                   currentQuestion === 5 ? '💬' : '❓'}
+                </div>
+                <div className="text-blue-600 font-semibold text-lg">
+                  Question {currentQuestion + 1} of {questions.length}
+                </div>
+              </div>
+            </div>
             <blockquote className="text-gray-700 leading-relaxed text-sm md:text-lg font-medium italic">
               "{question.content.en}"
             </blockquote>
