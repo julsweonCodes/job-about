@@ -1,6 +1,16 @@
 // utils/response.ts
 import { NextResponse } from 'next/server';
 
+export class HttpError extends Error {
+    status: number;
+
+    constructor(message: string, status = 500) {
+        super(message);
+        this.status = status;
+        this.name = 'HttpError';
+    }
+}
+
 export type ApiResponse<T> = {
     status: 'success' | 'error';
     code: number;
