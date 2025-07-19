@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
 // server.ts에서 만든 서버용 클라이언트 생성 함수 import
@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 
 import { getQuizQuestions, updateUserPersonality } from "@/app/services/quiz-services";
 import { determineProfileId, validateQuizResponses } from "@/lib/quiz-analyzer";
+import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 
 /**
  * GET: 퀴즈 질문 목록을 가져오는 API
@@ -22,37 +23,16 @@ export async function GET() {
     // 받은 데이터 없는 경우 404
     if (!questions) {
       console.error("퀴즈 질문을 찾을 수 없음");
-      return NextResponse.json(
-        {
-          status: "error",
-          code: 404,
-          message: "Quiz questions not found.",
-          data: null,
-        },
-        { status: 404 }
-      );
+      return errorResponse("Quiz questions not found.", 404);
     }
 
     console.log(`퀴즈 질문 ${questions.length}개 조회 성공`);
     // 성공
-    return NextResponse.json({
-      status: "success",
-      code: 200,
-      message: "Quiz questions fetched successfully.",
-      data: questions,
-    });
+    return successResponse(questions, 200, "Quiz questions fetched successfully.");
   } catch (error) {
     // 서버 내부 에러 500
     console.error("API Error GET /api/quiz:", error);
-    return NextResponse.json(
-      {
-        status: "error",
-        code: 500,
-        message: "An internal server error occurred.",
-        data: null,
-      },
-      { status: 500 }
-    );
+    return errorResponse("An internal server error occurred.", 500);
   }
 }
 
@@ -74,19 +54,13 @@ export async function POST(req: NextRequest) {
 
     if (userError) {
       console.error("사용자 인증 오류:", userError);
-      return NextResponse.json(
-        { status: "error", code: 500, message: "Failed to authenticate user." },
-        { status: 500 }
-      );
+      return errorResponse("Failed to authenticate user.", 500);
     }
 
     // 인증되지 않은 경우 401 Unauthorized
     if (!data.user) {
       console.error("인증되지 않은 요청");
-      return NextResponse.json(
-        { status: "error", code: 401, message: "Unauthorized." },
-        { status: 401 }
-      );
+      return errorResponse("Unauthorized.", 401);
     }
 
     const authUserId = data.user.id; // Supabase Auth의 UUID(string)
@@ -99,14 +73,7 @@ export async function POST(req: NextRequest) {
     // 요청 본문에 필수 데이터가 없는 경우, 400 Bad Request
     if (!responses || !Array.isArray(responses)) {
       console.error("응답 데이터 형식 오류:", responses);
-      return NextResponse.json(
-        {
-          status: "error",
-          code: 400,
-          message: "Bad Request: responses are required.",
-        },
-        { status: 400 }
-      );
+      return errorResponse("Bad Request: responses are required.", 400);
     }
 
     // 프론트엔드 형식 { questionId, answer }을 백엔드 형식 { question_code, choice_label }로 변환
@@ -129,14 +96,7 @@ export async function POST(req: NextRequest) {
     // 응답 데이터 유효성 검사
     if (!validateQuizResponses(convertedResponses)) {
       console.error("퀴즈 응답 유효성 검사 실패");
-      return NextResponse.json(
-        {
-          status: "error",
-          code: 400,
-          message: "Invalid quiz responses format.",
-        },
-        { status: 400 }
-      );
+      return errorResponse("Invalid quiz responses format.", 400);
     }
 
     // 타입 결정
@@ -154,26 +114,13 @@ export async function POST(req: NextRequest) {
     console.log(`퀴즈 제출 처리 완료: userId=${updatedUser.id}, profileId=${profileId}`);
 
     // 성공
-    return NextResponse.json({
-      status: "success",
-      code: 200,
-      message: "Quiz submitted and profile updated successfully.",
-      data: {
-        userId: updatedUser.id.toString(),
-        profileId: updatedUser.personality_profile_id?.toString() || profileId.toString(),
-      },
-    });
+    return successResponse({
+      userId: updatedUser.id.toString(),
+      profileId: updatedUser.personality_profile_id?.toString() || profileId.toString(),
+    }, 200, "Quiz submitted and profile updated successfully.");
   } catch (error) {
     // 서버 에러 500
     console.error("API Error POST /api/quiz:", error);
-    return NextResponse.json(
-      {
-        status: "error",
-        code: 500,
-        message: "An internal server error occurred.",
-        data: null,
-      },
-      { status: 500 }
-    );
+    return errorResponse("An internal server error occurred.", 500);
   }
 }
