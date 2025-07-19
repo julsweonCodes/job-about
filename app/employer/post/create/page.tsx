@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "@/utils/supabase/server"
 import React, { useEffect, useState } from "react";
 import "react-day-picker/dist/style.css";
 import {
@@ -13,6 +12,7 @@ import {
   Settings,
 } from "lucide-react";
 import PageProgressHeader from "@/components/common/PageProgressHeader";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import { Chip } from "@/components/ui/Chip";
 import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
@@ -33,6 +33,17 @@ function JobPostCreatePage() {
   const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
   const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
+
+  // 각 API 호출의 개별 상태
+  const [loadingStates, setLoadingStates] = useState({
+    skills: false,
+    jobTypes: false,
+    personalities: false,
+  });
+
+  // 전체 로딩 상태 계산
+  const isLoading = Object.values(loadingStates).some((state) => state);
+
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
@@ -45,18 +56,50 @@ function JobPostCreatePage() {
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
   });
-  const fetchSkills = async () => {
-    const res = await fetch("/api/utils");
-    const data = await res.json();
 
-    if (res.ok) {
-      setSkills(data.skills);
-    } else {
-      console.error("Failed to fetch:", data.error);
+  const fetchSkills = async () => {
+    try {
+      const res = await fetch("/api/utils");
+      const data = await res.json();
+
+      if (res.ok) {
+        setSkills(data.skills);
+      } else {
+        console.error("Failed to fetch skills:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching skills:", error);
     }
   };
+
+  const initializeData = async () => {
+    try {
+      // 로딩 시작
+      setLoadingStates({
+        skills: true,
+        jobTypes: true,
+        personalities: true,
+      });
+
+      // 모든 API 호출을 병렬로 실행
+      await Promise.all([
+        fetchSkills(),
+        // 추가 API 호출들을 여기에 추가
+      ]);
+    } catch (error) {
+      console.error("Error initializing data:", error);
+    } finally {
+      // 로딩 완료
+      setLoadingStates({
+        skills: false,
+        jobTypes: false,
+        personalities: false,
+      });
+    }
+  };
+
   useEffect(() => {
-    fetchSkills();
+    initializeData();
   }, []);
 
   const router = useRouter();
@@ -120,6 +163,8 @@ function JobPostCreatePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
+      {isLoading && <LoadingScreen />}
+
       {/* Header */}
       <PageProgressHeader
         title="Generate a Job Post with AI"
@@ -284,12 +329,9 @@ function JobPostCreatePage() {
                   className="cursor-pointer"
                   value={formData.requiredSkills
                     .map((skill) =>
-                      typeof skill === "string"
-                        ? capitalize(skill)
-                        : capitalize(skill.name)
+                      typeof skill === "string" ? capitalize(skill) : capitalize(skill.name)
                     )
-                    .join(", ")
-                  }
+                    .join(", ")}
                   onClick={() => setSkillsDialogOpen(true)}
                 />
                 <RequiredSkillsDialog
@@ -300,7 +342,7 @@ function JobPostCreatePage() {
                     handleInputChange("requiredSkills", skills);
                     setSkillsDialogOpen(false);
                   }}
-                  skills = {skills}
+                  skills={skills}
                 />
               </div>
 

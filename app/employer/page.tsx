@@ -112,7 +112,7 @@ export default function EmployerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       {/* Header */}
-      <ProfileHeader />
+      <ProfileHeader onClickProfile={() => router.push("/employer/mypage")} />
       <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 relative">
         {/* Page Title */}
         <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
