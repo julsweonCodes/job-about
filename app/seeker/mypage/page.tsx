@@ -4,7 +4,6 @@ import {
   Briefcase,
   Heart,
   Calendar,
-  MapPin,
   Edit3,
   ChevronRight,
   Target,
