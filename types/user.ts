@@ -25,9 +25,15 @@ export interface AppUser {
   name: string;
   email: string;
   img_url?: string | null;
-  role: "applicant" | "employer" | null;
+  role?: UserRole | null;
   personality_profile_id?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+}
+
+// user role 정의 
+export enum UserRole {
+  APPLICANT = "applicant",
+  EMPLOYER = "employer",
 }

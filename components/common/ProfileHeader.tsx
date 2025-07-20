@@ -32,16 +32,18 @@ export const ProfileHeader: React.FC<HeaderProps> = ({
           {/* Right side - Profile */}
           <div className="flex items-center space-x-3 lg:space-x-4">
             {/* Profile Avatar */}
-            <div className="relative">
-              <Image
-                src={profileImage || "/images/img-default-profile.png"}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="rounded-full cursor-pointer"
-                onClick={onClickProfile}
-              />
-            </div>
+            {onClickProfile && (
+              <div className="relative">
+                <Image
+                  src={profileImage || "/images/img-default-profile.png"}
+                  alt="Profile"
+                  width={40}
+                  height={40}
+                  className="rounded-full cursor-pointer"
+                  onClick={onClickProfile}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

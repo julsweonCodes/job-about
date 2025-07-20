@@ -1,142 +1,199 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserRound, Briefcase } from "lucide-react";
-import LogoHeader from "@/components/common/LogoHeader";
-import { Card } from "@/components/ui/Card";
-import Typography from "@/components/ui/Typography";
-import { Button } from "@/components/ui/Button";
-import BottomButton from "@/components/common/BottomButton";
-import { Role } from "@prisma/client";
 import { useRouter } from "next/navigation";
-
-interface RoleCardProps {
-  selected: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-function RoleCard({ selected, onClick, icon, title, description }: RoleCardProps) {
-  return (
-    <Card
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onClick();
-      }}
-      aria-pressed={selected}
-      className={`h-full aspect-square flex flex-col items-center justify-center w-full rounded-xl border px-6 py-7 cursor-pointer text-center relative shadow-md bg-white
-        transition-all duration-200
-        ${selected ? "border-[#7A73F1] ring-2 ring-[#edeafd]" : "border-gray-200 hover:border-[#a59cf7]"}
-        focus:outline-none focus:ring-2 focus:ring-[#a59cf7]
-      `}
-    >
-      <div
-        className={`flex items-center justify-center rounded-full mb-4 w-14 h-14 transition-colors duration-200 ${selected ? "bg-[#edeafd]" : "bg-gray-100 hover:bg-[#f3f1fd]"}`}
-      >
-        {icon}
-      </div>
-      <span
-        className={`text-[16px] sm:text-[22px] font-bold mb-1 transition-colors duration-200 ${selected ? "text-[#7A73F1]" : "text-gray-900 hover:text-[#7A73F1]"}`}
-      >
-        {title}
-      </span>
-      <span className="text-[16px] sm:text-[18px] font-normal text-gray-500 mb-2 transition-colors duration-200 hidden md:block">
-        {description}
-      </span>
-
-      <span
-        className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${selected ? "border-[#7A73F1] bg-[#7A73F1]" : "border-gray-200 bg-white"}`}
-      >
-        {selected && (
-          <span className="w-2.5 h-2.5 bg-white rounded-full block transition-all duration-200" />
-        )}
-      </span>
-    </Card>
-  );
-}
+import { Briefcase, Users, Check, ChevronRight } from "lucide-react";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { ProfileHeader } from "@/components/common/ProfileHeader";
+import { Role } from "@prisma/client";
 
 export default function OnboardingPage() {
+  const [selectedType, setSelectedType] = useState<Role | null>(null);
   const router = useRouter();
-  const [selected, setSelected] = useState<Role>(Role.APPLICANT);
+
+  const handleSelection = (type: Role) => {
+    setSelectedType(type);
+  };
 
   const handleConfirm = async () => {
-    const res = await fetch(`/api/users/role`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: selected }),
-    });
+    if (!selectedType) return;
 
-    const result = await res.json();
-    if (res.ok) {
-      alert("Update user role successfully!");
-      // role 설정 후 홈페이지로 이동
-      router.push("/");
-    } else {
-      alert(result.message || "Error update user role");
+    try {
+      const res = await fetch(API_URLS.USER.ROLE, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selectedType }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        // TODO role 에 따라서 페이지 이동
+        if (selectedType === Role.APPLICANT) {
+          router.push(PAGE_URLS.SEEKER.ROOT);
+        } else {
+          router.push(PAGE_URLS.EMPLOYER.ROOT);
+        }
+      } else {
+        alert(result.message || "Error update user role");
+      }
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      alert("Failed to update user role. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center">
-      <div className="w-full max-w-6xl min-h-screen bg-white flex flex-col">
-        <LogoHeader className="bg-background-primary" />
-        <main className="flex sm:flex-1 flex-col items-center justify-center">
-          <section className="w-full max-w-2xl bg-white rounded-xl p-5 flex flex-col items-center">
-            <Typography as="h1" variant="headlineMd" className="text-center mb-5 md:text-3xl">
-              Select your role
-            </Typography>
-            <p className="text-[14px] sm:text-[20px] font-normal text-gray-500 text-center mb-10 max-w-xs mx-auto">
-              A job matching platform for international students
-              <br className="hidden md:block" />
-              and working holiday participants in{" "}
-              <span className="font-bold text-text-primary">Canada</span>.
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
+      {/* ProfileHeader 추가 */}
+      <ProfileHeader onClickLogo={() => router.replace("/")} />
 
-            {/* Role Selection Cards */}
-            <div className="w-full grid gap-4 grid-cols-2 mb-8 items-stretch">
-              <RoleCard
-                selected={selected === Role.APPLICANT}
-                onClick={() => setSelected(Role.APPLICANT)}
-                icon={
-                  <UserRound
-                    className={`w-8 h-8 transition-colors duration-200 ${selected === Role.APPLICANT ? "text-[#7A73F1]" : "text-gray-400 hover:text-[#7A73F1]"}`}
-                  />
-                }
-                title={Role.APPLICANT}
-                description="Find opportunities that match your skills and work authorization status."
-              />
-              <RoleCard
-                selected={selected === Role.EMPLOYER}
-                onClick={() => setSelected(Role.EMPLOYER)}
-                icon={
-                  <Briefcase
-                    className={`w-8 h-8 transition-colors duration-200 ${selected === Role.EMPLOYER}? "text-[#7A73F1]" : "text-gray-400 hover:text-[#7A73F1]"}`}
-                  />
-                }
-                title={Role.EMPLOYER}
-                description="Connect with talented international students and working holiday participants."
-              />
-            </div>
-            {/* 데스크탑 확인 버튼 */}
-            <Button
-              type="button"
-              size="lg"
-              className="shadow-md hidden md:block"
-              onClick={handleConfirm}
+      {/* 메인 콘텐츠를 화면 중앙에 배치 */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-lg sm:max-w-2xl lg:max-w-4xl mx-auto">
+          {/* Cards Container */}
+          <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
+            {/* Job Seeker Card */}
+            <div
+              onClick={() => handleSelection(Role.APPLICANT)}
+              className={`relative group cursor-pointer transition-all duration-300 ease-out transform active:scale-95 ${
+                selectedType === Role.APPLICANT
+                  ? "scale-[1.02] sm:scale-105"
+                  : "hover:scale-[1.01] sm:hover:scale-105"
+              }`}
             >
-              Confirm
-            </Button>
-          </section>
-        </main>
-        {/* 모바일 확인 버튼 */}
-        <div className="block md:hidden">
-          <BottomButton type="button" size="lg" className="shadow-md" onClick={handleConfirm}>
-            Confirm
-          </BottomButton>
+              <div
+                className={`relative p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 ease-out ${
+                  selectedType === Role.APPLICANT
+                    ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-xl shadow-blue-200/50"
+                    : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-lg shadow-sm"
+                }`}
+              >
+                {/* Selection Indicator */}
+                <div
+                  className={`absolute -top-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                    selectedType === Role.APPLICANT
+                      ? "bg-blue-500 scale-100 opacity-100"
+                      : "bg-gray-300 scale-0 opacity-0"
+                  }`}
+                >
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+
+                <div className="text-center">
+                  {/* Icon Container */}
+                  <div
+                    className={`inline-flex p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 transition-all duration-300 ${
+                      selectedType === Role.APPLICANT
+                        ? "bg-blue-100 shadow-inner"
+                        : "bg-gray-100 group-hover:bg-blue-50"
+                    }`}
+                  >
+                    <Briefcase
+                      className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 transition-colors duration-300 ${
+                        selectedType === Role.APPLICANT
+                          ? "text-blue-600"
+                          : "text-gray-600 group-hover:text-blue-500"
+                      }`}
+                    />
+                  </div>
+
+                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+                    Job Seeker
+                  </h3>
+
+                  <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+                    Find flexible jobs that match your skills and personality.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Employer Card */}
+            <div
+              onClick={() => handleSelection(Role.EMPLOYER)}
+              className={`relative group cursor-pointer transition-all duration-300 ease-out transform active:scale-95 ${
+                selectedType === Role.EMPLOYER
+                  ? "scale-[1.02] sm:scale-105"
+                  : "hover:scale-[1.01] sm:hover:scale-105"
+              }`}
+            >
+              <div
+                className={`relative p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 ease-out ${
+                  selectedType === Role.EMPLOYER
+                    ? "border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 shadow-xl shadow-purple-200/50"
+                    : "border-gray-200 bg-white hover:border-purple-300 hover:shadow-lg shadow-sm"
+                }`}
+              >
+                {/* Selection Indicator */}
+                <div
+                  className={`absolute -top-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                    selectedType === Role.EMPLOYER
+                      ? "bg-purple-500 scale-100 opacity-100"
+                      : "bg-gray-300 scale-0 opacity-0"
+                  }`}
+                >
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+
+                <div className="text-center">
+                  {/* Icon Container */}
+                  <div
+                    className={`inline-flex p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 transition-all duration-300 ${
+                      selectedType === Role.EMPLOYER
+                        ? "bg-purple-100 shadow-inner"
+                        : "bg-gray-100 group-hover:bg-purple-50"
+                    }`}
+                  >
+                    <Users
+                      className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 transition-colors duration-300 ${
+                        selectedType === Role.EMPLOYER
+                          ? "text-purple-600"
+                          : "text-gray-600 group-hover:text-purple-500"
+                      }`}
+                    />
+                  </div>
+
+                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+                    Employer
+                  </h3>
+
+                  <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+                    Post jobs and discover applicants with the right traits and availability.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Continue Button Section */}
+          <div className="text-center px-4">
+            <button
+              onClick={handleConfirm}
+              disabled={!selectedType}
+              className={`group inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-5 rounded-xl sm:rounded-2xl text-lg sm:text-xl font-semibold transition-all duration-300 ease-out transform active:scale-95 ${
+                selectedType
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-xl hover:shadow-blue-500/25 hover:scale-105 shadow-lg"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-sm"
+              }`}
+            >
+              Continue
+              <ChevronRight
+                className={`ml-2 w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 ${
+                  selectedType ? "group-hover:translate-x-1" : ""
+                }`}
+              />
+            </button>
+
+            {!selectedType && (
+              <p className="text-gray-500 text-sm sm:text-base mt-4 sm:mt-6 animate-pulse">
+                Please select your role to continue
+              </p>
+            )}
+          </div>
+
+          {/* Bottom Spacing for Mobile */}
+          <div className="h-8 sm:h-0"></div>
         </div>
       </div>
     </div>
