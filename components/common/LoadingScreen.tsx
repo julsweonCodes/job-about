@@ -14,10 +14,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   spinnerSize = "md",
   spinnerColor = "purple-circle",
   className = "",
+  message = "Loading...",
 }) => {
   const content = (
     <div className={cn("flex flex-col items-center justify-center gap-4", className)}>
       <LoadingSpinner size={spinnerSize} color={spinnerColor} />
+      <p className="text-gray-600 text-xs sm:text-xl">{message}</p>
     </div>
   );
 
