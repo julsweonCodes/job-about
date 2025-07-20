@@ -10,48 +10,39 @@ import {
   Lightbulb,
   RefreshCw,
   Camera,
+  MapPin,
+  Phone,
 } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
+import BaseDialog from "@/components/common/BaseDialog";
+import InfoSection from "@/components/common/InfoSection";
+import { Button } from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import TextArea from "@/components/ui/TextArea";
 
 function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [isEditing, setIsEditing] = useState({
+    basicInfo: false,
+    contact: false,
+    location: false,
+  });
 
   // 기존 데이터
-  const applicantProfile = {
+  const [applicantProfile, setApplicantProfile] = useState({
     name: "Sarah Johnson",
-    title: "Senior Product Designer",
     description:
       "Crafting meaningful digital experiences that connect people and solve real problems",
     profileImageUrl: "",
     joinDate: "March 2024",
     location: "San Francisco, CA",
-    email: "sarah.johnson@email.com",
     phone: "+1 (555) 123-4567",
-  };
+  });
 
   // 임시 데이터
-  const [tempProfileData, setTempProfileData] = useState({
-    name: "",
-    title: "",
-    description: "",
-    profileImageUrl: "",
-    joinDate: "",
-    location: "",
-    email: "",
-    phone: "",
-  });
-
-  const [profileData, setProfileData] = useState({
-    name: "",
-    title: "",
-    description: "",
-    profileImageUrl: "",
-    joinDate: "",
-    location: "",
-    email: "",
-    phone: "",
-  });
+  const [tempData, setTempData] = useState(applicantProfile);
 
   const workStyle = {
     type: "Empathetic Coordinator",
@@ -85,12 +76,48 @@ function App() {
     },
   ];
 
+  // 수정 모드 진입 시 현재 데이터로 임시 상태 초기화
+  const handleEdit = (section: string) => {
+    setTempData(applicantProfile);
+    setIsEditing((prev) => ({ ...prev, [section]: true }));
+  };
+
+  // 취소 시 임시 데이터를 원래 상태로 되돌리기
+  const handleCancel = (section: string) => {
+    setTempData(applicantProfile);
+    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  };
+
+  // update basic info
+  const handleBasicInfoSave = () => {
+    setApplicantProfile(tempData);
+    setIsEditing((prev) => ({ ...prev, basicInfo: false }));
+  };
+
+  // update contact, location
+  const handleOptionsSave = (section: string) => {
+    setApplicantProfile(tempData);
+    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  };
+
+  // update field
+  const handleTempInputChange = (field: string, value: string) => {
+    setTempData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleProfileEdit = () => {
+    setTempData(applicantProfile);
     setShowProfileDialog(true);
   };
 
   const handleCloseProfileDialog = () => {
     setShowProfileDialog(false);
+  };
+
+  const handleProfileSave = () => {
+    setApplicantProfile(tempData);
+    console.log("Saving basic information:", tempData);
+    handleCloseProfileDialog();
   };
 
   const handleProfileImageChange = (file: File) => {
@@ -100,7 +127,7 @@ function App() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
-        // 로고 이미지 상태 업데이트
+        // 프로필 이미지 상태 업데이트
         setApplicantProfile((prev) => ({
           ...prev,
           profileImageUrl: imageUrl,
@@ -108,8 +135,12 @@ function App() {
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Error updating logo:", error);
+      console.error("Error updating profile image:", error);
     }
+  };
+
+  const handleImageUploadDialog = () => {
+    setShowImageUploadDialog(true);
   };
 
   return (
@@ -120,7 +151,12 @@ function App() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
         <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
           <span>My Profile</span>
-          <Edit3 size={20} className="text-slate-600" />
+          <button
+            onClick={handleProfileEdit}
+            className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
+          >
+            <Edit3 size={16} className="text-slate-600" />
+          </button>
         </h3>
 
         {/* 1. Profile Summary Card */}
@@ -136,7 +172,7 @@ function App() {
                   />
                 </div>
                 <button
-                  onClick={handleProfileEdit}
+                  onClick={handleImageUploadDialog}
                   className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200"
                 >
                   <Camera className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
@@ -147,11 +183,9 @@ function App() {
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
                   {applicantProfile.name}
                 </h2>
-
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
                   {applicantProfile.description}
                 </p>
-
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
@@ -219,7 +253,67 @@ function App() {
           </div>
         </div>
 
-        {/* 3. Quick Actions */}
+        {/* 3. Contact Information */}
+        <div className="space-y-4 sm:space-y-5">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Contact Information</h3>
+
+          <InfoSection
+            icon={<Phone size={18} className="text-green-600" />}
+            title="Phone Number"
+            subtitle="Your contact phone number"
+            onEdit={() => handleEdit("contact")}
+            isEditing={isEditing.contact}
+            onSave={() => handleOptionsSave("contact")}
+            onCancel={() => handleCancel("contact")}
+          >
+            {isEditing.contact ? (
+              <Input
+                label="Phone Number"
+                type="tel"
+                value={tempData.phone}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleTempInputChange("phone", e.target.value)
+                }
+                placeholder="+1 (555) 123-4567"
+                rightIcon={<Phone className="w-5 h-5" />}
+              />
+            ) : (
+              <div className="flex items-center gap-3">
+                <Phone size={16} className="text-slate-400" />
+                <span className="text-slate-700 font-medium">{applicantProfile.phone}</span>
+              </div>
+            )}
+          </InfoSection>
+
+          <InfoSection
+            icon={<MapPin size={18} className="text-purple-600" />}
+            title="Location"
+            subtitle="Your current location"
+            onEdit={() => handleEdit("location")}
+            isEditing={isEditing.location}
+            onSave={() => handleOptionsSave("location")}
+            onCancel={() => handleCancel("location")}
+          >
+            {isEditing.location ? (
+              <Input
+                label="Location"
+                value={tempData.location}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleTempInputChange("location", e.target.value)
+                }
+                placeholder="City, State"
+                rightIcon={<MapPin className="w-5 h-5" />}
+              />
+            ) : (
+              <div className="flex items-center gap-3">
+                <MapPin size={16} className="text-slate-400" />
+                <span className="text-slate-700 font-medium">{applicantProfile.location}</span>
+              </div>
+            )}
+          </InfoSection>
+        </div>
+
+        {/* 4. Quick Actions */}
         <div className="space-y-4 sm:space-y-5">
           <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Quick Actions</h3>
           <div className="space-y-3 sm:space-y-4">
@@ -291,11 +385,46 @@ function App() {
         <div className="h-4 sm:h-0"></div>
       </div>
 
-      {/* Profile Image Dialog */}
-      <ImageUploadDialog
+      {/* Profile Edit Dialog */}
+      <BaseDialog
         open={showProfileDialog}
         onClose={handleCloseProfileDialog}
+        title="Edit Basic Information"
+        size="md"
+        type="bottomSheet"
+      >
+        <div className="space-y-4 mb-4">
+          <div className="space-y-3">
+            <Input
+              label="Name"
+              value={tempData.name}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleTempInputChange("name", e.target.value)
+              }
+            />
+
+            <TextArea
+              label="Description"
+              value={tempData.description}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                handleTempInputChange("description", e.target.value)
+              }
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <Button onClick={handleProfileSave} size="lg" className="w-full">
+          Save Changes
+        </Button>
+      </BaseDialog>
+
+      {/* Profile Image Dialog */}
+      <ImageUploadDialog
+        open={showImageUploadDialog}
+        onClose={() => setShowImageUploadDialog(false)}
         onSave={handleProfileImageChange}
+        title="Change Profile Image"
         currentImage={applicantProfile.profileImageUrl}
         type="profile"
       />
