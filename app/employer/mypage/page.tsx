@@ -48,7 +48,8 @@ function EmployerMypage() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const businessLocation = {
+  // 기존 데이터
+  const [businessLocation, setBusinessLocation] = useState({
     name: "TechFlow Solutions",
     description:
       "We're a forward-thinking technology company focused on creating innovative solutions that make work more efficient and enjoyable. Our team values collaboration, creativity, and work-life balance.",
@@ -57,24 +58,12 @@ function EmployerMypage() {
     startTime: "09:00",
     endTime: "17:00",
     logoImageUrl: "",
-    detailImages: detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages,
+    detailImages: originalImages,
     joinDate: "March 2024",
-  };
-
-  const [tempProfileData, setTempProfileData] = useState({
-    name: businessLocation.name,
-    description: businessLocation.description,
   });
 
-  const [businessData, setBusinessData] = useState({
-    name: businessLocation.name,
-    description: businessLocation.description,
-    phone: businessLocation.phone,
-    address: businessLocation.address,
-    startTime: businessLocation.startTime,
-    endTime: businessLocation.endTime,
-    logoImageUrl: businessLocation.logoImageUrl || "",
-  });
+  // 임시 데이터
+  const [tempData, setTempData] = useState(businessLocation);
 
   // 변경사항 감지
   React.useEffect(() => {
@@ -82,6 +71,12 @@ function EmployerMypage() {
       detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages;
     const hasImageChanges = JSON.stringify(currentImages) !== JSON.stringify(originalImages);
     setIsWorkplacePhotoChanged(hasImageChanges);
+
+    // businessLocation의 detailImages 업데이트
+    setBusinessLocation((prev) => ({
+      ...prev,
+      detailImages: currentImages,
+    }));
   }, [detailImages, originalImages]);
 
   const tagOptions = [
@@ -178,11 +173,8 @@ function EmployerMypage() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
-        // 로고 이미지 상태 업데이트
-        setBusinessData((prev) => ({
-          ...prev,
-          logoImageUrl: imageUrl,
-        }));
+        // 로고 이미지 상태 업데이트 (실제로는 서버에 저장)
+        console.log("Saving logo image:", imageUrl);
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -196,45 +188,44 @@ function EmployerMypage() {
 
   const handleProfileEdit = () => {
     // 다이얼로그를 열 때 현재 데이터로 임시 상태 초기화
-    setTempProfileData({
-      name: businessData.name,
-      description: businessData.description,
-    });
+    setTempData(businessLocation);
     setShowProfileDialog(true);
   };
 
+  // 수정 모드 진입 시 현재 데이터로 임시 상태 초기화
   const handleEdit = (section: string) => {
+    setTempData(businessLocation);
     setIsEditing((prev) => ({ ...prev, [section]: true }));
   };
 
+  // 취소 시 임시 데이터를 원래 상태로 되돌리기
   const handleCancel = (section: string) => {
+    setTempData(businessLocation);
     setIsEditing((prev) => ({ ...prev, [section]: false }));
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setBusinessData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCloseProfileDialog = () => {
     setShowProfileDialog(false);
   };
 
+  // update address, hours, contact
   const handleOptionsSave = (section: string) => {
+    // 저장 시 tempData를 businessLocation에 적용
+    setBusinessLocation(tempData);
     setIsEditing((prev) => ({ ...prev, [section]: false }));
   };
 
+  // update title, description
   const handleProfileSave = () => {
-    setBusinessData((prev) => ({
-      ...prev,
-      name: tempProfileData.name,
-      description: tempProfileData.description,
-    }));
-    console.log("Saving basic information");
+    // 저장 시 tempData를 businessLocation에 적용
+    setBusinessLocation(tempData);
+    console.log("Saving basic information:", tempData);
     handleCloseProfileDialog();
   };
 
+  // update field
   const handleTempInputChange = (field: string, value: string) => {
-    setTempProfileData((prev) => ({ ...prev, [field]: value }));
+    setTempData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -260,7 +251,9 @@ function EmployerMypage() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={businessData.logoImageUrl || "/images/img-default-business-profile.png"}
+                    src={
+                      businessLocation.logoImageUrl || "/images/img-default-business-profile.png"
+                    }
                     alt={businessLocation.name}
                     className="w-full h-full object-cover"
                   />
@@ -275,11 +268,11 @@ function EmployerMypage() {
 
               <div className="flex-1">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
-                  {businessData.name}
+                  {businessLocation.name}
                 </h2>
 
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
-                  {businessData.description}
+                  {businessLocation.description}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
@@ -310,15 +303,15 @@ function EmployerMypage() {
           {isEditing.address ? (
             <Input
               label="Business Address"
-              value={businessData.address}
+              value={tempData.address}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleInputChange("address", e.target.value)
+                setTempData((prev) => ({ ...prev, address: e.target.value }))
               }
               placeholder="Enter your business address..."
               rightIcon={<MapPin className="w-5 h-5" />}
             />
           ) : (
-            <p className="text-slate-700 leading-relaxed">{businessData.address}</p>
+            <p className="text-slate-700 leading-relaxed">{businessLocation.address}</p>
           )}
         </InfoSection>
 
@@ -334,16 +327,16 @@ function EmployerMypage() {
         >
           {isEditing.hours ? (
             <TimeRangePicker
-              startTime={businessData.startTime}
-              endTime={businessData.endTime}
-              onStartTimeChange={(time) => handleInputChange("startTime", time)}
-              onEndTimeChange={(time) => handleInputChange("endTime", time)}
+              startTime={tempData.startTime}
+              endTime={tempData.endTime}
+              onStartTimeChange={(time) => setTempData((prev) => ({ ...prev, startTime: time }))}
+              onEndTimeChange={(time) => setTempData((prev) => ({ ...prev, endTime: time }))}
               label="Operating Hours"
             />
           ) : (
             <p className="text-slate-700">
-              <span className="font-medium">Monday - Friday:</span> {businessData.startTime} -{" "}
-              {businessData.endTime}
+              <span className="font-medium">Monday - Friday:</span> {businessLocation.startTime} -{" "}
+              {businessLocation.endTime}
             </p>
           )}
         </InfoSection>
@@ -363,9 +356,9 @@ function EmployerMypage() {
               <Input
                 label="Phone Number"
                 type="tel"
-                value={businessData.phone}
+                value={tempData.phone}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleInputChange("phone", e.target.value)
+                  setTempData((prev) => ({ ...prev, phone: e.target.value }))
                 }
                 placeholder="+1 (555) 123-4567"
               />
@@ -373,7 +366,7 @@ function EmployerMypage() {
           ) : (
             <div className="flex items-center gap-3">
               <Phone size={16} className="text-slate-400" />
-              <span className="text-slate-700 font-medium">{businessData.phone}</span>
+              <span className="text-slate-700 font-medium">{businessLocation.phone}</span>
             </div>
           )}
         </InfoSection>
@@ -516,7 +509,7 @@ function EmployerMypage() {
           <div className="space-y-3">
             <Input
               label="Business Name"
-              value={tempProfileData.name}
+              value={tempData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 handleTempInputChange("name", e.target.value)
               }
@@ -524,7 +517,7 @@ function EmployerMypage() {
 
             <TextArea
               label="Description"
-              value={tempProfileData.description}
+              value={tempData.description}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 handleTempInputChange("description", e.target.value)
               }
@@ -545,7 +538,7 @@ function EmployerMypage() {
         onSave={handleLogoSave}
         title="Change Business Logo"
         type="logo"
-        currentImages={businessData.logoImageUrl ? [businessData.logoImageUrl] : []}
+        currentImage={businessLocation.logoImageUrl}
       />
     </div>
   );

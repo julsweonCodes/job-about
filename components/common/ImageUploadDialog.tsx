@@ -9,7 +9,7 @@ interface ImageUploadDialogProps {
   onSave: (file: File) => void;
   title: string;
   type: "logo" | "profile";
-  currentImages?: string[];
+  currentImage?: string;
 }
 
 const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
@@ -18,7 +18,7 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
   onSave,
   title,
   type,
-  currentImages = [],
+  currentImage,
 }) => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -59,18 +59,16 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
     <BaseDialog open={open} onClose={handleClose} title={title} size="md" type="bottomSheet">
       <div className="space-y-4">
         {/* Current Images Display */}
-        {currentImages.length > 0 && (
+        {currentImage && (
           <div>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {currentImages.map((image, index) => (
-                <div key={index} className="relative flex-shrink-0">
-                  <img
-                    src={image}
-                    alt={`Current ${type}`}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
-                </div>
-              ))}
+              <div className="relative flex-shrink-0">
+                <img
+                  src={currentImage}
+                  alt={`Current ${type}`}
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
+              </div>
             </div>
           </div>
         )}

@@ -16,20 +16,42 @@ import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 
 function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
 
-  const user = {
+  // 기존 데이터
+  const applicantProfile = {
     name: "Sarah Johnson",
     title: "Senior Product Designer",
     description:
       "Crafting meaningful digital experiences that connect people and solve real problems",
-    profileImageUrl: profileImageUrl,
+    profileImageUrl: "",
     joinDate: "March 2024",
     location: "San Francisco, CA",
     email: "sarah.johnson@email.com",
     phone: "+1 (555) 123-4567",
-    profileCompletion: 85,
   };
+
+  // 임시 데이터
+  const [tempProfileData, setTempProfileData] = useState({
+    name: "",
+    title: "",
+    description: "",
+    profileImageUrl: "",
+    joinDate: "",
+    location: "",
+    email: "",
+    phone: "",
+  });
+
+  const [profileData, setProfileData] = useState({
+    name: "",
+    title: "",
+    description: "",
+    profileImageUrl: "",
+    joinDate: "",
+    location: "",
+    email: "",
+    phone: "",
+  });
 
   const workStyle = {
     type: "Empathetic Coordinator",
@@ -71,11 +93,23 @@ function App() {
     setShowProfileDialog(false);
   };
 
-  const handleProfileImageChange = (newImageUrl: string) => {
-    // 프로필 이미지 상태 업데이트
-    setProfileImageUrl(newImageUrl);
-    console.log("Profile image changed to:", newImageUrl);
-    // 실제로는 서버에 업로드하고 URL을 받아와야 합니다
+  const handleProfileImageChange = (file: File) => {
+    console.log("Profile image changed to:", file);
+    try {
+      // 파일을 읽어서 이미지 URL로 변환
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        // 로고 이미지 상태 업데이트
+        setApplicantProfile((prev) => ({
+          ...prev,
+          profileImageUrl: imageUrl,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error updating logo:", error);
+    }
   };
 
   return (
@@ -96,8 +130,8 @@ function App() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={user.profileImageUrl || "/images/img-default-profile.png"}
-                    alt={user.name}
+                    src={applicantProfile.profileImageUrl || "/images/img-default-profile.png"}
+                    alt={applicantProfile.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -110,16 +144,18 @@ function App() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">{user.name}</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
+                  {applicantProfile.name}
+                </h2>
 
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
-                  {user.description}
+                  {applicantProfile.description}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                    <span>Joined {user.joinDate}</span>
+                    <span>Joined {applicantProfile.joinDate}</span>
                   </div>
                 </div>
               </div>
@@ -259,8 +295,8 @@ function App() {
       <ImageUploadDialog
         open={showProfileDialog}
         onClose={handleCloseProfileDialog}
-        currentImage={user.profileImageUrl}
-        onImageChange={handleProfileImageChange}
+        onSave={handleProfileImageChange}
+        currentImage={applicantProfile.profileImageUrl}
         type="profile"
       />
     </div>
