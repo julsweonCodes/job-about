@@ -7,6 +7,9 @@ import { Card } from "@/components/ui/Card";
 import Typography from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
 import BottomButton from "@/components/common/BottomButton";
+import { Role } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { getUserIdFromSession } from "@/utils/auth";
 
 interface RoleCardProps {
   selected: boolean;
@@ -64,7 +67,29 @@ function RoleCard({ selected, onClick, icon, title, description }: RoleCardProps
 }
 
 export default function OnboardingPage() {
-  const [selected, setSelected] = useState<"seeker" | "employer">("seeker");
+  const router = useRouter();
+  const [selected, setSelected] = useState<Role>(Role.APPLICANT);
+
+  const handleConfirm = async () => {
+    const res = await fetch(`/api/users/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: selected }),
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      alert("Update user role successfully!");
+      // role에 따라 페이지 이동
+      if (selected === Role.APPLICANT) {
+        router.push("/onboarding/seeker/profile");
+      } else {
+        router.push("/onboarding/employer/profile");
+      }
+    } else {
+      alert(result.message || "Error update user role");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
@@ -89,25 +114,25 @@ export default function OnboardingPage() {
             {/* Role Selection Cards */}
             <div className="w-full grid gap-4 grid-cols-2 mb-8 items-stretch">
               <RoleCard
-                selected={selected === "seeker"}
-                onClick={() => setSelected("seeker")}
+                selected={selected === Role.APPLICANT}
+                onClick={() => setSelected(Role.APPLICANT)}
                 icon={
                   <UserRound
-                    className={`w-8 h-8 transition-colors duration-200 ${selected === "seeker" ? "text-[#7A73F1]" : "text-gray-400 hover:text-[#7A73F1]"}`}
+                    className={`w-8 h-8 transition-colors duration-200 ${selected === Role.APPLICANT ? "text-[#7A73F1]" : "text-gray-400 hover:text-[#7A73F1]"}`}
                   />
                 }
-                title="Job Seeker"
+                title={Role.APPLICANT}
                 description="Find opportunities that match your skills and work authorization status."
               />
               <RoleCard
-                selected={selected === "employer"}
-                onClick={() => setSelected("employer")}
+                selected={selected === Role.EMPLOYER}
+                onClick={() => setSelected(Role.EMPLOYER)}
                 icon={
                   <Briefcase
-                    className={`w-8 h-8 transition-colors duration-200 ${selected === "employer" ? "text-[#7A73F1]" : "text-gray-400 hover:text-[#7A73F1]"}`}
+                    className={`w-8 h-8 transition-colors duration-200 ${selected === Role.EMPLOYER}? "text-[#7A73F1]" : "text-gray-400 hover:text-[#7A73F1]"}`}
                   />
                 }
-                title="Employer"
+                title={Role.EMPLOYER}
                 description="Connect with talented international students and working holiday participants."
               />
             </div>
@@ -116,13 +141,7 @@ export default function OnboardingPage() {
               type="button"
               size="lg"
               className="shadow-md hidden md:block"
-              onClick={() => {
-                if (selected === "seeker") {
-                  window.location.href = "/onboarding/seeker/profile";
-                } else {
-                  window.location.href = "/onboarding/employer/profile";
-                }
-              }}
+              onClick={handleConfirm}
             >
               Confirm
             </Button>
@@ -130,18 +149,7 @@ export default function OnboardingPage() {
         </main>
         {/* 모바일 확인 버튼 */}
         <div className="block md:hidden">
-          <BottomButton
-            type="button"
-            size="lg"
-            className="shadow-md"
-            onClick={() => {
-              if (selected === "seeker") {
-                window.location.href = "/onboarding/seeker/profile";
-              } else {
-                window.location.href = "/onboarding/employer/profile";
-              }
-            }}
-          >
+          <BottomButton type="button" size="lg" className="shadow-md" onClick={handleConfirm}>
             Confirm
           </BottomButton>
         </div>

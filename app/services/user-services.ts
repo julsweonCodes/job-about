@@ -2,6 +2,7 @@ import { SupabaseUser, UpdateUser } from "@/types/user";
 import { HttpError } from "../lib/server/commonResponse";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { supabaseClient } from "@/utils/supabase/client";
+import { Role } from "@prisma/client";
 
 export async function createUser(supabaseUser: SupabaseUser) {
     const { uid, email, displayName } = supabaseUser;
@@ -61,7 +62,27 @@ export async function updateUser(updateUser: UpdateUser, userId: number) {
             name,
             phone_number,
             description,
-            img_url
+            img_url,
+            updated_at: new Date()
+        }
+    });
+
+    return updated;
+}
+
+export async function updateUserRole(role: Role, userId: number) {
+    const user = await prisma.users.findUnique({
+        where: { id: userId }
+    });
+    if (!user) {
+        throw new HttpError("User not found", 404);
+    }
+
+    const updated = await prisma.users.update({
+        where: { id: userId },
+        data: {
+            role,
+            updated_at: new Date()
         }
     });
 
