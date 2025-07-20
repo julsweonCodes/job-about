@@ -31,6 +31,7 @@ function EmployerMypage() {
     address: false,
     hours: false,
     contact: false,
+    workplaceAttributes: false,
   });
 
   // 원본 workplace photos
@@ -53,13 +54,14 @@ function EmployerMypage() {
     name: "TechFlow Solutions",
     description:
       "We're a forward-thinking technology company focused on creating innovative solutions that make work more efficient and enjoyable. Our team values collaboration, creativity, and work-life balance.",
-    phone: "+1 (555) 987-6543",
+    phone: "123-456-7890",
     address: "123 Innovation Drive, San Francisco, CA 94105",
     startTime: "09:00",
     endTime: "17:00",
     logoImageUrl: "",
     detailImages: originalImages,
     joinDate: "March 2024",
+    workplaceAttributes: ["Flexible Hours", "Remote Work", "Team Collaboration"],
   });
 
   // 임시 데이터
@@ -105,6 +107,15 @@ function EmployerMypage() {
       color: "from-orange-500 to-orange-600",
     },
   ];
+
+  const toggleWorkplaceAttribute = (attribute: string) => {
+    setTempData((prev) => ({
+      ...prev,
+      workplaceAttributes: prev.workplaceAttributes.includes(attribute)
+        ? prev.workplaceAttributes.filter((attr) => attr !== attribute)
+        : [...prev.workplaceAttributes, attribute],
+    }));
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -358,7 +369,7 @@ function EmployerMypage() {
             <div>
               <Input
                 label="Phone Number"
-                type="tel"
+                type="phone"
                 value={tempData.phone}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setTempData((prev) => ({ ...prev, phone: e.target.value }))
@@ -472,30 +483,66 @@ function EmployerMypage() {
 
           {/* Optional Tags */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 p-5 sm:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
-                <Star size={18} className="sm:w-6 sm:h-6 text-purple-600" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
+                  <Star size={18} className="sm:w-6 sm:h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                    Workplace Attributes
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500">
+                    Select tags that describe your workplace
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  Workplace Attributes
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Select tags that describe your workplace
-                </p>
-              </div>
+              {!isEditing.workplaceAttributes && (
+                <button
+                  onClick={() => handleEdit("workplaceAttributes")}
+                  className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
+                >
+                  <Edit3 size={16} className="text-slate-600" />
+                </button>
+              )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {tagOptions.map((trait, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1.5 bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 text-xs sm:text-sm font-medium rounded-full border border-orange-100/50"
-                >
-                  {trait.label}
-                </span>
-              ))}
-            </div>
+            {!isEditing.workplaceAttributes ? (
+              <div className="flex flex-wrap gap-2">
+                {tempData.workplaceAttributes.map((attribute, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1.5 bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 text-xs sm:text-sm font-medium rounded-full border border-orange-100/50"
+                  >
+                    {attribute}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {tagOptions.map((trait) => (
+                    <button
+                      key={trait.id}
+                      onClick={() => toggleWorkplaceAttribute(trait.label)}
+                      className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full border transition-all duration-200 ${
+                        tempData.workplaceAttributes.includes(trait.label)
+                          ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white border-orange-500"
+                          : "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border-orange-100/50 hover:bg-gradient-to-r hover:from-orange-100 hover:to-pink-100"
+                      }`}
+                    >
+                      {trait.label}
+                    </button>
+                  ))}
+                </div>
+                <MypageActionButtons
+                  onCancel={() => handleCancel("workplaceAttributes")}
+                  onSave={() => handleOptionsSave("workplaceAttributes")}
+                  cancelText="Cancel"
+                  saveText="Save Changes"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

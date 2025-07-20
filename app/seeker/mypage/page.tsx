@@ -48,7 +48,7 @@ function App() {
     profileImageUrl: "",
     joinDate: "March 2024",
     location: "San Francisco, CA",
-    phone: "+1 (555) 123-4567",
+    phone: "123-456-7890",
     skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
     workType: "Remote",
     jobTypes: ["Full-time", "Contract"],
@@ -356,12 +356,12 @@ function App() {
             {isEditing.contact ? (
               <Input
                 label="Phone Number"
-                type="tel"
+                type="phone"
                 value={tempData.phone}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleTempInputChange("phone", e.target.value)
                 }
-                placeholder="+1 (555) 123-4567"
+                placeholder="123-456-7890"
                 rightIcon={<Phone className="w-5 h-5" />}
               />
             ) : (
