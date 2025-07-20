@@ -88,8 +88,14 @@ export async function middleware(req: NextRequest) {
         return res;
       }
 
-      // 온보딩 페이지에 있으면 role 체크하지 않음
+      // 온보딩 페이지 접근 시 role 체크
       if (isOnboardingPage) {
+        // 이미 역할이 있으면 홈페이지로 리다이렉트
+        if (user?.role) {
+          console.log("User already has role, redirecting to home");
+          return NextResponse.redirect(new URL(PAGE_URLS.HOME, req.url));
+        }
+        // 역할이 없으면 온보딩 페이지 허용
         return res;
       }
 
