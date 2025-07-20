@@ -292,6 +292,7 @@ function EmployerMypage() {
 
         {/* 2️⃣ Address Section */}
         <InfoSection
+          iconClassName="bg-gradient-to-br from-green-100 to-emerald-100"
           icon={<MapPin size={18} className="text-emerald-600" />}
           title="Business Address"
           subtitle="Your business location"
@@ -317,6 +318,7 @@ function EmployerMypage() {
 
         {/* 3️⃣ Operating Hours Section */}
         <InfoSection
+          iconClassName="bg-gradient-to-br from-blue-100 to-sky-100"
           icon={<Clock size={18} className="text-blue-600" />}
           title="Operating Hours"
           subtitle="When your business is open"
@@ -343,6 +345,7 @@ function EmployerMypage() {
 
         {/* 4️⃣ Contact Info Section */}
         <InfoSection
+          iconClassName="bg-gradient-to-br from-purple-100 to-pink-100"
           icon={<Phone size={18} className="text-purple-600" />}
           title="Contact Information"
           subtitle="How customers can reach you"
