@@ -1,24 +1,37 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createSupabaseBrowserClient } from "@/lib/client/supabase";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { API_URLS } from "@/constants/api";
 
 export default function AuthProvider() {
   const { setIsLoggedIn, setUser } = useAuthStore();
+  const isInitialized = useRef(false);
 
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     const supabase = createSupabaseBrowserClient();
 
     // 초기 로그인 상태 확인
     const checkAuthStatus = async () => {
       try {
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
 
-        if (session?.user) {
+        if (error) {
+          console.error("Error fetching user:", error);
+          setIsLoggedIn(false);
+          setUser(null);
+          return;
+        }
+
+        if (user) {
           // 우리 서비스 DB에서 사용자 확인
-          const response = await fetch("/api/user/me", {
+          const response = await fetch(API_URLS.USER.ME, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -26,18 +39,12 @@ export default function AuthProvider() {
           });
 
           if (response.ok) {
-            const result = await response.json();
-            console.log("result", result);
-
-            // 200 OK - 기존 사용자
+            // 사용자가 데이터베이스에 존재함
             setIsLoggedIn(true);
-            setUser(session.user);
-          } else if (response.status === 404) {
-            // 404 Not Found - 신규 사용자
-            setIsLoggedIn(false);
-            setUser(null);
+            setUser(user);
           } else {
-            // 401 Unauthorized 또는 기타 에러
+            // 사용자가 데이터베이스에 없음
+            console.log("User not found in database, setting logged out");
             setIsLoggedIn(false);
             setUser(null);
           }
@@ -56,39 +63,45 @@ export default function AuthProvider() {
 
     // 인증 상태 변경 리스너
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change event:", event);
+
+      // INITIAL_SESSION 이벤트는 무시 (무한 루프 방지)
+      if (event === "INITIAL_SESSION") {
+        console.log("Initial session event, skipping...");
+        return;
+      }
+
       if (event === "SIGNED_IN" && session?.user) {
-        // 로그인 시 우리 서비스 DB 확인
+        console.log("User signed in:", session.user.email);
+
+        // 우리 서비스 DB에서 사용자 확인
         try {
-          const response = await fetch("/api/user/me", {
+          const response = await fetch(API_URLS.USER.ME, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
           });
-          console.log("response", response);
 
           if (response.ok) {
-            const result = await response.json();
-
-            // 200 OK - 기존 사용자
+            // 사용자가 데이터베이스에 존재함
             setIsLoggedIn(true);
             setUser(session.user);
-          } else if (response.status === 404) {
-            // 404 Not Found - 신규 사용자는 온보딩으로 리다이렉트
-            window.location.href = "/onboarding";
           } else {
-            // 401 Unauthorized 또는 기타 에러
+            // 사용자가 데이터베이스에 없음
+            console.log("User not found in database after sign in");
             setIsLoggedIn(false);
             setUser(null);
           }
         } catch (error) {
-          console.error("Sign in check error:", error);
+          console.error("User check error after sign in:", error);
           setIsLoggedIn(false);
           setUser(null);
         }
       }
 
       if (event === "SIGNED_OUT") {
+        console.log("User signed out");
         setIsLoggedIn(false);
         setUser(null);
       }

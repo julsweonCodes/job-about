@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import BottomButton from "@/components/common/BottomButton";
 import { Role } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { getUserIdFromSession } from "@/utils/auth";
 
 interface RoleCardProps {
   selected: boolean;
@@ -74,12 +73,8 @@ export default function OnboardingPage() {
     const result = await res.json();
     if (res.ok) {
       alert("Update user role successfully!");
-      // role에 따라 페이지 이동
-      if (selected === Role.APPLICANT) {
-        router.push("/onboarding/seeker/profile");
-      } else {
-        router.push("/onboarding/employer/profile");
-      }
+      // role 설정 후 홈페이지로 이동
+      router.push("/");
     } else {
       alert(result.message || "Error update user role");
     }

@@ -13,7 +13,7 @@ export async function createUser(supabaseUser: SupabaseUser) {
     },
   });
   if (user) {
-    throw new HttpError("User already exists", 200);
+    throw new HttpError("User already exists", 409);
   } else {
     const created = await prisma.users.create({
       data: {
@@ -24,7 +24,12 @@ export async function createUser(supabaseUser: SupabaseUser) {
         updated_at: new Date(),
       },
     });
-    return created;
+
+    // BigInt를 문자열로 변환하여 반환
+    return {
+      ...created,
+      id: created.id.toString(),
+    };
   }
 }
 
@@ -102,6 +107,11 @@ export async function checkUserExists(userId: number) {
 
   return {
     exists: !!user,
-    user: user,
+    user: user
+      ? {
+          ...user,
+          id: user.id.toString(),
+        }
+      : null,
   };
 }

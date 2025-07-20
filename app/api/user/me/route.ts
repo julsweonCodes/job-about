@@ -8,13 +8,13 @@ export async function GET() {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getUser();
 
-    if (error || !data.session) {
-      return errorResponse("No session found", 401);
+    if (error || !data.user) {
+      return errorResponse("No user found", 401);
     }
 
-    const uid = data.session.user?.id;
+    const uid = data.user.id;
 
     if (!uid) {
       return errorResponse("No user ID in session", 401);
@@ -37,9 +37,15 @@ export async function GET() {
       return errorResponse("User not found in database", 404);
     }
 
+    // BigInt를 문자열로 변환
+    const serializedUser = {
+      ...user,
+      id: user.id.toString(),
+    };
+
     return successResponse(
       {
-        user: user,
+        user: serializedUser,
         message: "User found",
       },
       200,
