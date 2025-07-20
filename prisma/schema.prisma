@@ -127,7 +127,8 @@ model job_posts {
   job_type                           JobType
   deadline                           String                        @db.VarChar(8)
   work_schedule                      String                        @db.VarChar(100)
-  wage                               String
+  wage                               String                        @db.VarChar
+  location                           Location
   description                        String
   status                             JobStatus
   created_at                         DateTime                      @default(now()) @db.Timestamptz(6)
@@ -140,6 +141,7 @@ model job_posts {
   bookmarked_jobs                    bookmarked_jobs[]
   preferred_profiles                 job_post_preferred_profiles[]
   job_post_skills                    job_post_skills[]
+  job_work_styles                    job_post_work_styles[]
   business_loc                       business_loc                  @relation(fields: [business_loc_id], references: [id])
   skills_job_posts_skill_id1Toskills skills                        @relation("job_posts_skill_id1Toskills", fields: [skill_id1], references: [id], onDelete: NoAction, onUpdate: NoAction)
   skills_job_posts_skill_id2Toskills skills?                       @relation("job_posts_skill_id2Toskills", fields: [skill_id2], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -179,15 +181,46 @@ model bookmarked_jobs {
 }
 
 model personality_profiles {
-  id                 BigInt                        @id @default(autoincrement())
+  id                 BigInt                           @id @default(autoincrement())
   name_ko            String
   name_en            String
   description_ko     String
   description_en     String
-  created_at         DateTime                      @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime                      @db.Timestamptz(6)
+  created_at         DateTime                         @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime                         @default(now()) @db.Timestamptz(6)
   preferred_for_jobs job_post_preferred_profiles[]
+  work_style_weights personality_work_style_weights[]
   users              users[]
+}
+
+model work_styles {
+  id                  BigInt                           @id @default(autoincrement())
+  name_ko             String                           @unique @db.VarChar(50)
+  name_en             String                           @unique @db.VarChar(50)
+  created_at          DateTime                         @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime                         @default(now()) @db.Timestamptz(6)
+  job_work_styles     job_post_work_styles[]
+  personality_weights personality_work_style_weights[]
+}
+
+model personality_work_style_weights {
+  personality_id BigInt
+  work_style_id  BigInt
+  weight         Int                  @default(0)
+  personality    personality_profiles @relation(fields: [personality_id], references: [id])
+  work_style     work_styles          @relation(fields: [work_style_id], references: [id])
+
+  @@id([personality_id, work_style_id])
+}
+
+model job_post_work_styles {
+  job_post_id   BigInt
+  work_style_id BigInt
+  created_at    DateTime    @default(now()) @db.Timestamptz(6)
+  job_post      job_posts   @relation(fields: [job_post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  work_style    work_styles @relation(fields: [work_style_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([job_post_id, work_style_id])
 }
 
 model job_post_preferred_profiles {
