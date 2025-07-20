@@ -9,8 +9,6 @@ import { X, Search } from "lucide-react";
 import { getJobTypesByCategory, getJobTypeConfig } from "@/constants/jobTypes";
 import { JobType } from "@/constants/enums";
 
-const MAX_SELECTED = 3;
-
 // Job type categories
 const JOB_CATEGORIES_DISPLAY = {
   Restaurant: "Restaurant",
@@ -24,17 +22,21 @@ const JOB_CATEGORIES_DISPLAY = {
 } as const;
 
 interface JobTypesDialogProps {
+  title: string;
   open: boolean;
   onClose: () => void;
   selectedJobTypes: JobType[];
   onConfirm: (jobTypes: JobType[]) => void;
+  maxSelected?: number; // 최대 선택 가능한 개수 (기본값: 3)
 }
 
 const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
+  title,
   open,
   onClose,
   selectedJobTypes,
   onConfirm,
+  maxSelected = 3, // 기본값 3
 }) => {
   const [localSelected, setLocalSelected] = useState<JobType[]>(selectedJobTypes);
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,7 +70,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
   const toggleJobType = (jobType: JobType) => {
     if (localSelected.includes(jobType)) {
       setLocalSelected(localSelected.filter((t) => t !== jobType));
-    } else if (localSelected.length < MAX_SELECTED) {
+    } else if (localSelected.length < maxSelected) {
       setLocalSelected([...localSelected, jobType]);
     }
   };
@@ -96,7 +98,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
       <div className="flex flex-col">
         {/* header */}
         <div className="px-5 md:px-8">
-          <h2 className="mb-4 text-left text-[18px] sm:text-[24px] font-bold">Select Job Types</h2>
+          <h2 className="mb-4 text-left text-[18px] sm:text-[24px] font-bold">{title}</h2>
 
           {/* Search Bar */}
           <div className="border-b border-gray-100 pb-2 ">
@@ -120,7 +122,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
               searchResults.map((config) => {
                 const Icon = config.icon;
                 const isSelected = localSelected.includes(config.id);
-                const disabled = !isSelected && localSelected.length >= MAX_SELECTED;
+                const disabled = !isSelected && localSelected.length >= maxSelected;
 
                 return (
                   <button
@@ -163,7 +165,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
                 <div className="flex flex-wrap gap-3">
                   {jobTypes.map((config) => {
                     const isSelected = localSelected.includes(config.id);
-                    const disabled = !isSelected && localSelected.length >= MAX_SELECTED;
+                    const disabled = !isSelected && localSelected.length >= maxSelected;
 
                     return (
                       <Chip
@@ -208,7 +210,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
             disabled={localSelected.length === 0}
             size="lg"
           >
-            {localSelected.length > 0 ? `Apply ${localSelected.length} Job Types` : "Apply"}
+            Apply
           </Button>
         </div>
       </div>

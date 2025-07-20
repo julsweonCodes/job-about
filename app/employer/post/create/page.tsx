@@ -10,6 +10,8 @@ import {
   Briefcase,
   Smile,
   Settings,
+  Sparkles,
+  PenTool,
 } from "lucide-react";
 import PageProgressHeader from "@/components/common/PageProgressHeader";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -19,6 +21,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import { LanguageLevel, LANGUAGE_LEVELS, JobType } from "@/constants/enums";
+import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
@@ -47,7 +50,7 @@ function JobPostCreatePage() {
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
-    selectedJobTypes: [] as JobType[],
+    selectedJobType: null as JobType | null,
     deadline: undefined as Date | undefined,
     workSchedule: "",
     requiredSkills: [],
@@ -55,6 +58,7 @@ function JobPostCreatePage() {
     wage: "",
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
+    useAI: true, // AI 사용 여부 (기본값: true)
   });
 
   const fetchSkills = async () => {
@@ -104,16 +108,9 @@ function JobPostCreatePage() {
 
   const router = useRouter();
 
-  const handleJobTypeSelect = (type: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      jobType: prev.jobType === type ? "" : type,
-    }));
-  };
-
   const handleInputChange = (
     field: string,
-    value: string | boolean | Date | string[] | Skill[] | undefined
+    value: string | boolean | Date | string[] | Skill[] | JobType | null | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -146,7 +143,7 @@ function JobPostCreatePage() {
   const calculateCompletion = () => {
     const fields = [
       formData.jobTitle,
-      formData.selectedJobTypes.length > 0,
+      formData.selectedJobType,
       formData.deadline,
       formData.workSchedule,
       formData.requiredSkills.length > 0,
@@ -221,14 +218,12 @@ function JobPostCreatePage() {
             <div>
               <Input
                 readOnly
-                label="Job Types"
+                label="Job Type"
                 required
-                placeholder="Select Job Types"
+                placeholder="Select Job Type"
                 className="cursor-pointer"
                 value={
-                  formData.selectedJobTypes.length > 0
-                    ? `${formData.selectedJobTypes.length} job types selected`
-                    : ""
+                  formData.selectedJobType ? getJobTypeConfig(formData.selectedJobType).name : ""
                 }
                 onClick={() => setJobTypesDialogOpen(true)}
               />
@@ -329,7 +324,9 @@ function JobPostCreatePage() {
                   className="cursor-pointer"
                   value={formData.requiredSkills
                     .map((skill) =>
-                      typeof skill === "string" ? capitalize(skill) : capitalize(skill.name)
+                      typeof skill === "string"
+                        ? capitalize(skill)
+                        : capitalize((skill as any).name)
                     )
                     .join(", ")}
                   onClick={() => setSkillsDialogOpen(true)}
@@ -439,11 +436,58 @@ function JobPostCreatePage() {
                 </Typography>
               </div>
             </div>
+
+            {/* AI 사용 여부 선택 */}
+            <div className="mb-6">
+              <Typography
+                variant="bodySm"
+                as="label"
+                className="block mb-3 font-semibold text-gray-700"
+              >
+                Description Generation Method
+              </Typography>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleInputChange("useAI", true)}
+                  className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    formData.useAI
+                      ? "border-purple-500 bg-purple-50 text-purple-700"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-purple-300"
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5" />
+                  <span className="font-medium">Use AI</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange("useAI", false)}
+                  className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    !formData.useAI
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300"
+                  }`}
+                >
+                  <PenTool className="w-5 h-5" />
+                  <span className="font-medium">Write Manually</span>
+                </button>
+              </div>
+              <p className="text-bodySm sm:text-bodyMd text-gray-500 mt-2">
+                {formData.useAI
+                  ? "AI will generate a job description based on your inputs"
+                  : "You can write the job description manually"}
+              </p>
+            </div>
+
             <TextArea
               label="Job Description"
               value={formData.jobDescription}
               onChange={(e: any) => handleInputChange("jobDescription", e.target.value)}
-              placeholder="Describe the job responsibilities and requirements..."
+              placeholder={
+                formData.useAI
+                  ? "AI will generate description based on your inputs..."
+                  : "Write your job description manually..."
+              }
               rows={4}
               required
             />
@@ -457,20 +501,22 @@ function JobPostCreatePage() {
               size="xl"
               className="w-full bg-[#7C3AED] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-[#6D28D9] active:bg-[#5B21B6] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
             >
-              Generate Job Posting with AI
+              {formData.useAI ? "Generate Job Posting with AI" : "Create Job Posting"}
             </Button>
           </div>
         </div>
 
         {/* JobTypesDialog */}
         <JobTypesDialog
+          title="Select Job Type"
           open={jobTypesDialogOpen}
           onClose={() => setJobTypesDialogOpen(false)}
-          selectedJobTypes={formData.selectedJobTypes}
+          selectedJobTypes={formData.selectedJobType ? [formData.selectedJobType] : []}
           onConfirm={(jobTypes) => {
-            handleInputChange("selectedJobTypes", jobTypes);
+            handleInputChange("selectedJobType", jobTypes.length > 0 ? jobTypes[0] : null);
             setJobTypesDialogOpen(false);
           }}
+          maxSelected={1}
         />
       </div>
     </div>
