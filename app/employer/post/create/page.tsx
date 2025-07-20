@@ -19,6 +19,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import { LanguageLevel, LANGUAGE_LEVELS, JobType } from "@/constants/enums";
+import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
@@ -47,7 +48,7 @@ function JobPostCreatePage() {
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
-    selectedJobTypes: [] as JobType[],
+    selectedJobType: null as JobType | null,
     deadline: undefined as Date | undefined,
     workSchedule: "",
     requiredSkills: [],
@@ -104,16 +105,9 @@ function JobPostCreatePage() {
 
   const router = useRouter();
 
-  const handleJobTypeSelect = (type: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      jobType: prev.jobType === type ? "" : type,
-    }));
-  };
-
   const handleInputChange = (
     field: string,
-    value: string | boolean | Date | string[] | Skill[] | undefined
+    value: string | boolean | Date | string[] | Skill[] | JobType | null | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -146,7 +140,7 @@ function JobPostCreatePage() {
   const calculateCompletion = () => {
     const fields = [
       formData.jobTitle,
-      formData.selectedJobTypes.length > 0,
+      formData.selectedJobType,
       formData.deadline,
       formData.workSchedule,
       formData.requiredSkills.length > 0,
@@ -226,9 +220,7 @@ function JobPostCreatePage() {
                 placeholder="Select Job Types"
                 className="cursor-pointer"
                 value={
-                  formData.selectedJobTypes.length > 0
-                    ? `${formData.selectedJobTypes.length} job types selected`
-                    : ""
+                  formData.selectedJobType ? getJobTypeConfig(formData.selectedJobType).name : ""
                 }
                 onClick={() => setJobTypesDialogOpen(true)}
               />
@@ -329,7 +321,9 @@ function JobPostCreatePage() {
                   className="cursor-pointer"
                   value={formData.requiredSkills
                     .map((skill) =>
-                      typeof skill === "string" ? capitalize(skill) : capitalize(skill.name)
+                      typeof skill === "string"
+                        ? capitalize(skill)
+                        : capitalize((skill as any).name)
                     )
                     .join(", ")}
                   onClick={() => setSkillsDialogOpen(true)}
@@ -466,11 +460,12 @@ function JobPostCreatePage() {
         <JobTypesDialog
           open={jobTypesDialogOpen}
           onClose={() => setJobTypesDialogOpen(false)}
-          selectedJobTypes={formData.selectedJobTypes}
+          selectedJobTypes={formData.selectedJobType ? [formData.selectedJobType] : []}
           onConfirm={(jobTypes) => {
-            handleInputChange("selectedJobTypes", jobTypes);
+            handleInputChange("selectedJobType", jobTypes.length > 0 ? jobTypes[0] : null);
             setJobTypesDialogOpen(false);
           }}
+          maxSelected={1}
         />
       </div>
     </div>

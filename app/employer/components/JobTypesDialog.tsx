@@ -9,8 +9,6 @@ import { X, Search } from "lucide-react";
 import { getJobTypesByCategory, getJobTypeConfig } from "@/constants/jobTypes";
 import { JobType } from "@/constants/enums";
 
-const MAX_SELECTED = 3;
-
 // Job type categories
 const JOB_CATEGORIES_DISPLAY = {
   Restaurant: "Restaurant",
@@ -28,6 +26,7 @@ interface JobTypesDialogProps {
   onClose: () => void;
   selectedJobTypes: JobType[];
   onConfirm: (jobTypes: JobType[]) => void;
+  maxSelected?: number; // 최대 선택 가능한 개수 (기본값: 3)
 }
 
 const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
@@ -35,6 +34,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
   onClose,
   selectedJobTypes,
   onConfirm,
+  maxSelected = 3, // 기본값 3
 }) => {
   const [localSelected, setLocalSelected] = useState<JobType[]>(selectedJobTypes);
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,7 +68,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
   const toggleJobType = (jobType: JobType) => {
     if (localSelected.includes(jobType)) {
       setLocalSelected(localSelected.filter((t) => t !== jobType));
-    } else if (localSelected.length < MAX_SELECTED) {
+    } else if (localSelected.length < maxSelected) {
       setLocalSelected([...localSelected, jobType]);
     }
   };
@@ -120,7 +120,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
               searchResults.map((config) => {
                 const Icon = config.icon;
                 const isSelected = localSelected.includes(config.id);
-                const disabled = !isSelected && localSelected.length >= MAX_SELECTED;
+                const disabled = !isSelected && localSelected.length >= maxSelected;
 
                 return (
                   <button
@@ -163,7 +163,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
                 <div className="flex flex-wrap gap-3">
                   {jobTypes.map((config) => {
                     const isSelected = localSelected.includes(config.id);
-                    const disabled = !isSelected && localSelected.length >= MAX_SELECTED;
+                    const disabled = !isSelected && localSelected.length >= maxSelected;
 
                     return (
                       <Chip
