@@ -24,6 +24,7 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
+import { LanguageLevel } from "@/constants/enums";
 
 function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -53,10 +54,7 @@ function App() {
     jobTypes: ["Full-time", "Contract"],
     availabilityDays: ["Weekdays"],
     availabilityTimes: ["AM", "PM"],
-    languages: [
-      { language: "English", level: "Fluent" },
-      { language: "Spanish", level: "Intermediate" },
-    ],
+    englishLevel: LanguageLevel.Fluent,
     experiences: [
       {
         title: "Senior Product Designer",
@@ -77,7 +75,6 @@ function App() {
   // Job Preferences 관련 상태
   const [newSkill, setNewSkill] = useState("");
   const [newJobType, setNewJobType] = useState("");
-  const [newLanguage, setNewLanguage] = useState({ language: "", level: "Intermediate" });
 
   const workStyle = {
     type: "Empathetic Coordinator",
@@ -121,12 +118,6 @@ function App() {
   const handleCancel = (section: string) => {
     setTempData(applicantProfile);
     setIsEditing((prev) => ({ ...prev, [section]: false }));
-  };
-
-  // update basic info
-  const handleBasicInfoSave = () => {
-    setApplicantProfile(tempData);
-    setIsEditing((prev) => ({ ...prev, basicInfo: false }));
   };
 
   // update contact, location
@@ -231,20 +222,10 @@ function App() {
     }));
   };
 
-  const addLanguage = () => {
-    if (newLanguage.language.trim()) {
-      setTempData((prev) => ({
-        ...prev,
-        languages: [...prev.languages, { ...newLanguage, language: newLanguage.language.trim() }],
-      }));
-      setNewLanguage({ language: "", level: "Intermediate" });
-    }
-  };
-
-  const removeLanguage = (index: number) => {
+  const updateEnglishLevel = (level: LanguageLevel) => {
     setTempData((prev) => ({
       ...prev,
-      languages: prev.languages.filter((_, i) => i !== index),
+      englishLevel: level,
     }));
   };
 
@@ -425,27 +406,16 @@ function App() {
           <h2 className="text-lg font-bold text-slate-900">Job Preferences</h2>
 
           {/* Skills */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
-                  <Star size={18} className="text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Skills</h3>
-                  <p className="text-sm text-slate-500">Your professional skills and expertise</p>
-                </div>
-              </div>
-              {!isEditing.skills && (
-                <button
-                  onClick={() => handleEdit("skills")}
-                  className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
-                >
-                  <Edit3 size={16} className="text-slate-600" />
-                </button>
-              )}
-            </div>
-
+          <InfoSection
+            icon={<Star size={18} className="text-blue-600" />}
+            iconClassName="bg-gradient-to-br from-blue-100 to-indigo-100"
+            title="Skills"
+            subtitle="Your professional skills and expertise"
+            onEdit={() => handleEdit("skills")}
+            isEditing={isEditing.skills}
+            onSave={() => handleOptionsSave("skills")}
+            onCancel={() => handleCancel("skills")}
+          >
             {!isEditing.skills ? (
               <div className="flex flex-wrap gap-2">
                 {tempData.skills.map((skill, index) => (
@@ -491,107 +461,55 @@ function App() {
                     <Plus size={16} />
                   </button>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleOptionsSave("skills")}
-                    className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => handleCancel("skills")}
-                    className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
-                  >
-                    Cancel
-                  </button>
-                </div>
               </div>
             )}
-          </div>
+          </InfoSection>
 
           {/* Work Type */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
-                  <Globe size={18} className="text-green-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Work Type</h3>
-                  <p className="text-sm text-slate-500">Remote, on-site, or hybrid preference</p>
-                </div>
-              </div>
-              {!isEditing.workType && (
-                <button
-                  onClick={() => handleEdit("workType")}
-                  className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
-                >
-                  <Edit3 size={16} className="text-slate-600" />
-                </button>
-              )}
-            </div>
-
+          <InfoSection
+            icon={<Globe size={18} className="text-green-600" />}
+            iconClassName="bg-gradient-to-br from-green-100 to-emerald-100"
+            title="Work Type"
+            subtitle="Remote, on-site, or hybrid preference"
+            onEdit={() => handleEdit("workType")}
+            isEditing={isEditing.workType}
+            onSave={() => handleOptionsSave("workType")}
+            onCancel={() => handleCancel("workType")}
+          >
             {!isEditing.workType ? (
               <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
                 {tempData.workType}
               </span>
             ) : (
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  {["Remote", "On-site", "Hybrid"].map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => handleTempInputChange("workType", type)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                        tempData.workType === type
-                          ? "bg-green-500 text-white"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-3">
+              <div className="flex gap-2">
+                {["Remote", "On-site", "Hybrid"].map((type) => (
                   <button
-                    onClick={() => handleOptionsSave("workType")}
-                    className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
+                    key={type}
+                    onClick={() => handleTempInputChange("workType", type)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      tempData.workType === type
+                        ? "bg-green-500 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
                   >
-                    Save
+                    {type}
                   </button>
-                  <button
-                    onClick={() => handleCancel("workType")}
-                    className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                ))}
               </div>
             )}
-          </div>
+          </InfoSection>
 
           {/* Preferred Job Types */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
-                  <Briefcase size={18} className="text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Preferred Job Types</h3>
-                  <p className="text-sm text-slate-500">Types of roles you're interested in</p>
-                </div>
-              </div>
-              {!isEditing.jobTypes && (
-                <button
-                  onClick={() => handleEdit("jobTypes")}
-                  className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
-                >
-                  <Edit3 size={16} className="text-slate-600" />
-                </button>
-              )}
-            </div>
-
+          <InfoSection
+            icon={<Briefcase size={18} className="text-purple-600" />}
+            iconClassName="bg-gradient-to-br from-purple-100 to-pink-100"
+            title="Preferred Job Types"
+            subtitle="Types of roles you're interested in"
+            onEdit={() => handleEdit("jobTypes")}
+            isEditing={isEditing.jobTypes}
+            onSave={() => handleOptionsSave("jobTypes")}
+            onCancel={() => handleCancel("jobTypes")}
+          >
             {!isEditing.jobTypes ? (
               <div className="flex flex-wrap gap-2">
                 {tempData.jobTypes.map((type, index) => (
@@ -637,46 +555,21 @@ function App() {
                     <Plus size={16} />
                   </button>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleOptionsSave("jobTypes")}
-                    className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => handleCancel("jobTypes")}
-                    className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
-                  >
-                    Cancel
-                  </button>
-                </div>
               </div>
             )}
-          </div>
+          </InfoSection>
 
           {/* Availability */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-red-100 rounded-xl flex items-center justify-center">
-                  <Calendar size={18} className="text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Availability</h3>
-                  <p className="text-sm text-slate-500">When you're available to work</p>
-                </div>
-              </div>
-              {!isEditing.availability && (
-                <button
-                  onClick={() => handleEdit("availability")}
-                  className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
-                >
-                  <Edit3 size={16} className="text-slate-600" />
-                </button>
-              )}
-            </div>
-
+          <InfoSection
+            icon={<Calendar size={18} className="text-orange-600" />}
+            iconClassName="bg-gradient-to-br from-orange-100 to-red-100"
+            title="Availability"
+            subtitle="When you're available to work"
+            onEdit={() => handleEdit("availability")}
+            isEditing={isEditing.availability}
+            onSave={() => handleOptionsSave("availability")}
+            onCancel={() => handleCancel("availability")}
+          >
             {!isEditing.availability ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
@@ -738,42 +631,17 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleOptionsSave("availability")}
-                    className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => handleCancel("availability")}
-                    className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
-                  >
-                    Cancel
-                  </button>
-                </div>
               </div>
             )}
-          </div>
+          </InfoSection>
 
           {/* Experiences */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-xl flex items-center justify-center">
-                  <Briefcase size={18} className="text-indigo-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Experiences</h3>
-                  <p className="text-sm text-slate-500">Your work experience and background</p>
-                </div>
-              </div>
-              <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation">
-                <Plus size={16} />
-                Add Experience
-              </button>
-            </div>
-
+          <InfoSection
+            icon={<Briefcase size={18} className="text-indigo-600" />}
+            iconClassName="bg-gradient-to-br from-indigo-100 to-blue-100"
+            title="Experiences"
+            subtitle="Your work experience and background"
+          >
             <div className="space-y-3">
               {tempData.experiences.map((exp, index) => (
                 <div key={index} className="p-4 bg-slate-50 rounded-lg">
@@ -783,110 +651,45 @@ function App() {
                 </div>
               ))}
             </div>
-          </div>
+            <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation">
+              <Plus size={16} />
+              Add Experience
+            </button>
+          </InfoSection>
 
-          {/* Language Proficiency */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-xl flex items-center justify-center">
-                  <Globe size={18} className="text-teal-600" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Language Proficiency</h3>
-                  <p className="text-sm text-slate-500">Languages you speak and your skill level</p>
-                </div>
-              </div>
-              {!isEditing.languages && (
-                <button
-                  onClick={() => handleEdit("languages")}
-                  className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
-                >
-                  <Edit3 size={16} className="text-slate-600" />
-                </button>
-              )}
-            </div>
-
+          {/* English Proficiency */}
+          <InfoSection
+            icon={<Globe size={18} className="text-teal-600" />}
+            iconClassName="bg-gradient-to-br from-teal-100 to-cyan-100"
+            title="English Proficiency"
+            subtitle="Your English language skill level"
+            onEdit={() => handleEdit("languages")}
+            isEditing={isEditing.languages}
+            onSave={() => handleOptionsSave("languages")}
+            onCancel={() => handleCancel("languages")}
+          >
             {!isEditing.languages ? (
-              <div className="space-y-2">
-                {tempData.languages.map((lang, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+              <span className="px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
+                {tempData.englishLevel}
+              </span>
+            ) : (
+              <div className="flex gap-2">
+                {Object.values(LanguageLevel).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => updateEnglishLevel(level)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      tempData.englishLevel === level
+                        ? "bg-teal-500 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
                   >
-                    <span className="font-medium text-slate-900">{lang.language}</span>
-                    <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
-                      {lang.level}
-                    </span>
-                  </div>
+                    {level}
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  {tempData.languages.map((lang, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
-                    >
-                      <span className="font-medium text-slate-900">{lang.language}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
-                          {lang.level}
-                        </span>
-                        <button
-                          onClick={() => removeLanguage(index)}
-                          className="hover:bg-slate-200 rounded-full p-1"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newLanguage.language}
-                    onChange={(e) =>
-                      setNewLanguage((prev) => ({ ...prev, language: e.target.value }))
-                    }
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Language..."
-                  />
-                  <select
-                    value={newLanguage.level}
-                    onChange={(e) => setNewLanguage((prev) => ({ ...prev, level: e.target.value }))}
-                    className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Fluent">Fluent</option>
-                  </select>
-                  <button
-                    onClick={addLanguage}
-                    className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleOptionsSave("languages")}
-                    className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-indigo-500/25 touch-manipulation active:scale-[0.98]"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => handleCancel("languages")}
-                    className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-semibold rounded-xl transition-all duration-200 touch-manipulation active:scale-[0.98]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
             )}
-          </div>
+          </InfoSection>
         </div>
 
         {/* 5. My Activity */}
