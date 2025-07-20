@@ -21,6 +21,8 @@ import BaseDialog from "@/components/common/BaseDialog";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import TextArea from "@/components/ui/TextArea";
 
 function EmployerMypage() {
   const [isEditing, setIsEditing] = useState({
@@ -30,11 +32,17 @@ function EmployerMypage() {
     contact: false,
   });
 
-  const [detailImages, setDetailImages] = useState<string[]>([]);
+  // 원본 workplace photos
   const [originalImages, setOriginalImages] = useState<string[]>([
     "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
   ]);
-  const [hasChanges, setHasChanges] = useState(false);
+  // 새로 추가된 workplace photos
+  const [detailImages, setDetailImages] = useState<string[]>([]);
+
+  // 변경사항 감지
+  const [isWorkplacePhotoChanged, setIsWorkplacePhotoChanged] = useState(false);
+
+  // 이미지 업로드 다이얼로그
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,7 +80,7 @@ function EmployerMypage() {
     const currentImages =
       detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages;
     const hasImageChanges = JSON.stringify(currentImages) !== JSON.stringify(originalImages);
-    setHasChanges(hasImageChanges);
+    setIsWorkplacePhotoChanged(hasImageChanges);
   }, [detailImages, originalImages]);
 
   const tagOptions = [
@@ -148,7 +156,7 @@ function EmployerMypage() {
       // 성공 시 원본 이미지 업데이트
       setOriginalImages(currentImages);
       setDetailImages([]); // 새로 추가된 이미지 배열 초기화
-      setHasChanges(false);
+      setIsWorkplacePhotoChanged(false);
 
       console.log("Images saved successfully");
     } catch (error) {
@@ -159,7 +167,7 @@ function EmployerMypage() {
   const handleCancelImages = () => {
     // 변경사항을 취소하고 원본 상태로 되돌리기
     setDetailImages([]); // 새로 추가된 이미지 배열 초기화
-    setHasChanges(false);
+    setIsWorkplacePhotoChanged(false);
     console.log("Image changes cancelled");
   };
 
@@ -299,12 +307,14 @@ function EmployerMypage() {
           onCancel={() => handleCancel("address")}
         >
           {isEditing.address ? (
-            <textarea
+            <Input
+              label="Business Address"
               value={businessData.address}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-              rows={2}
-              className="w-full text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleInputChange("address", e.target.value)
+              }
               placeholder="Enter your business address..."
+              rightIcon={<MapPin className="w-5 h-5" />}
             />
           ) : (
             <p className="text-slate-700 leading-relaxed">{businessData.address}</p>
@@ -324,21 +334,23 @@ function EmployerMypage() {
           {isEditing.hours ? (
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Start Time</label>
-                <input
+                <Input
+                  label="Start Time"
                   type="time"
                   value={businessData.startTime}
-                  onChange={(e) => handleInputChange("startTime", e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleInputChange("startTime", e.target.value)
+                  }
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-slate-700 mb-2">End Time</label>
-                <input
+                <Input
+                  label="End Time"
                   type="time"
                   value={businessData.endTime}
-                  onChange={(e) => handleInputChange("endTime", e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleInputChange("endTime", e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -362,12 +374,13 @@ function EmployerMypage() {
         >
           {isEditing.contact ? (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Phone Number</label>
-              <input
+              <Input
+                label="Phone Number"
                 type="tel"
                 value={businessData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange("phone", e.target.value)
+                }
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -398,6 +411,7 @@ function EmployerMypage() {
               </div>
             </div>
 
+            {/* workplace photos */}
             <div>
               <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-4 scrollbar-hide px-2">
                 {businessLocation.detailImages.map((image, index) => (
@@ -456,7 +470,7 @@ function EmployerMypage() {
               </div>
 
               {/* Save Button */}
-              {hasChanges && (
+              {isWorkplacePhotoChanged && (
                 <MypageActionButtons
                   onCancel={handleCancelImages}
                   onSave={handleSaveImages}
@@ -512,31 +526,28 @@ function EmployerMypage() {
         size="md"
         type="bottomSheet"
       >
-        <div className="space-y-4">
+        <div className="space-y-4 mb-4">
           <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
-              <input
-                type="text"
-                value={tempProfileData.name}
-                onChange={(e) => handleTempInputChange("name", e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <Input
+              label="Business Name"
+              value={tempProfileData.name}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleTempInputChange("name", e.target.value)
+              }
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-              <textarea
-                value={tempProfileData.description}
-                onChange={(e) => handleTempInputChange("description", e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <TextArea
+              label="Description"
+              value={tempProfileData.description}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                handleTempInputChange("description", e.target.value)
+              }
+              rows={3}
+            />
           </div>
         </div>
 
-        <Button onClick={handleProfileSave} variant="gradient" size="md" className="w-full">
+        <Button onClick={handleProfileSave} size="lg" className="w-full">
           Save Changes
         </Button>
       </BaseDialog>
