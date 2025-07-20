@@ -40,20 +40,14 @@ function RoleCard({ selected, onClick, icon, title, description }: RoleCardProps
       >
         {icon}
       </div>
-      <Typography
-        as="div"
-        variant="titleBold"
-        className={`mb-1 transition-colors duration-200 ${selected ? "text-[#7A73F1]" : "text-gray-900 hover:text-[#7A73F1]"}`}
+      <span
+        className={`text-[16px] sm:text-[22px] font-bold mb-1 transition-colors duration-200 ${selected ? "text-[#7A73F1]" : "text-gray-900 hover:text-[#7A73F1]"}`}
       >
         {title}
-      </Typography>
-      <Typography
-        as="div"
-        variant="titleRegular"
-        className="text-gray-500 mb-2 transition-colors duration-200 hidden md:block"
-      >
+      </span>
+      <span className="text-[16px] sm:text-[18px] font-normal text-gray-500 mb-2 transition-colors duration-200 hidden md:block">
         {description}
-      </Typography>
+      </span>
 
       <span
         className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${selected ? "border-[#7A73F1] bg-[#7A73F1]" : "border-gray-200 bg-white"}`}
