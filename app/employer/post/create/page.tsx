@@ -163,7 +163,7 @@ function JobPostCreatePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
-      {isLoading && <LoadingScreen />}
+      {isLoading && <LoadingScreen message="Generating job post..." />}
 
       {/* Header */}
       <PageProgressHeader

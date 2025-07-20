@@ -10,7 +10,7 @@ interface LoadingSpinnerProps {
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = "md", className }) => {
   const sizeClasses = {
     sm: "w-4 h-4",
-    md: "w-12 h-12 sm:w-[100px] sm:h-[100px]",
+    md: "w-14 h-14 sm:w-[100px] sm:h-[100px]",
     lg: "w-12 h-12 sm:w-[120px] sm:h-[120px]",
     xl: "w-16 h-16 sm:w-[140px] sm:h-[140px]",
   };
@@ -19,7 +19,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = "md", className 
   // 원의 둘레 = 2 * π * r = 2 * π * 10 = 62.83
   const circumference = 2 * Math.PI * 10;
   const quarterLength = circumference / 4; // 약 15.7
-  const strokeWidth = size === "sm" ? 2 : 2.5;
+  const strokeWidth = 1.5;
 
   return (
     <div className={cn("relative", sizeClasses[size], className)}>
