@@ -94,16 +94,12 @@ export default function OnboardingPage() {
             <Typography as="h1" variant="headlineMd" className="text-center mb-5 md:text-3xl">
               Select your role
             </Typography>
-            <Typography
-              as="p"
-              variant="bodyLg"
-              className="text-gray-500 text-center mb-10 max-w-xs mx-auto"
-            >
+            <p className="text-[14px] sm:text-[20px] font-normal text-gray-500 text-center mb-10 max-w-xs mx-auto">
               A job matching platform for international students
               <br className="hidden md:block" />
               and working holiday participants in{" "}
               <span className="font-bold text-text-primary">Canada</span>.
-            </Typography>
+            </p>
 
             {/* Role Selection Cards */}
             <div className="w-full grid gap-4 grid-cols-2 mb-8 items-stretch">
