@@ -22,6 +22,7 @@ const JOB_CATEGORIES_DISPLAY = {
 } as const;
 
 interface JobTypesDialogProps {
+  title: string;
   open: boolean;
   onClose: () => void;
   selectedJobTypes: JobType[];
@@ -30,6 +31,7 @@ interface JobTypesDialogProps {
 }
 
 const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
+  title,
   open,
   onClose,
   selectedJobTypes,
@@ -96,7 +98,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
       <div className="flex flex-col">
         {/* header */}
         <div className="px-5 md:px-8">
-          <h2 className="mb-4 text-left text-[18px] sm:text-[24px] font-bold">Select Job Types</h2>
+          <h2 className="mb-4 text-left text-[18px] sm:text-[24px] font-bold">{title}</h2>
 
           {/* Search Bar */}
           <div className="border-b border-gray-100 pb-2 ">
@@ -208,7 +210,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
             disabled={localSelected.length === 0}
             size="lg"
           >
-            {localSelected.length > 0 ? `Apply ${localSelected.length} Job Types` : "Apply"}
+            Apply
           </Button>
         </div>
       </div>

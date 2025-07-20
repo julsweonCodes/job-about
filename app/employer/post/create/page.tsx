@@ -215,9 +215,9 @@ function JobPostCreatePage() {
             <div>
               <Input
                 readOnly
-                label="Job Types"
+                label="Job Type"
                 required
-                placeholder="Select Job Types"
+                placeholder="Select Job Type"
                 className="cursor-pointer"
                 value={
                   formData.selectedJobType ? getJobTypeConfig(formData.selectedJobType).name : ""
@@ -458,6 +458,7 @@ function JobPostCreatePage() {
 
         {/* JobTypesDialog */}
         <JobTypesDialog
+          title="Select Job Type"
           open={jobTypesDialogOpen}
           onClose={() => setJobTypesDialogOpen(false)}
           selectedJobTypes={formData.selectedJobType ? [formData.selectedJobType] : []}
