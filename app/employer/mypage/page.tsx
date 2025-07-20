@@ -23,6 +23,7 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
+import TimeRangePicker from "@/components/ui/TimeRangePicker";
 
 function EmployerMypage() {
   const [isEditing, setIsEditing] = useState({
@@ -332,28 +333,13 @@ function EmployerMypage() {
           onCancel={() => handleCancel("hours")}
         >
           {isEditing.hours ? (
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <Input
-                  label="Start Time"
-                  type="time"
-                  value={businessData.startTime}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleInputChange("startTime", e.target.value)
-                  }
-                />
-              </div>
-              <div className="flex-1">
-                <Input
-                  label="End Time"
-                  type="time"
-                  value={businessData.endTime}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleInputChange("endTime", e.target.value)
-                  }
-                />
-              </div>
-            </div>
+            <TimeRangePicker
+              startTime={businessData.startTime}
+              endTime={businessData.endTime}
+              onStartTimeChange={(time) => handleInputChange("startTime", time)}
+              onEndTimeChange={(time) => handleInputChange("endTime", time)}
+              label="Operating Hours"
+            />
           ) : (
             <p className="text-slate-700">
               <span className="font-medium">Monday - Friday:</span> {businessData.startTime} -{" "}
