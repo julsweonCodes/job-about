@@ -67,15 +67,9 @@ model applicant_profiles {
   created_at                                  DateTime           @default(now()) @db.Timestamptz(6)
   deleted_at                                  DateTime?          @db.Timestamptz(6)
   updated_at                                  DateTime           @default(now()) @db.Timestamptz(6)
-  skill_id1                                   BigInt
-  skill_id2                                   BigInt?
-  skill_id3                                   BigInt?
-  skills_applicant_profiles_skill_id1Toskills skills             @relation("applicant_profiles_skill_id1Toskills", fields: [skill_id1], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  skills_applicant_profiles_skill_id2Toskills skills?            @relation("applicant_profiles_skill_id2Toskills", fields: [skill_id2], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  skills_applicant_profiles_skill_id3Toskills skills?            @relation("applicant_profiles_skill_id3Toskills", fields: [skill_id3], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user                                        users              @relation(fields: [user_id], references: [id])
   applications                                applications[]
-  profile_skills                              profile_skills[]
+  profile_practical_skills                    profile_practical_skills[]
   work_experiences                            work_experiences[]
 }
 
@@ -94,31 +88,6 @@ model work_experiences {
   profile      applicant_profiles @relation(fields: [profile_id], references: [id])
 }
 
-model skills {
-  id                                                      BigInt               @id @default(autoincrement())
-  name                                                    String               @unique @db.VarChar(50)
-  created_at                                              DateTime             @default(now()) @db.Timestamptz(6)
-  deleted_at                                              DateTime?            @db.Timestamptz(6)
-  updated_at                                              DateTime             @default(now()) @db.Timestamptz(6)
-  applicant_profiles_applicant_profiles_skill_id1Toskills applicant_profiles[] @relation("applicant_profiles_skill_id1Toskills")
-  applicant_profiles_applicant_profiles_skill_id2Toskills applicant_profiles[] @relation("applicant_profiles_skill_id2Toskills")
-  applicant_profiles_applicant_profiles_skill_id3Toskills applicant_profiles[] @relation("applicant_profiles_skill_id3Toskills")
-  job_post_skills                                         job_post_skills[]
-  job_posts_job_posts_skill_id1Toskills                   job_posts[]          @relation("job_posts_skill_id1Toskills")
-  job_posts_job_posts_skill_id2Toskills                   job_posts[]          @relation("job_posts_skill_id2Toskills")
-  job_posts_job_posts_skill_id3Toskills                   job_posts[]          @relation("job_posts_skill_id3Toskills")
-  profile_skills                                          profile_skills[]
-}
-
-model profile_skills {
-  profile_id BigInt
-  skill_id   BigInt
-  profile    applicant_profiles @relation(fields: [profile_id], references: [id])
-  skill      skills             @relation(fields: [skill_id], references: [id])
-
-  @@id([profile_id, skill_id])
-}
-
 model job_posts {
   id                                 BigInt                        @id @default(autoincrement())
   business_loc_id                    BigInt
@@ -134,28 +103,13 @@ model job_posts {
   created_at                         DateTime                      @default(now()) @db.Timestamptz(6)
   deleted_at                         DateTime?                     @db.Timestamptz(6)
   updated_at                         DateTime                      @default(now()) @db.Timestamptz(6)
-  skill_id1                          BigInt
-  skill_id2                          BigInt?
-  skill_id3                          BigInt?
   applications                       applications[]
   bookmarked_jobs                    bookmarked_jobs[]
   preferred_profiles                 job_post_preferred_profiles[]
-  job_post_skills                    job_post_skills[]
+  job_practical_skills               job_post_practical_skills[]
   job_work_styles                    job_post_work_styles[]
   business_loc                       business_loc                  @relation(fields: [business_loc_id], references: [id])
-  skills_job_posts_skill_id1Toskills skills                        @relation("job_posts_skill_id1Toskills", fields: [skill_id1], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  skills_job_posts_skill_id2Toskills skills?                       @relation("job_posts_skill_id2Toskills", fields: [skill_id2], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  skills_job_posts_skill_id3Toskills skills?                       @relation("job_posts_skill_id3Toskills", fields: [skill_id3], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user                               users                         @relation(fields: [user_id], references: [id])
-}
-
-model job_post_skills {
-  job_post_id BigInt
-  skill_id    BigInt
-  job_post    job_posts @relation(fields: [job_post_id], references: [id])
-  skill       skills    @relation(fields: [skill_id], references: [id])
-
-  @@id([job_post_id, skill_id])
 }
 
 model applications {
@@ -270,6 +224,43 @@ model user_responses {
   created_at DateTime     @default(now()) @db.Timestamptz(6)
   choice     quiz_choices @relation(fields: [choice_id], references: [id])
   user       users        @relation(fields: [user_id], references: [id])
+}
+
+
+model practical_skills {
+  id                  BigInt                        @id @default(autoincrement())
+  category_ko         String                        @db.VarChar(50)   // "면허 및 자격증"
+  category_en         String                        @db.VarChar(50)   // "Licenses & Certifications"
+  name_ko             String                        @db.VarChar(100)  // "운전면허"
+  name_en             String                        @db.VarChar(100)  // "Driver's License"
+  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  
+  // 관계 설정
+  profile_skills      profile_practical_skills[]
+  job_requirements    job_post_practical_skills[]
+}
+
+model profile_practical_skills {
+  profile_id          BigInt
+  practical_skill_id  BigInt
+  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  
+  profile             applicant_profiles            @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  practical_skill     practical_skills              @relation(fields: [practical_skill_id], references: [id], onDelete: Cascade)
+  
+  @@id([profile_id, practical_skill_id])
+}
+
+model job_post_practical_skills {
+  job_post_id         BigInt
+  practical_skill_id  BigInt
+  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  
+  job_post            job_posts                     @relation(fields: [job_post_id], references: [id], onDelete: Cascade)
+  practical_skill     practical_skills              @relation(fields: [practical_skill_id], references: [id], onDelete: Cascade)
+  
+  @@id([job_post_id, practical_skill_id])
 }
 
 enum Role {

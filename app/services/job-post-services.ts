@@ -22,8 +22,8 @@ import { JobPostPayload } from "@/types/employer";
       wage: payload.wage,
       work_schedule: payload.workSchedule,
       business_loc_id: bizLocId,
-      skill_id1: 1,
       user_id: userId,
+      location: "TORONTO", // TODO: 동적으로 설정 필요
     },
     select: {
       id: true
