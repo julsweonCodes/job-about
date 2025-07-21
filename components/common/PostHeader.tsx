@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, Eye } from "lucide-react";
+import { ChevronLeft, Eye, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface PostHeaderProps {
@@ -7,6 +7,7 @@ interface PostHeaderProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   previewMode?: boolean;
+  editMode?: boolean;
   onClickLeft?: () => void;
   onClickRight?: () => void;
 }
@@ -16,6 +17,7 @@ export default function PostHeader({
   onClickLeft,
   onClickRight,
   previewMode,
+  editMode,
 }: PostHeaderProps) {
   const router = useRouter();
 
@@ -40,6 +42,16 @@ export default function PostHeader({
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Eye className="w-4 h-4" />
                 <span>Preview Mode</span>
+              </div>
+            </div>
+          )}
+
+          {editMode && (
+
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Pencil className="w-4 h-4" />
+                <span>Edit Mode</span>
               </div>
             </div>
           )}
