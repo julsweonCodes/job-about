@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   Briefcase,
@@ -15,11 +15,31 @@ import {
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { createSupabaseBrowserClient } from "@/lib/client/supabase";
+import { useRouter } from "next/navigation";
+import { PAGE_URLS, API_URLS } from "@/constants/api";
 
 function App() {
   const [activeTab, setActiveTab] = useState("seekers");
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const { isLoggedIn, profileStatus } = useAuthStore();
   const supabase = createSupabaseBrowserClient();
+  const router = useRouter();
+
+  // role이 없으면 온보딩 페이지로 리다이렉트
+  useEffect(() => {
+    if (isLoggedIn && profileStatus) {
+      if (!profileStatus.hasRole) {
+        console.log("User has no role, redirecting to onboarding");
+        router.replace(PAGE_URLS.ONBOARDING);
+      } else if (profileStatus.hasRole && !profileStatus.isProfileCompleted) {
+        // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
+        if (profileStatus.role === "APPLICANT") {
+          router.replace(API_URLS.ONBOARDING.SEEKER_PROFILE);
+        } else if (profileStatus.role === "EMPLOYER") {
+          router.replace(API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+        }
+      }
+    }
+  }, [isLoggedIn, profileStatus, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

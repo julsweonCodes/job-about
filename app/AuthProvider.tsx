@@ -2,10 +2,12 @@
 import { useEffect, useRef } from "react";
 import { createSupabaseBrowserClient } from "@/lib/client/supabase";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { API_URLS } from "@/constants/api";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { useRouter } from "next/navigation";
 
 export default function AuthProvider() {
-  const { setIsLoggedIn, setUser } = useAuthStore();
+  const { setIsLoggedIn, setUser, setProfileStatus } = useAuthStore();
+  const router = useRouter();
   const isInitialized = useRef(false);
 
   useEffect(() => {
@@ -40,13 +42,32 @@ export default function AuthProvider() {
 
           if (response.ok) {
             // 사용자가 데이터베이스에 존재함
+            const userData = await response.json();
             setIsLoggedIn(true);
             setUser(user);
+            setProfileStatus(userData.data.profileStatus);
+
+            // role이 없으면 온보딩 페이지로 리다이렉트
+            if (!userData.data.profileStatus.hasRole) {
+              console.log("User has no role, redirecting to onboarding");
+              router.replace(PAGE_URLS.ONBOARDING);
+            } else if (
+              userData.data.profileStatus.hasRole &&
+              !userData.data.profileStatus.isProfileCompleted
+            ) {
+              // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
+              if (userData.data.profileStatus.role === "APPLICANT") {
+                router.replace(API_URLS.ONBOARDING.SEEKER_PROFILE);
+              } else if (userData.data.profileStatus.role === "EMPLOYER") {
+                router.replace(API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+              }
+            }
           } else {
             // 사용자가 데이터베이스에 없음
             console.log("User not found in database, setting logged out");
             setIsLoggedIn(false);
             setUser(null);
+            setProfileStatus(null);
           }
         } else {
           setIsLoggedIn(false);
@@ -85,13 +106,36 @@ export default function AuthProvider() {
 
           if (response.ok) {
             // 사용자가 데이터베이스에 존재함
+            const userData = await response.json();
             setIsLoggedIn(true);
             setUser(session.user);
+            setProfileStatus(userData.data.profileStatus);
+
+            // role이 없으면 온보딩 페이지로 리다이렉트
+            if (!userData.data.profileStatus.hasRole) {
+              console.log("User has no role, redirecting to onboarding");
+              router.replace(PAGE_URLS.ONBOARDING);
+            } else if (
+              userData.data.profileStatus.hasRole &&
+              !userData.data.profileStatus.isProfileCompleted
+            ) {
+              // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
+              console.log("User has role but profile not completed, redirecting to profile page");
+              console.log("Profile status:", userData.data.profileStatus);
+              if (userData.data.profileStatus.role === "APPLICANT") {
+                console.log("Redirecting to:", API_URLS.ONBOARDING.SEEKER_PROFILE);
+                router.replace(API_URLS.ONBOARDING.SEEKER_PROFILE);
+              } else if (userData.data.profileStatus.role === "EMPLOYER") {
+                console.log("Redirecting to:", API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+                router.replace(API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+              }
+            }
           } else {
             // 사용자가 데이터베이스에 없음
             console.log("User not found in database after sign in");
             setIsLoggedIn(false);
             setUser(null);
+            setProfileStatus(null);
           }
         } catch (error) {
           console.error("User check error after sign in:", error);
@@ -104,6 +148,7 @@ export default function AuthProvider() {
         console.log("User signed out");
         setIsLoggedIn(false);
         setUser(null);
+        setProfileStatus(null);
       }
     });
 
