@@ -88,31 +88,6 @@ model work_experiences {
   profile      applicant_profiles @relation(fields: [profile_id], references: [id])
 }
 
-model practical_skills {
-  id                  BigInt                        @id @default(autoincrement())
-  category_ko         String                        @db.VarChar(50)   // "면허 및 자격증"
-  category_en         String                        @db.VarChar(50)   // "Licenses & Certifications"
-  name_ko             String                        @db.VarChar(100)  // "운전면허"
-  name_en             String                        @db.VarChar(100)  // "Driver's License"
-  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime                      @default(now()) @db.Timestamptz(6)
-  
-  // 관계 설정
-  profile_skills      profile_practical_skills[]
-  job_requirements    job_post_practical_skills[]
-}
-
-model profile_practical_skills {
-  profile_id          BigInt
-  practical_skill_id  BigInt
-  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
-  
-  profile             applicant_profiles            @relation(fields: [profile_id], references: [id], onDelete: Cascade)
-  practical_skill     practical_skills              @relation(fields: [practical_skill_id], references: [id], onDelete: Cascade)
-  
-  @@id([profile_id, practical_skill_id])
-}
-
 model job_posts {
   id                                 BigInt                        @id @default(autoincrement())
   business_loc_id                    BigInt
@@ -135,17 +110,6 @@ model job_posts {
   job_work_styles                    job_post_work_styles[]
   business_loc                       business_loc                  @relation(fields: [business_loc_id], references: [id])
   user                               users                         @relation(fields: [user_id], references: [id])
-}
-
-model job_post_practical_skills {
-  job_post_id         BigInt
-  practical_skill_id  BigInt
-  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
-  
-  job_post            job_posts                     @relation(fields: [job_post_id], references: [id], onDelete: Cascade)
-  practical_skill     practical_skills              @relation(fields: [practical_skill_id], references: [id], onDelete: Cascade)
-  
-  @@id([job_post_id, practical_skill_id])
 }
 
 model applications {
@@ -260,6 +224,43 @@ model user_responses {
   created_at DateTime     @default(now()) @db.Timestamptz(6)
   choice     quiz_choices @relation(fields: [choice_id], references: [id])
   user       users        @relation(fields: [user_id], references: [id])
+}
+
+
+model practical_skills {
+  id                  BigInt                        @id @default(autoincrement())
+  category_ko         String                        @db.VarChar(50)   // "면허 및 자격증"
+  category_en         String                        @db.VarChar(50)   // "Licenses & Certifications"
+  name_ko             String                        @db.VarChar(100)  // "운전면허"
+  name_en             String                        @db.VarChar(100)  // "Driver's License"
+  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  
+  // 관계 설정
+  profile_skills      profile_practical_skills[]
+  job_requirements    job_post_practical_skills[]
+}
+
+model profile_practical_skills {
+  profile_id          BigInt
+  practical_skill_id  BigInt
+  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  
+  profile             applicant_profiles            @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  practical_skill     practical_skills              @relation(fields: [practical_skill_id], references: [id], onDelete: Cascade)
+  
+  @@id([profile_id, practical_skill_id])
+}
+
+model job_post_practical_skills {
+  job_post_id         BigInt
+  practical_skill_id  BigInt
+  created_at          DateTime                      @default(now()) @db.Timestamptz(6)
+  
+  job_post            job_posts                     @relation(fields: [job_post_id], references: [id], onDelete: Cascade)
+  practical_skill     practical_skills              @relation(fields: [practical_skill_id], references: [id], onDelete: Cascade)
+  
+  @@id([job_post_id, practical_skill_id])
 }
 
 enum Role {
