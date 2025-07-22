@@ -104,6 +104,7 @@ export async function getUserWithProfileStatus(userId: string) {
         name: true,
         role: true,
         created_at: true,
+        personality_profile_id: true,
       },
     });
 
@@ -111,14 +112,19 @@ export async function getUserWithProfileStatus(userId: string) {
       throw new Error("User not found");
     }
 
-    // 프로필 완성 여부 확인
+    // seeker의 경우 추가 정보
     let isProfileCompleted = false;
+    let hasPersonalityProfile = false;
+    let hasApplicantProfile = false;
+    
     if (user.role === "APPLICANT") {
+      hasPersonalityProfile = !!user.personality_profile_id;
       const applicantProfile = await prisma.applicant_profiles.findFirst({
         where: { user_id: user.id },
         select: { id: true },
       });
-      isProfileCompleted = !!applicantProfile;
+      hasApplicantProfile = !!applicantProfile;
+      isProfileCompleted = hasPersonalityProfile && hasApplicantProfile;
     } else if (user.role === "EMPLOYER") {
       const businessLoc = await prisma.business_loc.findFirst({
         where: { user_id: user.id },
@@ -138,6 +144,8 @@ export async function getUserWithProfileStatus(userId: string) {
       profileStatus: {
         hasRole: !!user.role,
         isProfileCompleted,
+        hasPersonalityProfile,
+        hasApplicantProfile,
         role: user.role,
       },
     };

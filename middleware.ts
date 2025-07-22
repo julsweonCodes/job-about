@@ -2,6 +2,57 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 
+// seeker 온보딩 분기 함수
+function getSeekerOnboardingRedirect(
+  profileStatus: {
+    hasPersonalityProfile: boolean;
+    hasApplicantProfile: boolean;
+  },
+  req: NextRequest
+) {
+  console.log("getSeekerOnboardingRedirect called", profileStatus);
+  console.log("profileStatus", profileStatus);
+  if (!profileStatus.hasPersonalityProfile) {
+    console.log("redirecting to seeker quiz");
+    // 퀴즈를 안 했으면 퀴즈 페이지로
+    return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_QUIZ, req.url));
+  }
+  if (!profileStatus.hasApplicantProfile) {
+    console.log("redirecting to seeker profile");
+    // 퀴즈는 했지만 프로필이 없으면 프로필 페이지로
+    return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_PROFILE, req.url));
+  }
+  // 둘 다 있으면(완료) null 반환
+  return null;
+}
+
+// 온보딩 전체 분기 함수
+function getOnboardingRedirect(
+  profileStatus: {
+    hasRole: boolean;
+    isProfileCompleted: boolean;
+    role: string | null;
+    hasPersonalityProfile: boolean;
+    hasApplicantProfile: boolean;
+  },
+  req: NextRequest
+) {
+  console.log("getOnboardingRedirect called", profileStatus);
+  if (!profileStatus.hasRole) {
+    console.log("redirecting to onboarding");
+    return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING, req.url));
+  }
+  if (profileStatus.role === "APPLICANT") {
+    const seekerRedirect = getSeekerOnboardingRedirect(profileStatus, req);
+    if (seekerRedirect) return seekerRedirect;
+  }
+  if (profileStatus.role === "EMPLOYER" && !profileStatus.isProfileCompleted) {
+    console.log("redirecting to employer profile");
+    return NextResponse.redirect(new URL(API_URLS.ONBOARDING.EMPLOYER_PROFILE, req.url));
+  }
+  return null;
+}
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
@@ -86,33 +137,29 @@ export async function middleware(req: NextRequest) {
         }
 
         const userData = await response.json();
-        const user = userData.data.user;
         const profileStatus = userData.data.profileStatus;
 
-        // 온보딩 페이지 접근 시 - role이 있어도 프로필이 완성되지 않았으면 허용
+        // 온보딩 페이지 접근 시
         if (isOnboardingPage) {
-          // role이 없으면 온보딩 페이지 허용
-          if (!profileStatus.hasRole) {
-            return res;
+          console.log("[middleware] isOnboardingPage, path:", req.nextUrl.pathname);
+          console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
+          // 온보딩이 끝났으면 메인으로 리다이렉트
+          if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
+            if (profileStatus.role === "APPLICANT") {
+              return NextResponse.redirect(new URL(PAGE_URLS.SEEKER.ROOT, req.url));
+            } else if (profileStatus.role === "EMPLOYER") {
+              return NextResponse.redirect(new URL(PAGE_URLS.EMPLOYER.ROOT, req.url));
+            }
           }
-
-          // role이 있지만 프로필이 완성되지 않았을 수도 있으므로 온보딩 페이지 허용
-          // (프로필 완성 여부는 클라이언트에서 체크)
+          // 온보딩이 필요한 경우는 온보딩 페이지 허용
           return res;
         }
 
-        // role이 없으면 온보딩으로 리다이렉트
-        if (!profileStatus.hasRole) {
-          console.log("User needs onboarding, redirecting to /onboarding");
-          return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING, req.url));
-        } else if (profileStatus.hasRole && !profileStatus.isProfileCompleted) {
-          // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
-          if (profileStatus.role === "APPLICANT") {
-            return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_PROFILE, req.url));
-          } else if (profileStatus.role === "EMPLOYER") {
-            return NextResponse.redirect(new URL(API_URLS.ONBOARDING.EMPLOYER_PROFILE, req.url));
-          }
-        }
+        // 그 외 페이지 접근 시
+        console.log("[middleware] not onboarding page, path:", req.nextUrl.pathname);
+        console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
+        const onboardingRedirect = getOnboardingRedirect(profileStatus, req);
+        if (onboardingRedirect) return onboardingRedirect;
       } catch (error) {
         console.error("Error fetching user:", error);
         return NextResponse.redirect(new URL(PAGE_URLS.HOME, req.url));
