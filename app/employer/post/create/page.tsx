@@ -27,7 +27,7 @@ import PreferredPersonalityDialog from "@/app/employer/components/RequiredPerson
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 import { useRouter } from "next/navigation";
-import { Skill } from "@/types/profile";
+import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
@@ -36,6 +36,7 @@ function JobPostCreatePage() {
   const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
   const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [workStyles, setWorkStyles] = useState<WorkStyle[]>([]);
 
   // 각 API 호출의 개별 상태
   const [loadingStates, setLoadingStates] = useState({
@@ -61,18 +62,19 @@ function JobPostCreatePage() {
     useAI: true, // AI 사용 여부 (기본값: true)
   });
 
-  const fetchSkills = async () => {
+  const fetchData = async () => {
     try {
       const res = await fetch("/api/utils");
       const data = await res.json();
 
       if (res.ok) {
-        setSkills(data.skills);
+        setSkills(data.data.skills);
+        setWorkStyles(data.data.workStyles);
       } else {
-        console.error("Failed to fetch skills:", data.error);
+        console.error("Failed to fetch data:", data.error);
       }
     } catch (error) {
-      console.error("Error fetching skills:", error);
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -87,7 +89,7 @@ function JobPostCreatePage() {
 
       // 모든 API 호출을 병렬로 실행
       await Promise.all([
-        fetchSkills(),
+        fetchData(),
         // 추가 API 호출들을 여기에 추가
       ]);
     } catch (error) {
@@ -110,7 +112,7 @@ function JobPostCreatePage() {
 
   const handleInputChange = (
     field: string,
-    value: string | boolean | Date | string[] | Skill[] | JobType | null | undefined
+    value: string | boolean | Date | string[] | Skill[] | WorkStyle[] | JobType | null | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -326,7 +328,7 @@ function JobPostCreatePage() {
                     .map((skill) =>
                       typeof skill === "string"
                         ? capitalize(skill)
-                        : capitalize((skill as any).name)
+                        : capitalize((skill as any).name_en)
                     )
                     .join(", ")}
                   onClick={() => setSkillsDialogOpen(true)}
@@ -352,17 +354,24 @@ function JobPostCreatePage() {
                   placeholder="Select Preferred Personality"
                   className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
-                  value={formData.requiredPersonalities.join(", ")}
+                  value={formData.requiredPersonalities
+                    .map((ws) =>
+                      typeof ws === "string"
+                        ? capitalize(ws)
+                        : capitalize((ws as any).name_en)
+                    )
+                    .join(", ")}
                   onClick={() => setPersonalityDialogOpen(true)}
                 />
                 <PreferredPersonalityDialog
                   open={personalityDialogOpen}
                   onClose={() => setPersonalityDialogOpen(false)}
                   selectedTraits={formData.requiredPersonalities}
-                  onConfirm={(traits) => {
-                    handleInputChange("requiredPersonalities", traits as string[]);
+                  onConfirm={(workStyles) => {
+                    handleInputChange("requiredPersonalities", workStyles);
                     setPersonalityDialogOpen(false);
                   }}
+                  workStyles={workStyles}
                 />
               </div>
 

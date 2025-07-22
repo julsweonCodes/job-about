@@ -51,7 +51,7 @@ const RequiredSkillsDialog: React.FC<{
                 onClick={() => toggleSkill(skill)}
                 disabled={disabled}
               >
-                {skill.name}
+                {skill.name_en}
               </Chip>
             );
           })}

@@ -69,6 +69,15 @@ export function profileDtoToCreateData(
 };
 
 export interface Skill {
-    id: number;
-    name: string;
-}
+    id: number,
+    category_ko: string,
+    category_en: string,
+    name_ko: string,
+    name_en: string,
+};
+
+export interface WorkStyle {
+    id: number,
+    name_ko: string,
+    name_en: string,
+};

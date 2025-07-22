@@ -27,7 +27,23 @@ export async function getPracticalSkills() {
   }));
 }
 
-// 레거시 호환용 - 기존 getSkills 함수 유지
-export async function getSkills() {
-  return getPracticalSkills();
+export async function getWorkStyles() {
+  console.log("getWorkStyles start");
+
+  const workStyles = await prisma.practical_skills.findMany({
+    select: {
+      id: true,
+      name_ko: true,
+      name_en: true
+    },
+    orderBy: [
+      { name_en: 'asc' }
+    ]
+  });
+
+  return workStyles.map((skill: any) => ({
+    id: Number(skill.id),
+    name_ko: skill.name_ko,
+    name_en: skill.name_en,
+  }));
 }
