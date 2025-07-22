@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { WorkStyle } from "@/types/profile";
 
-const MAX_SELECTED = 3;
+const MAX_SELECTED = 5;
 
 const PreferredPersonalityDialog: React.FC<{
   open: boolean;
@@ -33,8 +33,8 @@ const PreferredPersonalityDialog: React.FC<{
   };
 
   return (
-    <Dialog open={open} onClose={onClose} type="bottomSheet">
-      <div className="flex flex-col items-start w-full max-w-md">
+    <Dialog open={open} onClose={onClose} type="bottomSheet" size={"xl"}>
+      <div className="flex flex-col items-start w-full max-w-2xl">
         <h2 className="mb-2 text-left text-[18px] sm:text-[24px] font-bold">
           Select Preferred Personality
         </h2>
@@ -42,7 +42,7 @@ const PreferredPersonalityDialog: React.FC<{
           Select the personality you want to work with.
         </p>
 
-        <div className="flex flex-wrap gap-2 w-full py-6">
+        <div className="flex flex-wrap gap-2 w-full py-6 max-h-64 overflow-y-auto pr-2">
           {workStyles.map((ws) => {
             // const selected = localSelected.includes(trait);
             const selected = localSelected.find((wss) => wss.id === ws.id);
