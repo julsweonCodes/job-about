@@ -1,28 +1,24 @@
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { getUserWithProfileStatus } from "@/app/services/user-services";
+import { getUserIdFromSession } from "@/utils/auth";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const supabase = await createClient(cookieStore);
-
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error || !data.user) {
-      return errorResponse("No user found", 401);
+    let userId: number;
+    try {
+      userId = await getUserIdFromSession();
+    } catch (error) {
+      console.error("User check error:", error);
+      return errorResponse("Unauthorized.", 401);
     }
 
-    const uid = data.user.id;
-
-    if (!uid) {
+    if (!userId) {
       return errorResponse("No user ID in session", 401);
     }
 
     try {
       // services를 통해 사용자 정보와 프로필 상태 확인
-      const userData = await getUserWithProfileStatus(uid);
+      const userData = await getUserWithProfileStatus(userId.toString());
 
       return successResponse(
         {
