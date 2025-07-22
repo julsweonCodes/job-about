@@ -92,26 +92,57 @@ export async function updateUserRole(role: Role, userId: number) {
   return updated;
 }
 
-export async function checkUserExists(userId: number) {
-  const user = await prisma.users.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      user_id: true,
-      email: true,
-      name: true,
-      role: true,
-      created_at: true,
-    },
-  });
+export async function getUserWithProfileStatus(userId: string) {
+  try {
+    // 사용자 정보 확인
+    const user = await prisma.users.findFirst({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        user_id: true,
+        email: true,
+        name: true,
+        role: true,
+        created_at: true,
+      },
+    });
 
-  return {
-    exists: !!user,
-    user: user
-      ? {
-          ...user,
-          id: user.id.toString(),
-        }
-      : null,
-  };
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // 프로필 완성 여부 확인
+    let isProfileCompleted = false;
+    if (user.role === "APPLICANT") {
+      const applicantProfile = await prisma.applicant_profiles.findFirst({
+        where: { user_id: user.id },
+        select: { id: true },
+      });
+      isProfileCompleted = !!applicantProfile;
+    } else if (user.role === "EMPLOYER") {
+      const businessLoc = await prisma.business_loc.findFirst({
+        where: { user_id: user.id },
+        select: { id: true },
+      });
+      isProfileCompleted = !!businessLoc;
+    }
+
+    // BigInt를 문자열로 변환
+    const serializedUser = {
+      ...user,
+      id: user.id.toString(),
+    };
+
+    return {
+      user: serializedUser,
+      profileStatus: {
+        hasRole: !!user.role,
+        isProfileCompleted,
+        role: user.role,
+      },
+    };
+  } catch (error) {
+    console.error("Error getting user with profile status:", error);
+    throw error;
+  }
 }

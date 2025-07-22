@@ -1,15 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Briefcase, Users, Check, ChevronRight } from "lucide-react";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import { Role } from "@prisma/client";
+import LoadingScreen from "@/components/common/LoadingScreen";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function OnboardingPage() {
   const [selectedType, setSelectedType] = useState<Role | null>(null);
   const router = useRouter();
+  const { profileStatus, isLoggedIn } = useAuthStore();
+
+  // 프로필이 완성되었으면 해당 페이지로 리다이렉트
+  useEffect(() => {
+    if (isLoggedIn && profileStatus) {
+      if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
+        if (profileStatus.role === "APPLICANT") {
+          router.replace(PAGE_URLS.SEEKER.ROOT);
+        } else if (profileStatus.role === "EMPLOYER") {
+          router.replace(PAGE_URLS.EMPLOYER.ROOT);
+        }
+      }
+    }
+  }, [profileStatus, isLoggedIn, router]);
+
+  // 로딩 중이면 로딩 화면 표시
+  if (!isLoggedIn || !profileStatus) {
+    return <LoadingScreen />;
+  }
 
   const handleSelection = (type: Role) => {
     setSelectedType(type);

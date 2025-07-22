@@ -18,6 +18,9 @@ export const API_URLS = {
     ROOT: "/onboarding",
     SEEKER: "/onboarding/seeker",
     EMPLOYER: "/onboarding/employer",
+    SEEKER_PROFILE: "/onboarding/seeker/profile",
+    SEEKER_QUIZ: "/onboarding/seeker/quiz",
+    EMPLOYER_PROFILE: "/onboarding/employer/profile",
   },
 
   // 구인자 관련

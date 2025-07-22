@@ -71,38 +71,51 @@ export async function middleware(req: NextRequest) {
         return res;
       }
 
-      // 사용자 정보 확인
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .single();
+      // API를 통해 사용자 정보 확인
+      try {
+        const response = await fetch(`${req.nextUrl.origin}/api/user/me`, {
+          headers: {
+            cookie: req.headers.get("cookie") || "",
+          },
+        });
 
-      if (error) {
-        console.error("Error fetching user:", error);
-        // 사용자가 데이터베이스에 없으면 홈으로 리다이렉트
-        if (error.code === "PGRST116") {
+        if (!response.ok) {
+          // 사용자가 데이터베이스에 없으면 홈으로 리다이렉트
           console.log("User not found in database, redirecting to home");
           return NextResponse.redirect(new URL(PAGE_URLS.HOME, req.url));
         }
-        return res;
-      }
 
-      // 온보딩 페이지 접근 시 role 체크
-      if (isOnboardingPage) {
-        // 이미 역할이 있으면 홈페이지로 리다이렉트
-        if (user?.role) {
-          console.log("User already has role, redirecting to home");
-          return NextResponse.redirect(new URL(PAGE_URLS.HOME, req.url));
+        const userData = await response.json();
+        const user = userData.data.user;
+        const profileStatus = userData.data.profileStatus;
+
+        // 온보딩 페이지 접근 시 - role이 있어도 프로필이 완성되지 않았으면 허용
+        if (isOnboardingPage) {
+          // role이 없으면 온보딩 페이지 허용
+          if (!profileStatus.hasRole) {
+            return res;
+          }
+
+          // role이 있지만 프로필이 완성되지 않았을 수도 있으므로 온보딩 페이지 허용
+          // (프로필 완성 여부는 클라이언트에서 체크)
+          return res;
         }
-        // 역할이 없으면 온보딩 페이지 허용
-        return res;
-      }
 
-      // role이 null이면 온보딩으로 리다이렉트
-      if (!user?.role) {
-        console.log("User needs onboarding, redirecting to /onboarding");
-        return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING, req.url));
+        // role이 없으면 온보딩으로 리다이렉트
+        if (!profileStatus.hasRole) {
+          console.log("User needs onboarding, redirecting to /onboarding");
+          return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING, req.url));
+        } else if (profileStatus.hasRole && !profileStatus.isProfileCompleted) {
+          // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
+          if (profileStatus.role === "APPLICANT") {
+            return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_PROFILE, req.url));
+          } else if (profileStatus.role === "EMPLOYER") {
+            return NextResponse.redirect(new URL(API_URLS.ONBOARDING.EMPLOYER_PROFILE, req.url));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        return NextResponse.redirect(new URL(PAGE_URLS.HOME, req.url));
       }
     }
 
