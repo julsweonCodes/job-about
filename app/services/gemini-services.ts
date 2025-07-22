@@ -1,9 +1,10 @@
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
+import { JobPostPayload } from "@/types/employer";
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export async function geminiTest(jobDesc: string) {
+export async function geminiTest(payload: JobPostPayload) {
   // Use the appropriate model
   const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
@@ -20,8 +21,9 @@ export async function geminiTest(jobDesc: string) {
   });
 
   const prompt = `
-  Based on the following job description, write a **concise English summary** with the following structure. Make sure you don't leave out any information:
+  Based on the following business information and job description, write a **concise and conversational English summary** with two following structure. Make sure you don't leave out any information:
   
+  ##Structure 1
   [Main Responsibilities]
   - {responsibility 1}
   - {responsibility 2}
@@ -32,8 +34,14 @@ export async function geminiTest(jobDesc: string) {
   - {qualification or benefit 2}
   ...
   
+  ##Structure 2
+  Write 'Structure 1' in full sentences.
+  
+  Business Information: jobTitle: "${payload.jobTitle}", jobType: "${payload.jobType}", 
+  requiredSkills: "${payload.requiredSkills}", requiredWorkStyles: "${payload.requiredWorkStyles}",
+  wage: "${payload.wage}", languageLevel: "${payload.language_level}"
   Job Description (in Korean):
-  "${jobDesc}"`
+  "${payload.jobDescription}"`
 
 
   const result = await model.generateContent(prompt);
