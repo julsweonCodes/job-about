@@ -104,6 +104,8 @@ export default function AuthProvider() {
             },
           });
 
+          console.log("response", response);
+
           if (response.ok) {
             // 사용자가 데이터베이스에 존재함
             const userData = await response.json();

@@ -1,20 +1,16 @@
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { getUserWithProfileStatus } from "@/app/services/user-services";
+import { getUserUuidFromSession } from "@/utils/auth";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const supabase = await createClient(cookieStore);
-
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error || !data.user) {
-      return errorResponse("No user found", 401);
+    let uid: string;
+    try {
+      uid = await getUserUuidFromSession();
+    } catch (error) {
+      console.error("User check error:", error);
+      return errorResponse("Unauthorized.", 401);
     }
-
-    const uid = data.user.id;
 
     if (!uid) {
       return errorResponse("No user ID in session", 401);
