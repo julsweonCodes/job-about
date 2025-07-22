@@ -30,7 +30,7 @@ export async function getPracticalSkills() {
 export async function getWorkStyles() {
   console.log("getWorkStyles start");
 
-  const workStyles = await prisma.practical_skills.findMany({
+  const workStyles = await prisma.work_styles.findMany({
     select: {
       id: true,
       name_ko: true,
