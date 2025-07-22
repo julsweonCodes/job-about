@@ -5,6 +5,8 @@ interface ProfileStatus {
   hasRole: boolean;
   isProfileCompleted: boolean;
   role: "APPLICANT" | "EMPLOYER" | null;
+  hasPersonalityProfile: boolean;
+  hasApplicantProfile: boolean;
 }
 
 interface AuthState {

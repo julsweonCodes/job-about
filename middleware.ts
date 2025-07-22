@@ -10,12 +10,15 @@ function getSeekerOnboardingRedirect(
   },
   req: NextRequest
 ) {
+  console.log("getSeekerOnboardingRedirect called", profileStatus);
   console.log("profileStatus", profileStatus);
   if (!profileStatus.hasPersonalityProfile) {
+    console.log("redirecting to seeker quiz");
     // 퀴즈를 안 했으면 퀴즈 페이지로
     return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_QUIZ, req.url));
   }
   if (!profileStatus.hasApplicantProfile) {
+    console.log("redirecting to seeker profile");
     // 퀴즈는 했지만 프로필이 없으면 프로필 페이지로
     return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_PROFILE, req.url));
   }
@@ -34,7 +37,9 @@ function getOnboardingRedirect(
   },
   req: NextRequest
 ) {
+  console.log("getOnboardingRedirect called", profileStatus);
   if (!profileStatus.hasRole) {
+    console.log("redirecting to onboarding");
     return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING, req.url));
   }
   if (profileStatus.role === "APPLICANT") {
@@ -42,6 +47,7 @@ function getOnboardingRedirect(
     if (seekerRedirect) return seekerRedirect;
   }
   if (profileStatus.role === "EMPLOYER" && !profileStatus.isProfileCompleted) {
+    console.log("redirecting to employer profile");
     return NextResponse.redirect(new URL(API_URLS.ONBOARDING.EMPLOYER_PROFILE, req.url));
   }
   return null;
@@ -135,6 +141,8 @@ export async function middleware(req: NextRequest) {
 
         // 온보딩 페이지 접근 시
         if (isOnboardingPage) {
+          console.log("[middleware] isOnboardingPage, path:", req.nextUrl.pathname);
+          console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
           // 온보딩이 끝났으면 메인으로 리다이렉트
           if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
             if (profileStatus.role === "APPLICANT") {
@@ -148,6 +156,8 @@ export async function middleware(req: NextRequest) {
         }
 
         // 그 외 페이지 접근 시
+        console.log("[middleware] not onboarding page, path:", req.nextUrl.pathname);
+        console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
         const onboardingRedirect = getOnboardingRedirect(profileStatus, req);
         if (onboardingRedirect) return onboardingRedirect;
       } catch (error) {
