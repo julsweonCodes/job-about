@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatsCard } from "./components/StatsCard";
 import { JobPostCard } from "./components/JobPostCard";
@@ -7,6 +7,9 @@ import { AlertBanner } from "./components/AlertBanner";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { WorkType } from "@/constants/enums";
 import { Plus } from "lucide-react";
+import { Simulate } from "react-dom/test-utils";
+import { Dashboard } from "@/types/employer";
+import error = Simulate.error;
 
 interface JobPost {
   id: string;
@@ -92,12 +95,58 @@ export default function EmployerDashboard() {
   const router = useRouter();
   const [showAlert, setShowAlert] = useState(true);
   const [jobPosts] = useState<JobPost[]>(mockJobPosts);
+  const [dashboard, setDashboard] = useState<Dashboard>();
 
-  const stats = {
-    activeJobs: jobPosts.length,
-    statusUpdateNeeded: jobPosts.filter((job) => job.needsUpdate).length,
-    totalApplicants: jobPosts.reduce((sum, job) => sum + job.applicants, 0),
+  // 각 API 호출의 개별 상태
+  const [loadingStates, setLoadingStates] = useState({
+    dashboard: false,
+  });
+
+  // 전체 로딩 상태 계산
+  const isLoading = Object.values(loadingStates).some((state) => state);
+
+
+  const fetchDash = async () => {
+    try {
+      console.log("fetch dash");
+      const res = await fetch("/api/employer/dashboard");
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        setDashboard(data.data);
+      } else {
+        console.error("Failed to fetch employer dashboard", data.error);
+      }
+    } catch (e) {
+      console.error("Error fetching data:", error);
+    }
   };
+
+  const initializeDash = async () => {
+    try {
+      // 로딩 시작
+      setLoadingStates({
+        dashboard: true,
+      });
+
+      // 모든 API 호출을 병렬로 실행
+      await Promise.all([
+        fetchDash(),
+        // 추가 API 호출들을 여기에 추가
+      ]);
+    } catch (error) {
+      console.error("Error initializing dashboard:", error);
+    } finally {
+      // 로딩 완료
+      setLoadingStates({
+        dashboard: false,
+      });
+    }
+  };
+
+  useEffect(() => {
+    initializeDash();
+  }, []);
 
   const handleViewJob = (id: string) => {
     // 상세 페이지 이동 등 구현
@@ -128,7 +177,7 @@ export default function EmployerDashboard() {
         {showAlert && (
           <div className="mb-8">
             <AlertBanner
-              message={`${stats.statusUpdateNeeded} job posts need status updates`}
+              message={`${dashboard?.needsUpdateCnt} job posts need status updates`}
               onClick={() => {
                 router.push("/employer/pending-updates");
               }}
@@ -137,13 +186,15 @@ export default function EmployerDashboard() {
         )}
 
         {/* Stats */}
-        <div className="mb-10">
+        {dashboard && (
+          <div className="mb-10">
           <StatsCard
-            activeJobs={stats.activeJobs}
-            activeApplicants={stats.totalApplicants}
-            statusUpdateNeeded={stats.statusUpdateNeeded}
+            activeJobs={dashboard.activeJobPostsCnt}
+            activeApplicants={dashboard.allAppsCnt}
+            statusUpdateNeeded={dashboard.needsUpdateCnt}
           />
         </div>
+        )}
 
         {/* Job Posts Section */}
         <div className="space-y-6 lg:space-y-8 pb-12">

@@ -4,6 +4,10 @@ import { EmployerProfilePayload } from '@/types/employer'
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import {formatDateYYYYMMDD} from "@/lib/utils";
 
+/** 1. Onboarding
+ * Upload, Delete Images from supabase
+ * Create, Update business location info
+ */
 // uploading images to supabase storage
 export async function uploadEmployerImages(photos: File[], userId: number): Promise<string[]> {
   const urls: string[] = [];
@@ -88,6 +92,7 @@ export async function updateEmployerProfile(id: number, payload: EmployerProfile
   return data;
 }
 
+/** 2. Dashboard */
 // GET - Select cnt values for employer dashboard
 export async function getActiveJobPosts(userId: number): Promise<number> {
   const currDate = new Date();

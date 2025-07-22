@@ -44,3 +44,9 @@ export interface JobPostPayload {
   selectedWorkType: WorkType;
   useAI?: boolean;
 }
+
+export interface Dashboard {
+  activeJobPostsCnt: number,
+  allAppsCnt: number,
+  needsUpdateCnt: number,
+}
