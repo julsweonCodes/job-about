@@ -33,9 +33,9 @@ export interface JobPostPayload {
   deadline: string; // extract yyyymmdd from calendar
   workSchedule: string;
   requiredSkills: string;
-  requiredPersonality: string;
+  requiredWorkStyles: string;
   wage: string;
-  location: string; // 이거 수정?
-  jobDescription?: string;
+  jobDescription: string;
   language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
+  useAI?: boolean;
 }
