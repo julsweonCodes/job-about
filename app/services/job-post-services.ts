@@ -1,11 +1,12 @@
 import { supabaseClient } from '@/utils/supabase/client';
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { Database } from "@/types/database.types";
-import {formatDateYYYYMMDD} from "@/lib/utils";
+import { capitalize, formatDateYYYYMMDD } from "@/lib/utils";
 import {getUserIdFromSession} from "@/utils/auth";
 import { Prisma } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
+import { toPrismaJobType, toPrismaWorkType, toPrismaLanguageLevel} from "@/types/enumMapper";
 
 // Create Job Post
  export async function createJobPost(payload: JobPostPayload) {
@@ -17,14 +18,15 @@ import { Skill, WorkStyle } from "@/types/profile";
     data: {
       deadline: formatDateYYYYMMDD(payload.deadline),
       description: payload.jobDescription ?? "no description.",
-      job_type: "CHEF",
+      job_type: toPrismaJobType(payload.selectedJobType),
       status: "DRAFT",
       title: payload.jobTitle,
       wage: payload.wage,
       work_schedule: payload.workSchedule,
       business_loc_id: bizLocId,
       user_id: userId,
-      work_type: payload.workType,
+      work_type: toPrismaWorkType(payload.selectedWorkType),
+      language_level: toPrismaLanguageLevel(payload.language_level),
     },
     select: {
       id: true

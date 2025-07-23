@@ -37,7 +37,7 @@ export async function geminiTest(payload: JobPostPayload) {
   ##Structure 2
   Write 'Structure 1' in full sentences.
   
-  Business Information: jobTitle: "${payload.jobTitle}", jobType: "${payload.jobType}", 
+  Business Information: jobTitle: "${payload.jobTitle}", jobType: "${payload.selectedJobType}", workType: ${payload.selectedWorkType}",  
   requiredSkills: "${payload.requiredSkills}", requiredWorkStyles: "${payload.requiredWorkStyles}",
   wage: "${payload.wage}", languageLevel: "${payload.language_level}"
   Job Description (in Korean):

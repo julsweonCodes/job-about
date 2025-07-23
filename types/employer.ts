@@ -1,5 +1,7 @@
 import { Skill, WorkStyle } from "@/types/profile";
-import { WorkType } from "@/constants/enums";
+import {Database} from "@/types/database.types";
+import { prisma } from "@/app/lib/prisma/prisma-singleton";
+import { JobType, WorkType, LanguageLevel } from "@/constants/enums";
 
 export interface EmployerProfilePayload {
   name: string;
@@ -32,14 +34,14 @@ export interface EmployerDashboardCnt {
 
 export interface JobPostPayload {
   jobTitle: string;
-  jobType: string;
+  selectedJobType: JobType
   deadline: string; // extract yyyymmdd from calendar
   workSchedule: string;
   requiredSkills: Skill[];
   requiredWorkStyles: WorkStyle[];
   wage: string;
   jobDescription: string;
-  language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
-  workType: WorkType;
+  language_level: LanguageLevel;
+  selectedWorkType: WorkType;
   useAI?: boolean;
 }
