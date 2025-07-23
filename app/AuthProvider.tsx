@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { createSupabaseBrowserClient } from "@/lib/client/supabase";
+import { supabaseClient } from "@/utils/supabase/client";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ export default function AuthProvider() {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    const supabase = createSupabaseBrowserClient();
+    const supabase = supabaseClient;
 
     // 초기 로그인 상태 확인
     const checkAuthStatus = async () => {
