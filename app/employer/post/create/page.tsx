@@ -20,7 +20,7 @@ import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import { LanguageLevel, LANGUAGE_LEVELS, JobType } from "@/constants/enums";
+import { LanguageLevel, LANGUAGE_LEVELS, JobType, WorkType } from "@/constants/enums";
 import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
@@ -29,6 +29,7 @@ import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 import { useRouter } from "next/navigation";
 import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";
+import { workTypeOptions } from "@/constants/options";
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -42,7 +43,8 @@ function JobPostCreatePage() {
   const [loadingStates, setLoadingStates] = useState({
     skills: false,
     jobTypes: false,
-    personalities: false,
+    workStyles: false,
+    workType: false,
   });
 
   // 전체 로딩 상태 계산
@@ -50,15 +52,15 @@ function JobPostCreatePage() {
 
   const [formData, setFormData] = useState({
     jobTitle: "",
-    jobType: "",
     selectedJobType: null as JobType | null,
     deadline: undefined as Date | undefined,
     workSchedule: "",
     requiredSkills: [],
-    requiredPersonalities: [],
+    requiredWorkStyles: [],
     wage: "",
     jobDescription: "",
     languageLevel: null as LanguageLevel | null,
+    selectedWorkType: null as WorkType | null,
     useAI: true, // AI 사용 여부 (기본값: true)
   });
 
@@ -84,7 +86,8 @@ function JobPostCreatePage() {
       setLoadingStates({
         skills: true,
         jobTypes: true,
-        personalities: true,
+        workStyles: true,
+        workType: true
       });
 
       // 모든 API 호출을 병렬로 실행
@@ -99,7 +102,8 @@ function JobPostCreatePage() {
       setLoadingStates({
         skills: false,
         jobTypes: false,
-        personalities: false,
+        workStyles: false,
+        workType: false,
       });
     }
   };
@@ -112,7 +116,7 @@ function JobPostCreatePage() {
 
   const handleInputChange = (
     field: string,
-    value: string | boolean | Date | string[] | Skill[] | WorkStyle[] | JobType | null | undefined
+    value: string | boolean | Date | string[] | Skill[] | WorkStyle[] | JobType | WorkType | null | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -149,10 +153,11 @@ function JobPostCreatePage() {
       formData.deadline,
       formData.workSchedule,
       formData.requiredSkills.length > 0,
-      formData.requiredPersonalities.length > 0,
+      formData.requiredWorkStyles.length > 0,
       formData.wage,
       formData.jobDescription,
       formData.languageLevel,
+      formData.selectedWorkType,
     ];
     const completed = fields.filter(Boolean).length;
     return Math.round((completed / fields.length) * 100);
@@ -230,7 +235,28 @@ function JobPostCreatePage() {
                 onClick={() => setJobTypesDialogOpen(true)}
               />
             </div>
+            <div className="py-2">
+              <Typography
+                variant="bodySm"
+                as="label"
+                className="block mb-2 font-semibold text-gray-700"
+              >
+                Work Type
+              </Typography>
+              <div className="flex flex-wrap gap-3">
+                {workTypeOptions.map((option) => (
+                  <Chip
+                    key={option.value}
+                    selected={formData.selectedWorkType === option.value}
+                    onClick={() => handleInputChange("selectedWorkType", option.value)}
+                  >
+                    {option.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
           </div>
+
 
           {/* Schedule & Timing Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -354,7 +380,7 @@ function JobPostCreatePage() {
                   placeholder="Select Preferred Personality"
                   className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
-                  value={formData.requiredPersonalities
+                  value={formData.requiredWorkStyles
                     .map((ws) =>
                       typeof ws === "string"
                         ? capitalize(ws)
@@ -366,9 +392,9 @@ function JobPostCreatePage() {
                 <PreferredPersonalityDialog
                   open={personalityDialogOpen}
                   onClose={() => setPersonalityDialogOpen(false)}
-                  selectedTraits={formData.requiredPersonalities}
+                  selectedTraits={formData.requiredWorkStyles}
                   onConfirm={(workStyles) => {
-                    handleInputChange("requiredPersonalities", workStyles);
+                    handleInputChange("requiredWorkStyles", workStyles);
                     setPersonalityDialogOpen(false);
                   }}
                   workStyles={workStyles}

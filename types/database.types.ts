@@ -1,11 +1,3 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
-
 export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -60,9 +52,6 @@ export type Database = {
           job_type3: Database["public"]["Enums"]["JobType"] | null
           language_level: Database["public"]["Enums"]["LanguageLevel"]
           location: Database["public"]["Enums"]["Location"]
-          skill_id1: number
-          skill_id2: number | null
-          skill_id3: number | null
           updated_at: string
           user_id: number
           work_type: Database["public"]["Enums"]["WorkType"]
@@ -79,9 +68,6 @@ export type Database = {
           job_type3?: Database["public"]["Enums"]["JobType"] | null
           language_level: Database["public"]["Enums"]["LanguageLevel"]
           location: Database["public"]["Enums"]["Location"]
-          skill_id1: number
-          skill_id2?: number | null
-          skill_id3?: number | null
           updated_at?: string
           user_id: number
           work_type: Database["public"]["Enums"]["WorkType"]
@@ -98,35 +84,11 @@ export type Database = {
           job_type3?: Database["public"]["Enums"]["JobType"] | null
           language_level?: Database["public"]["Enums"]["LanguageLevel"]
           location?: Database["public"]["Enums"]["Location"]
-          skill_id1?: number
-          skill_id2?: number | null
-          skill_id3?: number | null
           updated_at?: string
           user_id?: number
           work_type?: Database["public"]["Enums"]["WorkType"]
         }
         Relationships: [
-          {
-            foreignKeyName: "applicant_profiles_skill_id1_fkey"
-            columns: ["skill_id1"]
-            isOneToOne: false
-            referencedRelation: "skills"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applicant_profiles_skill_id2_fkey"
-            columns: ["skill_id2"]
-            isOneToOne: false
-            referencedRelation: "skills"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applicant_profiles_skill_id3_fkey"
-            columns: ["skill_id3"]
-            isOneToOne: false
-            referencedRelation: "skills"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "applicant_profiles_user_id_fkey"
             columns: ["user_id"]
@@ -290,18 +252,54 @@ export type Database = {
           created_at: string
           id: number
           name: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
           id?: number
           name: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
           id?: number
           name?: string
+          updated_at?: string
         }
         Relationships: []
+      }
+      job_post_practical_skills: {
+        Row: {
+          created_at: string
+          job_post_id: number
+          practical_skill_id: number
+        }
+        Insert: {
+          created_at?: string
+          job_post_id: number
+          practical_skill_id: number
+        }
+        Update: {
+          created_at?: string
+          job_post_id?: number
+          practical_skill_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_post_practical_skills_job_post_id_fkey"
+            columns: ["job_post_id"]
+            isOneToOne: false
+            referencedRelation: "job_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_post_practical_skills_practical_skill_id_fkey"
+            columns: ["practical_skill_id"]
+            isOneToOne: false
+            referencedRelation: "practical_skills"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_post_preferred_profiles: {
         Row: {
@@ -333,32 +331,35 @@ export type Database = {
           },
         ]
       }
-      job_post_skills: {
+      job_post_work_styles: {
         Row: {
+          created_at: string
           job_post_id: number
-          skill_id: number
+          work_style_id: number
         }
         Insert: {
+          created_at?: string
           job_post_id: number
-          skill_id: number
+          work_style_id: number
         }
         Update: {
+          created_at?: string
           job_post_id?: number
-          skill_id?: number
+          work_style_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: "job_post_skills_job_post_id_fkey"
+            foreignKeyName: "job_post_work_styles_job_post_id_fkey"
             columns: ["job_post_id"]
             isOneToOne: false
             referencedRelation: "job_posts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "job_post_skills_skill_id_fkey"
-            columns: ["skill_id"]
+            foreignKeyName: "job_post_work_styles_work_style_id_fkey"
+            columns: ["work_style_id"]
             isOneToOne: false
-            referencedRelation: "skills"
+            referencedRelation: "work_styles"
             referencedColumns: ["id"]
           },
         ]
@@ -372,16 +373,13 @@ export type Database = {
           description: string
           id: number
           job_type: Database["public"]["Enums"]["JobType"]
-          location: Database["public"]["Enums"]["Location"]
-          skill_id1: number
-          skill_id2: number | null
-          skill_id3: number | null
           status: Database["public"]["Enums"]["JobStatus"]
           title: string
           updated_at: string
           user_id: number
           wage: string
           work_schedule: string
+          work_type: Database["public"]["Enums"]["WorkType"] | null
         }
         Insert: {
           business_loc_id: number
@@ -391,35 +389,29 @@ export type Database = {
           description: string
           id?: number
           job_type: Database["public"]["Enums"]["JobType"]
-          location: Database["public"]["Enums"]["Location"]
-          skill_id1: number
-          skill_id2?: number | null
-          skill_id3?: number | null
           status: Database["public"]["Enums"]["JobStatus"]
           title: string
           updated_at?: string
           user_id: number
-          wage: number
+          wage: string
           work_schedule: string
+          work_type?: Database["public"]["Enums"]["WorkType"] | null
         }
         Update: {
           business_loc_id?: number
           created_at?: string
-          deadline: string
+          deadline?: string
           deleted_at?: string | null
           description?: string
           id?: number
           job_type?: Database["public"]["Enums"]["JobType"]
-          location?: Database["public"]["Enums"]["Location"]
-          skill_id1?: number
-          skill_id2?: number | null
-          skill_id3?: number | null
           status?: Database["public"]["Enums"]["JobStatus"]
           title?: string
           updated_at?: string
           user_id?: number
-          wage?: number
+          wage?: string
           work_schedule?: string
+          work_type?: Database["public"]["Enums"]["WorkType"] | null
         }
         Relationships: [
           {
@@ -427,27 +419,6 @@ export type Database = {
             columns: ["business_loc_id"]
             isOneToOne: false
             referencedRelation: "business_loc"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_posts_skill_id1_fkey"
-            columns: ["skill_id1"]
-            isOneToOne: false
-            referencedRelation: "skills"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_posts_skill_id2_fkey"
-            columns: ["skill_id2"]
-            isOneToOne: false
-            referencedRelation: "skills"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_posts_skill_id3_fkey"
-            columns: ["skill_id3"]
-            isOneToOne: false
-            referencedRelation: "skills"
             referencedColumns: ["id"]
           },
           {
@@ -476,7 +447,7 @@ export type Database = {
           id?: number
           name_en: string
           name_ko: string
-          updated_at: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -489,32 +460,98 @@ export type Database = {
         }
         Relationships: []
       }
-      profile_skills: {
+      personality_work_style_weights: {
         Row: {
-          profile_id: number
-          skill_id: number
+          personality_id: number
+          weight: number
+          work_style_id: number
         }
         Insert: {
-          profile_id: number
-          skill_id: number
+          personality_id: number
+          weight?: number
+          work_style_id: number
         }
         Update: {
-          profile_id?: number
-          skill_id?: number
+          personality_id?: number
+          weight?: number
+          work_style_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: "profile_skills_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "personality_work_style_weights_personality_id_fkey"
+            columns: ["personality_id"]
             isOneToOne: false
-            referencedRelation: "applicant_profiles"
+            referencedRelation: "personality_profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profile_skills_skill_id_fkey"
-            columns: ["skill_id"]
+            foreignKeyName: "personality_work_style_weights_work_style_id_fkey"
+            columns: ["work_style_id"]
             isOneToOne: false
-            referencedRelation: "skills"
+            referencedRelation: "work_styles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practical_skills: {
+        Row: {
+          category_en: string
+          category_ko: string
+          created_at: string
+          id: number
+          name_en: string
+          name_ko: string
+          updated_at: string
+        }
+        Insert: {
+          category_en: string
+          category_ko: string
+          created_at?: string
+          id?: number
+          name_en: string
+          name_ko: string
+          updated_at?: string
+        }
+        Update: {
+          category_en?: string
+          category_ko?: string
+          created_at?: string
+          id?: number
+          name_en?: string
+          name_ko?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profile_practical_skills: {
+        Row: {
+          created_at: string
+          practical_skill_id: number
+          profile_id: number
+        }
+        Insert: {
+          created_at?: string
+          practical_skill_id: number
+          profile_id: number
+        }
+        Update: {
+          created_at?: string
+          practical_skill_id?: number
+          profile_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_practical_skills_practical_skill_id_fkey"
+            columns: ["practical_skill_id"]
+            isOneToOne: false
+            referencedRelation: "practical_skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_practical_skills_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "applicant_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -592,30 +629,6 @@ export type Database = {
           },
         ]
       }
-      skills: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          id: number
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          id?: number
-          name: string
-          updated_at: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          id?: number
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       user_responses: {
         Row: {
           choice_id: number
@@ -656,6 +669,7 @@ export type Database = {
         Row: {
           created_at: string
           deleted_at: string | null
+          description: string | null
           email: string
           id: number
           img_url: string | null
@@ -669,6 +683,7 @@ export type Database = {
         Insert: {
           created_at?: string
           deleted_at?: string | null
+          description?: string | null
           email: string
           id?: number
           img_url?: string | null
@@ -682,6 +697,7 @@ export type Database = {
         Update: {
           created_at?: string
           deleted_at?: string | null
+          description?: string | null
           email?: string
           id?: number
           img_url?: string | null
@@ -752,6 +768,30 @@ export type Database = {
           },
         ]
       }
+      work_styles: {
+        Row: {
+          created_at: string
+          id: number
+          name_en: string
+          name_ko: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name_en: string
+          name_ko: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name_en?: string
+          name_ko?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -761,11 +801,11 @@ export type Database = {
     }
     Enums: {
       ApplicationStatus:
-        | "applied"
-        | "in_review"
-        | "rejected"
-        | "withdrawn"
-        | "hired"
+        | "APPLIED"
+        | "IN_REVIEW"
+        | "REJECTED"
+        | "WITHDRAWN"
+        | "HIRED"
       AvailableDay: "WEEKDAYS" | "WEEKENDS"
       AvailableHour: "AM" | "PM"
       JobStatus: "DRAFT" | "PUBLISHED" | "CLOSED"
@@ -952,11 +992,11 @@ export const Constants = {
   public: {
     Enums: {
       ApplicationStatus: [
-        "applied",
-        "in_review",
-        "rejected",
-        "withdrawn",
-        "hired",
+        "APPLIED",
+        "IN_REVIEW",
+        "REJECTED",
+        "WITHDRAWN",
+        "HIRED",
       ],
       AvailableDay: ["WEEKDAYS", "WEEKENDS"],
       AvailableHour: ["AM", "PM"],

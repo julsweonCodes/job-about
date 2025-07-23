@@ -1,3 +1,6 @@
+import { Skill, WorkStyle } from "@/types/profile";
+import { WorkType } from "@/constants/enums";
+
 export interface EmployerProfilePayload {
   name: string;
   phone_number: string;
@@ -32,10 +35,11 @@ export interface JobPostPayload {
   jobType: string;
   deadline: string; // extract yyyymmdd from calendar
   workSchedule: string;
-  requiredSkills: string;
-  requiredWorkStyles: string;
+  requiredSkills: Skill[];
+  requiredWorkStyles: WorkStyle[];
   wage: string;
   jobDescription: string;
   language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
+  workType: WorkType;
   useAI?: boolean;
 }
