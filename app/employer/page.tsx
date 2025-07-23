@@ -8,23 +8,10 @@ import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { WorkType } from "@/constants/enums";
 import { Plus } from "lucide-react";
 import { Simulate } from "react-dom/test-utils";
-import { Dashboard } from "@/types/employer";
+import { Dashboard, JobPost } from "@/types/employer";
 import error = Simulate.error;
 
-interface JobPost {
-  id: string;
-  title: string;
-  type: WorkType;
-  wage: string;
-  location: string;
-  dateRange: string;
-  businessName: string;
-  description: string;
-  applicants: number;
-  views: number;
-  needsUpdate: boolean;
-  coverImage?: string;
-}
+
 
 const mockJobPosts: JobPost[] = [
   {
@@ -94,12 +81,12 @@ const mockJobPosts: JobPost[] = [
 export default function EmployerDashboard() {
   const router = useRouter();
   const [showAlert, setShowAlert] = useState(true);
-  const [jobPosts] = useState<JobPost[]>(mockJobPosts);
   const [dashboard, setDashboard] = useState<Dashboard>();
-
+  const [jobPostList, setJobPostList] = useState<JobPost[]>([]);
   // 각 API 호출의 개별 상태
   const [loadingStates, setLoadingStates] = useState({
     dashboard: false,
+    jobPostList: false,
   });
 
   // 전체 로딩 상태 계산
@@ -108,10 +95,8 @@ export default function EmployerDashboard() {
 
   const fetchDash = async () => {
     try {
-      console.log("fetch dash");
       const res = await fetch("/api/employer/dashboard");
       const data = await res.json();
-      console.log(data);
       if (res.ok) {
         setDashboard(data.data);
       } else {
@@ -122,16 +107,23 @@ export default function EmployerDashboard() {
     }
   };
 
-  const initializeDash = async () => {
+  const fetchJobPostList = async () => {
+    try {
+    } catch (e) {}
+  };
+
+  const initializeData = async () => {
     try {
       // 로딩 시작
       setLoadingStates({
         dashboard: true,
+        jobPostList: true,
       });
 
       // 모든 API 호출을 병렬로 실행
       await Promise.all([
         fetchDash(),
+        fetchJobPostList()
         // 추가 API 호출들을 여기에 추가
       ]);
     } catch (error) {
@@ -140,12 +132,13 @@ export default function EmployerDashboard() {
       // 로딩 완료
       setLoadingStates({
         dashboard: false,
+        jobPostList: false,
       });
     }
   };
 
   useEffect(() => {
-    initializeDash();
+    initializeData();
   }, []);
 
   const handleViewJob = (id: string) => {
@@ -201,8 +194,9 @@ export default function EmployerDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
           </div>
+          { jobPostList && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-            {jobPosts.map((job) => (
+            {jobPostList.map((job) => (
               <JobPostCard
                 key={job.id}
                 job={job}
@@ -211,6 +205,7 @@ export default function EmployerDashboard() {
               />
             ))}
           </div>
+            )}
         </div>
         {/* Bottom Safe Area */}
         <div className="h-8 lg:h-12"></div>

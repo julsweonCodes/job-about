@@ -50,3 +50,18 @@ export interface Dashboard {
   allAppsCnt: number,
   needsUpdateCnt: number,
 }
+
+export interface JobPost {
+  id: string;
+  title: string;
+  type: WorkType;
+  wage: string;
+  location: string;
+  dateRange: string;
+  businessName: string;
+  description: string;
+  applicants: number;
+  views: number;
+  needsUpdate: boolean;
+  coverImage?: string;
+}
