@@ -5,31 +5,31 @@ import { cookies } from "next/headers";
 export async function getUserUuidFromSession(): Promise<string> {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
-  const { data, error } = await supabase.auth.getUser(); // getUser()로 변경
+  const { data, error } = await supabase.auth.getSession();
 
-  if (error || !data.user) {
+  if (error || !data.session?.user) {
     throw new Error("Unauthorized or session retrieval failed");
   }
 
-  return data.user.id;
+  return data.session.user.id;
 }
 
 export async function getUserIdFromSession(): Promise<number> {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
 
-  const { data, error } = await supabase.auth.getUser(); // getUser()로 변경
+  const { data, error } = await supabase.auth.getSession();
 
-  if (error || !data.user) {
+  if (error || !data.session?.user) {
     if (error) {
       console.log("error: ", error);
     } else {
-      console.log("no data user");
+      console.log("no session user");
     }
     throw new Error("Unauthorized or session retrieval failed");
   }
 
-  const uid = data.user.id;
+  const uid = data.session.user.id;
 
   const user = await prisma.users.findFirst({
     where: { user_id: uid },

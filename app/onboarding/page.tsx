@@ -49,10 +49,12 @@ export default function OnboardingPage() {
       const result = await res.json();
 
       if (res.ok) {
-        // TODO role 에 따라서 페이지 이동
+        // role에 따라 페이지 이동
         if (selectedType === Role.APPLICANT) {
-          router.push(PAGE_URLS.SEEKER.ROOT);
+          // APPLICANT는 quiz 페이지로 이동
+          router.push("/onboarding/seeker/quiz");
         } else {
+          // EMPLOYER는 employer 대시보드로 이동
           router.push(PAGE_URLS.EMPLOYER.ROOT);
         }
       } else {

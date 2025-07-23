@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { parseBigInt } from "@/lib/utils";
 
 // seeker 온보딩 분기 함수
 function getSeekerOnboardingRedirect(
@@ -81,7 +82,7 @@ export async function middleware(req: NextRequest) {
   );
 
   try {
-    // 세션 확인
+    // 세션 확인 (미들웨어에서는 getSession 사용)
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -116,7 +117,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // 로그인한 사용자 - 온보딩 상태 확인
-    if (session.user) {
+    if (session?.user) {
       // 홈페이지는 사용자 정보와 관계없이 접근 가능
       if (req.nextUrl.pathname === PAGE_URLS.HOME) {
         return res;
@@ -124,7 +125,16 @@ export async function middleware(req: NextRequest) {
 
       // API를 통해 사용자 정보 확인
       try {
-        const response = await fetch(`${req.nextUrl.origin}/api/user/me`, {
+        const origin = req.nextUrl.origin || 'http://localhost:3000';
+        const apiUrl = `${origin}/api/user/me`;
+        console.log(`[middleware] fetching user data from ${apiUrl}`);
+        
+        if (!origin || origin === '') {
+          console.error('[middleware] origin is empty, using localhost');
+          throw new Error('Invalid origin');
+        }
+        
+        const response = await fetch(apiUrl, {
           headers: {
             cookie: req.headers.get("cookie") || "",
           },
@@ -142,7 +152,8 @@ export async function middleware(req: NextRequest) {
         // 온보딩 페이지 접근 시
         if (isOnboardingPage) {
           console.log("[middleware] isOnboardingPage, path:", req.nextUrl.pathname);
-          console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
+          console.log("[middleware] profileStatus:", JSON.stringify(parseBigInt(profileStatus)));
+          
           // 온보딩이 끝났으면 메인으로 리다이렉트
           if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
             if (profileStatus.role === "APPLICANT") {
@@ -151,13 +162,34 @@ export async function middleware(req: NextRequest) {
               return NextResponse.redirect(new URL(PAGE_URLS.EMPLOYER.ROOT, req.url));
             }
           }
-          // 온보딩이 필요한 경우는 온보딩 페이지 허용
+          
+          // 온보딩 순서 체크 로직
+          const currentPath = req.nextUrl.pathname;
+          console.log(`[middleware] checking onboarding order for: ${currentPath}`);
+          
+          // APPLICANT 온보딩 순서 체크
+          if (profileStatus.role === "APPLICANT") {
+            // quiz를 안했는데 profile 페이지에 있다면 quiz로 리다이렉트
+            if (!profileStatus.hasPersonalityProfile && currentPath.includes('/profile')) {
+              console.log(`[middleware] redirecting to quiz from profile page`);
+              return NextResponse.redirect(new URL('/onboarding/seeker/quiz', req.url));
+            }
+            // quiz는 했는데 applicant profile이 없고 quiz 페이지에 있다면 profile로 리다이렉트
+            // 단, quiz result 페이지는 예외로 허용
+            if (profileStatus.hasPersonalityProfile && !profileStatus.hasApplicantProfile && 
+                currentPath.includes('/quiz') && !currentPath.includes('/quiz/result')) {
+              console.log(`[middleware] redirecting to profile from quiz page`);
+              return NextResponse.redirect(new URL('/onboarding/seeker/profile', req.url));
+            }
+          }
+          
+          // 현재 페이지가 올바른 온보딩 페이지면 허용
           return res;
         }
 
         // 그 외 페이지 접근 시
         console.log("[middleware] not onboarding page, path:", req.nextUrl.pathname);
-        console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
+        console.log("[middleware] profileStatus:", JSON.stringify(parseBigInt(profileStatus)));
         const onboardingRedirect = getOnboardingRedirect(profileStatus, req);
         if (onboardingRedirect) return onboardingRedirect;
       } catch (error) {

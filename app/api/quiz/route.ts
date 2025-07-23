@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { getQuizQuestions, updateUserPersonality } from "@/app/services/quiz-services";
 import { determineProfileId, validateQuizResponses } from "@/lib/quiz-analyzer";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
-import { getUserIdFromSession } from "@/utils/auth";
+import { getUserUuidFromSession } from "@/utils/auth";
 
 /**
  * GET: 퀴즈 질문 목록을 가져오는 API
@@ -41,16 +41,16 @@ export async function POST(req: NextRequest) {
   try {
     console.log("퀴즈 제출 API 호출");
 
-    // 인증된 사용자 ID 가져오기
-    let userId: number;
+    // 인증된 사용자 UUID 가져오기
+    let userUuid: string;
     try {
-      userId = await getUserIdFromSession();
+      userUuid = await getUserUuidFromSession();
     } catch (error) {
       console.error("사용자 인증 실패:", error);
       return errorResponse("Unauthorized.", 401);
     }
 
-    console.log(`사용자 ${userId}의 퀴즈 제출 처리 시작`);
+    console.log(`사용자 ${userUuid}의 퀴즈 제출 처리 시작`);
 
     const body = await req.json();
     const { responses } = body;
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     console.log(`결정된 프로필 ID: ${profileId}`);
 
     // 사용자 성향 프로필 업데이트
-    const updatedUser = await updateUserPersonality(userId.toString(), profileId);
+    const updatedUser = await updateUserPersonality(userUuid, profileId);
 
     if (!updatedUser) {
       console.error("사용자 성향 업데이트 실패");

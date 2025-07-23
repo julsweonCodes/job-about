@@ -161,7 +161,7 @@ function App() {
   };
 
   const handleSeeJobs = () => {
-    router.push("/seeker/");
+    router.push("/onboarding/seeker/profile");
   };
 
   // 로딩 상태
@@ -345,7 +345,7 @@ function App() {
                 size="lg"
                 className={`group flex items-center justify-center space-x-2 px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl sm:rounded-2xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl text-sm sm:text-base`}
               >
-                <span>See Recommended Jobs</span>
+                <span>Continue to Profile Setup</span>
               </Button>
             </div>
           </div>

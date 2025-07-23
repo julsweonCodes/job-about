@@ -26,12 +26,12 @@ export async function GET() {
     });
 
     // BigInt를 Number로 변환
-    const serializedSkills = practicalSkills.map(skill => ({
-      id: Number(skill.id),
-      category_ko: skill.category_ko,
-      category_en: skill.category_en,
-      name_ko: skill.name_ko,
-      name_en: skill.name_en
+    const serializedSkills = practicalSkills.map((practicalSkill: any) => ({
+      id: Number(practicalSkill.id),
+      category_ko: practicalSkill.category_ko,
+      category_en: practicalSkill.category_en,
+      name_ko: practicalSkill.name_ko,
+      name_en: practicalSkill.name_en
     }));
 
     if (!serializedSkills || serializedSkills.length === 0) {
