@@ -5,16 +5,17 @@ import {formatDateYYYYMMDD} from "@/lib/utils";
 import {getUserIdFromSession} from "@/utils/auth";
 import { Prisma } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
+import { Skill, WorkStyle } from "@/types/profile";
 
 // Create Job Post
  export async function createJobPost(payload: JobPostPayload) {
   const userId = await getUserIdFromSession();
   const bizLocId = await getBusinessLocId(userId);
   console.log(userId, bizLocId);
-
+   console.log(payload);
   const createdPost = await prisma.job_posts.create({
     data: {
-      deadline: payload.deadline,
+      deadline: formatDateYYYYMMDD(payload.deadline),
       description: payload.jobDescription ?? "no description.",
       job_type: "CHEF",
       status: "DRAFT",
@@ -23,13 +24,15 @@ import { JobPostPayload } from "@/types/employer";
       work_schedule: payload.workSchedule,
       business_loc_id: bizLocId,
       user_id: userId,
-      location: "TORONTO", // TODO: 동적으로 설정 필요
+      work_type: payload.workType,
     },
     select: {
       id: true
     },
   });
-  console.log(createdPost);
+  const resPracSkills = await deleteAndInsertPracticalSkills(Number(createdPost.id), payload.requiredSkills);
+  const recWorkStyles = await deleteAndInsertWorkStyles(Number(createdPost.id), payload.requiredWorkStyles);
+  console.log(createdPost, resPracSkills, recWorkStyles);
   return createdPost.id.toString();
  }
 
@@ -47,7 +50,50 @@ export async function getBusinessLocId(userId: number) {
 
    return Number(bizLocId.id);
 }
-// Gemini API
 
+// Delete Skills from Practical skills
+export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: Skill[]) {
+   return prisma.$transaction( async (tx) => {
+    await tx.job_post_practical_skills.deleteMany({
+      where: { job_post_id: jobPostId }
+    });
 
-// Get
+    if (skills.length > 0) {
+      const practicalSkillData = skills.map( (skill) => ({
+        job_post_id: jobPostId,
+        practical_skill_id: skill.id,
+      }));
+
+      const result = await tx.job_post_practical_skills.createMany({
+        data: practicalSkillData,
+      });
+
+      return result.count;
+    }
+
+    return 0;
+  });
+}
+
+export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: WorkStyle[]) {
+  return prisma.$transaction( async (tx) => {
+    await tx.job_post_work_styles.deleteMany({
+      where: { job_post_id: jobPostId }
+    });
+
+    if (workStyles.length > 0) {
+      const workStyleData = workStyles.map( (ws) => ({
+        job_post_id: jobPostId,
+        work_style_id: ws.id,
+      }));
+
+      const result = await tx.job_post_work_styles.createMany({
+        data: workStyleData,
+      });
+
+      return result.count;
+    }
+
+    return 0;
+  });
+}
