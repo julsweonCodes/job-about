@@ -1,6 +1,7 @@
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { getUserWithProfileStatus } from "@/app/services/user-services";
 import { getUserUuidFromSession } from "@/utils/auth";
+import { parseBigInt } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -21,11 +22,11 @@ export async function GET() {
       const userData = await getUserWithProfileStatus(uid);
 
       return successResponse(
-        {
+        parseBigInt({
           user: userData.user,
           profileStatus: userData.profileStatus,
           message: "User found",
-        },
+        }),
         200,
         "User found"
       );

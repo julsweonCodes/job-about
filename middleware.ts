@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { parseBigInt } from "@/lib/utils";
 
 // seeker 온보딩 분기 함수
 function getSeekerOnboardingRedirect(
@@ -81,7 +82,7 @@ export async function middleware(req: NextRequest) {
   );
 
   try {
-    // 세션 확인
+    // 세션 확인 (미들웨어에서는 getSession 사용)
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -116,7 +117,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // 로그인한 사용자 - 온보딩 상태 확인
-    if (session.user) {
+    if (session?.user) {
       // 홈페이지는 사용자 정보와 관계없이 접근 가능
       if (req.nextUrl.pathname === PAGE_URLS.HOME) {
         return res;
@@ -142,7 +143,7 @@ export async function middleware(req: NextRequest) {
         // 온보딩 페이지 접근 시
         if (isOnboardingPage) {
           console.log("[middleware] isOnboardingPage, path:", req.nextUrl.pathname);
-          console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
+          console.log("[middleware] profileStatus:", JSON.stringify(parseBigInt(profileStatus)));
           // 온보딩이 끝났으면 메인으로 리다이렉트
           if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
             if (profileStatus.role === "APPLICANT") {
@@ -157,7 +158,7 @@ export async function middleware(req: NextRequest) {
 
         // 그 외 페이지 접근 시
         console.log("[middleware] not onboarding page, path:", req.nextUrl.pathname);
-        console.log("[middleware] profileStatus:", JSON.stringify(profileStatus));
+        console.log("[middleware] profileStatus:", JSON.stringify(parseBigInt(profileStatus)));
         const onboardingRedirect = getOnboardingRedirect(profileStatus, req);
         if (onboardingRedirect) return onboardingRedirect;
       } catch (error) {
