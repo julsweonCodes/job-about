@@ -137,11 +137,13 @@ function JobPostCreatePage() {
       return;
     }
     const result = await res.json();
+    console.log(result);
+
     // 2. 미리보기 페이지로 이동
     if (formData.useAI) {
-      router.push(`/employer/post/preview/${result.data}?useAI=true`);
+      router.push(`/employer/post/preview/${result.data.id}?useAI=true`);
     } else {
-      router.push(`/employer/post/preview/${result.data}?useAI=false`);
+      router.push(`/employer/post/preview/${result.data.id}?useAI=false`);
     }
 
   };

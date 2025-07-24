@@ -13,16 +13,26 @@ export async function POST (request: NextRequest) {
   let geminiRes: any = null;
   try {
     const createPostRes = await createJobPost(body);
+    const session = await getSession();
     console.log(createPostRes);
     if (body.useAI) {
       geminiRes = await geminiTest(body);
       console.log(geminiRes);
-      const session = await getSession();
+
       session.geminiRes = geminiRes;
-      session.jobDescTxt = createPostRes.description;
-      await session.save();
     }
-    return NextResponse.json( {data: createPostRes, geminiRes}, {status: 200});
+    session.jobDescTxt = createPostRes.description;
+    await session.save();
+    console.log("session: ", session);
+    return NextResponse.json(
+      {
+        data:
+          {
+            id: Number(createPostRes.id),
+            description: createPostRes.description,
+            geminiRes: geminiRes
+          }
+      }, {status: 200});
   } catch (error) {
     console.error("❌ error on creating job post:", error);
     return NextResponse.json({ error: "Failed to create job post" }, { status: 500 });

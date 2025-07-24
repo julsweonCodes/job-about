@@ -7,7 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export async function geminiTest(payload: JobPostPayload) {
   // Use the appropriate model
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
     },
@@ -48,6 +48,13 @@ export async function geminiTest(payload: JobPostPayload) {
 
   const response = await result.response;
   const text = await response.text();
-  console.log("Response:\n", text);
-  return text;
+
+  try {
+    const parsed = JSON.parse(text);
+    console.log("parsed: ", parsed);
+    return parsed;
+  } catch (e) {
+    console.error("Gemini response is not valid JSON:", text);
+    throw e;
+  }
 }

@@ -1,7 +1,7 @@
 import { SessionOptions } from "iron-session";
 
 export interface SessionData {
-  geminiRes?: object;
+  geminiRes?: any;
   jobDescTxt: string;
   isLoggedIn: boolean;
 };
@@ -20,7 +20,7 @@ export const sessionOptions: SessionOptions = {
 };
 
 export const defaultSession: SessionData = {
-  geminiRes: [],
+  geminiRes: undefined,
   jobDescTxt: "",
   isLoggedIn: false,
 }
