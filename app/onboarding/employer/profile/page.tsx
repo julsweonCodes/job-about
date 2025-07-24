@@ -239,7 +239,7 @@ export default function EmployerProfilePage() {
                     onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                     onBlur={() => setTouched((t) => ({ ...t, phoneNumber: true }))}
                     placeholder="(555) 123-4567"
-                    type="phone"
+                    type="tel"
                     required
                     rightIcon={<Phone className="w-5 h-5" />}
                     error={touched.phoneNumber ? validatePhone(profileFormData.phoneNumber) : ""}

@@ -4,6 +4,7 @@ import { createJobPost, getBusinessLocId } from "@/app/services/job-post-service
 import { geminiTest } from "@/app/services/gemini-services";
 import { JobPostPayload} from "@/types/employer";
 import { getSession } from "@/utils/withSession";
+import { successResponse } from "@/app/lib/server/commonResponse";
 
 // create job post
 
@@ -24,7 +25,7 @@ export async function POST (request: NextRequest) {
     session.jobDescTxt = createPostRes.description;
     await session.save();
     console.log("session: ", session);
-    return NextResponse.json(
+    return successResponse(
       {
         data:
           {
@@ -32,7 +33,7 @@ export async function POST (request: NextRequest) {
             description: createPostRes.description,
             geminiRes: geminiRes
           }
-      }, {status: 200});
+      }, 200);
   } catch (error) {
     console.error("❌ error on creating job post:", error);
     return NextResponse.json({ error: "Failed to create job post" }, { status: 500 });

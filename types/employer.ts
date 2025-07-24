@@ -10,7 +10,6 @@ export interface EmployerProfilePayload {
   operating_start: string; // "08:00"
   operating_end: string;   // "17:00"
   description?: string;
-  language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
 
   logo_img: string;
   // 이미지 필드 (최대 5장까지 URL 저장)

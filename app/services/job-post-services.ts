@@ -54,6 +54,41 @@ export async function getBusinessLocId(userId: number) {
    return Number(bizLocId.id);
 }
 
+// Get Job Post skills
+export async function getJobPostPracSkills(jobPostId: number) {
+  const res = await prisma.job_post_practical_skills.findMany({
+    where: { job_post_id: jobPostId },
+    include: {
+      practical_skill: {
+        select: {
+          id: true,
+          category_ko: true,
+          category_en: true,
+          name_ko: true,
+          name_en: true
+        }
+      }
+    }
+  });
+  return res;
+}
+// Get Job Post Work Styles
+export async function getJobPostWorkStyles(jobPostId: number) {
+  const res = await prisma.job_post_work_styles.findMany({
+    where: { job_post_id: jobPostId },
+    include: {
+      work_style: {
+        select: {
+          id: true,
+          name_ko: true,
+          name_en: true
+        }
+      }
+    }
+  });
+
+  return res;
+}
 // Delete Skills from Practical skills
 export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: Skill[]) {
    return prisma.$transaction( async (tx) => {

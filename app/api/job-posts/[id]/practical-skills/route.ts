@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { getUserIdFromSession } from "@/utils/auth";
+import { getJobPostPracSkills } from "@/app/services/job-post-services";
+import { parseBigInt } from "@/lib/utils";
 
 /**
  * GET: 특정 채용공고의 선택된 실무능력 목록 조회
@@ -20,21 +22,8 @@ export async function GET(
     }
 
     console.log(`채용공고 실무능력 조회: jobPostId=${jobPostId}`);
-    
-    const jobPracticalSkills = await prisma.job_post_practical_skills.findMany({
-      where: { job_post_id: jobPostId },
-      include: {
-        practical_skill: {
-          select: {
-            id: true,
-            category_ko: true,
-            category_en: true,
-            name_ko: true,
-            name_en: true
-          }
-        }
-      }
-    });
+
+    const jobPracticalSkills = await getJobPostPracSkills(jobPostId);
 
     const practicalSkills = jobPracticalSkills.map(jps => ({
       id: Number(jps.practical_skill.id),
@@ -43,7 +32,7 @@ export async function GET(
       name_ko: jps.practical_skill.name_ko,
       name_en: jps.practical_skill.name_en
     }));
-    
+
     console.log(`채용공고 실무능력 ${practicalSkills.length}개 조회 성공`);
     
     return successResponse(practicalSkills, 200, "Job post practical skills fetched successfully.");
@@ -124,11 +113,11 @@ export async function POST(
 
     console.log(`채용공고 실무능력 설정 완료: ${practicalSkillIds.length}개 항목`);
     
-    return successResponse({
+    return successResponse(parseBigInt({
       jobPostId,
       practicalSkillIds,
       message: "Practical skills updated successfully"
-    }, 200, "Job post practical skills updated successfully.");
+    }), 200, "Job post practical skills updated successfully.");
   } catch (error) {
     console.error(`API Error POST /api/job-posts/${params.id}/practical-skills:`, error);
     return errorResponse("An internal server error occurred.", 500);
