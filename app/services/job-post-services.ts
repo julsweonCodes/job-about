@@ -27,13 +27,14 @@ import { Skill, WorkStyle } from "@/types/profile";
       work_type: payload.workType,
     },
     select: {
-      id: true
+      id: true,
+      description: true,
     },
   });
   const resPracSkills = await deleteAndInsertPracticalSkills(Number(createdPost.id), payload.requiredSkills);
   const recWorkStyles = await deleteAndInsertWorkStyles(Number(createdPost.id), payload.requiredWorkStyles);
   console.log(createdPost, resPracSkills, recWorkStyles);
-  return createdPost.id.toString();
+  return createdPost;
  }
 
 // Edit Job Post
