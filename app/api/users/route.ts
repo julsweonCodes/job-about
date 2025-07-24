@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
     const userId = await getUserIdFromSession();
+    console.log("userId" + userId);
     if (!userId) {
         return errorResponse('User ID was not provided.', 400);
     }

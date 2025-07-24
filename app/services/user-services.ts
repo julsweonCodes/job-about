@@ -96,16 +96,7 @@ export async function getUserWithProfileStatus(userId: string) {
   try {
     // 사용자 정보 확인
     const user = await prisma.users.findFirst({
-      where: { user_id: userId },
-      select: {
-        id: true,
-        user_id: true,
-        email: true,
-        name: true,
-        role: true,
-        created_at: true,
-        personality_profile_id: true,
-      },
+      where: { user_id: userId, deleted_at: null },
     });
 
     if (!user) {
@@ -116,7 +107,7 @@ export async function getUserWithProfileStatus(userId: string) {
     let isProfileCompleted = false;
     let hasPersonalityProfile = false;
     let hasApplicantProfile = false;
-    
+
     if (user.role === "APPLICANT") {
       hasPersonalityProfile = !!user.personality_profile_id;
       const applicantProfile = await prisma.applicant_profiles.findFirst({

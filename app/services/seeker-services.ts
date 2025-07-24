@@ -1,6 +1,6 @@
 import { errorResponse, HttpError, successResponse } from "../lib/server/commonResponse";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { ProfileDto, profileDtoToCreateData, profileDtoToUpdateData } from "@/types/profile";
+import { applicantProfile, toApplicantProfileCreate, toApplicantProfileUpdate } from "@/types/profile";
 
 export async function getSeekerProfile(userId: number) {
     const user = await prisma.users.findUnique({
@@ -15,9 +15,7 @@ export async function getSeekerProfile(userId: number) {
             user_id: userId
             , deleted_at: null
         }, include: {
-            skills_applicant_profiles_skill_id1Toskills: true,
-            skills_applicant_profiles_skill_id2Toskills: true,
-            skills_applicant_profiles_skill_id3Toskills: true
+            work_experiences: true
         }
     });
     if (!profile) {
@@ -27,7 +25,7 @@ export async function getSeekerProfile(userId: number) {
     return profile;
 }
 
-export async function upsertSeekerProfile(userId: number, body: ProfileDto) {
+export async function upsertSeekerProfile(userId: number, body: applicantProfile) {
     const user = await prisma.users.findUnique({
         where: { id: userId }
     });
@@ -43,13 +41,13 @@ export async function upsertSeekerProfile(userId: number, body: ProfileDto) {
     if (profile) {
         const updated = await prisma.applicant_profiles.update({
             where: { id: profile.id },
-            data: profileDtoToUpdateData(body),
+            data: toApplicantProfileUpdate(body),
         });
         return { profile: updated, created: false };
     } else {
         const created = await prisma.applicant_profiles.create({
             data: {
-                ...profileDtoToCreateData(body, userId.toString()),
+                ...toApplicantProfileCreate(body, userId.toString()),
             },
         });
         return { profile: created, created: true };

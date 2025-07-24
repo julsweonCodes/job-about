@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Briefcase,
   Heart,
@@ -24,11 +24,42 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import { LanguageLevel } from "@/constants/enums";
+import { AvailableDay, AvailableHour, JobType, LanguageLevel, WorkType } from "@/constants/enums";
+import { useRouter } from "next/navigation";
+import { da } from "date-fns/locale";
+
+export interface UserInfo {
+  name: string;
+  description: string;
+  phone_number: string;
+  img_url?: string;
+  created_at: Date;
+}
+export interface WorkExperience {
+  company_name: string;
+  job_type: JobType;
+  start_date: Date;
+  end_date: Date;
+  work_type: WorkType;
+  description: string;
+}
+
+export interface SeekerProfile {
+  location: Location;
+  work_type: WorkType;
+  job_type1: JobType;
+  job_type2?: JobType;
+  job_type3?: JobType;
+  available_day: AvailableDay;
+  available_hour: AvailableHour;
+  language_level: LanguageLevel;
+  work_experiences: WorkExperience[];
+}
 
 function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isEditing, setIsEditing] = useState({
     basicInfo: false,
     contact: false,
@@ -39,8 +70,6 @@ function App() {
     availability: false,
     languages: false,
   });
-
-  // 기존 데이터
   const [applicantProfile, setApplicantProfile] = useState({
     name: "Sarah Johnson",
     description:
@@ -61,13 +90,72 @@ function App() {
         company: "TechFlow Solutions",
         duration: "2022 - Present",
       },
-      {
-        title: "UI Designer",
-        company: "Creative Studio",
-        duration: "2020 - 2022",
-      },
+      { title: "UI Designer", company: "Creative Studio", duration: "2020 - 2022" },
     ],
   });
+
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [seekerProfile, setSeekerProfile] = useState<SeekerProfile | null>(null);
+  const router = useRouter();
+
+  //초기 데이터 fetch
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [userRes, profileRes] = await Promise.all([
+          fetch("/api/user/me"),
+          fetch("/api/seeker/profiles"),
+        ]);
+
+        const userData = await userRes.json();
+        const profileData = await profileRes.json();
+
+        if (userData.status === "success" && userData.data) {
+          setUserInfo(userData.data.user);
+        }
+
+        if (profileData.status === "success" && profileData.data) {
+          setSeekerProfile(profileData.data);
+        }
+      } catch (error) {
+        console.error("초기 데이터 로딩 실패:", error);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    if (userInfo && seekerProfile && !isInitialized) {
+      setApplicantProfile({
+        name: userInfo.name,
+        description: userInfo.description,
+        profileImageUrl: userInfo.img_url ? userInfo.img_url : "",
+        joinDate: new Date(userInfo.created_at).toLocaleDateString(),
+        location: seekerProfile.location.toString(),
+        phone: userInfo.phone_number,
+        skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
+        workType: seekerProfile.work_type.toString(),
+        jobTypes: [
+          seekerProfile.job_type1,
+          seekerProfile.job_type2,
+          seekerProfile.job_type3,
+        ].filter((jobType) => jobType != null),
+        availabilityDays: [seekerProfile.available_day],
+        availabilityTimes: [seekerProfile.available_hour],
+        englishLevel: seekerProfile.language_level,
+        experiences: seekerProfile.work_experiences?.length
+          ? seekerProfile.work_experiences.map((exp) => ({
+              title: exp.job_type,
+              company: exp.company_name,
+              duration: `${exp.start_date} - ${exp.end_date}`,
+            }))
+          : [],
+      });
+
+      setIsInitialized(true); // ✅ 최초 1회만 초기화되게 플래그 세팅
+    }
+  }, [userInfo, seekerProfile, isInitialized]);
 
   // 임시 데이터
   const [tempData, setTempData] = useState(applicantProfile);
@@ -108,6 +196,17 @@ function App() {
     },
   ];
 
+  const updateUserProfile = async () => {
+    const formData = new FormData();
+    formData.append("name", tempData.name);
+    formData.append("description", tempData.description);
+
+    const response = await fetch("/api/users", {
+      method: "PUT",
+      body: formData,
+    });
+  };
+
   // 수정 모드 진입 시 현재 데이터로 임시 상태 초기화
   const handleEdit = (section: string) => {
     setTempData(applicantProfile);
@@ -140,13 +239,14 @@ function App() {
     setShowProfileDialog(false);
   };
 
-  const handleProfileSave = () => {
+  const handleProfileSave = async () => {
     setApplicantProfile(tempData);
     console.log("Saving basic information:", tempData);
+    await updateUserProfile();
     handleCloseProfileDialog();
   };
 
-  const handleProfileImageChange = (file: File) => {
+  const handleProfileImageChange = async (file: File) => {
     console.log("Profile image changed to:", file);
     try {
       // 파일을 읽어서 이미지 URL로 변환
@@ -160,6 +260,15 @@ function App() {
         }));
       };
       reader.readAsDataURL(file);
+
+      // 파일 저장
+      const formData = new FormData();
+      formData.append("img", file); // 폼데이터에서 "profile" JSON형식으로 변환
+
+      const response = await fetch("/api/users", {
+        method: "PUT",
+        body: formData,
+      });
     } catch (error) {
       console.error("Error updating profile image:", error);
     }
@@ -252,7 +361,10 @@ function App() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={applicantProfile.profileImageUrl || "/images/img-default-profile.png"}
+                    src={
+                      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}` ||
+                      "/images/img-default-profile.png"
+                    }
                     alt={applicantProfile.name}
                     className="w-full h-full object-cover"
                   />
