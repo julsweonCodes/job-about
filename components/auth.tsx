@@ -1,11 +1,11 @@
 "use client";
-import { createSupabaseBrowserClient } from "@/lib/client/supabase";
+import { supabaseClient } from "@/utils/supabase/client";
 import { Auth } from "@supabase/auth-ui-react";
 import React, { useState, useEffect } from "react";
 
 const AuthUI = () => {
   const [user, setUser] = useState();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = supabaseClient;
 
   const getUserInfo = async () => {
     const result = await supabase.auth.getUser();

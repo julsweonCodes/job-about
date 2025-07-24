@@ -1,6 +1,6 @@
 "use client";
-import { createSupabaseBrowserClient } from "@/lib/client/supabase";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { supabaseClient } from "@/utils/supabase/client";
 
 interface LogoutButtonProps {
   className?: string;
@@ -9,7 +9,7 @@ interface LogoutButtonProps {
 
 export default function LogoutButton({ className = "", children }: LogoutButtonProps) {
   const { setIsLoggedIn, setUser } = useAuthStore();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = supabaseClient;
 
   const handleLogout = async () => {
     try {

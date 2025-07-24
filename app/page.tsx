@@ -14,14 +14,13 @@ import {
 } from "lucide-react";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { createSupabaseBrowserClient } from "@/lib/client/supabase";
+import { supabaseClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation";
 import { PAGE_URLS, API_URLS } from "@/constants/api";
-
 function App() {
   const [activeTab, setActiveTab] = useState("seekers");
   const { isLoggedIn, profileStatus } = useAuthStore();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = supabaseClient;
   const router = useRouter();
 
   // role이 없으면 온보딩 페이지로 리다이렉트

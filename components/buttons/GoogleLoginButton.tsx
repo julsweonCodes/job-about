@@ -1,14 +1,14 @@
 "use client";
 import React from "react";
-import { createSupabaseBrowserClient } from "@/lib/client/supabase";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { supabaseClient } from "@/utils/supabase/client";
 
 export default function GoogleLoginButton() {
   const { setLoginTried } = useAuthStore();
 
   const handleGoogleLogin = async () => {
     setLoginTried(true);
-    const supabase = createSupabaseBrowserClient();
+    const supabase = supabaseClient;
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
