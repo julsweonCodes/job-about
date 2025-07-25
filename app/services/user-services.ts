@@ -59,13 +59,15 @@ export async function updateUser(updateUser: UpdateUser, userId: number) {
     throw new HttpError("User not found", 404);
   }
 
+  // undefined 제거
+  const filteredData = Object.fromEntries(
+    Object.entries(updateUser).filter(([_, value]) => value !== undefined)
+  );
+
   const updated = await prisma.users.update({
     where: { id: userId },
     data: {
-      name,
-      phone_number,
-      description,
-      img_url,
+      ...filteredData,
       updated_at: new Date(),
     },
   });
@@ -96,16 +98,7 @@ export async function getUserWithProfileStatus(userId: string) {
   try {
     // 사용자 정보 확인
     const user = await prisma.users.findFirst({
-      where: { user_id: userId },
-      select: {
-        id: true,
-        user_id: true,
-        email: true,
-        name: true,
-        role: true,
-        created_at: true,
-        personality_profile_id: true,
-      },
+      where: { user_id: userId, deleted_at: null },
     });
 
     if (!user) {
@@ -116,7 +109,7 @@ export async function getUserWithProfileStatus(userId: string) {
     let isProfileCompleted = false;
     let hasPersonalityProfile = false;
     let hasApplicantProfile = false;
-    
+
     if (user.role === "APPLICANT") {
       hasPersonalityProfile = !!user.personality_profile_id;
       const applicantProfile = await prisma.applicant_profiles.findFirst({

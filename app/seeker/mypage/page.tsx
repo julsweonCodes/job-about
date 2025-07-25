@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Briefcase,
   Heart,
@@ -24,11 +24,64 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import { LanguageLevel } from "@/constants/enums";
+import { AvailableDay, AvailableHour, JobType, LanguageLevel, WorkType } from "@/constants/enums";
+import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/common/LoadingScreen";
+import { Location } from "@/constants/enums";
+import { getEnumKeyFromValue } from "@/utils/client/seeker";
+
+export interface UserInfo {
+  name: string;
+  description: string;
+  phone_number: string;
+  img_url?: string;
+  created_at: Date;
+}
+export interface WorkExperience {
+  company_name: string;
+  job_type: JobType;
+  start_date: Date;
+  end_date: Date;
+  work_type: WorkType;
+  description: string;
+}
+
+export interface SeekerProfile {
+  location: Location;
+  work_type: WorkType;
+  job_type1: JobType;
+  job_type2?: JobType;
+  job_type3?: JobType;
+  available_day: AvailableDay;
+  available_hour: AvailableHour;
+  language_level: LanguageLevel;
+  work_experiences: WorkExperience[];
+}
+
+interface ApplicantProfile {
+  name: string;
+  description: string;
+  profileImageUrl: string;
+  joinDate: string;
+  location: string;
+  phone: string;
+  skills: string[];
+  workType: string;
+  jobTypes: string[];
+  availabilityDays: string[];
+  availabilityTimes: string[];
+  englishLevel: string;
+  experiences: {
+    title: string;
+    company: string;
+    duration: string;
+  }[];
+}
 
 function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isEditing, setIsEditing] = useState({
     basicInfo: false,
     contact: false,
@@ -39,9 +92,112 @@ function App() {
     availability: false,
     languages: false,
   });
+  const initialApplicantProfile: ApplicantProfile = {
+    name: "",
+    description: "",
+    profileImageUrl: "",
+    joinDate: "",
+    location: "",
+    phone: "",
+    skills: [],
+    workType: "",
+    jobTypes: [],
+    availabilityDays: [],
+    availabilityTimes: [],
+    englishLevel: "",
+    experiences: [],
+  };
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [seekerProfile, setSeekerProfile] = useState<SeekerProfile | null>(null);
+  const [applicantProfile, setApplicantProfile] =
+    useState<ApplicantProfile>(initialApplicantProfile);
+  const [tempData, setTempData] = useState<ApplicantProfile>(initialApplicantProfile);
 
-  // 기존 데이터
-  const [applicantProfile, setApplicantProfile] = useState({
+  const router = useRouter();
+
+  if (!applicantProfile || !tempData) {
+    return <LoadingScreen />;
+  }
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [userRes, profileRes] = await Promise.all([
+          fetch("/api/user/me"),
+          fetch("/api/seeker/profiles"),
+        ]);
+
+        const userData = await userRes.json();
+        const profileData = await profileRes.json();
+
+        if (userData.status === "success" && userData.data) {
+          setUserInfo(userData.data.user);
+        }
+
+        if (profileData.status === "success" && profileData.data) {
+          setSeekerProfile(profileData.data);
+        }
+      } catch (error) {
+        console.error("초기 데이터 로딩 실패:", error);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    if (userInfo && seekerProfile && !isInitialized) {
+      setApplicantProfile({
+        name: userInfo.name,
+        description: userInfo.description,
+        profileImageUrl: userInfo.img_url ? userInfo.img_url : "",
+        joinDate: new Date(userInfo.created_at).toLocaleDateString("ko-KR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+        location: Location[seekerProfile.location as keyof typeof Location],
+        phone: userInfo.phone_number,
+        skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
+        workType: seekerProfile.work_type.toString(),
+        jobTypes: [
+          JobType[seekerProfile.job_type1 as keyof typeof JobType],
+          JobType[seekerProfile.job_type2 as keyof typeof JobType],
+          JobType[seekerProfile.job_type3 as keyof typeof JobType],
+        ].filter((jobType) => jobType != null),
+        availabilityDays: [AvailableDay[seekerProfile.available_day as keyof typeof AvailableDay]],
+        availabilityTimes: [
+          AvailableHour[seekerProfile.available_hour as keyof typeof AvailableHour],
+        ],
+        englishLevel: seekerProfile.language_level,
+        experiences: seekerProfile.work_experiences?.length
+          ? seekerProfile.work_experiences.map((exp) => ({
+              title: exp.job_type,
+              company: exp.company_name,
+              duration: `${new Date(exp.start_date).toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })} - ${new Date(exp.end_date).toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })}`,
+            }))
+          : [],
+      });
+
+      setIsInitialized(true); // ✅ 최초 1회만 초기화되게 플래그 세팅
+    }
+  }, [userInfo, seekerProfile, isInitialized]);
+
+  useEffect(() => {
+    if (applicantProfile) {
+      setTempData(applicantProfile);
+    }
+  }, [applicantProfile]);
+
+  /*useState({
     name: "Sarah Johnson",
     description:
       "Crafting meaningful digital experiences that connect people and solve real problems",
@@ -61,16 +217,9 @@ function App() {
         company: "TechFlow Solutions",
         duration: "2022 - Present",
       },
-      {
-        title: "UI Designer",
-        company: "Creative Studio",
-        duration: "2020 - 2022",
-      },
+      { title: "UI Designer", company: "Creative Studio", duration: "2020 - 2022" },
     ],
-  });
-
-  // 임시 데이터
-  const [tempData, setTempData] = useState(applicantProfile);
+  });*/
 
   // Job Preferences 관련 상태
   const [newSkill, setNewSkill] = useState("");
@@ -120,10 +269,66 @@ function App() {
     setIsEditing((prev) => ({ ...prev, [section]: false }));
   };
 
+  const updateSeekerProfilePartial = async (data: Partial<SeekerProfile>) => {
+    return fetch("/api/seeker/profiles", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  };
+
   // update contact, location
-  const handleOptionsSave = (section: string) => {
-    setApplicantProfile(tempData);
-    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  const handleOptionsSave = async (section: string) => {
+    let payload: Partial<SeekerProfile> = {};
+
+    switch (section) {
+      case "location":
+        payload = {
+          location: getEnumKeyFromValue(Location, tempData.location),
+        };
+        break;
+      case "skills":
+        payload = {};
+        break;
+      case "workType":
+        payload = {
+          work_type: tempData.workType,
+        };
+        break;
+      case "jobTypes":
+        payload = {
+          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]),
+          ...(tempData.jobTypes[1] && {
+            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]),
+          }),
+          ...(tempData.jobTypes[2] && {
+            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]),
+          }),
+        };
+        break;
+
+      case "availability":
+        payload = {
+          available_day: getEnumKeyFromValue(AvailableHour, tempData.availabilityDays[0]),
+          available_hour: getEnumKeyFromValue(AvailableHour, tempData.availabilityTimes[0]),
+        };
+        break;
+      case "languages":
+        payload = {
+          language_level: tempData.englishLevel,
+        };
+        break;
+      default:
+        console.warn("Unknown section:", section);
+        return;
+    }
+
+    try {
+      await updateSeekerProfilePartial(payload);
+      setApplicantProfile(tempData);
+      setIsEditing((prev) => ({ ...prev, [section]: false }));
+    } catch (error) {
+      console.error(`Failed to save ${section}:`, error);
+    }
   };
 
   // update field
@@ -140,13 +345,31 @@ function App() {
     setShowProfileDialog(false);
   };
 
-  const handleProfileSave = () => {
+  const updateUserProfile = async () => {
+    const formData = new FormData();
+    formData.append("name", tempData.name);
+    formData.append("description", tempData.description);
+    formData.append("phone_number", tempData.phone);
+
+    const response = await fetch("/api/users", {
+      method: "PUT",
+      body: formData,
+    });
+  };
+
+  const handleProfileSave = async () => {
     setApplicantProfile(tempData);
-    console.log("Saving basic information:", tempData);
+    await updateUserProfile();
     handleCloseProfileDialog();
   };
 
-  const handleProfileImageChange = (file: File) => {
+  const handleProfileContactSave = async () => {
+    await updateUserProfile();
+    setApplicantProfile(tempData);
+    setIsEditing((prev) => ({ ...prev, ["contact"]: false }));
+  };
+
+  const handleProfileImageChange = async (file: File) => {
     console.log("Profile image changed to:", file);
     try {
       // 파일을 읽어서 이미지 URL로 변환
@@ -160,6 +383,22 @@ function App() {
         }));
       };
       reader.readAsDataURL(file);
+
+      // 파일 저장
+      const formData = new FormData();
+      formData.append("img", file);
+
+      const response = await fetch("/api/users", {
+        method: "PATCH",
+        body: formData,
+      });
+      const result = await response.json();
+      if (result.data.img_url) {
+        setApplicantProfile((prev) => ({
+          ...prev,
+          profileImageUrl: result.data.img_url,
+        }));
+      }
     } catch (error) {
       console.error("Error updating profile image:", error);
     }
@@ -252,7 +491,10 @@ function App() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={applicantProfile.profileImageUrl || "/images/img-default-profile.png"}
+                    src={
+                      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}` ||
+                      "/images/img-default-profile.png"
+                    }
                     alt={applicantProfile.name}
                     className="w-full h-full object-cover"
                   />
@@ -350,7 +592,7 @@ function App() {
             subtitle="Your contact phone number"
             onEdit={() => handleEdit("contact")}
             isEditing={isEditing.contact}
-            onSave={() => handleOptionsSave("contact")}
+            onSave={() => handleProfileContactSave()}
             onCancel={() => handleCancel("contact")}
           >
             {isEditing.contact ? (
@@ -776,7 +1018,7 @@ function App() {
         onClose={() => setShowImageUploadDialog(false)}
         onSave={handleProfileImageChange}
         title="Change Profile Image"
-        currentImage={applicantProfile.profileImageUrl}
+        currentImage={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`}
         type="profile"
       />
     </div>

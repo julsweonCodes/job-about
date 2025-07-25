@@ -3,6 +3,7 @@ export interface SupabaseUser {
   uid: string;
   email: string;
   displayName: string;
+  description: string;
   user_metadata: {
     name?: string;
     picture?: string;
@@ -12,9 +13,9 @@ export interface SupabaseUser {
 }
 
 export interface UpdateUser {
-  name: string;
-  phone_number: string;
-  description: string;
+  name?: string;
+  phone_number?: string;
+  description?: string;
   img_url?: string;
 }
 

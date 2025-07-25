@@ -1,18 +1,17 @@
-import { prisma } from '@/app/lib/prisma/prisma-singleton';
 import { errorResponse, HttpError, successResponse } from '@/app/lib/server/commonResponse';
 import { parseBigInt } from '@/app/lib/server/utils';
-import { ProfileDto, profileDtoToCreateData, profileDtoToUpdateData } from '@/types/profile';
 import { NextRequest } from 'next/server';
 import { deleteSeekerProfile, getSeekerProfile, upsertSeekerProfile } from '@/app/services/seeker-services';
+import { getUserIdFromSession } from '@/utils/auth';
+import { applicantProfile } from '@/types/profile';
 
-export const GET = async (request: NextRequest,
-    { params }: { params: { userId: string } }) => {
+export const GET = async (request: NextRequest) => {
     try {
-        if (!params.userId) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return errorResponse('User ID was not provided.', 400);
         }
 
-        const userId = Number(params.userId);
         if (isNaN(userId)) {
             return errorResponse('Invalid User ID format.', 400);
         }
@@ -29,20 +28,18 @@ export const GET = async (request: NextRequest,
     }
 };
 export const PUT = async (
-    request: NextRequest,
-    { params }: { params: { userId: string } }
-) => {
+    request: NextRequest) => {
     try {
-        if (!params.userId) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return errorResponse('User ID was not provided.', 400);
         }
 
-        const userId = Number(params.userId);
         if (isNaN(userId)) {
             return errorResponse('Invalid User ID format.', 400);
         }
 
-        const body: ProfileDto = await request.json();
+        const body: applicantProfile = await request.json();
         const { profile, created } = await upsertSeekerProfile(userId, body);
 
         return successResponse(parseBigInt(profile), created ? 201 : 200, created ? "Profile created" : "Profile updated");
@@ -58,15 +55,14 @@ export const PUT = async (
 };
 
 export const DELETE = async (
-    request: NextRequest,
-    { params }: { params: { userId: string } }
+    request: NextRequest
 ) => {
     try {
-        if (!params.userId) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return errorResponse('User ID was not provided.', 400);
         }
 
-        const userId = Number(params.userId);
         if (isNaN(userId)) {
             return errorResponse('Invalid User ID format.', 400);
         }

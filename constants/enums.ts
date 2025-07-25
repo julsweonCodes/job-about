@@ -11,7 +11,6 @@ export enum LanguageLevel {
   Intermediate = "Intermediate",
   Fluent = "Fluent",
 }
-
 // 채용 상태
 export enum JobStatus {
   Draft = "draft",
@@ -37,6 +36,38 @@ export enum WorkPeriod {
   OneToTwoYears = "one_to_two_years",
   TwoToThreeYears = "two_to_three_years",
   OverThreeYears = "over_three_years",
+}
+
+// 근무 지역
+export enum Location {
+  TORONTO = "toronto",
+  NORTH_YORK = "north_york",
+  SCARBOROUGH = "scarborough",
+  ETOBICOKE = "etobicoke",
+  MISSISSAUGA = "mississauga",
+  BRAMPTON = "brampton",
+  VAUGHAN = "vaughan",
+  RICHMOND_HILL = "richmond_hill",
+  MARKHAM = "markham",
+  THORNHILL = "thornhill",
+  PICKERING = "pickering",
+  AJAX = "ajax",
+  WHITBY = "whitby",
+  OSHAWA = "oshawa",
+  OAKVILLE = "oakville",
+  BURLINGTON = "burlington",
+  MILTON = "milton",
+  NEWHAMBURG = "newhamburg",
+}
+
+export enum AvailableDay {
+  WEEKDAYS = "weekdays",
+  WEEKENDS = "weekends",
+}
+
+export enum AvailableHour {
+  AM = "am",
+  PM = "pm",
 }
 
 // 근무 타입
