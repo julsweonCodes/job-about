@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import AuthProvider from "@/app/AuthProvider";
+import { Toaster } from "sonner";
+import { CheckIcon, XIcon } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "job:about",
@@ -25,6 +27,15 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen">
         <AuthProvider />
         {children}
+        <Toaster
+          position="bottom-center"
+          className="toast-container"
+          duration={200000}
+          icons={{
+            success: <CheckIcon className="sm:w-6 sm:h-6 w-5 h-5 text-green-500" />,
+            error: <XIcon className="sm:w-6 sm:h-6 w-5 h-5 text-red-500" />,
+          }}
+        />
       </body>
     </html>
   );
