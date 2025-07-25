@@ -1,7 +1,6 @@
 "use client";
 
-import { getJobTypeConfigFromServer, getJobTypeConfig } from "@/constants/jobTypes";
-import { JobType } from "@/constants/enums";
+import { getJobTypeConfigFromServer } from "@/constants/jobTypes";
 
 // 서버에서 받은 JobType enum 값으로부터 UI에 필요한 정보를 가져오는 함수들
 

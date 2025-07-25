@@ -62,6 +62,41 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+  // API, 정적 파일, 인증 등은 미들웨어에서 건너뜀
+  if (
+    req.nextUrl.pathname.startsWith("/api/") ||
+    req.nextUrl.pathname.startsWith("/images/") ||
+    req.nextUrl.pathname.startsWith("/_next/") ||
+    req.nextUrl.pathname.startsWith("/auth/") ||
+    req.nextUrl.pathname.includes(".")
+  ) {
+    return res;
+  }
+
+  // 실제 존재하는 경로만 인증/온보딩 체크 (정확한 경로 매칭)
+  const existingRoutes = [
+    PAGE_URLS.HOME,
+    PAGE_URLS.ONBOARDING.ROOT,
+    PAGE_URLS.ONBOARDING.SEEKER.ROOT,
+    PAGE_URLS.ONBOARDING.SEEKER.PROFILE,
+    PAGE_URLS.ONBOARDING.SEEKER.QUIZ,
+    PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
+    PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE,
+    PAGE_URLS.SEEKER.ROOT,
+    PAGE_URLS.SEEKER.MYPAGE,
+    PAGE_URLS.EMPLOYER.ROOT,
+    PAGE_URLS.EMPLOYER.MYPAGE,
+    PAGE_URLS.EMPLOYER.POST.CREATE,
+    PAGE_URLS.EMPLOYER.POST.DASHBOARD,
+    PAGE_URLS.AUTH.CALLBACK,
+    PAGE_URLS.AUTH.ERROR,
+  ];
+  const isExistingRoute = existingRoutes.some((route) => req.nextUrl.pathname === route);
+  if (!isExistingRoute) {
+    // 존재하지 않는 경로는 그냥 통과 (Next.js가 404 처리)
+    return res;
+  }
+
   // Supabase 클라이언트 생성
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -97,17 +132,6 @@ export async function middleware(req: NextRequest) {
       PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
     ];
     const isOnboardingPage = onboardingPages.some((page) => req.nextUrl.pathname.startsWith(page));
-
-    // API 라우트, 정적 파일, 인증 관련 라우트는 건너뛰기
-    if (
-      req.nextUrl.pathname.startsWith("/api/") ||
-      req.nextUrl.pathname.startsWith("/images/") ||
-      req.nextUrl.pathname.startsWith("/_next/") ||
-      req.nextUrl.pathname.startsWith("/auth/") ||
-      req.nextUrl.pathname.includes(".")
-    ) {
-      return res;
-    }
 
     // 로그인하지 않은 사용자
     if (!session) {
@@ -213,14 +237,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|public/).*)"],
 };

@@ -65,7 +65,6 @@ export const API_URLS = {
 // 페이지 URL 상수
 export const PAGE_URLS = {
   HOME: "/",
-  LOGIN: "/login",
   ONBOARDING: {
     ROOT: "/onboarding",
     SEEKER: {
