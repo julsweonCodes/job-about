@@ -30,25 +30,24 @@ model users {
 }
 
 model business_loc {
-  id              BigInt        @id @default(autoincrement())
+  id              BigInt      @id @default(autoincrement())
   user_id         BigInt
-  name            String        @db.VarChar(100)
-  phone_number    String        @db.VarChar(20)
-  address         String        @db.VarChar(255)
-  operating_start String        @db.VarChar(20)
-  operating_end   String        @db.VarChar(20)
-  logo_url        String?       @db.VarChar(2048)
-  img_url1        String?       @db.VarChar(2048)
-  img_url2        String?       @db.VarChar(2048)
-  img_url3        String?       @db.VarChar(2048)
-  img_url4        String?       @db.VarChar(2048)
-  img_url5        String?       @db.VarChar(2048)
-  language_level  LanguageLevel
+  name            String      @db.VarChar(100)
+  phone_number    String      @db.VarChar(20)
+  address         String      @db.VarChar(255)
+  operating_start String      @db.VarChar(20)
+  operating_end   String      @db.VarChar(20)
+  logo_url        String?     @db.VarChar(2048)
+  img_url1        String?     @db.VarChar(2048)
+  img_url2        String?     @db.VarChar(2048)
+  img_url3        String?     @db.VarChar(2048)
+  img_url4        String?     @db.VarChar(2048)
+  img_url5        String?     @db.VarChar(2048)
   description     String
-  created_at      DateTime      @default(now()) @db.Timestamptz(6)
-  deleted_at      DateTime?     @db.Timestamptz(6)
-  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
-  user            users         @relation(fields: [user_id], references: [id])
+  created_at      DateTime    @default(now()) @db.Timestamptz(6)
+  deleted_at      DateTime?   @db.Timestamptz(6)
+  updated_at      DateTime    @default(now()) @db.Timestamptz(6)
+  user            users       @relation(fields: [user_id], references: [id])
   job_posts       job_posts[]
 }
 
@@ -203,6 +202,7 @@ model quiz_questions {
   content_en    String
   quiz_set_id   String         @db.Char(1)
   created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  img_url       String?        @db.VarChar(2048)
   choices       quiz_choices[]
   dimension     dimensions     @relation(fields: [dimension_id], references: [id])
 }
@@ -214,6 +214,7 @@ model quiz_choices {
   content_ko     String
   content_en     String
   created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  emoji          String?          @db.VarChar(10)
   question       quiz_questions   @relation(fields: [question_id], references: [id])
   user_responses user_responses[]
 }
