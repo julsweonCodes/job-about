@@ -59,13 +59,15 @@ export async function updateUser(updateUser: UpdateUser, userId: number) {
     throw new HttpError("User not found", 404);
   }
 
+  // undefined 제거
+  const filteredData = Object.fromEntries(
+    Object.entries(updateUser).filter(([_, value]) => value !== undefined)
+  );
+
   const updated = await prisma.users.update({
     where: { id: userId },
     data: {
-      name,
-      phone_number,
-      description,
-      img_url,
+      ...filteredData,
       updated_at: new Date(),
     },
   });

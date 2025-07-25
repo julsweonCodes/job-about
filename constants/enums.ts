@@ -11,7 +11,6 @@ export enum LanguageLevel {
   Intermediate = "Intermediate",
   Fluent = "Fluent",
 }
-
 // 채용 상태
 export enum JobStatus {
   Draft = "draft",

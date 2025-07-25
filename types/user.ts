@@ -13,9 +13,9 @@ export interface SupabaseUser {
 }
 
 export interface UpdateUser {
-  name: string;
-  phone_number: string;
-  description: string;
+  name?: string;
+  phone_number?: string;
+  description?: string;
   img_url?: string;
 }
 

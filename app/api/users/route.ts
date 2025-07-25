@@ -24,9 +24,8 @@ export async function POST(req: NextRequest) {
     }
 }
 
-export async function PUT(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
     const userId = await getUserIdFromSession();
-    console.log("userId" + userId);
     if (!userId) {
         return errorResponse('User ID was not provided.', 400);
     }
@@ -38,12 +37,17 @@ export async function PUT(req: NextRequest) {
     const formData = await req.formData();
 
     const file = formData.get('img') as File;
-    const body: UpdateUser = {
-        name: formData.get('name')?.toString() || '',
-        phone_number: formData.get('phone_number')?.toString() || '',
-        description: formData.get('description')?.toString() || '',
+    const body: UpdateUser = {};
 
-    }
+    const name = formData.get('name')?.toString();
+    if (name) body.name = name;
+
+    const phone = formData.get('phone_number')?.toString();
+    if (phone) body.phone_number = phone;
+
+    const description = formData.get('description')?.toString();
+    if (description) body.description = description;
+
     try {
         if (file && file.size > 0) {
             const img_url = await uploadUserImage(file, userId);
