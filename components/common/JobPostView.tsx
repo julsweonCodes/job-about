@@ -13,28 +13,8 @@ import {
   Edit3,
 } from "lucide-react";
 import { JobStatus, JobType, LanguageLevel } from "@/constants/enums";
+import { JobPostData } from "@/types/jobPost";
 
-export interface JobPostData {
-  id: string;
-  title: string;
-  jobType: JobType;
-  status: JobStatus;
-  business: {
-    id: string;
-    name: string;
-    description: string;
-    photos: string[];
-    location: string;
-    tags: string[];
-  };
-  deadline: string;
-  schedule: string;
-  requiredSkills: string[];
-  requiredPersonality: string[];
-  languageLevel: LanguageLevel;
-  hourlyWage: string;
-  description: string;
-}
 
 interface JobPostViewProps {
   jobData: JobPostData;

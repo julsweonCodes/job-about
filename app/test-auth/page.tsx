@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/client/supabase";
+import { supabaseClient } from "@/utils/supabase/client";
 
 export default function TestAuthPage() {
   const [session, setSession] = useState<any>(null);
@@ -8,7 +8,7 @@ export default function TestAuthPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createSupabaseBrowserClient();
+      const supabase = supabaseClient;
       const {
         data: { session },
       } = await supabase.auth.getSession();

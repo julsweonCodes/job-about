@@ -1,5 +1,7 @@
 import { Skill, WorkStyle } from "@/types/profile";
-import { WorkType } from "@/constants/enums";
+import {Database} from "@/types/database.types";
+import { prisma } from "@/app/lib/prisma/prisma-singleton";
+import { JobType, WorkType, LanguageLevel } from "@/constants/enums";
 
 export interface EmployerProfilePayload {
   name: string;
@@ -8,7 +10,6 @@ export interface EmployerProfilePayload {
   operating_start: string; // "08:00"
   operating_end: string;   // "17:00"
   description?: string;
-  language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
 
   logo_img: string;
   // 이미지 필드 (최대 5장까지 URL 저장)
@@ -32,14 +33,14 @@ export interface EmployerDashboardCnt {
 
 export interface JobPostPayload {
   jobTitle: string;
-  jobType: string;
+  selectedJobType: JobType
   deadline: string; // extract yyyymmdd from calendar
   workSchedule: string;
   requiredSkills: Skill[];
   requiredWorkStyles: WorkStyle[];
   wage: string;
   jobDescription: string;
-  language_level: "BEGINNER" | "INTERMEDIATE" | "FLUENT";
-  workType: WorkType;
+  language_level: LanguageLevel;
+  selectedWorkType: WorkType;
   useAI?: boolean;
 }

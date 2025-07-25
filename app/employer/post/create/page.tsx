@@ -136,9 +136,16 @@ function JobPostCreatePage() {
       alert("공고 생성에 실패했습니다.");
       return;
     }
-    const { postId } = await res.json();
+    const result = await res.json();
+    console.log(result);
+
     // 2. 미리보기 페이지로 이동
-    router.push(`/employer/post/preview/${postId}`);
+    if (formData.useAI) {
+      router.push(`/employer/post/preview/${result.data.id}?useAI=true`);
+    } else {
+      router.push(`/employer/post/preview/${result.data.id}?useAI=false`);
+    }
+
   };
 
   const handleBack = () => {

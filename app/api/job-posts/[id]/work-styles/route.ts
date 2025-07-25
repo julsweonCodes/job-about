@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { getUserIdFromSession } from "@/utils/auth";
+import { getJobPostWorkStyles } from "@/app/services/job-post-services";
+import { parseBigInt } from "@/lib/utils";
 
 /**
  * GET: 특정 채용공고의 선택된 work style 목록 조회
@@ -20,25 +22,13 @@ export async function GET(
     }
 
     console.log(`채용공고 work style 조회: jobPostId=${jobPostId}`);
-    
-    const jobWorkStyles = await prisma.job_post_work_styles.findMany({
-      where: { job_post_id: jobPostId },
-      include: {
-        work_style: {
-          select: {
-            id: true,
-            name_ko: true,
-            name_en: true
-          }
-        }
-      }
-    });
 
+    const jobWorkStyles = await getJobPostWorkStyles(jobPostId);
     const workStyles = jobWorkStyles.map(jws => jws.work_style);
     
     console.log(`채용공고 work style ${workStyles.length}개 조회 성공`);
     
-    return successResponse(workStyles, 200, "Job post work styles fetched successfully.");
+    return successResponse(parseBigInt(workStyles), 200, "Job post work styles fetched successfully.");
   } catch (error) {
     console.error(`API Error GET /api/job-posts/${params.id}/work-styles:`, error);
     return errorResponse("An internal server error occurred.", 500);

@@ -30,25 +30,24 @@ model users {
 }
 
 model business_loc {
-  id              BigInt        @id @default(autoincrement())
+  id              BigInt      @id @default(autoincrement())
   user_id         BigInt
-  name            String        @db.VarChar(100)
-  phone_number    String        @db.VarChar(20)
-  address         String        @db.VarChar(255)
-  operating_start String        @db.VarChar(20)
-  operating_end   String        @db.VarChar(20)
-  logo_url        String?       @db.VarChar(2048)
-  img_url1        String?       @db.VarChar(2048)
-  img_url2        String?       @db.VarChar(2048)
-  img_url3        String?       @db.VarChar(2048)
-  img_url4        String?       @db.VarChar(2048)
-  img_url5        String?       @db.VarChar(2048)
-  language_level  LanguageLevel
+  name            String      @db.VarChar(100)
+  phone_number    String      @db.VarChar(20)
+  address         String      @db.VarChar(255)
+  operating_start String      @db.VarChar(20)
+  operating_end   String      @db.VarChar(20)
+  logo_url        String?     @db.VarChar(2048)
+  img_url1        String?     @db.VarChar(2048)
+  img_url2        String?     @db.VarChar(2048)
+  img_url3        String?     @db.VarChar(2048)
+  img_url4        String?     @db.VarChar(2048)
+  img_url5        String?     @db.VarChar(2048)
   description     String
-  created_at      DateTime      @default(now()) @db.Timestamptz(6)
-  deleted_at      DateTime?     @db.Timestamptz(6)
-  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
-  user            users         @relation(fields: [user_id], references: [id])
+  created_at      DateTime    @default(now()) @db.Timestamptz(6)
+  deleted_at      DateTime?   @db.Timestamptz(6)
+  updated_at      DateTime    @default(now()) @db.Timestamptz(6)
+  user            users       @relation(fields: [user_id], references: [id])
   job_posts       job_posts[]
 }
 
@@ -103,6 +102,7 @@ model job_posts {
   deleted_at           DateTime?                     @db.Timestamptz(6)
   updated_at           DateTime                      @default(now()) @db.Timestamptz(6)
   work_type            WorkType?
+  language_level       LanguageLevel?
   applications         applications[]
   bookmarked_jobs      bookmarked_jobs[]
   job_practical_skills job_post_practical_skills[]

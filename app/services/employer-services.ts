@@ -10,7 +10,7 @@ export async function uploadEmployerImages(photos: File[], userId: number): Prom
 
   for (const photo of photos) {
     const fileExt = photo.name.split('.').pop()
-    const filePath = `${Date.now()}-${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${userId}-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
     const { error: uploadError } = await supabaseClient
       .storage
@@ -42,6 +42,21 @@ export async function deleteSingleEmployerImage(url: string) {
   if (error) throw error;
 }
 
+// GET business location
+export async function getEmployerBizLoc(userId: number) {
+  const res = await prisma.business_loc.findFirst({
+    where: { user_id: userId },
+  });
+  return res;
+}
+
+// GET current job post
+export async function getCurrJobPost(bizLocId: number, userId: number) {
+  const res = await prisma.job_posts.findFirst({
+    where: { id: bizLocId}
+  });
+  return res;
+}
 // POST - Create business loc
 export async function saveEmployerProfile(payload: EmployerProfilePayload) {
   const safePayload = {

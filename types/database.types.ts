@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -188,7 +196,6 @@ export type Database = {
           img_url3: string | null
           img_url4: string | null
           img_url5: string | null
-          language_level: Database["public"]["Enums"]["LanguageLevel"]
           logo_url: string | null
           name: string
           operating_end: string
@@ -208,7 +215,6 @@ export type Database = {
           img_url3?: string | null
           img_url4?: string | null
           img_url5?: string | null
-          language_level: Database["public"]["Enums"]["LanguageLevel"]
           logo_url?: string | null
           name: string
           operating_end: string
@@ -228,7 +234,6 @@ export type Database = {
           img_url3?: string | null
           img_url4?: string | null
           img_url5?: string | null
-          language_level?: Database["public"]["Enums"]["LanguageLevel"]
           logo_url?: string | null
           name?: string
           operating_end?: string
@@ -373,6 +378,7 @@ export type Database = {
           description: string
           id: number
           job_type: Database["public"]["Enums"]["JobType"]
+          language_level: Database["public"]["Enums"]["LanguageLevel"] | null
           status: Database["public"]["Enums"]["JobStatus"]
           title: string
           updated_at: string
@@ -389,6 +395,7 @@ export type Database = {
           description: string
           id?: number
           job_type: Database["public"]["Enums"]["JobType"]
+          language_level?: Database["public"]["Enums"]["LanguageLevel"] | null
           status: Database["public"]["Enums"]["JobStatus"]
           title: string
           updated_at?: string
@@ -405,6 +412,7 @@ export type Database = {
           description?: string
           id?: number
           job_type?: Database["public"]["Enums"]["JobType"]
+          language_level?: Database["public"]["Enums"]["LanguageLevel"] | null
           status?: Database["public"]["Enums"]["JobStatus"]
           title?: string
           updated_at?: string
