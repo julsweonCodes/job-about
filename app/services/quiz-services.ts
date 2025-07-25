@@ -1,5 +1,5 @@
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { QuizResponse, QuizProfile } from "@/types/quiz";
+import type { QuizProfile } from "@/types/quiz";
 
 /**
  * 퀴즈를 시작할 때 모든 질문과 선택지 가져오기
@@ -38,6 +38,7 @@ export async function getQuizQuestions() {
         ko: question.content_ko,
         en: question.content_en,
       },
+      img_url: (question as any).img_url || null, // 이미지 URL 추가 (타입 안전성을 위해 any 사용)
       choices: question.choices.map((choice) => ({
         label: choice.label as "A" | "B",
         title: {
@@ -48,7 +49,7 @@ export async function getQuizQuestions() {
           ko: choice.content_ko,
           en: choice.content_en,
         },
-        imogi: choice.label === "A" ? "⚡" : "🧘", // 기본 이모지 (필요시 DB에 컬럼 추가)
+        emoji: (choice as any).emoji || "❓", // 기본값 설정 (타입 안전성을 위해 any 사용)
       })),
     }));
 
@@ -81,7 +82,7 @@ export async function updateUserPersonality(authUserId: string, profileId: numbe
 
     if (!user) {
       console.log(`사용자를 찾을 수 없어 새로 생성합니다: userId=${authUserId}`);
-      
+
       // 사용자가 존재하지 않으면 새로 생성 (기본 정보만)
       const newUser = await prisma.users.create({
         data: {
@@ -93,7 +94,7 @@ export async function updateUserPersonality(authUserId: string, profileId: numbe
           updated_at: new Date(), // 명시적으로 설정
         },
       });
-      
+
       console.log(`새 사용자 생성 완료: dbId=${newUser.id}`);
       return newUser;
     }
@@ -103,7 +104,7 @@ export async function updateUserPersonality(authUserId: string, profileId: numbe
     // 프로필 ID 유효성 확인
     console.log(`업데이트할 profileId=${profileId} 유효성 확인`);
     const profileExists = await prisma.personality_profiles.findUnique({
-      where: { id: profileId }
+      where: { id: profileId },
     });
 
     if (!profileExists) {
