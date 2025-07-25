@@ -202,6 +202,7 @@ model quiz_questions {
   content_en    String
   quiz_set_id   String         @db.Char(1)
   created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  img_url       String?        @db.VarChar(2048)
   choices       quiz_choices[]
   dimension     dimensions     @relation(fields: [dimension_id], references: [id])
 }
@@ -213,6 +214,7 @@ model quiz_choices {
   content_ko     String
   content_en     String
   created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  emoji          String?          @db.VarChar(10)
   question       quiz_questions   @relation(fields: [question_id], references: [id])
   user_responses user_responses[]
 }

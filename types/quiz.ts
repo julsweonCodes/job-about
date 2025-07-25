@@ -4,6 +4,7 @@ export interface QuizChoice {
   label: string;
   content_ko: string;
   content_en: string;
+  emoji?: string; // 이모지 필드 추가
   created_at: string;
 }
 
@@ -14,6 +15,7 @@ export interface QuizQuestion {
   dimension_id: string;
   content_ko: string;
   content_en: string;
+  img_url?: string; // 이미지 URL 필드 추가
   created_at: string;
   choices: QuizChoice[];
 }
