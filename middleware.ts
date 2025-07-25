@@ -56,9 +56,9 @@ function getOnboardingRedirect(
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // 개발 중에는 미들웨어 비활성화
+  // 개발 중에는 미들웨어 라우팅 비활성화
   if (process.env.DISABLE_MIDDLEWARE === "true") {
-    console.log("Middleware disabled for development");
+    console.log("Middleware routing disabled for development");
     return res;
   }
 

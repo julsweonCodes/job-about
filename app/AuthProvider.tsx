@@ -14,6 +14,12 @@ export default function AuthProvider() {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
+    // 개발 중에는 AuthProvider 라우팅 비활성화
+    if (process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true") {
+      console.log("AuthProvider routing disabled for development");
+      return;
+    }
+
     const supabase = supabaseClient;
 
     // 초기 로그인 상태 확인
@@ -181,6 +187,11 @@ export default function AuthProvider() {
   }, [setIsLoggedIn, setUser]);
 
   useEffect(() => {
+    // 개발 중에는 AuthProvider 라우팅 비활성화
+    if (process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true") {
+      return;
+    }
+
     if (!isLoggedIn || !profileStatus) return;
 
     // seeker 온보딩 분기
