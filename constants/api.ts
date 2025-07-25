@@ -66,7 +66,18 @@ export const API_URLS = {
 export const PAGE_URLS = {
   HOME: "/",
   LOGIN: "/login",
-  ONBOARDING: "/onboarding",
+  ONBOARDING: {
+    ROOT: "/onboarding",
+    SEEKER: {
+      ROOT: "/onboarding/seeker",
+      PROFILE: "/onboarding/seeker/profile",
+      QUIZ: "/onboarding/seeker/quiz",
+    },
+    EMPLOYER: {
+      ROOT: "/onboarding/employer",
+      PROFILE: "/onboarding/employer/profile",
+    },
+  },
   SEEKER: {
     ROOT: "/seeker",
     MYPAGE: "/seeker/mypage",
@@ -78,6 +89,10 @@ export const PAGE_URLS = {
       CREATE: "/employer/post/create",
       DASHBOARD: "/employer/post/dashboard",
     },
+  },
+  AUTH: {
+    CALLBACK: "/auth/callback",
+    ERROR: "/auth/auth-code-error",
   },
 } as const;
 

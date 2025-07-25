@@ -51,9 +51,9 @@ export default function AuthProvider() {
 
             // role이 없으면 온보딩 페이지로 리다이렉트
             if (!userData.data.profileStatus.hasRole) {
-              if (window.location.pathname !== PAGE_URLS.ONBOARDING) {
+              if (window.location.pathname !== PAGE_URLS.ONBOARDING.ROOT) {
                 console.log("redirecting to onboarding");
-                router.replace(PAGE_URLS.ONBOARDING);
+                router.replace(PAGE_URLS.ONBOARDING.ROOT);
                 return; // 라우팅 후 조기 종료
               }
             } else if (
@@ -63,22 +63,22 @@ export default function AuthProvider() {
               // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
               if (userData.data.profileStatus.role === "APPLICANT") {
                 if (!userData.data.profileStatus.hasPersonalityProfile) {
-                  if (window.location.pathname !== API_URLS.ONBOARDING.SEEKER_QUIZ) {
+                  if (window.location.pathname !== PAGE_URLS.ONBOARDING.SEEKER.QUIZ) {
                     console.log("redirecting to seeker quiz");
-                    router.replace(API_URLS.ONBOARDING.SEEKER_QUIZ);
+                    router.replace(PAGE_URLS.ONBOARDING.SEEKER.QUIZ);
                     return;
                   }
                 } else if (!userData.data.profileStatus.hasApplicantProfile) {
-                  if (window.location.pathname !== API_URLS.ONBOARDING.SEEKER_PROFILE) {
+                  if (window.location.pathname !== PAGE_URLS.ONBOARDING.SEEKER.PROFILE) {
                     console.log("redirecting to seeker profile");
-                    router.replace(API_URLS.ONBOARDING.SEEKER_PROFILE);
+                    router.replace(PAGE_URLS.ONBOARDING.SEEKER.PROFILE);
                     return;
                   }
                 }
               } else if (userData.data.profileStatus.role === "EMPLOYER") {
-                if (window.location.pathname !== API_URLS.ONBOARDING.EMPLOYER_PROFILE) {
+                if (window.location.pathname !== PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE) {
                   console.log("redirecting to employer profile");
-                  router.replace(API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+                  router.replace(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE);
                   return;
                 }
               }
@@ -137,7 +137,7 @@ export default function AuthProvider() {
             // role이 없으면 온보딩 페이지로 리다이렉트
             if (!userData.data.profileStatus.hasRole) {
               console.log("User has no role, redirecting to onboarding");
-              router.replace(PAGE_URLS.ONBOARDING);
+              router.replace(PAGE_URLS.ONBOARDING.ROOT);
             } else if (
               userData.data.profileStatus.hasRole &&
               !userData.data.profileStatus.isProfileCompleted
@@ -146,11 +146,11 @@ export default function AuthProvider() {
               console.log("User has role but profile not completed, redirecting to profile page");
               console.log("Profile status:", userData.data.profileStatus);
               if (userData.data.profileStatus.role === "APPLICANT") {
-                console.log("Redirecting to:", API_URLS.ONBOARDING.SEEKER_PROFILE);
-                router.replace(API_URLS.ONBOARDING.SEEKER_PROFILE);
+                console.log("Redirecting to:", PAGE_URLS.ONBOARDING.SEEKER.PROFILE);
+                router.replace(PAGE_URLS.ONBOARDING.SEEKER.PROFILE);
               } else if (userData.data.profileStatus.role === "EMPLOYER") {
-                console.log("Redirecting to:", API_URLS.ONBOARDING.EMPLOYER_PROFILE);
-                router.replace(API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+                console.log("Redirecting to:", PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE);
+                router.replace(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE);
               }
             }
           } else {
@@ -186,24 +186,24 @@ export default function AuthProvider() {
     // seeker 온보딩 분기
     if (profileStatus.role === "APPLICANT" && !profileStatus.isProfileCompleted) {
       if (!profileStatus.hasPersonalityProfile) {
-        if (window.location.pathname !== API_URLS.ONBOARDING.SEEKER_QUIZ) {
-          router.replace(API_URLS.ONBOARDING.SEEKER_QUIZ);
+        if (window.location.pathname !== PAGE_URLS.ONBOARDING.SEEKER.QUIZ) {
+          router.replace(PAGE_URLS.ONBOARDING.SEEKER.QUIZ);
         }
         return;
       } else if (!profileStatus.hasApplicantProfile) {
-        if (window.location.pathname !== API_URLS.ONBOARDING.SEEKER_PROFILE) {
-          router.replace(API_URLS.ONBOARDING.SEEKER_PROFILE);
+        if (window.location.pathname !== PAGE_URLS.ONBOARDING.SEEKER.PROFILE) {
+          router.replace(PAGE_URLS.ONBOARDING.SEEKER.PROFILE);
         }
         return;
       }
     } else if (profileStatus.role === "EMPLOYER" && !profileStatus.isProfileCompleted) {
-      if (window.location.pathname !== API_URLS.ONBOARDING.EMPLOYER_PROFILE) {
-        router.replace(API_URLS.ONBOARDING.EMPLOYER_PROFILE);
+      if (window.location.pathname !== PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE) {
+        router.replace(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE);
       }
       return;
     } else if (!profileStatus.hasRole) {
-      if (window.location.pathname !== PAGE_URLS.ONBOARDING) {
-        router.replace(PAGE_URLS.ONBOARDING);
+      if (window.location.pathname !== PAGE_URLS.ONBOARDING.ROOT) {
+        router.replace(PAGE_URLS.ONBOARDING.ROOT);
       }
       return;
     }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { PAGE_URLS } from "@/constants/api";
 import { parseBigInt } from "@/lib/utils";
 
 // seeker 온보딩 분기 함수
@@ -11,17 +11,16 @@ function getSeekerOnboardingRedirect(
   },
   req: NextRequest
 ) {
-  console.log("getSeekerOnboardingRedirect called", profileStatus);
   console.log("profileStatus", profileStatus);
   if (!profileStatus.hasPersonalityProfile) {
     console.log("redirecting to seeker quiz");
     // 퀴즈를 안 했으면 퀴즈 페이지로
-    return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_QUIZ, req.url));
+    return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING.SEEKER.QUIZ, req.url));
   }
   if (!profileStatus.hasApplicantProfile) {
     console.log("redirecting to seeker profile");
     // 퀴즈는 했지만 프로필이 없으면 프로필 페이지로
-    return NextResponse.redirect(new URL(API_URLS.ONBOARDING.SEEKER_PROFILE, req.url));
+    return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING.SEEKER.PROFILE, req.url));
   }
   // 둘 다 있으면(완료) null 반환
   return null;
@@ -41,7 +40,7 @@ function getOnboardingRedirect(
   console.log("getOnboardingRedirect called", profileStatus);
   if (!profileStatus.hasRole) {
     console.log("redirecting to onboarding");
-    return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING, req.url));
+    return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING.ROOT, req.url));
   }
   if (profileStatus.role === "APPLICANT") {
     const seekerRedirect = getSeekerOnboardingRedirect(profileStatus, req);
@@ -49,7 +48,7 @@ function getOnboardingRedirect(
   }
   if (profileStatus.role === "EMPLOYER" && !profileStatus.isProfileCompleted) {
     console.log("redirecting to employer profile");
-    return NextResponse.redirect(new URL(API_URLS.ONBOARDING.EMPLOYER_PROFILE, req.url));
+    return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE, req.url));
   }
   return null;
 }
@@ -88,11 +87,15 @@ export async function middleware(req: NextRequest) {
     } = await supabase.auth.getSession();
 
     // 공개 페이지들 (인증 불필요)
-    const publicPages = [PAGE_URLS.HOME, API_URLS.AUTH.CALLBACK, API_URLS.AUTH.ERROR];
+    const publicPages = [PAGE_URLS.HOME, PAGE_URLS.AUTH.CALLBACK, PAGE_URLS.AUTH.ERROR];
     const isPublicPage = publicPages.some((page) => req.nextUrl.pathname === page);
 
     // 온보딩 관련 페이지들
-    const onboardingPages = [PAGE_URLS.ONBOARDING, "/onboarding/seeker", "/onboarding/employer"];
+    const onboardingPages = [
+      PAGE_URLS.ONBOARDING.ROOT,
+      PAGE_URLS.ONBOARDING.SEEKER.ROOT,
+      PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
+    ];
     const isOnboardingPage = onboardingPages.some((page) => req.nextUrl.pathname.startsWith(page));
 
     // API 라우트, 정적 파일, 인증 관련 라우트는 건너뛰기
@@ -125,15 +128,15 @@ export async function middleware(req: NextRequest) {
 
       // API를 통해 사용자 정보 확인
       try {
-        const origin = req.nextUrl.origin || 'http://localhost:3000';
+        const origin = req.nextUrl.origin || "http://localhost:3000";
         const apiUrl = `${origin}/api/user/me`;
         console.log(`[middleware] fetching user data from ${apiUrl}`);
-        
-        if (!origin || origin === '') {
-          console.error('[middleware] origin is empty, using localhost');
-          throw new Error('Invalid origin');
+
+        if (!origin || origin === "") {
+          console.error("[middleware] origin is empty, using localhost");
+          throw new Error("Invalid origin");
         }
-        
+
         const response = await fetch(apiUrl, {
           headers: {
             cookie: req.headers.get("cookie") || "",
@@ -153,7 +156,7 @@ export async function middleware(req: NextRequest) {
         if (isOnboardingPage) {
           console.log("[middleware] isOnboardingPage, path:", req.nextUrl.pathname);
           console.log("[middleware] profileStatus:", JSON.stringify(parseBigInt(profileStatus)));
-          
+
           // 온보딩이 끝났으면 메인으로 리다이렉트
           if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
             if (profileStatus.role === "APPLICANT") {
@@ -162,27 +165,31 @@ export async function middleware(req: NextRequest) {
               return NextResponse.redirect(new URL(PAGE_URLS.EMPLOYER.ROOT, req.url));
             }
           }
-          
+
           // 온보딩 순서 체크 로직
           const currentPath = req.nextUrl.pathname;
           console.log(`[middleware] checking onboarding order for: ${currentPath}`);
-          
+
           // APPLICANT 온보딩 순서 체크
           if (profileStatus.role === "APPLICANT") {
             // quiz를 안했는데 profile 페이지에 있다면 quiz로 리다이렉트
-            if (!profileStatus.hasPersonalityProfile && currentPath.includes('/profile')) {
+            if (!profileStatus.hasPersonalityProfile && currentPath.includes("/profile")) {
               console.log(`[middleware] redirecting to quiz from profile page`);
-              return NextResponse.redirect(new URL('/onboarding/seeker/quiz', req.url));
+              return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING.SEEKER.QUIZ, req.url));
             }
             // quiz는 했는데 applicant profile이 없고 quiz 페이지에 있다면 profile로 리다이렉트
             // 단, quiz result 페이지는 예외로 허용
-            if (profileStatus.hasPersonalityProfile && !profileStatus.hasApplicantProfile && 
-                currentPath.includes('/quiz') && !currentPath.includes('/quiz/result')) {
+            if (
+              profileStatus.hasPersonalityProfile &&
+              !profileStatus.hasApplicantProfile &&
+              currentPath.includes("/quiz") &&
+              !currentPath.includes("/quiz/result")
+            ) {
               console.log(`[middleware] redirecting to profile from quiz page`);
-              return NextResponse.redirect(new URL('/onboarding/seeker/profile', req.url));
+              return NextResponse.redirect(new URL(PAGE_URLS.ONBOARDING.SEEKER.PROFILE, req.url));
             }
           }
-          
+
           // 현재 페이지가 올바른 온보딩 페이지면 허용
           return res;
         }
