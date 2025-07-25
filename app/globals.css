@@ -81,6 +81,8 @@
 @media (min-width: 768px) {
   .toast-container [data-sonner-toast] {
     font-size: 1.1rem !important;
+    min-width: 500px !important;
+    padding: 22px 24px !important;
   }
 }
 
