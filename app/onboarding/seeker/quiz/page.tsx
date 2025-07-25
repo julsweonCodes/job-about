@@ -63,13 +63,13 @@ function QuizChoiceCard({
         </div>
         <div className="flex-1 min-w-0">
           <h3
-            className={`font-semibold text-sm md:text-lg mb-2 transition-colors ${
+            className={`font-semibold text-sm sm:text-lg mb-2 transition-colors ${
               selected ? "text-blue-700" : "text-gray-800 group-hover:text-blue-600"
             }`}
           >
             {choice.title.en}
           </h3>
-          <p className="text-gray-700 leading-relaxed text-sm md:text-base group-hover:text-gray-900 transition-colors">
+          <p className="text-gray-700 leading-relaxed text-sm md:text-lg group-hover:text-gray-900 transition-colors">
             {choice.content.en}
           </p>
         </div>
@@ -287,7 +287,7 @@ function QuizPage() {
                 </div>
               </div>
             </div>
-            <blockquote className="text-gray-700 leading-relaxed text-sm md:text-lg font-medium italic">
+            <blockquote className="text-gray-700 leading-relaxed text-sm sm:text-xl font-medium italic">
               "{question.content.en}"
             </blockquote>
           </div>

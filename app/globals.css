@@ -54,3 +54,44 @@
 [data-placeholder] {
   color: #9ca3af !important; /* Tailwind text-gray-400 */
 }
+
+/* Sonner Toast 커스텀 스타일 */
+.toast-container {
+  z-index: 9999 !important;
+}
+
+.toast-container [data-sonner-toast] {
+  /* 기본 스타일 */
+  border: none !important;
+  border-radius: 16px !important;
+  background: #222 !important;
+  color: #fff !important;
+  font-family: "Pretendard", sans-serif !important;
+  font-size: 1rem !important; /* 기본(모바일) */
+  padding: 18px 24px !important;
+
+  /* 레이아웃 */
+  display: flex !important;
+  flex-direction: row-reverse !important; /* 아이콘을 오른쪽, 텍스트를 왼쪽으로 */
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+/* 데스크탑에서 폰트 크기 증가 */
+@media (min-width: 768px) {
+  .toast-container [data-sonner-toast] {
+    font-size: 1.1rem !important;
+    min-width: 500px !important;
+    padding: 22px 24px !important;
+  }
+}
+
+.toast-container [data-icon] {
+  margin-left: 16px !important; /* 아이콘과 텍스트 사이 간격 */
+  margin-right: 0 !important;
+}
+
+.toast-container [data-content] {
+  flex: 1 1 auto;
+  text-align: left;
+}
