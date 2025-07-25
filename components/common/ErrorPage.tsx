@@ -6,8 +6,6 @@ import { ERROR_MESSAGES } from "@/constants/errors";
 interface ErrorPageProps {
   statusCode: number;
   onGoHome?: () => void;
-  onReportIssue?: () => void;
-  showReportButton?: boolean;
 }
 
 const ErrorPage: React.FC<ErrorPageProps> = ({
