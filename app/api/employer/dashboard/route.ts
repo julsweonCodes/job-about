@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getActiveJobPosts, getAllApplicationsCnt, getStatusUpdateCnt} from "@/app/services/employer-services";
+import {
+  getActiveJobPostsCnt,
+  getAllApplicationsCnt,
+  getEmployerBizLoc,
+  getStatusUpdateCnt,
+} from "@/app/services/employer-services";
 import {getUserIdFromSession} from "@/utils/auth";
 import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
 import { Dashboard } from "@/types/employer";
@@ -9,10 +14,11 @@ export async function GET() {
     console.log("dashboard");
     const userId = await getUserIdFromSession();
     console.log(userId);
+    const bizLocId = Number((await getEmployerBizLoc(userId))!.id);
     const [activeJobPostsCnt, allAppsCnt, needsUpdateCnt] = await Promise.all([
-      getActiveJobPosts(userId),
-      getAllApplicationsCnt(userId),
-      getStatusUpdateCnt(userId)
+      getActiveJobPostsCnt(userId, bizLocId),
+      getAllApplicationsCnt(userId, bizLocId),
+      getStatusUpdateCnt(userId, bizLocId)
     ]);
     const dashboard : Dashboard = {
       activeJobPostsCnt: activeJobPostsCnt,

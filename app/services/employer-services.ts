@@ -1,8 +1,8 @@
 // 📁 services/employer-service.ts
 import { supabaseClient } from '@/utils/supabase/client'
-import { EmployerProfilePayload } from '@/types/employer'
+import { EmployerProfilePayload, JobPost } from "@/types/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import {formatDateYYYYMMDD} from "@/lib/utils";
+import { formatDateYYYYMMDD, formatYYYYMMDDtoMMDDYYYY, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -94,7 +94,7 @@ export async function updateEmployerProfile(id: number, payload: EmployerProfile
 
 /** 2. Dashboard */
 // GET - Select cnt values for employer dashboard
-export async function getActiveJobPosts(userId: number): Promise<number> {
+export async function getActiveJobPostsCnt(userId: number, bizLocId: number): Promise<number> {
   const currDate = new Date();
   const currDateStr = formatDateYYYYMMDD(currDate)
   const count = await prisma.job_posts.count({
@@ -113,19 +113,19 @@ export async function getActiveJobPosts(userId: number): Promise<number> {
   return count;
 }
 
-export async function getStatusUpdateCnt(userId: number): Promise<number> {
+export async function getStatusUpdateCnt(userId: number, bizLocId: number): Promise<number> {
   const currDate = new Date();
   const tomorrow = new Date(currDate);
   tomorrow.setDate(currDate.getDate()+1);
   const tomorrowDate = formatDateYYYYMMDD(tomorrow);
-  console.log(currDate, tomorrow);
-
   const urgentJobPosts = await prisma.job_posts.findMany({
     where: {
       created_at: {
         lte:  currDate,
       },
+
       deadline: tomorrowDate,
+      business_loc_id: bizLocId,
       user_id: userId,
       status: "PUBLISHED",
     },
@@ -148,7 +148,7 @@ export async function getStatusUpdateCnt(userId: number): Promise<number> {
   return applicationCnt;
 }
 
-export async function getAllApplicationsCnt(userId: number): Promise<number> {
+export async function getAllApplicationsCnt(userId: number, bizLocId: number): Promise<number> {
   const currDate = new Date();
   const currDateStr = formatDateYYYYMMDD(currDate);
 
@@ -178,4 +178,48 @@ export async function getAllApplicationsCnt(userId: number): Promise<number> {
   });
 
   return applicationCnt;
+}
+
+export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> {
+  const bizLocInfo = await getEmployerBizLoc(userId);
+  if (!bizLocInfo) return [];
+  const currDate = new Date();
+  const tomorrow = new Date(currDate);
+  tomorrow.setDate(currDate.getDate()+1);
+  const tomorrowDate = formatDateYYYYMMDD(tomorrow);
+  const activeJobPosts = await prisma.job_posts.findMany({
+    where: {
+      business_loc_id: bizLocInfo.id,
+      user_id: userId,
+      status: "PUBLISHED",
+    },
+    include: {
+      _count: {
+        select: {
+          applications: true,
+        },
+      },
+    },
+  });
+  console.log("everybody looooook at this!!!", bizLocInfo);
+  const img_base_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/biz-loc-photo/`;
+  const activeJobPostList: JobPost[] = activeJobPosts.map((post) => ({
+    id: post.id.toString(),
+    title: post.title,
+    applicants: post._count.applications,
+    businessName: bizLocInfo.name,
+    coverImage: img_base_url.concat(bizLocInfo.logo_url ?? ""),
+    deadline_date: formatYYYYMMDDtoMonthDayYear(post.deadline),
+    description: post.description,
+    location: bizLocInfo.address,
+    needsUpdate: post.deadline === tomorrowDate,
+    strt_date: formatYYYYMMDDtoMonthDayYear(formatDateYYYYMMDD(post.created_at)),
+    type: post.work_type,
+    views: 0,
+    wage: post.wage
+
+  }));
+  console.log("activeJobPostList: ", activeJobPostList);
+  return activeJobPostList;
+
 }

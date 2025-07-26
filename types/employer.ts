@@ -2,6 +2,7 @@ import { Skill, WorkStyle } from "@/types/profile";
 import {Database} from "@/types/database.types";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { JobType, WorkType, LanguageLevel } from "@/constants/enums";
+import { $Enums } from "@prisma/client";
 
 export interface EmployerProfilePayload {
   name: string;
@@ -54,14 +55,15 @@ export interface Dashboard {
 export interface JobPost {
   id: string;
   title: string;
-  type: WorkType;
+  type: $Enums.WorkType | null;
   wage: string;
   location: string;
-  dateRange: string;
   businessName: string;
   description: string;
   applicants: number;
   views: number;
   needsUpdate: boolean;
-  coverImage?: string;
+  coverImage: string;
+  strt_date: string;
+  deadline_date: string;
 }

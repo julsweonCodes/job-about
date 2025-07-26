@@ -17,10 +17,11 @@ const mockJobPosts: JobPost[] = [
   {
     id: "1",
     title: "Senior Product Designer",
-    type: WorkType.OnSite,
+    type: "ON_SITE",
     wage: "$85,000 - $110,000",
     location: "San Francisco, CA",
-    dateRange: "Jan 15 - Mar 15, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Join our design team to create innovative user experiences for our flagship product. We're looking for someone passionate about user-centered design and modern design systems.",
@@ -33,10 +34,11 @@ const mockJobPosts: JobPost[] = [
   {
     id: "2",
     title: "Marketing Specialist",
-    type: WorkType.OnSite,
+    type: "ON_SITE",
     wage: "$35 - $45/hour",
     location: "Remote",
-    dateRange: "Feb 1 - May 1, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Drive marketing campaigns and content strategy for our growing startup. Perfect opportunity for someone looking to make a real impact in a fast-paced environment.",
@@ -49,24 +51,27 @@ const mockJobPosts: JobPost[] = [
   {
     id: "3",
     title: "Frontend Developer",
-    type: WorkType.OnSite,
+    type: "ON_SITE",
     wage: "$75,000 - $95,000",
     location: "Austin, TX",
-    dateRange: "Mar 1 - Jun 1, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Build responsive web applications using modern JavaScript frameworks. Join our engineering team and help shape the future of our platform.",
     applicants: 24,
     views: 203,
     needsUpdate: true,
+    coverImage: "",
   },
   {
     id: "4",
     title: "UX Researcher",
-    type: WorkType.OnSite,
+    type: "REMOTE",
     wage: "$70,000 - $90,000",
     location: "Seattle, WA",
-    dateRange: "Apr 1 - Jul 1, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Conduct user research and usability testing to inform product decisions. Help us understand our users better and improve their experience.",
@@ -109,7 +114,15 @@ export default function EmployerDashboard() {
 
   const fetchJobPostList = async () => {
     try {
-    } catch (e) {}
+      const res = await fetch("/api/employer/dashboard/jobposts");
+      const data = await res.json();
+      if (res.ok) {
+        setJobPostList(data.data);
+      } else {
+        console.error("Failed to fetch active job posts in dashboard page", data.error);
+      }
+    } catch (e) {
+      console.error("Error fetching data:", error);}
   };
 
   const initializeData = async () => {
