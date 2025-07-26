@@ -29,13 +29,13 @@ interface JobPostCardProps {
 export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, onView }) => {
   // WorkType에 따른 라벨/색상 분기 (예시)
   const typeLabel =
-    job.type === WorkType.OnSite ? "On-Site" : job.type === WorkType.Remote ? "Remote" : job.type;
+    job.type === WorkType.ON_SITE ? "On-Site" : job.type === WorkType.REMOTE ? "Remote" : "Hybrid";
   const typeClass =
-    job.type === WorkType.OnSite
+    job.type === WorkType.ON_SITE
       ? "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
-      : job.type === WorkType.Remote
-        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80"
-        : "bg-gray-100 text-gray-700 hover:bg-gray-100/80";
+      : job.type === WorkType.REMOTE
+        ? "bg-green-100 text-green-800 hover:bg-green-100/80"
+        : "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
 
   const defaultImage = "/images/img-default-part-time-work.png";
 

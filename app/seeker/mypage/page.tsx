@@ -6,7 +6,6 @@ import {
   Calendar,
   Edit3,
   ChevronRight,
-  Target,
   Lightbulb,
   RefreshCw,
   Camera,
@@ -289,7 +288,7 @@ function App() {
     switch (section) {
       case "location":
         payload = {
-          location: getEnumKeyFromValue(Location, tempData.location),
+          location: getEnumKeyFromValue(Location, tempData.location) as Location,
         };
         break;
       case "skills":
@@ -297,30 +296,36 @@ function App() {
         break;
       case "workType":
         payload = {
-          work_type: tempData.workType,
+          work_type: tempData.workType as WorkType,
         };
         break;
       case "jobTypes":
         payload = {
-          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]),
+          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]) as JobType,
           ...(tempData.jobTypes[1] && {
-            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]),
+            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]) as JobType,
           }),
           ...(tempData.jobTypes[2] && {
-            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]),
+            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]) as JobType,
           }),
         };
         break;
 
       case "availability":
         payload = {
-          available_day: getEnumKeyFromValue(AvailableHour, tempData.availabilityDays[0]),
-          available_hour: getEnumKeyFromValue(AvailableHour, tempData.availabilityTimes[0]),
+          available_day: getEnumKeyFromValue(
+            AvailableDay,
+            tempData.availabilityDays[0]
+          ) as AvailableDay,
+          available_hour: getEnumKeyFromValue(
+            AvailableHour,
+            tempData.availabilityTimes[0]
+          ) as AvailableHour,
         };
         break;
       case "languages":
         payload = {
-          language_level: tempData.englishLevel,
+          language_level: tempData.englishLevel as LanguageLevel,
         };
         break;
       default:

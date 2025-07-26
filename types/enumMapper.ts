@@ -1,32 +1,31 @@
 import { $Enums } from "@prisma/client";
-import { WorkType, LanguageLevel, JobStatus, ApplicantStatus, WorkPeriod, JobType } from "@/constants/enums";
-
+import { WorkType, LanguageLevel, JobStatus } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 
 export function toPrismaWorkType(value: WorkType): $Enums.WorkType {
   const map: Record<WorkType, $Enums.WorkType> = {
-    [WorkType.Remote]: "REMOTE",
-    [WorkType.OnSite]: "ON_SITE",
-    [WorkType.Hybrid]: "HYBRID",
+    [WorkType.REMOTE]: "REMOTE",
+    [WorkType.ON_SITE]: "ON_SITE",
+    [WorkType.HYBRID]: "HYBRID",
   };
   return map[value];
 }
 export function toPrismaLanguageLevel(value: LanguageLevel): $Enums.LanguageLevel {
   const map: Record<LanguageLevel, $Enums.LanguageLevel> = {
-    [LanguageLevel.Beginner]: "BEGINNER",
-    [LanguageLevel.Intermediate]: "INTERMEDIATE",
-    [LanguageLevel.Fluent]: "FLUENT",
+    [LanguageLevel.BEGINNER]: "BEGINNER",
+    [LanguageLevel.INTERMEDIATE]: "INTERMEDIATE",
+    [LanguageLevel.FLUENT]: "FLUENT",
   };
   return map[value];
 }
 export function toPrismaJobStatus(value: JobStatus): $Enums.JobStatus {
   const map: Record<JobStatus, $Enums.JobStatus> = {
-    [JobStatus.Draft]: "DRAFT",
-    [JobStatus.Published]: "PUBLISHED",
-    [JobStatus.Closed]: "CLOSED",
+    [JobStatus.DRAFT]: "DRAFT",
+    [JobStatus.PUBLISHED]: "PUBLISHED",
+    [JobStatus.CLOSED]: "CLOSED",
   };
   return map[value];
 }
-
 
 export function toPrismaJobType(value: JobType): $Enums.JobType {
   const map: Record<JobType, $Enums.JobType> = {

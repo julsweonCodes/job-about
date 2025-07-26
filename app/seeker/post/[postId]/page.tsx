@@ -2,15 +2,18 @@
 import React, { useState } from "react";
 import { Bookmark } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
-import JobPostView, { JobPostData } from "@/components/common/JobPostView";
-import { JobStatus, JobType } from "@/constants/enums";
+import JobPostView from "@/components/common/JobPostView";
+import { JobPostData } from "@/types/jobPost";
+import { JobStatus } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 import { LanguageLevel } from "@/constants/enums";
 
+// TODO: 데이터 받아오기  
 const jobDetails: JobPostData = {
   id: "1",
   title: "Cashier",
   jobType: JobType.ACCOUNTANT,
-  status: JobStatus.Published,
+  status: JobStatus.PUBLISHED,
   business: {
     id: "1",
     name: "Fresh Market Grocery",
@@ -30,13 +33,13 @@ const jobDetails: JobPostData = {
   schedule: "Flexible, 10–20 hrs/week",
   requiredSkills: ["Cash handling", "Customer service", "Teamwork"],
   requiredPersonality: ["Friendly", "Patient", "Team-oriented"],
-  languageLevel: LanguageLevel.Intermediate,
+  languageLevel: LanguageLevel.INTERMEDIATE,
   hourlyWage: "$15/hr",
   description:
     "Join our team as a friendly cashier! You'll handle transactions, assist customers, and keep the store tidy. No experience needed, just a positive attitude and willingness to learn. Perfect for students or those seeking a flexible schedule.",
 };
 
-export const JobDetailPage: React.FC = () => {
+const JobDetailPage: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleApply = () => {

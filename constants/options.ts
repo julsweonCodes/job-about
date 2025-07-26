@@ -1,9 +1,9 @@
 import { WorkType } from "./enums";
 
 export const workTypeOptions = [
-  { value: WorkType.Remote, label: "Remote" },
-  { value: WorkType.OnSite, label: "On-site" },
-  { value: WorkType.Hybrid, label: "Hybrid" },
+  { value: WorkType.REMOTE, label: "Remote" },
+  { value: WorkType.ON_SITE, label: "On-site" },
+  { value: WorkType.HYBRID, label: "Hybrid" },
 ];
 
 export const workedPeriodOptions = [

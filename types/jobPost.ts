@@ -1,4 +1,5 @@
-import { JobStatus, JobType, LanguageLevel } from "@/constants/enums";
+import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 
 export interface JobPostData {
   id: string;

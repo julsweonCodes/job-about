@@ -12,9 +12,9 @@ import {
   CheckCircle,
   Edit3,
 } from "lucide-react";
-import { JobStatus, JobType, LanguageLevel } from "@/constants/enums";
+import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 import { JobPostData } from "@/types/jobPost";
-
 
 interface JobPostViewProps {
   jobData: JobPostData;

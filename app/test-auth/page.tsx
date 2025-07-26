@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabaseClient } from "@/utils/supabase/client";
+import { showErrorToast } from "@/utils/client/toastUtils";
 
 export default function TestAuthPage() {
   const [session, setSession] = useState<any>(null);
@@ -20,7 +21,7 @@ export default function TestAuthPage() {
           const result = await response.json();
           setUserCheck({ status: response.status, data: result });
         } catch (error) {
-          setUserCheck({ error: error.message });
+          setUserCheck({ error: (error as Error).message });
         }
       }
     };
@@ -61,9 +62,9 @@ export default function TestAuthPage() {
                 }),
               });
               const result = await response.json();
-              alert(`Status: ${response.status}\nResult: ${JSON.stringify(result)}`);
+              showErrorToast(`Status: ${response.status}\nResult: ${JSON.stringify(result)}`);
             } catch (error) {
-              alert(`Error: ${error.message}`);
+              showErrorToast(`Error: ${error as Error}`);
             }
           }}
           className="bg-blue-500 text-white px-4 py-2 rounded"

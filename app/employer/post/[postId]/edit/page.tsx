@@ -6,8 +6,10 @@ import BaseDialog from "@/components/common/BaseDialog";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import JobPostView, { JobPostData } from "@/components/common/JobPostView";
-import { JobType, JobStatus, LanguageLevel } from "@/constants/enums";
+import JobPostView from "@/components/common/JobPostView";
+import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
+import { JobPostData } from "@/types/jobPost";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -20,7 +22,7 @@ const JobPostEditPage: React.FC = () => {
     id: "1",
     title: "Cashier",
     jobType: JobType.ACCOUNTANT,
-    status: JobStatus.Draft,
+    status: JobStatus.DRAFT,
     business: {
       id: "1",
       name: "Fresh Market Grocery",
@@ -40,7 +42,7 @@ const JobPostEditPage: React.FC = () => {
     schedule: "Flexible, 10–20 hrs/week",
     requiredSkills: ["Cash handling", "Customer service", "Teamwork"],
     requiredPersonality: ["Friendly", "Patient", "Team-oriented"],
-    languageLevel: LanguageLevel.Intermediate,
+    languageLevel: LanguageLevel.INTERMEDIATE,
     hourlyWage: "$15/hr",
     description:
       "Join our team as a friendly cashier! You'll handle transactions, assist customers, and keep the store tidy. No experience needed, just a positive attitude and willingness to learn. Perfect for students or those seeking a flexible schedule.",
