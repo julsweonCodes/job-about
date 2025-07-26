@@ -16,25 +16,29 @@ import {
 } from "@/components/ui/Select";
 import { workedPeriodOptions } from "@/constants/options";
 import { getJobTypeConfig } from "@/constants/jobTypes";
-import { LANGUAGE_LEVELS, WORK_TYPES, AVAILABLE_DAYS, AVAILABLE_HOURS } from "@/constants/enums";
-import { getLocationDisplayName } from "@/constants/location";
+import {
+  WorkType,
+  AvailableDay,
+  AvailableHour,
+  LanguageLevel,
+  WORK_TYPES,
+  LANGUAGE_LEVELS,
+  AVAILABLE_DAYS,
+  AVAILABLE_HOURS,
+} from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
+import { Location, getLocationDisplayName } from "@/constants/location";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
-import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
+import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { FormSection } from "@/components/common/FormSection";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { useJobSeekerForm } from "@/hooks/useJobSeekerForm";
 import { useDialogState } from "@/hooks/useDialogState";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
-import {
-  mapJobTypeToServer,
-  mapWorkTypeToServer,
-  mapAvailableDayToServer,
-  mapAvailableHourToServer,
-  mapLocationToServer,
-  mapLanguageLevelToServer,
-} from "@/utils/client/enumMapper";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { API_URLS } from "@/constants/api";
+import { ApplicantProfileMapper } from "@/types/profile";
 
 interface LocalExperienceForm {
   company: string;
@@ -122,27 +126,25 @@ function JobSeekerProfile() {
       // TODO
       // skill 추가 필요
       // work experience 수정 필요
-      const profileData = {
-        job_type1: mapJobTypeToServer(formData.preferredJobTypes[0]),
-        job_type2: mapJobTypeToServer(formData.preferredJobTypes[1]),
-        job_type3: mapJobTypeToServer(formData.preferredJobTypes[2]),
-        work_type: mapWorkTypeToServer(formData.workType),
-        available_day: mapAvailableDayToServer(formData.availability.day),
-        available_hour: mapAvailableHourToServer(formData.availability.hour),
-        location: mapLocationToServer(formData.location),
-        language_level: mapLanguageLevelToServer(formData.languageProficiency),
+      const profileData = ApplicantProfileMapper.toApi({
+        preferredJobTypes: formData.preferredJobTypes.filter(Boolean),
+        workType: formData.workType || WorkType.REMOTE,
+        availableDays: [formData.availability.day || AvailableDay.WEEKDAYS],
+        availableHours: [formData.availability.hour || AvailableHour.AM],
+        location: formData.location || Location.TORONTO,
+        englishLevel: formData.languageProficiency || LanguageLevel.BEGINNER,
         description: formData.selfIntroduction,
-        work_experiences: workExperiences.map((exp) => ({
-          company_name: exp.company,
-          job_type: mapJobTypeToServer(exp.jobType),
-          start_date: new Date(parseInt(exp.startYear), 0, 1), // 년도만 있으므로 1월 1일로 설정
-          end_date: new Date(parseInt(exp.startYear) + parseInt(exp.workedPeriod), 0, 1),
-          work_type: mapJobTypeToServer(exp.jobType),
+        experiences: workExperiences.map((exp) => ({
+          company: exp.company,
+          jobType: exp.jobType || JobType.SERVER,
+          startDate: new Date(parseInt(exp.startYear), 0, 1), // 년도만 있으므로 1월 1일로 설정
+          endDate: new Date(parseInt(exp.startYear) + parseInt(exp.workedPeriod), 0, 1),
+          workType: (exp.jobType || WorkType.REMOTE) as any,
           description: exp.description,
         })),
-      };
+      });
 
-      const response = await fetch("/api/seeker/profiles", {
+      const response = await fetch(API_URLS.SEEKER.PROFILES, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -483,7 +485,6 @@ function JobSeekerProfile() {
             setExperienceForm={setExperienceForm as any}
             onSave={handleAddExperience}
             editingIndex={editingIndex}
-            years={years.map((year) => ({ value: year, label: year }))}
             onJobTypeSelect={() => experienceJobTypesDialog.open()}
           />
 

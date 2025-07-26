@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Briefcase,
   Heart,
@@ -23,274 +23,64 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import {
-  AvailableDay,
-  AvailableHour,
-  LanguageLevel,
-  WorkType,
-  AVAILABLE_DAYS,
-  AVAILABLE_HOURS,
-} from "@/constants/enums";
-import { useRouter } from "next/navigation";
+import { LanguageLevel, AVAILABLE_DAYS, AVAILABLE_HOURS, WORK_TYPES } from "@/constants/enums";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { Location } from "@/constants/location";
 import { JobType } from "@/constants/jobTypes";
-import { getEnumKeyFromValue } from "@/utils/client/seeker";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
+import JobTypesDialog from "@/components/common/JobTypesDialog";
+import { useSeekerMypage } from "@/hooks/useSeekerMypage";
+import { useExperienceManagement } from "@/hooks/useExperienceManagement";
+import { applicantProfile } from "@/types/profile";
+import { API_URLS } from "@/constants/api";
+import {
+  toPrismaWorkType,
+  toPrismaJobType,
+  toPrismaLanguageLevel,
+  toPrismaAvailableDay,
+  toPrismaAvailableHour,
+} from "@/types/enumMapper";
 
-export interface UserInfo {
-  name: string;
-  description: string;
-  phone_number: string;
-  img_url?: string;
-  created_at: Date;
-}
-export interface WorkExperience {
-  company_name: string;
-  job_type: JobType;
-  start_date: Date;
-  end_date: Date;
-  work_type: WorkType;
-  description: string;
-}
+function SeekerMypage() {
+  // 커스텀 훅 사용 (최상단에서 호출)
+  const {
+    applicantProfile,
+    tempData,
+    isLoading,
+    isEditing,
+    handleEdit: handleEditSection,
+    handleCancel: handleCancelSection,
+    handleTempInputChange: handleInputChange,
+    updateUserProfile: updateProfile,
+    updateProfileImage: updateImage,
+  } = useSeekerMypage();
 
-export interface SeekerProfile {
-  location: Location;
-  work_type: WorkType;
-  job_type1: JobType;
-  job_type2?: JobType;
-  job_type3?: JobType;
-  available_day: AvailableDay;
-  available_hour: AvailableHour;
-  language_level: LanguageLevel;
-  work_experiences: WorkExperience[];
-}
+  const {
+    experienceForm,
+    editingExperienceIndex,
+    showExperienceDialog,
+    showJobTypesDialog,
+    setExperienceForm,
+    setShowExperienceDialog,
+    setShowJobTypesDialog,
+    handleAddExperience: addExperience,
+    handleEditExperience: editExperience,
+    handleSaveExperience: saveExperience,
+    handleJobTypeSelect: selectJobType,
+    handleJobTypeConfirm: confirmJobType,
+  } = useExperienceManagement();
 
-interface ApplicantProfile {
-  name: string;
-  description: string;
-  profileImageUrl: string | null;
-  joinDate: string;
-  location: string;
-  phone: string;
-  skills: string[];
-  workType: string;
-  jobTypes: string[];
-  availabilityDays: string[];
-  availabilityTimes: string[];
-  englishLevel: string;
-  experiences: {
-    title: string;
-    company: string;
-    duration: string;
-    description?: string;
-  }[];
-}
-
-const dummySeekerProfile: SeekerProfile = {
-  location: Location.TORONTO,
-  work_type: WorkType.REMOTE,
-  job_type1: JobType.SERVER,
-  job_type2: JobType.BARISTA,
-  job_type3: JobType.CASHIER,
-  available_day: AvailableDay.WEEKDAYS,
-  available_hour: AvailableHour.AM,
-  language_level: LanguageLevel.INTERMEDIATE,
-  work_experiences: [
-    {
-      company_name: "Starbucks Coffee",
-      job_type: JobType.BARISTA,
-      start_date: new Date("2023-01-15"),
-      end_date: new Date("2024-06-30"),
-      work_type: WorkType.ON_SITE,
-      description:
-        "Prepared and served coffee beverages, maintained cleanliness standards, and provided excellent customer service.",
-    },
-    {
-      company_name: "McDonald's",
-      job_type: JobType.CASHIER,
-      start_date: new Date("2022-03-01"),
-      end_date: new Date("2022-12-31"),
-      work_type: WorkType.ON_SITE,
-      description:
-        "Handled cash transactions, took customer orders, and ensured customer satisfaction.",
-    },
-    {
-      company_name: "Tim Hortons",
-      job_type: JobType.SERVER,
-      start_date: new Date("2021-06-01"),
-      end_date: new Date("2022-02-28"),
-      work_type: WorkType.ON_SITE,
-      description:
-        "Served customers, maintained dining area cleanliness, and assisted with food preparation.",
-    },
-  ],
-};
-
-function App() {
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
-  const [showExperienceDialog, setShowExperienceDialog] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isEditing, setIsEditing] = useState({
-    basicInfo: false,
-    contact: false,
-    location: false,
-    skills: false,
-    workType: false,
-    jobTypes: false,
-    availability: false,
-    languages: false,
-  });
-  const initialApplicantProfile: ApplicantProfile = {
-    name: "",
-    description: "",
-    profileImageUrl: null,
-    joinDate: "",
-    location: "",
-    phone: "",
-    skills: [],
-    workType: "",
-    jobTypes: [],
-    availabilityDays: [],
-    availabilityTimes: [],
-    englishLevel: "",
-    experiences: [],
-  };
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [seekerProfile, setSeekerProfile] = useState<SeekerProfile | null>(null);
-  const [applicantProfile, setApplicantProfile] =
-    useState<ApplicantProfile>(initialApplicantProfile);
-  const [tempData, setTempData] = useState<ApplicantProfile>(initialApplicantProfile);
-
-  // 경험 관련 상태
-  const [experienceForm, setExperienceForm] = useState({
-    company: "",
-    jobType: "",
-    startYear: "",
-    workedPeriod: "",
-    description: "",
-  });
-  const [editingExperienceIndex, setEditingExperienceIndex] = useState<number | null>(null);
-
-  const router = useRouter();
-
-  if (!applicantProfile || !tempData) {
-    return <LoadingScreen />;
-  }
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [userRes, profileRes] = await Promise.all([
-          fetch("/api/user/me"),
-          fetch("/api/seeker/profiles"),
-        ]);
-
-        const userData = await userRes.json();
-        let profileData = await profileRes.json();
-
-        // API 실패 시 더미 데이터 사용
-        if (profileData.status !== "success" || !profileData.data) {
-          console.log("API 실패, 더미 데이터 사용");
-          profileData = { status: "success", data: dummySeekerProfile };
-        }
-
-        if (userData.status === "success" && userData.data) {
-          setUserInfo(userData.data.user);
-        }
-
-        if (profileData.status === "success" && profileData.data) {
-          setSeekerProfile(profileData.data);
-        }
-      } catch (error) {
-        // 네트워크 에러 등에도 더미 데이터 사용
-        console.log("네트워크 에러, 더미 데이터 사용:", error);
-        setSeekerProfile(dummySeekerProfile);
-      }
-    };
-
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (userInfo && seekerProfile && !isInitialized) {
-      setApplicantProfile({
-        name: userInfo.name,
-        description: userInfo.description,
-        profileImageUrl: userInfo.img_url || null,
-        joinDate: new Date(userInfo.created_at).toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }),
-        location: seekerProfile.location,
-        phone: userInfo.phone_number,
-        skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
-        workType: seekerProfile.work_type.toString(),
-        jobTypes: [
-          seekerProfile.job_type1,
-          seekerProfile.job_type2,
-          seekerProfile.job_type3,
-        ].filter((jobType) => jobType != null),
-        availabilityDays: [seekerProfile.available_day],
-        availabilityTimes: [seekerProfile.available_hour],
-        englishLevel: seekerProfile.language_level,
-        experiences: seekerProfile.work_experiences?.length
-          ? seekerProfile.work_experiences.map((exp) => ({
-              title: exp.job_type,
-              company: exp.company_name,
-              duration: `${new Date(exp.start_date).toLocaleDateString("ko-KR", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })} - ${new Date(exp.end_date).toLocaleDateString("ko-KR", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })}`,
-            }))
-          : [],
-      });
-
-      setIsInitialized(true); // ✅ 최초 1회만 초기화되게 플래그 세팅
-    }
-  }, [userInfo, seekerProfile, isInitialized]);
-
-  useEffect(() => {
-    if (applicantProfile) {
-      setTempData(applicantProfile);
-    }
-  }, [applicantProfile]);
-
-  /*useState({
-    name: "Sarah Johnson",
-    description:
-      "Crafting meaningful digital experiences that connect people and solve real problems",
-    profileImageUrl: "",
-    joinDate: "March 2024",
-    location: "San Francisco, CA",
-    phone: "123-456-7890",
-    skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
-    workType: "Remote",
-    jobTypes: ["Full-time", "Contract"],
-    availabilityDays: ["Weekdays"],
-    availabilityTimes: ["AM", "PM"],
-    englishLevel: LanguageLevel.Fluent,
-    experiences: [
-      {
-        title: "Senior Product Designer",
-        company: "TechFlow Solutions",
-        duration: "2022 - Present",
-      },
-      { title: "UI Designer", company: "Creative Studio", duration: "2020 - 2022" },
-    ],
-  });*/
-
-  // Job Preferences 관련 상태
+  // 모든 useState 훅을 조건문 이전에 호출
   const [newSkill, setNewSkill] = useState("");
   const [newJobType, setNewJobType] = useState("");
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
 
+  // 로딩 상태 체크 (훅 호출 이후에 위치)
+  if (isLoading || !applicantProfile || !tempData) {
+    return <LoadingScreen message="Loading your profile..." />;
+  }
+
+  // TODO call api to get workStyle
   const workStyle = {
     type: "Empathetic Coordinator",
     description:
@@ -323,70 +113,54 @@ function App() {
     },
   ];
 
-  // 수정 모드 진입 시 현재 데이터로 임시 상태 초기화
-  const handleEdit = (section: string) => {
-    setTempData(applicantProfile);
-    setIsEditing((prev) => ({ ...prev, [section]: true }));
-  };
-
-  // 취소 시 임시 데이터를 원래 상태로 되돌리기
-  const handleCancel = (section: string) => {
-    setTempData(applicantProfile);
-    setIsEditing((prev) => ({ ...prev, [section]: false }));
-  };
-
-  const updateSeekerProfilePartial = async (data: Partial<SeekerProfile>) => {
-    return fetch("/api/seeker/profiles", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  };
-
   // update contact, location
   const handleOptionsSave = async (section: string) => {
-    let payload: Partial<SeekerProfile> = {};
+    let payload: Partial<applicantProfile> = {};
+
+    console.log("Section:", section);
+    console.log("tempData:", tempData);
 
     switch (section) {
       case "location":
+        console.log("Location case - tempData.location:", tempData.location);
         payload = {
-          location: getEnumKeyFromValue(Location, tempData.location) as Location,
+          location: tempData.location as any,
         };
         break;
       case "skills":
         payload = {};
         break;
       case "workType":
+        console.log("WorkType case - tempData.workType:", tempData.workType);
         payload = {
-          work_type: tempData.workType as WorkType,
+          work_type: toPrismaWorkType(tempData.workType as any),
         };
         break;
       case "jobTypes":
+        console.log("JobTypes case - tempData.jobTypes:", tempData.jobTypes);
         payload = {
-          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]) as JobType,
+          job_type1: toPrismaJobType(tempData.jobTypes[0] as any),
           ...(tempData.jobTypes[1] && {
-            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]) as JobType,
+            job_type2: toPrismaJobType(tempData.jobTypes[1] as any),
           }),
           ...(tempData.jobTypes[2] && {
-            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]) as JobType,
+            job_type3: toPrismaJobType(tempData.jobTypes[2] as any),
           }),
         };
         break;
 
       case "availability":
+        console.log("Availability case - tempData.availabilityDays:", tempData.availabilityDays);
+        console.log("Availability case - tempData.availabilityTimes:", tempData.availabilityTimes);
         payload = {
-          available_day: getEnumKeyFromValue(
-            AvailableDay,
-            tempData.availabilityDays[0]
-          ) as AvailableDay,
-          available_hour: getEnumKeyFromValue(
-            AvailableHour,
-            tempData.availabilityTimes[0]
-          ) as AvailableHour,
+          available_day: toPrismaAvailableDay(tempData.availabilityDays[0] as any),
+          available_hour: toPrismaAvailableHour(tempData.availabilityTimes[0] as any),
         };
         break;
       case "languages":
+        console.log("Languages case - tempData.englishLevel:", tempData.englishLevel);
         payload = {
-          language_level: tempData.englishLevel as LanguageLevel,
+          language_level: toPrismaLanguageLevel(tempData.englishLevel as any),
         };
         break;
       default:
@@ -394,22 +168,22 @@ function App() {
         return;
     }
 
+    console.log("Final payload:", payload);
+
     try {
-      await updateSeekerProfilePartial(payload);
-      setApplicantProfile(tempData);
-      setIsEditing((prev) => ({ ...prev, [section]: false }));
+      const response = await fetch(API_URLS.SEEKER.PROFILES, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) {
+        // 성공 처리
+      }
     } catch (error) {
       console.error(`Failed to save ${section}:`, error);
     }
   };
 
-  // update field
-  const handleTempInputChange = (field: string, value: string) => {
-    setTempData((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleProfileEdit = () => {
-    setTempData(applicantProfile);
     setShowProfileDialog(true);
   };
 
@@ -417,187 +191,66 @@ function App() {
     setShowProfileDialog(false);
   };
 
-  const updateUserProfile = async () => {
-    const formData = new FormData();
-    formData.append("name", tempData.name);
-    formData.append("description", tempData.description);
-    formData.append("phone_number", tempData.phone);
-
-    const response = await fetch("/api/users", {
-      method: "PUT",
-      body: formData,
-    });
-  };
-
   const handleProfileSave = async () => {
-    setApplicantProfile(tempData);
-    await updateUserProfile();
+    await updateProfile();
     handleCloseProfileDialog();
   };
 
   const handleProfileContactSave = async () => {
-    await updateUserProfile();
-    setApplicantProfile(tempData);
-    setIsEditing((prev) => ({ ...prev, ["contact"]: false }));
+    await updateProfile();
   };
 
   const handleProfileImageChange = async (file: File) => {
-    console.log("Profile image changed to:", file);
-    try {
-      // 파일을 읽어서 이미지 URL로 변환
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        // 프로필 이미지 상태 업데이트
-        setApplicantProfile((prev) => ({
-          ...prev,
-          profileImageUrl: imageUrl,
-        }));
-      };
-      reader.readAsDataURL(file);
-
-      // 파일 저장
-      const formData = new FormData();
-      formData.append("img", file);
-
-      const response = await fetch("/api/users", {
-        method: "PATCH",
-        body: formData,
-      });
-      const result = await response.json();
-      if (result.data.img_url) {
-        setApplicantProfile((prev) => ({
-          ...prev,
-          profileImageUrl: result.data.img_url,
-        }));
-      }
-    } catch (error) {
-      console.error("Error updating profile image:", error);
-    }
+    await updateImage(file);
   };
 
   const handleImageUploadDialog = () => {
     setShowImageUploadDialog(true);
   };
 
-  // 경험 관련 함수들
-  const handleAddExperience = () => {
-    setExperienceForm({
-      company: "",
-      jobType: "",
-      startYear: "",
-      workedPeriod: "",
-      description: "",
-    });
-    setEditingExperienceIndex(null);
-    setShowExperienceDialog(true);
-  };
-
-  const handleEditExperience = (index: number) => {
-    const experience = tempData.experiences[index];
-    setExperienceForm({
-      company: experience.company,
-      jobType: experience.title,
-      startYear: experience.duration.split(" - ")[0].split("/")[0],
-      workedPeriod: experience.duration.split(" - ")[1].split("/")[0],
-      description: experience.description || "",
-    });
-    setEditingExperienceIndex(index);
-    setShowExperienceDialog(true);
-  };
-
-  const handleSaveExperience = () => {
-    if (editingExperienceIndex !== null) {
-      // 기존 경험 수정
-      const updatedExperiences = [...tempData.experiences];
-      updatedExperiences[editingExperienceIndex] = {
-        title: experienceForm.jobType,
-        company: experienceForm.company,
-        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
-        description: experienceForm.description,
-      };
-      setTempData((prev) => ({ ...prev, experiences: updatedExperiences }));
-    } else {
-      // 새 경험 추가
-      // TODO call api to add experience
-      const newExperience = {
-        title: experienceForm.jobType,
-        company: experienceForm.company,
-        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
-        description: experienceForm.description,
-      };
-      setTempData((prev) => ({ ...prev, experiences: [...prev.experiences, newExperience] }));
-    }
-    setShowExperienceDialog(false);
-  };
-
-  const handleJobTypeSelect = () => {
-    // JobType 선택 다이얼로그 구현 (임시로 간단한 선택)
-    const jobTypes = ["Server", "Barista", "Cashier", "Kitchen Help", "Delivery"];
-    const selected = prompt("Select job type:\n" + jobTypes.join("\n"));
-    if (selected && jobTypes.includes(selected)) {
-      setExperienceForm((prev) => ({ ...prev, jobType: selected }));
-    }
-  };
-
   // Job Preferences 관련 함수들
   const addSkill = () => {
     if (newSkill.trim()) {
-      setTempData((prev) => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()],
-      }));
+      handleInputChange("skills", [...tempData.skills, newSkill.trim()] as any);
       setNewSkill("");
     }
   };
 
   const removeSkill = (index: number) => {
-    setTempData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((_, i) => i !== index),
-    }));
+    handleInputChange("skills", tempData.skills.filter((_, i) => i !== index) as any);
   };
 
   const addJobType = () => {
     if (newJobType.trim()) {
-      setTempData((prev) => ({
-        ...prev,
-        jobTypes: [...prev.jobTypes, newJobType.trim()],
-      }));
+      handleInputChange("jobTypes", [...tempData.jobTypes, newJobType.trim()] as any);
       setNewJobType("");
     }
   };
 
   const removeJobType = (index: number) => {
-    setTempData((prev) => ({
-      ...prev,
-      jobTypes: prev.jobTypes.filter((_, i) => i !== index),
-    }));
+    handleInputChange("jobTypes", tempData.jobTypes.filter((_, i) => i !== index) as any);
   };
 
   const toggleAvailabilityDay = (day: string) => {
-    setTempData((prev) => ({
-      ...prev,
-      availabilityDays: prev.availabilityDays.includes(day)
-        ? prev.availabilityDays.filter((d) => d !== day)
-        : [...prev.availabilityDays, day],
-    }));
+    handleInputChange(
+      "availabilityDays",
+      tempData.availabilityDays.includes(day)
+        ? (tempData.availabilityDays.filter((d) => d !== day) as any)
+        : ([...tempData.availabilityDays, day] as any)
+    );
   };
 
   const toggleAvailabilityTime = (time: string) => {
-    setTempData((prev) => ({
-      ...prev,
-      availabilityTimes: prev.availabilityTimes.includes(time)
-        ? prev.availabilityTimes.filter((t) => t !== time)
-        : [...prev.availabilityTimes, time],
-    }));
+    handleInputChange(
+      "availabilityTimes",
+      tempData.availabilityTimes.includes(time)
+        ? (tempData.availabilityTimes.filter((t) => t !== time) as any)
+        : ([...tempData.availabilityTimes, time] as any)
+    );
   };
 
   const updateEnglishLevel = (level: LanguageLevel) => {
-    setTempData((prev) => ({
-      ...prev,
-      englishLevel: level,
-    }));
+    handleInputChange("englishLevel", level);
   };
 
   return (
@@ -723,10 +376,10 @@ function App() {
             icon={<Phone size={18} className="text-green-600" />}
             title="Phone Number"
             subtitle="Your contact phone number"
-            onEdit={() => handleEdit("contact")}
+            onEdit={() => handleEditSection("contact")}
             isEditing={isEditing.contact}
             onSave={() => handleProfileContactSave()}
-            onCancel={() => handleCancel("contact")}
+            onCancel={() => handleCancelSection("contact")}
           >
             {isEditing.contact ? (
               <Input
@@ -734,7 +387,7 @@ function App() {
                 type="phone"
                 value={tempData.phone}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleTempInputChange("phone", e.target.value)
+                  handleInputChange("phone", e.target.value)
                 }
                 placeholder="(555) 123-4567"
                 rightIcon={<Phone className="w-5 h-5" />}
@@ -754,17 +407,17 @@ function App() {
             icon={<MapPin size={18} className="text-purple-600" />}
             title="Location"
             subtitle="Your current location"
-            onEdit={() => handleEdit("location")}
+            onEdit={() => handleEditSection("location")}
             isEditing={isEditing.location}
             onSave={() => handleOptionsSave("location")}
-            onCancel={() => handleCancel("location")}
+            onCancel={() => handleCancelSection("location")}
           >
             {isEditing.location ? (
               <Input
                 label="Location"
                 value={tempData.location}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleTempInputChange("location", e.target.value)
+                  handleInputChange("location", e.target.value)
                 }
                 placeholder="City, State"
                 rightIcon={<MapPin className="w-5 h-5" />}
@@ -788,10 +441,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-blue-100 to-indigo-100"
             title="Skills"
             subtitle="Your professional skills and expertise"
-            onEdit={() => handleEdit("skills")}
+            onEdit={() => handleEditSection("skills")}
             isEditing={isEditing.skills}
             onSave={() => handleOptionsSave("skills")}
-            onCancel={() => handleCancel("skills")}
+            onCancel={() => handleCancelSection("skills")}
           >
             {!isEditing.skills ? (
               <div className="flex flex-wrap gap-2">
@@ -848,10 +501,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-green-100 to-emerald-100"
             title="Work Type"
             subtitle="Remote, on-site, or hybrid preference"
-            onEdit={() => handleEdit("workType")}
+            onEdit={() => handleEditSection("workType")}
             isEditing={isEditing.workType}
             onSave={() => handleOptionsSave("workType")}
-            onCancel={() => handleCancel("workType")}
+            onCancel={() => handleCancelSection("workType")}
           >
             {!isEditing.workType ? (
               <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
@@ -859,17 +512,17 @@ function App() {
               </span>
             ) : (
               <div className="flex gap-2">
-                {["Remote", "On-site", "Hybrid"].map((type) => (
+                {WORK_TYPES.map((type) => (
                   <button
                     key={type}
-                    onClick={() => handleTempInputChange("workType", type)}
+                    onClick={() => handleInputChange("workType", type)}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                       tempData.workType === type
                         ? "bg-green-500 text-white"
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
-                    {type}
+                    {type.charAt(0).toUpperCase() + type.slice(1).replace("-", " ")}
                   </button>
                 ))}
               </div>
@@ -882,10 +535,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-purple-100 to-pink-100"
             title="Preferred Job Types"
             subtitle="Types of roles you're interested in"
-            onEdit={() => handleEdit("jobTypes")}
+            onEdit={() => handleEditSection("jobTypes")}
             isEditing={isEditing.jobTypes}
             onSave={() => handleOptionsSave("jobTypes")}
-            onCancel={() => handleCancel("jobTypes")}
+            onCancel={() => handleCancelSection("jobTypes")}
           >
             {!isEditing.jobTypes ? (
               <div className="flex flex-wrap gap-2">
@@ -942,10 +595,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-orange-100 to-red-100"
             title="Availability"
             subtitle="When you're available to work"
-            onEdit={() => handleEdit("availability")}
+            onEdit={() => handleEditSection("availability")}
             isEditing={isEditing.availability}
             onSave={() => handleOptionsSave("availability")}
-            onCancel={() => handleCancel("availability")}
+            onCancel={() => handleCancelSection("availability")}
           >
             {!isEditing.availability ? (
               <div className="space-y-2">
@@ -1023,7 +676,7 @@ function App() {
               {tempData.experiences.map((exp, index) => (
                 <div key={index} className="p-4 bg-slate-50 rounded-lg relative group">
                   <button
-                    onClick={() => handleEditExperience(index)}
+                    onClick={() => editExperience(index, tempData.experiences[index])}
                     className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm"
                   >
                     <Edit3 size={14} className="text-slate-600" />
@@ -1038,7 +691,7 @@ function App() {
               ))}
             </div>
             <button
-              onClick={handleAddExperience}
+              onClick={addExperience}
               className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation"
             >
               <Plus size={16} />
@@ -1052,10 +705,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-teal-100 to-cyan-100"
             title="English Proficiency"
             subtitle="Your English language skill level"
-            onEdit={() => handleEdit("languages")}
+            onEdit={() => handleEditSection("languages")}
             isEditing={isEditing.languages}
             onSave={() => handleOptionsSave("languages")}
-            onCancel={() => handleCancel("languages")}
+            onCancel={() => handleCancelSection("languages")}
           >
             {!isEditing.languages ? (
               <span className="px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
@@ -1139,7 +792,7 @@ function App() {
               label="Name"
               value={tempData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleTempInputChange("name", e.target.value)
+                handleInputChange("name", e.target.value)
               }
             />
 
@@ -1147,7 +800,7 @@ function App() {
               label="Description"
               value={tempData.description}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                handleTempInputChange("description", e.target.value)
+                handleInputChange("description", e.target.value)
               }
               rows={3}
             />
@@ -1178,17 +831,23 @@ function App() {
         open={showExperienceDialog}
         onClose={() => setShowExperienceDialog(false)}
         experienceForm={experienceForm}
-        setExperienceForm={setExperienceForm}
-        onSave={handleSaveExperience}
+        setExperienceForm={setExperienceForm as any}
+        onSave={() => saveExperience(tempData.experiences, () => {})}
         editingIndex={editingExperienceIndex}
-        years={Array.from({ length: 20 }, (_, i) => ({
-          value: (2024 - i).toString(),
-          label: (2024 - i).toString(),
-        }))}
-        onJobTypeSelect={handleJobTypeSelect}
+        onJobTypeSelect={selectJobType}
+      />
+
+      {/* Job Types Dialog */}
+      <JobTypesDialog
+        title="Select Job Type"
+        open={showJobTypesDialog}
+        onClose={() => setShowJobTypesDialog(false)}
+        selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType as JobType] : []}
+        onConfirm={confirmJobType}
+        maxSelected={1}
       />
     </div>
   );
 }
 
-export default App;
+export default SeekerMypage;
