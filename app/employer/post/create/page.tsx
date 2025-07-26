@@ -18,6 +18,7 @@ import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
+import { FullWidthChip } from "@/components/ui/FullWidthChip";
 import { LanguageLevel, LANGUAGE_LEVELS, JobType, WorkType } from "@/constants/enums";
 import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
@@ -230,17 +231,14 @@ function JobPostCreatePage() {
                 </Typography>
                 <div className="grid grid-cols-3 gap-2">
                   {workTypeOptions.map((option) => (
-                    <Button
+                    <FullWidthChip
                       key={option.value}
+                      selected={formData.selectedWorkType === option.value}
                       onClick={() => handleInputChange("selectedWorkType", option.value)}
-                      className={`px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
-                        formData.selectedWorkType === option.value
-                          ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 shadow-lg shadow-green-200"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
-                      }`}
+                      color="green"
                     >
                       {option.label}
-                    </Button>
+                    </FullWidthChip>
                   ))}
                 </div>
               </div>
@@ -399,15 +397,16 @@ function JobPostCreatePage() {
                 >
                   Required Language Level
                 </Typography>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex gap-2 sm:grid sm:grid-cols-3">
                   {LANGUAGE_LEVELS.map((level) => (
-                    <Chip
+                    <FullWidthChip
                       key={level}
                       selected={formData.languageLevel === level}
                       onClick={() => handleInputChange("languageLevel", level)}
+                      color="teal"
                     >
                       {level}
-                    </Chip>
+                    </FullWidthChip>
                   ))}
                 </div>
               </div>

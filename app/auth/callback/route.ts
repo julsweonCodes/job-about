@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
             displayName:
               data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User",
             user_metadata: data.user.user_metadata || {},
+            description: "",
           };
 
           console.log("Creating user with data:", userData);

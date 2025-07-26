@@ -133,3 +133,13 @@ export const LANGUAGE_LEVELS = [
 ] as const;
 
 export const WORK_TYPES = [WorkType.Remote, WorkType.OnSite, WorkType.Hybrid] as const;
+
+export const AVAILABLE_DAYS = [
+  { value: AvailableDay.WEEKDAYS, label: "Weekdays" },
+  { value: AvailableDay.WEEKENDS, label: "Weekends" },
+] as const;
+
+export const AVAILABLE_HOURS = [
+  { value: AvailableHour.AM, label: "AM" },
+  { value: AvailableHour.PM, label: "PM" },
+] as const;
