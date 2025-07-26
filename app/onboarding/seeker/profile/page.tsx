@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { User, MapPin, Clock, Briefcase, Languages, FileText, Pencil, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { User, MapPin, Clock, Briefcase, Languages, FileText } from "lucide-react";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { FullWidthChip } from "@/components/ui/FullWidthChip";
@@ -16,106 +16,40 @@ import {
 } from "@/components/ui/Select";
 import { workedPeriodOptions } from "@/constants/options";
 import { getJobTypeConfig } from "@/constants/jobTypes";
-import {
-  LanguageLevel,
-  WorkType,
-  JobType,
-  LANGUAGE_LEVELS,
-  WORK_TYPES,
-  AVAILABLE_DAYS,
-  AVAILABLE_HOURS,
-  AvailableDay,
-  AvailableHour,
-} from "@/constants/enums";
-import { Skill } from "@/types/profile";
+import { LANGUAGE_LEVELS, WORK_TYPES, AVAILABLE_DAYS, AVAILABLE_HOURS } from "@/constants/enums";
+import { getLocationDisplayName } from "@/constants/location";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { FormSection } from "@/components/common/FormSection";
-
-interface JobSeekerFormData {
-  skills: Skill[];
-  workType: WorkType | null;
-  preferredJobTypes: JobType[];
-  availability: {
-    day: AvailableDay | null;
-    hour: AvailableHour | null;
-  };
-  location: string;
-  languageProficiency: LanguageLevel | null;
-  selfIntroduction: string;
-}
-
-interface ExperienceForm {
-  company: string;
-  jobType: string;
-  startYear: string;
-  workedPeriod: string;
-  description: string;
-}
-
-// ExperienceCard
-type ExperienceCardProps = {
-  experience: ExperienceForm;
-  onEdit: () => void;
-  onDelete: () => void;
-};
-
-function ExperienceCard({ experience, onEdit, onDelete }: ExperienceCardProps) {
-  return (
-    <div className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow">
-      <div>
-        <Typography as="div" className="font-bold text-gray-800 text-base mb-1">
-          {experience.company}
-        </Typography>
-        <Typography as="div" className="text-gray-500 text-sm">
-          {experience.startYear}, {experience.workedPeriod}
-        </Typography>
-      </div>
-      <div className="flex items-center gap-2 ml-4">
-        <button
-          type="button"
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-indigo-500 transition-colors"
-          onClick={onEdit}
-          aria-label="Edit"
-        >
-          <Pencil className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-rose-500 transition-colors"
-          onClick={onDelete}
-          aria-label="Delete"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-}
+import LoadingScreen from "@/components/common/LoadingScreen";
+import { useJobSeekerForm } from "@/hooks/useJobSeekerForm";
+import { useDialogState } from "@/hooks/useDialogState";
+import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 
 function JobSeekerProfile() {
-  const [showExperienceForm, setShowExperienceForm] = useState(false);
-  const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
-  const [experienceJobTypesDialogOpen, setExperienceJobTypesDialogOpen] = useState(false);
-  const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
-  const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
-  const [formData, setFormData] = useState<JobSeekerFormData>({
-    skills: [],
-    workType: null,
-    preferredJobTypes: [] as JobType[],
-    availability: {
-      day: null,
-      hour: null,
-    },
-    location: "",
-    languageProficiency: null,
-    selfIntroduction: "",
-  });
+  // 커스텀 훅 사용
+  const {
+    formData,
+    workExperiences,
+    availableSkills,
+    cities,
+    isLoading,
+    updateFormData,
+    addExperience,
+    updateExperience,
+    removeExperience,
+    calculateProgress,
+  } = useJobSeekerForm();
 
-  const [workExperiences, setWorkExperiences] = useState<ExperienceForm[]>([]);
+  // 다이얼로그 상태 관리
+  const experienceFormDialog = useDialogState();
+  const jobTypesDialog = useDialogState();
+  const experienceJobTypesDialog = useDialogState();
+  const skillsDialog = useDialogState();
 
-  const [experienceForm, setExperienceForm] = useState<ExperienceForm>({
+  // 경험 폼 상태
+  const [experienceForm, setExperienceForm] = useState({
     company: "",
     jobType: "",
     startYear: new Date().getFullYear().toString(),
@@ -125,67 +59,17 @@ function JobSeekerProfile() {
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // Select 옵션 배열 선언 (컴포넌트 함수 바깥, 파일 import 바로 아래)
+  // Select 옵션 배열
   const years = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() - i).toString());
 
-  const fetchSkills = async () => {
-    try {
-      const res = await fetch("/api/utils");
-      const data = await res.json();
-
-      if (res.ok) {
-        setAvailableSkills(data.data.skills);
-      } else {
-        console.error("Failed to fetch skills:", data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching skills:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchSkills();
-  }, []);
-
-  const handleInputChange = (field: keyof JobSeekerFormData, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  // 이벤트 핸들러들
+  const handleInputChange = (field: string, value: any) => {
+    updateFormData(field as any, value);
   };
 
   const handleExperienceFormClose = () => {
-    setShowExperienceForm(false);
+    experienceFormDialog.close();
     setEditingIndex(null);
-    document.body.style.overflow = "";
-  };
-
-  const handleJobTypesDialogOpen = () => {
-    setJobTypesDialogOpen(true);
-  };
-
-  const handleJobTypesDialogClose = () => {
-    setJobTypesDialogOpen(false);
-  };
-
-  const handleExperienceJobTypesDialogOpen = () => {
-    setExperienceJobTypesDialogOpen(true);
-  };
-
-  const handleExperienceJobTypesDialogClose = () => {
-    setExperienceJobTypesDialogOpen(false);
-  };
-
-  const handleAddExperience = () => {
-    if (editingIndex === null) {
-      // 새로 추가
-      setWorkExperiences([...workExperiences, experienceForm]);
-    } else {
-      // 수정
-      setWorkExperiences((prev) =>
-        prev.map((exp, idx) => (idx === editingIndex ? experienceForm : exp))
-      );
-    }
     setExperienceForm({
       company: "",
       jobType: "",
@@ -193,67 +77,38 @@ function JobSeekerProfile() {
       workedPeriod: workedPeriodOptions[0],
       description: "",
     });
-    setShowExperienceForm(false);
-    setEditingIndex(null);
   };
 
-  // addSkill과 removeSkill 함수는 RequiredSkillsDialog에서 처리하므로 제거
-  // addJobType과 removeJobType 함수는 JobTypesDialog에서 처리하므로 제거
-
-  const removeExperience = (index: number) => {
-    setWorkExperiences((prev) => prev.filter((_, i) => i !== index));
+  const handleAddExperience = () => {
+    if (experienceForm.company.trim() && experienceForm.jobType.trim()) {
+      if (editingIndex !== null) {
+        updateExperience(editingIndex, experienceForm);
+      } else {
+        addExperience(experienceForm);
+      }
+      handleExperienceFormClose();
+    }
   };
 
-  const handleAvailabilityChange = (category: "day" | "hour", key: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      availability: {
-        ...prev.availability,
-        [category]:
-          prev.availability[category as keyof typeof prev.availability] === key
-            ? null
-            : (key as AvailableDay | AvailableHour),
-      },
-    }));
+  const handleEditExperience = (index: number) => {
+    setEditingIndex(index);
+    setExperienceForm(workExperiences[index]);
+    experienceFormDialog.open();
   };
 
   const handleSubmit = () => {
     console.log("Job Seeker Profile submitted:", formData);
-    // Handle form submission logic here
+    console.log("Work experiences:", workExperiences);
   };
 
   const workTypes = WORK_TYPES;
   const languageLevels = LANGUAGE_LEVELS;
-  const cities = [
-    "Toronto",
-    "North York",
-    "Scarborough",
-    "Etobicoke",
-    "Mississauga",
-    "Brampton",
-    "Vaughan",
-    "Richmond Hill",
-    "Markham",
-    "Thornhill",
-  ];
-
-  // Calculate progress based on filled fields
-  const calculateProgress = () => {
-    let filledFields = 0;
-    const totalFields = 7; // Required sections count
-
-    if (formData.skills.length > 0) filledFields++;
-    if (formData.workType && formData.preferredJobTypes.length > 0) filledFields++;
-    if (formData.availability.day !== null && formData.availability.hour !== null) filledFields++;
-    if (formData.location.trim()) filledFields++;
-    if (workExperiences.length > 0) filledFields++;
-    if (formData.languageProficiency) filledFields++;
-    if (formData.selfIntroduction.trim()) filledFields++;
-
-    return Math.round((filledFields / totalFields) * 100);
-  };
-
   const progress = calculateProgress();
+
+  // 로딩 중일 때 LoadingScreen 표시
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
@@ -294,7 +149,7 @@ function JobSeekerProfile() {
                   placeholder="Select Skills"
                   className="cursor-pointer"
                   value={formData.skills.map((skill) => skill.name_en).join(", ")}
-                  onClick={() => setSkillsDialogOpen(true)}
+                  onClick={() => skillsDialog.open()}
                 />
               </div>
             </div>
@@ -358,7 +213,7 @@ function JobSeekerProfile() {
                     }
                     placeholder="Select Job Types"
                     className="flex-1 cursor-pointer"
-                    onClick={handleJobTypesDialogOpen}
+                    onClick={() => jobTypesDialog.open()}
                   />
                 </div>
               </div>
@@ -395,13 +250,10 @@ function JobSeekerProfile() {
                       key={value}
                       selected={formData.availability.day === value}
                       onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          availability: {
-                            ...prev.availability,
-                            day: prev.availability.day === value ? null : value,
-                          },
-                        }))
+                        handleInputChange("availability", {
+                          ...formData.availability,
+                          day: formData.availability.day === value ? null : value,
+                        })
                       }
                       color="orange"
                       className="flex-1"
@@ -427,13 +279,10 @@ function JobSeekerProfile() {
                       key={value}
                       selected={formData.availability.hour === value}
                       onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          availability: {
-                            ...prev.availability,
-                            hour: prev.availability.hour === value ? null : value,
-                          },
-                        }))
+                        handleInputChange("availability", {
+                          ...formData.availability,
+                          hour: formData.availability.hour === value ? null : value,
+                        })
                       }
                       color="orange"
                       className="flex-1"
@@ -469,11 +318,20 @@ function JobSeekerProfile() {
                   <SelectValue placeholder="Select preferred city" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cities.map((city) => (
-                    <SelectItem key={city} value={city} selectedValue={formData.location}>
-                      {city}
+                  {Array.isArray(cities) && cities.length > 0 ? (
+                    cities.map((city) => {
+                      const displayName = getLocationDisplayName(city);
+                      return (
+                        <SelectItem key={city} value={city} selectedValue={formData.location}>
+                          {displayName}
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem value="" disabled>
+                      No cities available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -500,7 +358,7 @@ function JobSeekerProfile() {
                   type="text"
                   className="cursor-pointer hover:bg-gray-50 hover:border-gray-300"
                   placeholder="+ Add your experience"
-                  onClick={() => setShowExperienceForm(true)}
+                  onClick={() => experienceFormDialog.open()}
                 />
               </div>
 
@@ -510,11 +368,7 @@ function JobSeekerProfile() {
                     <ExperienceCard
                       key={index}
                       experience={experience}
-                      onEdit={() => {
-                        setEditingIndex(index);
-                        setExperienceForm(experience);
-                        setShowExperienceForm(true);
-                      }}
+                      onEdit={() => handleEditExperience(index)}
                       onDelete={() => removeExperience(index)}
                     />
                   ))}
@@ -592,7 +446,7 @@ function JobSeekerProfile() {
 
           {/* Experience Form Dialog */}
           <ExperienceFormDialog
-            open={showExperienceForm}
+            open={experienceFormDialog.isOpen}
             onClose={handleExperienceFormClose}
             experienceForm={experienceForm}
             setExperienceForm={setExperienceForm}
@@ -603,42 +457,42 @@ function JobSeekerProfile() {
               value: period,
               label: period,
             }))}
-            onJobTypeSelect={handleExperienceJobTypesDialogOpen}
+            onJobTypeSelect={() => experienceJobTypesDialog.open()}
           />
 
           <JobTypesDialog
             title="Select Job Type"
-            open={experienceJobTypesDialogOpen}
-            onClose={handleExperienceJobTypesDialogClose}
+            open={experienceJobTypesDialog.isOpen}
+            onClose={experienceJobTypesDialog.close}
             selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType as any] : []}
             onConfirm={(jobTypes) => {
               if (jobTypes.length > 0) {
                 setExperienceForm((f) => ({ ...f, jobType: jobTypes[0] }));
               }
-              handleExperienceJobTypesDialogClose();
+              experienceJobTypesDialog.close();
             }}
             maxSelected={1}
           />
 
           <RequiredSkillsDialog
-            open={skillsDialogOpen}
-            onClose={() => setSkillsDialogOpen(false)}
+            open={skillsDialog.isOpen}
+            onClose={skillsDialog.close}
             selectedSkills={formData.skills}
             onConfirm={(skills) => {
               handleInputChange("skills", skills);
-              setSkillsDialogOpen(false);
+              skillsDialog.close();
             }}
             skills={availableSkills}
           />
 
           <JobTypesDialog
             title="Select Job Types"
-            open={jobTypesDialogOpen}
-            onClose={handleJobTypesDialogClose}
+            open={jobTypesDialog.isOpen}
+            onClose={jobTypesDialog.close}
             selectedJobTypes={formData.preferredJobTypes}
             onConfirm={(jobTypes) => {
               handleInputChange("preferredJobTypes", jobTypes);
-              handleJobTypesDialogClose();
+              jobTypesDialog.close();
             }}
             maxSelected={3}
           />

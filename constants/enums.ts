@@ -38,28 +38,6 @@ export enum WorkPeriod {
   OverThreeYears = "over_three_years",
 }
 
-// 근무 지역
-export enum Location {
-  TORONTO = "toronto",
-  NORTH_YORK = "north_york",
-  SCARBOROUGH = "scarborough",
-  ETOBICOKE = "etobicoke",
-  MISSISSAUGA = "mississauga",
-  BRAMPTON = "brampton",
-  VAUGHAN = "vaughan",
-  RICHMOND_HILL = "richmond_hill",
-  MARKHAM = "markham",
-  THORNHILL = "thornhill",
-  PICKERING = "pickering",
-  AJAX = "ajax",
-  WHITBY = "whitby",
-  OSHAWA = "oshawa",
-  OAKVILLE = "oakville",
-  BURLINGTON = "burlington",
-  MILTON = "milton",
-  NEWHAMBURG = "newhamburg",
-}
-
 export enum AvailableDay {
   WEEKDAYS = "weekdays",
   WEEKENDS = "weekends",
@@ -69,62 +47,6 @@ export enum AvailableHour {
   AM = "am",
   PM = "pm",
 }
-
-// 근무 타입
-export enum JobType {
-  SERVER = "server",
-  KITCHEN = "kitchen",
-  DELIVERY = "delivery",
-  CASHIER = "cashier",
-  CLEANING = "cleaning",
-  CUSTOMER_SERVICE = "customer_service",
-  SALES = "sales",
-  DRIVER = "driver",
-  RECEPTIONIST = "receptionist",
-  SECURITY = "security",
-  MANAGER = "manager",
-  BARISTA = "barista",
-  CHEF = "chef",
-  STOCKER = "stocker",
-  TECH_SUPPORT = "tech_support",
-  WAREHOUSE = "warehouse",
-  ACCOUNTANT = "accountant",
-  MARKETING = "marketing",
-  HR = "hr",
-  DESIGNER = "designer",
-  DEVELOPER = "developer",
-  ENGINEER = "engineer",
-  TEACHER = "teacher",
-  TRANSLATOR = "translator",
-  PHARMACIST = "pharmacist",
-  NURSE = "nurse",
-  DOCTOR = "doctor",
-  FARMER = "farmer",
-  ELECTRICIAN = "electrician",
-  PLUMBER = "plumber",
-  JANITOR = "janitor",
-}
-
-// JobType을 위한 클라이언트 매핑 인터페이스
-export interface JobTypeConfig {
-  id: JobType;
-  name: string;
-  category: string;
-  icon: React.ComponentType<any>;
-  isCommon: boolean;
-}
-
-// JobType 카테고리
-export const JOB_CATEGORIES = {
-  RESTAURANT: "Restaurant",
-  RETAIL: "Retail",
-  SERVICE: "Service",
-  TECHNICAL: "Technical",
-  MEDICAL: "Medical",
-  TRADES: "Trades",
-  OFFICE: "Office",
-  OTHER: "Other",
-} as const;
 
 export const LANGUAGE_LEVELS = [
   LanguageLevel.Beginner,

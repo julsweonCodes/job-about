@@ -31,7 +31,62 @@ import {
   Droplets,
   Building2,
 } from "lucide-react";
-import { JobType, JobTypeConfig, JOB_CATEGORIES } from "./enums";
+
+// 근무 타입
+export enum JobType {
+  SERVER = "server",
+  KITCHEN = "kitchen",
+  DELIVERY = "delivery",
+  CASHIER = "cashier",
+  CLEANING = "cleaning",
+  CUSTOMER_SERVICE = "customer_service",
+  SALES = "sales",
+  DRIVER = "driver",
+  RECEPTIONIST = "receptionist",
+  SECURITY = "security",
+  MANAGER = "manager",
+  BARISTA = "barista",
+  CHEF = "chef",
+  STOCKER = "stocker",
+  TECH_SUPPORT = "tech_support",
+  WAREHOUSE = "warehouse",
+  ACCOUNTANT = "accountant",
+  MARKETING = "marketing",
+  HR = "hr",
+  DESIGNER = "designer",
+  DEVELOPER = "developer",
+  ENGINEER = "engineer",
+  TEACHER = "teacher",
+  TRANSLATOR = "translator",
+  PHARMACIST = "pharmacist",
+  NURSE = "nurse",
+  DOCTOR = "doctor",
+  FARMER = "farmer",
+  ELECTRICIAN = "electrician",
+  PLUMBER = "plumber",
+  JANITOR = "janitor",
+}
+
+// JobType 카테고리
+export const JOB_CATEGORIES = {
+  RESTAURANT: "Restaurant",
+  RETAIL: "Retail",
+  SERVICE: "Service",
+  TECHNICAL: "Technical",
+  MEDICAL: "Medical",
+  TRADES: "Trades",
+  OFFICE: "Office",
+  OTHER: "Other",
+} as const;
+
+// JobType을 위한 클라이언트 매핑 인터페이스
+export interface JobTypeConfig {
+  id: JobType;
+  name: string;
+  category: string;
+  icon: React.ComponentType<any>;
+  isCommon: boolean;
+}
 
 // JobType enum을 클라이언트 매핑으로 변환
 export const JOB_TYPE_CONFIGS: Record<JobType, JobTypeConfig> = {
