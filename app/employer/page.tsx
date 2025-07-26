@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatsCard } from "./components/StatsCard";
 import { JobPostCard } from "./components/JobPostCard";
@@ -7,30 +7,21 @@ import { AlertBanner } from "./components/AlertBanner";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { WorkType } from "@/constants/enums";
 import { Plus } from "lucide-react";
+import { Simulate } from "react-dom/test-utils";
+import { Dashboard, JobPost } from "@/types/employer";
+import error = Simulate.error;
 
-interface JobPost {
-  id: string;
-  title: string;
-  type: WorkType;
-  wage: string;
-  location: string;
-  dateRange: string;
-  businessName: string;
-  description: string;
-  applicants: number;
-  views: number;
-  needsUpdate: boolean;
-  coverImage?: string;
-}
+
 
 const mockJobPosts: JobPost[] = [
   {
     id: "1",
     title: "Senior Product Designer",
-    type: WorkType.OnSite,
+    type: "ON_SITE",
     wage: "$85,000 - $110,000",
     location: "San Francisco, CA",
-    dateRange: "Jan 15 - Mar 15, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Join our design team to create innovative user experiences for our flagship product. We're looking for someone passionate about user-centered design and modern design systems.",
@@ -43,10 +34,11 @@ const mockJobPosts: JobPost[] = [
   {
     id: "2",
     title: "Marketing Specialist",
-    type: WorkType.OnSite,
+    type: "ON_SITE",
     wage: "$35 - $45/hour",
     location: "Remote",
-    dateRange: "Feb 1 - May 1, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Drive marketing campaigns and content strategy for our growing startup. Perfect opportunity for someone looking to make a real impact in a fast-paced environment.",
@@ -59,24 +51,27 @@ const mockJobPosts: JobPost[] = [
   {
     id: "3",
     title: "Frontend Developer",
-    type: WorkType.OnSite,
+    type: "ON_SITE",
     wage: "$75,000 - $95,000",
     location: "Austin, TX",
-    dateRange: "Mar 1 - Jun 1, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Build responsive web applications using modern JavaScript frameworks. Join our engineering team and help shape the future of our platform.",
     applicants: 24,
     views: 203,
     needsUpdate: true,
+    coverImage: "",
   },
   {
     id: "4",
     title: "UX Researcher",
-    type: WorkType.OnSite,
+    type: "REMOTE",
     wage: "$70,000 - $90,000",
     location: "Seattle, WA",
-    dateRange: "Apr 1 - Jul 1, 2025",
+    strt_date: "2025-01-01",
+    deadline_date: "2025-12-31",
     businessName: "TechFlow Solutions",
     description:
       "Conduct user research and usability testing to inform product decisions. Help us understand our users better and improve their experience.",
@@ -91,13 +86,73 @@ const mockJobPosts: JobPost[] = [
 export default function EmployerDashboard() {
   const router = useRouter();
   const [showAlert, setShowAlert] = useState(true);
-  const [jobPosts] = useState<JobPost[]>(mockJobPosts);
+  const [dashboard, setDashboard] = useState<Dashboard>();
+  const [jobPostList, setJobPostList] = useState<JobPost[]>([]);
+  // 각 API 호출의 개별 상태
+  const [loadingStates, setLoadingStates] = useState({
+    dashboard: false,
+    jobPostList: false,
+  });
 
-  const stats = {
-    activeJobs: jobPosts.length,
-    statusUpdateNeeded: jobPosts.filter((job) => job.needsUpdate).length,
-    totalApplicants: jobPosts.reduce((sum, job) => sum + job.applicants, 0),
+  // 전체 로딩 상태 계산
+  const isLoading = Object.values(loadingStates).some((state) => state);
+
+
+  const fetchDash = async () => {
+    try {
+      const res = await fetch("/api/employer/dashboard");
+      const data = await res.json();
+      if (res.ok) {
+        setDashboard(data.data);
+      } else {
+        console.error("Failed to fetch employer dashboard", data.error);
+      }
+    } catch (e) {
+      console.error("Error fetching data:", error);
+    }
   };
+
+  const fetchJobPostList = async () => {
+    try {
+      const res = await fetch("/api/employer/dashboard/jobposts");
+      const data = await res.json();
+      if (res.ok) {
+        setJobPostList(data.data);
+      } else {
+        console.error("Failed to fetch active job posts in dashboard page", data.error);
+      }
+    } catch (e) {
+      console.error("Error fetching data:", error);}
+  };
+
+  const initializeData = async () => {
+    try {
+      // 로딩 시작
+      setLoadingStates({
+        dashboard: true,
+        jobPostList: true,
+      });
+
+      // 모든 API 호출을 병렬로 실행
+      await Promise.all([
+        fetchDash(),
+        fetchJobPostList()
+        // 추가 API 호출들을 여기에 추가
+      ]);
+    } catch (error) {
+      console.error("Error initializing dashboard:", error);
+    } finally {
+      // 로딩 완료
+      setLoadingStates({
+        dashboard: false,
+        jobPostList: false,
+      });
+    }
+  };
+
+  useEffect(() => {
+    initializeData();
+  }, []);
 
   const handleViewJob = (id: string) => {
     // 상세 페이지 이동 등 구현
@@ -128,7 +183,7 @@ export default function EmployerDashboard() {
         {showAlert && (
           <div className="mb-8">
             <AlertBanner
-              message={`${stats.statusUpdateNeeded} job posts need status updates`}
+              message={`${dashboard?.needsUpdateCnt} job posts need status updates`}
               onClick={() => {
                 router.push("/employer/pending-updates");
               }}
@@ -137,21 +192,24 @@ export default function EmployerDashboard() {
         )}
 
         {/* Stats */}
-        <div className="mb-10">
+        {dashboard && (
+          <div className="mb-10">
           <StatsCard
-            activeJobs={stats.activeJobs}
-            activeApplicants={stats.totalApplicants}
-            statusUpdateNeeded={stats.statusUpdateNeeded}
+            activeJobs={dashboard.activeJobPostsCnt}
+            activeApplicants={dashboard.allAppsCnt}
+            statusUpdateNeeded={dashboard.needsUpdateCnt}
           />
         </div>
+        )}
 
         {/* Job Posts Section */}
         <div className="space-y-6 lg:space-y-8 pb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
           </div>
+          { jobPostList && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-            {jobPosts.map((job) => (
+            {jobPostList.map((job) => (
               <JobPostCard
                 key={job.id}
                 job={job}
@@ -160,6 +218,7 @@ export default function EmployerDashboard() {
               />
             ))}
           </div>
+            )}
         </div>
         {/* Bottom Safe Area */}
         <div className="h-8 lg:h-12"></div>

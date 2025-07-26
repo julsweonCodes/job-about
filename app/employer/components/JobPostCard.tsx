@@ -4,21 +4,8 @@ import { WorkType } from "@/constants/enums";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
-
-export interface JobPost {
-  id: string;
-  title: string;
-  type: WorkType;
-  wage: string;
-  location: string;
-  dateRange: string;
-  businessName: string;
-  description: string;
-  applicants: number;
-  views: number;
-  coverImage?: string;
-  pending?: number; // Added for pending applications
-}
+import { JobPost } from "@/types/employer";
+import { $Enums } from "@prisma/client";
 
 interface JobPostCardProps {
   job: JobPost;
@@ -29,11 +16,11 @@ interface JobPostCardProps {
 export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApplicants }) => {
   // WorkType에 따른 라벨/색상 분기 (예시)
   const typeLabel =
-    job.type === WorkType.OnSite ? "On-Site" : job.type === WorkType.Remote ? "Remote" : job.type;
+    job.type === $Enums.WorkType.ON_SITE ? "On-Site" : job.type === $Enums.WorkType.REMOTE ? "Remote" : "Hybrid";
   const typeClass =
-    job.type === WorkType.OnSite
+    job.type === $Enums.WorkType.ON_SITE
       ? "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
-      : job.type === WorkType.Remote
+      : job.type === $Enums.WorkType.REMOTE
         ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80"
         : "bg-gray-100 text-gray-700 hover:bg-gray-100/80";
 
@@ -96,7 +83,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApp
             </svg>
           </span>
           <Typography as="span" variant="bodySm" className="text-gray-700">
-            {job.dateRange}
+            {job.strt_date} - {job.deadline_date}
           </Typography>
         </div>
       </div>
