@@ -15,6 +15,7 @@ import {
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { JobPostData } from "@/types/jobPost";
+import { mapLanguageLevelToServer } from "@/utils/client/enumMapper";
 
 interface JobPostViewProps {
   jobData: JobPostData;
@@ -49,7 +50,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
     {
       icon: MapPin,
       label: "Location",
-      value: jobData.business.location,
+      value: jobData.businessLocInfo.location,
       color: "text-red-500",
       bgColor: "bg-red-50",
     },
@@ -98,12 +99,12 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
                     {jobData.title}
                   </h1>
-                  <p className="text-lg lg:text-xl text-gray-600 mb-3">{jobData.business.name}</p>
+                  <p className="text-lg lg:text-xl text-gray-600 mb-3">{jobData.businessLocInfo.name}</p>
                 </div>
                 {showEditButtons && onEdit && editableSections.includes("header") && (
                   <button
                     onClick={() =>
-                      onEdit("header", { title: jobData.title, business: jobData.business })
+                      onEdit("header", { title: jobData.title, business: jobData.businessLocInfo })
                     }
                     className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
                   >
@@ -121,7 +122,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
             <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
             {showEditButtons && onEdit && editableSections.includes("description") && (
               <button
-                onClick={() => onEdit("description", { description: jobData.description })}
+                onClick={() => onEdit("description", { description: jobData.jobDescription })}
                 className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
@@ -129,7 +130,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
             )}
           </div>
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-            <p className="text-gray-700 leading-relaxed text-base">{jobData.description}</p>
+            <p className="text-gray-700 leading-relaxed text-base">{jobData.jobDescription}</p>
           </div>
         </div>
 
@@ -175,10 +176,10 @@ const JobPostView: React.FC<JobPostViewProps> = ({
               <div className="flex flex-wrap gap-2">
                 {jobData.requiredSkills.map((skill) => (
                   <span
-                    key={skill}
+                    key={skill.id}
                     className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
                   >
-                    #{skill}
+                    #{skill.name_en}
                   </span>
                 ))}
               </div>
@@ -194,12 +195,12 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                 <h3 className="font-semibold text-gray-800">Personality Traits</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {jobData.requiredPersonality.map((trait) => (
+                {jobData.requiredWorkStyles.map((ws) => (
                   <span
-                    key={trait}
+                    key={ws.id}
                     className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-sm font-medium border border-purple-100"
                   >
-                    #{trait}
+                    #{ws.name_en}
                   </span>
                 ))}
               </div>
@@ -214,8 +215,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
           {/* Main Photo */}
           <div className="mb-4">
             <img
-              key={selectedPhotoIndex}
-              src={jobData.business.photos[selectedPhotoIndex]}
+              src={jobData.businessLocInfo.logoImg}
               alt="Workplace"
               className="w-full h-64 lg:h-80 object-cover rounded-3xl shadow-lg"
             />
@@ -223,7 +223,9 @@ const JobPostView: React.FC<JobPostViewProps> = ({
 
           {/* Photo Thumbnails */}
           <div className="flex space-x-3 overflow-x-auto pb-2">
-            {jobData.business.photos.map((photo, index) => (
+            {jobData.businessLocInfo.extraPhotos
+              .filter((photo) => photo)
+              .map((photo, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedPhotoIndex(index)}
@@ -251,7 +253,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-6 border border-indigo-100">
             <div className="mb-6">
               <p className="text-gray-700 leading-relaxed text-base">
-                {jobData.business.description}
+                {jobData.businessLocInfo.bizDescription}
               </p>
             </div>
 
@@ -261,7 +263,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                 What Makes Us Special
               </h3>
               <div className="flex flex-wrap gap-3">
-                {jobData.business.tags.map((tag) => {
+                {jobData.businessLocInfo?.tags?.map((tag) => {
                   return (
                     <div
                       key={tag}

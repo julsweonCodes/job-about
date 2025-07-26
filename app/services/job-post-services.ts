@@ -1,12 +1,15 @@
 import { supabaseClient } from '@/utils/supabase/client';
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { Database } from "@/types/database.types";
-import { capitalize, formatDateYYYYMMDD } from "@/lib/utils";
+import { capitalize, formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import {getUserIdFromSession} from "@/utils/auth";
 import { Prisma } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
-import { toPrismaJobType, toPrismaWorkType, toPrismaLanguageLevel} from "@/types/enumMapper";
+import { toPrismaJobType, toPrismaWorkType, toPrismaLanguageLevel, toPrismaJobStatus } from "@/types/enumMapper";
+import { BizLocInfo, JobPostData } from "@/types/jobPost";
+import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 
 // Create Job Post
  export async function createJobPost(payload: JobPostPayload) {
@@ -70,7 +73,23 @@ export async function getJobPostPracSkills(jobPostId: number) {
       }
     }
   });
-  return res;
+
+  const skills: Skill[] = res
+    .map((item) => {
+      const skill = item.practical_skill;
+      if (!skill) return null;
+
+      return {
+        id: Number(skill.id),
+        category_ko: skill.category_ko,
+        category_en: skill.category_en,
+        name_ko: skill.name_ko,
+        name_en: skill.name_en,
+      };
+    })
+    .filter((s): s is Skill => s !== null);
+
+  return skills;
 }
 // Get Job Post Work Styles
 export async function getJobPostWorkStyles(jobPostId: number) {
@@ -87,8 +106,22 @@ export async function getJobPostWorkStyles(jobPostId: number) {
     }
   });
 
-  return res;
+  const workStyles: WorkStyle[] = res
+    .map((item) => {
+      const style = item.work_style;
+      if (!style) return null;
+
+      return {
+        id: Number(style.id),
+        name_ko: style.name_ko,
+        name_en: style.name_en,
+      };
+    })
+    .filter((s): s is WorkStyle => s !== null);
+
+  return workStyles;
 }
+
 // Delete Skills from Practical skills
 export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: Skill[]) {
    return prisma.$transaction( async (tx) => {
@@ -134,4 +167,82 @@ export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: W
 
     return 0;
   });
+}
+
+// Get Job Post Preview/view
+export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus) {
+   const bizLocId = await prisma.job_posts.findFirst({
+     where: {
+       id: Number(jobPostId),
+       status: toPrismaJobStatus(jobPostStatus)
+     },
+     select: {
+       business_loc_id: true
+     }
+   });
+
+   if (!bizLocId) {
+     console.error("Business Location Id not found...");
+     return null;
+   }
+
+   const bizLocRes = await prisma.business_loc.findFirst({
+     where: {
+       id: Number(bizLocId.business_loc_id)}
+   });
+
+   if (!bizLocRes) {
+     console.error("Business Location Info not found ");
+     return null;
+   }
+
+   const jobPostRes = await prisma.job_posts.findFirst({
+     where: {
+       id: Number(jobPostId),
+       status: toPrismaJobStatus(jobPostStatus),
+     }
+   });
+
+   if (!jobPostRes) {
+     console.log("Job Post not found");
+     return null;
+   }
+
+   const img_base_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/biz-loc-photo/`;
+   const extraImgs = [
+     bizLocRes.img_url1? img_base_url.concat(bizLocRes.img_url1): "",
+     bizLocRes.img_url2? img_base_url.concat(bizLocRes.img_url2): "",
+     bizLocRes.img_url3? img_base_url.concat(bizLocRes.img_url3): "",
+     bizLocRes.img_url4? img_base_url.concat(bizLocRes.img_url4): "",
+     bizLocRes.img_url5? img_base_url.concat(bizLocRes.img_url5): "",
+   ];
+
+  const bizLocInfo : BizLocInfo = {
+    bizDescription: bizLocRes.description,
+    bizLocId: bizLocRes.id.toString(),
+    location: bizLocRes.address,
+    name: bizLocRes.name,
+    logoImg: img_base_url.concat(bizLocRes.logo_url ?? ""),
+    extraPhotos: extraImgs,
+    tags: []
+    }
+   ;
+  const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
+  const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
+  const jobPostData : JobPostData = {
+    businessLocInfo: bizLocInfo,
+    deadline: formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline),
+    jobDescription: jobPostRes.description,
+    hourlyWage: jobPostRes.wage,
+    id: jobPostRes.id.toString(),
+    jobType: JobType[jobPostRes.job_type],
+    languageLevel: jobPostRes.language_level ? LanguageLevel[jobPostRes.language_level] : undefined,
+    requiredWorkStyles: requiredWorkStyles,
+    requiredSkills: requiredSkills,
+    schedule: jobPostRes.work_schedule,
+    status: JobStatus[jobPostRes.status],
+    title: jobPostRes.title,
+  }
+  console.log(jobPostData);
+  return jobPostData;
 }
