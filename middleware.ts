@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { PAGE_URLS } from "@/constants/api";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { parseBigInt } from "@/lib/utils";
 
 // seeker 온보딩 분기 함수
@@ -153,7 +153,7 @@ export async function middleware(req: NextRequest) {
       // API를 통해 사용자 정보 확인
       try {
         const origin = req.nextUrl.origin || "http://localhost:3000";
-        const apiUrl = `${origin}/api/user/me`;
+        const apiUrl = `${origin}/${API_URLS.USER.ME}`;
         console.log(`[middleware] fetching user data from ${apiUrl}`);
 
         if (!origin || origin === "") {

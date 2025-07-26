@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Briefcase,
   Heart,
@@ -23,213 +23,105 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import {
-  AvailableDay,
-  AvailableHour,
-  LanguageLevel,
-  WorkType,
-  AVAILABLE_DAYS,
-  AVAILABLE_HOURS,
-} from "@/constants/enums";
-import { useRouter } from "next/navigation";
+import { LanguageLevel, AVAILABLE_DAYS, AVAILABLE_HOURS, WORK_TYPES } from "@/constants/enums";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { Location } from "@/constants/location";
 import { JobType } from "@/constants/jobTypes";
-import { getEnumKeyFromValue } from "@/utils/client/seeker";
+import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
+import JobTypesDialog from "@/components/common/JobTypesDialog";
+import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
+import { useSeekerMypage } from "@/hooks/useSeekerMypage";
+import { useExperienceManagement } from "@/hooks/useExperienceManagement";
+import { applicantProfile } from "@/types/profile";
+import { API_URLS } from "@/constants/api";
+import {
+  toPrismaWorkType,
+  toPrismaJobType,
+  toPrismaLanguageLevel,
+  toPrismaAvailableDay,
+  toPrismaAvailableHour,
+  toPrismaLocation,
+} from "@/types/enumMapper";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { getLocationDisplayName } from "@/constants/location";
+import { Location } from "@prisma/client";
+import { Skill } from "@/types/profile";
 
-export interface UserInfo {
-  name: string;
-  description: string;
-  phone_number: string;
-  img_url?: string;
-  created_at: Date;
-}
-export interface WorkExperience {
-  company_name: string;
-  job_type: JobType;
-  start_date: Date;
-  end_date: Date;
-  work_type: WorkType;
-  description: string;
-}
+function SeekerMypage() {
+  // 커스텀 훅 사용 (최상단에서 호출)
+  const {
+    applicantProfile,
+    tempData,
+    isLoading,
+    isEditing,
+    availableSkills,
+    availableLocations,
+    loadingStates,
+    handleEdit: handleEditSection,
+    handleCancel: handleCancelSection,
+    handleTempInputChange: handleInputChange,
+    updateUserProfile: updateProfile,
+    updateProfileImage: updateImage,
+  } = useSeekerMypage();
 
-export interface SeekerProfile {
-  location: Location;
-  work_type: WorkType;
-  job_type1: JobType;
-  job_type2?: JobType;
-  job_type3?: JobType;
-  available_day: AvailableDay;
-  available_hour: AvailableHour;
-  language_level: LanguageLevel;
-  work_experiences: WorkExperience[];
-}
+  const {
+    experienceForm,
+    editingExperienceIndex,
+    showExperienceDialog,
+    showJobTypesDialog,
+    setExperienceForm,
+    setShowExperienceDialog,
+    setShowJobTypesDialog,
+    handleAddExperience: addExperience,
+    handleEditExperience: editExperience,
+    handleSaveExperience: saveExperience,
+    handleJobTypeSelect: selectJobType,
+    handleJobTypeConfirm: confirmJobType,
+  } = useExperienceManagement();
 
-interface ApplicantProfile {
-  name: string;
-  description: string;
-  profileImageUrl: string;
-  joinDate: string;
-  location: string;
-  phone: string;
-  skills: string[];
-  workType: string;
-  jobTypes: string[];
-  availabilityDays: string[];
-  availabilityTimes: string[];
-  englishLevel: string;
-  experiences: {
-    title: string;
-    company: string;
-    duration: string;
-  }[];
-}
-
-function App() {
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isEditing, setIsEditing] = useState({
-    basicInfo: false,
-    contact: false,
-    location: false,
-    skills: false,
-    workType: false,
-    jobTypes: false,
-    availability: false,
-    languages: false,
-  });
-  const initialApplicantProfile: ApplicantProfile = {
-    name: "",
-    description: "",
-    profileImageUrl: "",
-    joinDate: "",
-    location: "",
-    phone: "",
-    skills: [],
-    workType: "",
-    jobTypes: [],
-    availabilityDays: [],
-    availabilityTimes: [],
-    englishLevel: "",
-    experiences: [],
-  };
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [seekerProfile, setSeekerProfile] = useState<SeekerProfile | null>(null);
-  const [applicantProfile, setApplicantProfile] =
-    useState<ApplicantProfile>(initialApplicantProfile);
-  const [tempData, setTempData] = useState<ApplicantProfile>(initialApplicantProfile);
-
-  const router = useRouter();
-
-  if (!applicantProfile || !tempData) {
-    return <LoadingScreen />;
-  }
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [userRes, profileRes] = await Promise.all([
-          fetch("/api/user/me"),
-          fetch("/api/seeker/profiles"),
-        ]);
-
-        const userData = await userRes.json();
-        const profileData = await profileRes.json();
-
-        if (userData.status === "success" && userData.data) {
-          setUserInfo(userData.data.user);
-        }
-
-        if (profileData.status === "success" && profileData.data) {
-          setSeekerProfile(profileData.data);
-        }
-      } catch (error) {
-        console.error("초기 데이터 로딩 실패:", error);
-      }
-    };
-
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (userInfo && seekerProfile && !isInitialized) {
-      setApplicantProfile({
-        name: userInfo.name,
-        description: userInfo.description,
-        profileImageUrl: userInfo.img_url ? userInfo.img_url : "",
-        joinDate: new Date(userInfo.created_at).toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }),
-        location: seekerProfile.location,
-        phone: userInfo.phone_number,
-        skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
-        workType: seekerProfile.work_type.toString(),
-        jobTypes: [
-          seekerProfile.job_type1,
-          seekerProfile.job_type2,
-          seekerProfile.job_type3,
-        ].filter((jobType) => jobType != null),
-        availabilityDays: [seekerProfile.available_day],
-        availabilityTimes: [seekerProfile.available_hour],
-        englishLevel: seekerProfile.language_level,
-        experiences: seekerProfile.work_experiences?.length
-          ? seekerProfile.work_experiences.map((exp) => ({
-              title: exp.job_type,
-              company: exp.company_name,
-              duration: `${new Date(exp.start_date).toLocaleDateString("ko-KR", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })} - ${new Date(exp.end_date).toLocaleDateString("ko-KR", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })}`,
-            }))
-          : [],
-      });
-
-      setIsInitialized(true); // ✅ 최초 1회만 초기화되게 플래그 세팅
-    }
-  }, [userInfo, seekerProfile, isInitialized]);
-
-  useEffect(() => {
-    if (applicantProfile) {
-      setTempData(applicantProfile);
-    }
-  }, [applicantProfile]);
-
-  /*useState({
-    name: "Sarah Johnson",
-    description:
-      "Crafting meaningful digital experiences that connect people and solve real problems",
-    profileImageUrl: "",
-    joinDate: "March 2024",
-    location: "San Francisco, CA",
-    phone: "123-456-7890",
-    skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
-    workType: "Remote",
-    jobTypes: ["Full-time", "Contract"],
-    availabilityDays: ["Weekdays"],
-    availabilityTimes: ["AM", "PM"],
-    englishLevel: LanguageLevel.Fluent,
-    experiences: [
-      {
-        title: "Senior Product Designer",
-        company: "TechFlow Solutions",
-        duration: "2022 - Present",
-      },
-      { title: "UI Designer", company: "Creative Studio", duration: "2020 - 2022" },
-    ],
-  });*/
-
-  // Job Preferences 관련 상태
+  // 모든 useState 훅을 조건문 이전에 호출
   const [newSkill, setNewSkill] = useState("");
   const [newJobType, setNewJobType] = useState("");
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [showSkillsDialog, setShowSkillsDialog] = useState(false);
+  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
 
+  // 로딩 상태 체크 (훅 호출 이후에 위치)
+  if (isLoading || !applicantProfile || !tempData) {
+    return <LoadingScreen message="Loading your profile..." />;
+  }
+
+  // Skills 관련 함수들
+  const handleSkillsEdit = () => {
+    // 현재 선택된 skills를 id로 매칭하여 실제 Skill 객체 찾기
+    const currentSkills = tempData.skillIds
+      .map((skillId) => {
+        const foundSkill = availableSkills.find((skill) => skill.id === skillId);
+        return foundSkill;
+      })
+      .filter(Boolean) as Skill[];
+    setSelectedSkills(currentSkills);
+    setShowSkillsDialog(true);
+  };
+
+  const handleSkillsConfirm = (skills: Skill[]) => {
+    const skillIds = skills.map((skill) => skill.id);
+    // skillIds 배열로 저장
+    handleInputChange("skillIds", skillIds as any);
+    setShowSkillsDialog(false);
+  };
+
+  const handleSkillsCancel = () => {
+    setShowSkillsDialog(false);
+  };
+
+  // TODO call api to get workStyle
   const workStyle = {
     type: "Empathetic Coordinator",
     description:
@@ -262,70 +154,50 @@ function App() {
     },
   ];
 
-  // 수정 모드 진입 시 현재 데이터로 임시 상태 초기화
-  const handleEdit = (section: string) => {
-    setTempData(applicantProfile);
-    setIsEditing((prev) => ({ ...prev, [section]: true }));
-  };
-
-  // 취소 시 임시 데이터를 원래 상태로 되돌리기
-  const handleCancel = (section: string) => {
-    setTempData(applicantProfile);
-    setIsEditing((prev) => ({ ...prev, [section]: false }));
-  };
-
-  const updateSeekerProfilePartial = async (data: Partial<SeekerProfile>) => {
-    return fetch("/api/seeker/profiles", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  };
-
   // update contact, location
   const handleOptionsSave = async (section: string) => {
-    let payload: Partial<SeekerProfile> = {};
+    let payload: Partial<applicantProfile> = {};
 
     switch (section) {
       case "location":
         payload = {
-          location: getEnumKeyFromValue(Location, tempData.location) as Location,
+          location: toPrismaLocation(tempData.location as any) as Location,
         };
         break;
+      // TODO
       case "skills":
         payload = {};
         break;
       case "workType":
         payload = {
-          work_type: tempData.workType as WorkType,
+          work_type: toPrismaWorkType(tempData.workType as any),
         };
         break;
       case "jobTypes":
+        console.log("JobTypes case - tempData.jobTypes:", tempData.jobTypes);
         payload = {
-          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]) as JobType,
+          job_type1: toPrismaJobType(tempData.jobTypes[0] as any),
           ...(tempData.jobTypes[1] && {
-            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]) as JobType,
+            job_type2: toPrismaJobType(tempData.jobTypes[1] as any),
           }),
           ...(tempData.jobTypes[2] && {
-            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]) as JobType,
+            job_type3: toPrismaJobType(tempData.jobTypes[2] as any),
           }),
         };
         break;
 
       case "availability":
+        console.log("Availability case - tempData.availabilityDay:", tempData.availabilityDay);
+        console.log("Availability case - tempData.availabilityTime:", tempData.availabilityTime);
         payload = {
-          available_day: getEnumKeyFromValue(
-            AvailableDay,
-            tempData.availabilityDays[0]
-          ) as AvailableDay,
-          available_hour: getEnumKeyFromValue(
-            AvailableHour,
-            tempData.availabilityTimes[0]
-          ) as AvailableHour,
+          available_day: toPrismaAvailableDay(tempData.availabilityDay as any),
+          available_hour: toPrismaAvailableHour(tempData.availabilityTime as any),
         };
+        console.log("Availability case - payload:", payload);
         break;
       case "languages":
         payload = {
-          language_level: tempData.englishLevel as LanguageLevel,
+          language_level: toPrismaLanguageLevel(tempData.englishLevel as any),
         };
         break;
       default:
@@ -333,22 +205,22 @@ function App() {
         return;
     }
 
+    console.log("Final payload:", payload);
+
     try {
-      await updateSeekerProfilePartial(payload);
-      setApplicantProfile(tempData);
-      setIsEditing((prev) => ({ ...prev, [section]: false }));
+      const response = await fetch(API_URLS.SEEKER.PROFILES, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) {
+        // 성공 처리
+      }
     } catch (error) {
       console.error(`Failed to save ${section}:`, error);
     }
   };
 
-  // update field
-  const handleTempInputChange = (field: string, value: string) => {
-    setTempData((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleProfileEdit = () => {
-    setTempData(applicantProfile);
     setShowProfileDialog(true);
   };
 
@@ -356,63 +228,17 @@ function App() {
     setShowProfileDialog(false);
   };
 
-  const updateUserProfile = async () => {
-    const formData = new FormData();
-    formData.append("name", tempData.name);
-    formData.append("description", tempData.description);
-    formData.append("phone_number", tempData.phone);
-
-    const response = await fetch("/api/users", {
-      method: "PUT",
-      body: formData,
-    });
-  };
-
   const handleProfileSave = async () => {
-    setApplicantProfile(tempData);
-    await updateUserProfile();
+    await updateProfile();
     handleCloseProfileDialog();
   };
 
   const handleProfileContactSave = async () => {
-    await updateUserProfile();
-    setApplicantProfile(tempData);
-    setIsEditing((prev) => ({ ...prev, ["contact"]: false }));
+    await updateProfile();
   };
 
   const handleProfileImageChange = async (file: File) => {
-    console.log("Profile image changed to:", file);
-    try {
-      // 파일을 읽어서 이미지 URL로 변환
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        // 프로필 이미지 상태 업데이트
-        setApplicantProfile((prev) => ({
-          ...prev,
-          profileImageUrl: imageUrl,
-        }));
-      };
-      reader.readAsDataURL(file);
-
-      // 파일 저장
-      const formData = new FormData();
-      formData.append("img", file);
-
-      const response = await fetch("/api/users", {
-        method: "PATCH",
-        body: formData,
-      });
-      const result = await response.json();
-      if (result.data.img_url) {
-        setApplicantProfile((prev) => ({
-          ...prev,
-          profileImageUrl: result.data.img_url,
-        }));
-      }
-    } catch (error) {
-      console.error("Error updating profile image:", error);
-    }
+    await updateImage(file);
   };
 
   const handleImageUploadDialog = () => {
@@ -422,61 +248,39 @@ function App() {
   // Job Preferences 관련 함수들
   const addSkill = () => {
     if (newSkill.trim()) {
-      setTempData((prev) => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()],
-      }));
-      setNewSkill("");
+      const selectedSkill = availableSkills.find((skill) => skill.name_en === newSkill.trim());
+      if (selectedSkill) {
+        handleInputChange("skillIds", [...tempData.skillIds, selectedSkill.id] as any);
+        setNewSkill("");
+      }
     }
   };
 
   const removeSkill = (index: number) => {
-    setTempData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((_, i) => i !== index),
-    }));
+    handleInputChange("skillIds", tempData.skillIds.filter((_, i) => i !== index) as any);
   };
 
   const addJobType = () => {
     if (newJobType.trim()) {
-      setTempData((prev) => ({
-        ...prev,
-        jobTypes: [...prev.jobTypes, newJobType.trim()],
-      }));
+      handleInputChange("jobTypes", [...tempData.jobTypes, newJobType.trim()] as any);
       setNewJobType("");
     }
   };
 
   const removeJobType = (index: number) => {
-    setTempData((prev) => ({
-      ...prev,
-      jobTypes: prev.jobTypes.filter((_, i) => i !== index),
-    }));
+    handleInputChange("jobTypes", tempData.jobTypes.filter((_, i) => i !== index) as any);
   };
 
   const toggleAvailabilityDay = (day: string) => {
-    setTempData((prev) => ({
-      ...prev,
-      availabilityDays: prev.availabilityDays.includes(day)
-        ? prev.availabilityDays.filter((d) => d !== day)
-        : [...prev.availabilityDays, day],
-    }));
+    handleInputChange("availabilityDay", day);
   };
 
   const toggleAvailabilityTime = (time: string) => {
-    setTempData((prev) => ({
-      ...prev,
-      availabilityTimes: prev.availabilityTimes.includes(time)
-        ? prev.availabilityTimes.filter((t) => t !== time)
-        : [...prev.availabilityTimes, time],
-    }));
+    handleInputChange("availabilityTime", time);
   };
 
   const updateEnglishLevel = (level: LanguageLevel) => {
-    setTempData((prev) => ({
-      ...prev,
-      englishLevel: level,
-    }));
+    handleInputChange("englishLevel", level);
   };
 
   return (
@@ -503,8 +307,9 @@ function App() {
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
                     src={
-                      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}` ||
-                      "/images/img-default-profile.png"
+                      applicantProfile.profileImageUrl
+                        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`
+                        : "/images/img-default-profile.png"
                     }
                     alt={applicantProfile.name}
                     className="w-full h-full object-cover"
@@ -601,10 +406,10 @@ function App() {
             icon={<Phone size={18} className="text-green-600" />}
             title="Phone Number"
             subtitle="Your contact phone number"
-            onEdit={() => handleEdit("contact")}
+            onEdit={() => handleEditSection("contact")}
             isEditing={isEditing.contact}
             onSave={() => handleProfileContactSave()}
-            onCancel={() => handleCancel("contact")}
+            onCancel={() => handleCancelSection("contact")}
           >
             {isEditing.contact ? (
               <Input
@@ -612,7 +417,7 @@ function App() {
                 type="phone"
                 value={tempData.phone}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleTempInputChange("phone", e.target.value)
+                  handleInputChange("phone", e.target.value)
                 }
                 placeholder="(555) 123-4567"
                 rightIcon={<Phone className="w-5 h-5" />}
@@ -620,7 +425,9 @@ function App() {
             ) : (
               <div className="flex items-center gap-3">
                 <Phone size={16} className="text-slate-400" />
-                <span className="text-slate-700 font-medium">{applicantProfile.phone}</span>
+                <span className="text-slate-700 font-medium">
+                  {applicantProfile.phone || "Enter your phone number"}
+                </span>
               </div>
             )}
           </InfoSection>
@@ -630,25 +437,48 @@ function App() {
             icon={<MapPin size={18} className="text-purple-600" />}
             title="Location"
             subtitle="Your current location"
-            onEdit={() => handleEdit("location")}
+            onEdit={() => handleEditSection("location")}
             isEditing={isEditing.location}
             onSave={() => handleOptionsSave("location")}
-            onCancel={() => handleCancel("location")}
+            onCancel={() => handleCancelSection("location")}
           >
             {isEditing.location ? (
-              <Input
-                label="Location"
-                value={tempData.location}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleTempInputChange("location", e.target.value)
-                }
-                placeholder="City, State"
-                rightIcon={<MapPin className="w-5 h-5" />}
-              />
+              <div className="space-y-3">
+                <Select
+                  value={tempData.location || ""}
+                  onValueChange={(value) => handleInputChange("location", value)}
+                >
+                  <SelectTrigger className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all duration-200 outline-none text-slate-900 font-medium">
+                    <SelectValue placeholder="Select your location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(availableLocations) && availableLocations.length > 0 ? (
+                      availableLocations.map((city) => {
+                        const displayName = getLocationDisplayName(city);
+                        return (
+                          <SelectItem
+                            key={city}
+                            value={city}
+                            selectedValue={tempData.location || ""}
+                          >
+                            {displayName}
+                          </SelectItem>
+                        );
+                      })
+                    ) : (
+                      <SelectItem value="" disabled>
+                        No cities available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             ) : (
               <div className="flex items-center gap-3">
                 <MapPin size={16} className="text-slate-400" />
-                <span className="text-slate-700 font-medium">{applicantProfile.location}</span>
+                <span className="text-slate-700 font-medium">
+                  {getLocationDisplayName(applicantProfile.location)}
+                </span>
               </div>
             )}
           </InfoSection>
@@ -664,54 +494,79 @@ function App() {
             iconClassName="bg-gradient-to-br from-blue-100 to-indigo-100"
             title="Skills"
             subtitle="Your professional skills and expertise"
-            onEdit={() => handleEdit("skills")}
+            onEdit={handleSkillsEdit}
             isEditing={isEditing.skills}
             onSave={() => handleOptionsSave("skills")}
-            onCancel={() => handleCancel("skills")}
+            onCancel={() => handleCancelSection("skills")}
           >
             {!isEditing.skills ? (
               <div className="flex flex-wrap gap-2">
-                {tempData.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-                  >
-                    {skill}
-                  </span>
-                ))}
+                {tempData.skillIds.map((skillId, index) => {
+                  const skill = availableSkills.find((s) => s.id === skillId);
+                  return skill ? (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                    >
+                      {skill.name_en}
+                    </span>
+                  ) : null;
+                })}
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {tempData.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-2"
-                    >
-                      {skill}
-                      <button
-                        onClick={() => removeSkill(index)}
-                        className="hover:bg-blue-200 rounded-full p-0.5"
+                  {tempData.skillIds.map((skillId, index) => {
+                    const skill = availableSkills.find((s) => s.id === skillId);
+                    return skill ? (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-2"
                       >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
+                        {skill.name_en}
+                        <button
+                          onClick={() => removeSkill(index)}
+                          className="hover:bg-blue-200 rounded-full p-0.5"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addSkill()}
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Add a skill..."
-                  />
+                <div className="space-y-3">
+                  <Select value={newSkill || ""} onValueChange={(value) => setNewSkill(value)}>
+                    <SelectTrigger className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all duration-200 outline-none text-slate-900 font-medium">
+                      <SelectValue placeholder="Select a skill to add" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingStates.skills ? (
+                        <SelectItem value="" disabled>
+                          Loading skills...
+                        </SelectItem>
+                      ) : availableSkills.filter((skill) => !tempData.skillIds.includes(skill.id))
+                          .length > 0 ? (
+                        availableSkills
+                          .filter((skill) => !tempData.skillIds.includes(skill.id))
+                          .map((skill) => (
+                            <SelectItem key={skill.id} value={skill.name_en}>
+                              {skill.name_en}
+                            </SelectItem>
+                          ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No skills available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <button
                     onClick={addSkill}
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
+                    disabled={!newSkill}
+                    className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2"
                   >
                     <Plus size={16} />
+                    Add Skill
                   </button>
                 </div>
               </div>
@@ -724,10 +579,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-green-100 to-emerald-100"
             title="Work Type"
             subtitle="Remote, on-site, or hybrid preference"
-            onEdit={() => handleEdit("workType")}
+            onEdit={() => handleEditSection("workType")}
             isEditing={isEditing.workType}
             onSave={() => handleOptionsSave("workType")}
-            onCancel={() => handleCancel("workType")}
+            onCancel={() => handleCancelSection("workType")}
           >
             {!isEditing.workType ? (
               <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
@@ -735,17 +590,17 @@ function App() {
               </span>
             ) : (
               <div className="flex gap-2">
-                {["Remote", "On-site", "Hybrid"].map((type) => (
+                {WORK_TYPES.map((type) => (
                   <button
                     key={type}
-                    onClick={() => handleTempInputChange("workType", type)}
+                    onClick={() => handleInputChange("workType", type)}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                       tempData.workType === type
                         ? "bg-green-500 text-white"
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
-                    {type}
+                    {type.charAt(0).toUpperCase() + type.slice(1).replace("-", " ")}
                   </button>
                 ))}
               </div>
@@ -758,10 +613,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-purple-100 to-pink-100"
             title="Preferred Job Types"
             subtitle="Types of roles you're interested in"
-            onEdit={() => handleEdit("jobTypes")}
+            onEdit={() => handleEditSection("jobTypes")}
             isEditing={isEditing.jobTypes}
             onSave={() => handleOptionsSave("jobTypes")}
-            onCancel={() => handleCancel("jobTypes")}
+            onCancel={() => handleCancelSection("jobTypes")}
           >
             {!isEditing.jobTypes ? (
               <div className="flex flex-wrap gap-2">
@@ -818,32 +673,26 @@ function App() {
             iconClassName="bg-gradient-to-br from-orange-100 to-red-100"
             title="Availability"
             subtitle="When you're available to work"
-            onEdit={() => handleEdit("availability")}
+            onEdit={() => handleEditSection("availability")}
             isEditing={isEditing.availability}
             onSave={() => handleOptionsSave("availability")}
-            onCancel={() => handleCancel("availability")}
+            onCancel={() => handleCancelSection("availability")}
           >
             {!isEditing.availability ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {tempData.availabilityDays.map((day, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium"
-                    >
-                      {day}
+                  {tempData.availabilityDay && (
+                    <span className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                      {tempData.availabilityDay}
                     </span>
-                  ))}
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {tempData.availabilityTimes.map((time, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium"
-                    >
-                      {time}
+                  {tempData.availabilityTime && (
+                    <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                      {tempData.availabilityTime}
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
             ) : (
@@ -854,9 +703,9 @@ function App() {
                     {AVAILABLE_DAYS.map(({ value, label }) => (
                       <button
                         key={value}
-                        onClick={() => toggleAvailabilityDay(label)}
+                        onClick={() => toggleAvailabilityDay(value)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          tempData.availabilityDays.includes(label)
+                          tempData.availabilityDay === value
                             ? "bg-orange-500 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
@@ -872,9 +721,9 @@ function App() {
                     {AVAILABLE_HOURS.map(({ value, label }) => (
                       <button
                         key={value}
-                        onClick={() => toggleAvailabilityTime(label)}
+                        onClick={() => toggleAvailabilityTime(value)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          tempData.availabilityTimes.includes(label)
+                          tempData.availabilityTime === value
                             ? "bg-red-500 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
@@ -897,14 +746,26 @@ function App() {
           >
             <div className="space-y-3">
               {tempData.experiences.map((exp, index) => (
-                <div key={index} className="p-4 bg-slate-50 rounded-lg">
+                <div key={index} className="p-4 bg-slate-50 rounded-lg relative group">
+                  <button
+                    onClick={() => editExperience(index, tempData.experiences[index])}
+                    className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm"
+                  >
+                    <Edit3 size={14} className="text-slate-600" />
+                  </button>
                   <h4 className="font-medium text-slate-900">{exp.title}</h4>
                   <p className="text-sm text-slate-600">{exp.company}</p>
                   <p className="text-xs text-slate-500">{exp.duration}</p>
+                  {exp.description && (
+                    <p className="text-xs text-slate-500 mt-2">{exp.description}</p>
+                  )}
                 </div>
               ))}
             </div>
-            <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation">
+            <button
+              onClick={addExperience}
+              className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation"
+            >
               <Plus size={16} />
               Add Experience
             </button>
@@ -916,10 +777,10 @@ function App() {
             iconClassName="bg-gradient-to-br from-teal-100 to-cyan-100"
             title="English Proficiency"
             subtitle="Your English language skill level"
-            onEdit={() => handleEdit("languages")}
+            onEdit={() => handleEditSection("languages")}
             isEditing={isEditing.languages}
             onSave={() => handleOptionsSave("languages")}
-            onCancel={() => handleCancel("languages")}
+            onCancel={() => handleCancelSection("languages")}
           >
             {!isEditing.languages ? (
               <span className="px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
@@ -1003,7 +864,7 @@ function App() {
               label="Name"
               value={tempData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleTempInputChange("name", e.target.value)
+                handleInputChange("name", e.target.value)
               }
             />
 
@@ -1011,7 +872,7 @@ function App() {
               label="Description"
               value={tempData.description}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                handleTempInputChange("description", e.target.value)
+                handleInputChange("description", e.target.value)
               }
               rows={3}
             />
@@ -1029,11 +890,45 @@ function App() {
         onClose={() => setShowImageUploadDialog(false)}
         onSave={handleProfileImageChange}
         title="Change Profile Image"
-        currentImage={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`}
+        currentImage={
+          applicantProfile.profileImageUrl
+            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`
+            : "/images/img-default-profile.png"
+        }
         type="profile"
+      />
+
+      {/* Experience Form Dialog */}
+      <ExperienceFormDialog
+        open={showExperienceDialog}
+        onClose={() => setShowExperienceDialog(false)}
+        experienceForm={experienceForm}
+        setExperienceForm={setExperienceForm as any}
+        onSave={() => saveExperience(tempData.experiences, () => {})}
+        editingIndex={editingExperienceIndex}
+        onJobTypeSelect={selectJobType}
+      />
+
+      {/* Job Types Dialog */}
+      <JobTypesDialog
+        title="Select Job Type"
+        open={showJobTypesDialog}
+        onClose={() => setShowJobTypesDialog(false)}
+        selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType as JobType] : []}
+        onConfirm={confirmJobType}
+        maxSelected={1}
+      />
+
+      {/* Required Skills Dialog */}
+      <RequiredSkillsDialog
+        open={showSkillsDialog}
+        onClose={handleSkillsCancel}
+        selectedSkills={selectedSkills}
+        skills={availableSkills}
+        onConfirm={handleSkillsConfirm}
       />
     </div>
   );
 }
 
-export default App;
+export default SeekerMypage;

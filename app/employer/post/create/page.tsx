@@ -23,7 +23,7 @@ import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
-import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
+import JobTypesDialog from "@/components/common/JobTypesDialog";
 import { useRouter } from "next/navigation";
 import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";

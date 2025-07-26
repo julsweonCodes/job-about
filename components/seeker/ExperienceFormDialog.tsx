@@ -12,6 +12,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/Select";
+import { workedPeriodOptions } from "@/constants/options";
 
 interface ExperienceForm {
   company: string;
@@ -28,8 +29,6 @@ interface ExperienceFormDialogProps {
   setExperienceForm: React.Dispatch<React.SetStateAction<ExperienceForm>>;
   onSave: () => void;
   editingIndex: number | null;
-  years: { value: string; label: string }[];
-  workedPeriodOptions: { value: string; label: string }[];
   onJobTypeSelect: () => void;
 }
 
@@ -40,10 +39,14 @@ export default function ExperienceFormDialog({
   setExperienceForm,
   onSave,
   editingIndex,
-  years,
-  workedPeriodOptions,
   onJobTypeSelect,
 }: ExperienceFormDialogProps) {
+  // 컴포넌트 내부에서 years 생성
+  const years = Array.from({ length: 20 }, (_, i) => ({
+    value: (2024 - i).toString(),
+    label: (2024 - i).toString(),
+  }));
+
   return (
     <Dialog open={open} onClose={onClose} type="bottomSheet">
       <div className="space-y-4">
@@ -103,8 +106,8 @@ export default function ExperienceFormDialog({
               </SelectTrigger>
               <SelectContent>
                 {workedPeriodOptions.map((period) => (
-                  <SelectItem key={period.value} value={period.value}>
-                    {period.label}
+                  <SelectItem key={period} value={period}>
+                    {period}
                   </SelectItem>
                 ))}
               </SelectContent>
