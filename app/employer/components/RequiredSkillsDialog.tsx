@@ -7,12 +7,13 @@ import { Skill } from "@/types/profile";
 const MAX_SELECTED = 5;
 
 const RequiredSkillsDialog: React.FC<{
+  maxSelected?: number;
   open: boolean;
   onClose: () => void;
   selectedSkills: Skill[];
   onConfirm: (skills: Skill[]) => void;
   skills: Skill[];
-}> = ({ open, onClose, selectedSkills, onConfirm, skills }) => {
+}> = ({ maxSelected = MAX_SELECTED, open, onClose, selectedSkills, onConfirm, skills }) => {
   const [localSelected, setLocalSelected] = useState<Skill[]>(selectedSkills);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ const RequiredSkillsDialog: React.FC<{
   const toggleSkill = (skill: Skill) => {
     if (localSelected.find((s) => s.id === skill.id)) {
       setLocalSelected(localSelected.filter((s) => s.id !== skill.id));
-    } else if (localSelected.length < MAX_SELECTED) {
+    } else if (localSelected.length < maxSelected) {
       setLocalSelected([...localSelected, skill]);
     }
   };
@@ -54,7 +55,7 @@ const RequiredSkillsDialog: React.FC<{
               <div className="flex flex-wrap gap-2">
                 {items.map((skill) => {
                   const selected = localSelected.find((s) => s.id === skill.id);
-                  const disabled = !selected && localSelected.length >= MAX_SELECTED;
+                  const disabled = !selected && localSelected.length >= maxSelected;
                   return (
                     <Chip
                       key={skill.id}

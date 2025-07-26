@@ -52,7 +52,7 @@ export function JobPostActionsDialog({
   const handleStatusChange = () => {
     // TODO: API call to update job post status
     const newStatus =
-      jobPost.status === JobStatus.Published ? JobStatus.Closed : JobStatus.Published;
+      jobPost.status === JobStatus.PUBLISHED ? JobStatus.CLOSED : JobStatus.PUBLISHED;
     onStatusChange(newStatus);
     onClose();
   };
@@ -79,15 +79,15 @@ export function JobPostActionsDialog({
           {/* Status Change Button */}
           <ActionButton
             icon={
-              jobPost.status === JobStatus.Published ? (
+              jobPost.status === JobStatus.PUBLISHED ? (
                 <EyeOff className="w-5 h-5 text-red-500" />
               ) : (
                 <Eye className="w-5 h-5 text-green-600" />
               )
             }
-            title={jobPost.status === JobStatus.Published ? "Close Job Post" : "Open Job Post"}
+            title={jobPost.status === JobStatus.PUBLISHED ? "Close Job Post" : "Open Job Post"}
             description={
-              jobPost.status === JobStatus.Published
+              jobPost.status === JobStatus.PUBLISHED
                 ? "Stop accepting new applications"
                 : "Start accepting applications"
             }

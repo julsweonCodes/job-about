@@ -70,11 +70,11 @@ export function BottomSheet({
         setTimeout(() => {
           const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
           if (!hasOpenDialogs) {
-            document.body.style.position = "";
-            document.body.style.top = "";
-            document.body.style.width = "";
-            document.body.style.overflow = "";
-            window.scrollTo(0, scrollY);
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
           }
         }, 0);
       };

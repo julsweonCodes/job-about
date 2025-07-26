@@ -7,7 +7,7 @@ import { Chip } from "@/components/ui/Chip";
 import Input from "@/components/ui/Input";
 import { X, Search } from "lucide-react";
 import { getJobTypesByCategory, getJobTypeConfig } from "@/constants/jobTypes";
-import { JobType } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 
 // Job type categories
 const JOB_CATEGORIES_DISPLAY = {

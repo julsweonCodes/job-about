@@ -12,7 +12,7 @@ const recommendedJobs: JobPost[] = [
   {
     id: "1",
     title: "Senior Frontend Developer",
-    type: WorkType.OnSite,
+    type: WorkType.ON_SITE,
     wage: "$120,000 - $150,000",
     location: "San Francisco, CA",
     dateRange: "2 hours ago",
@@ -26,7 +26,7 @@ const recommendedJobs: JobPost[] = [
   {
     id: "2",
     title: "Product Designer",
-    type: WorkType.OnSite,
+    type: WorkType.ON_SITE,
     wage: "$90,000 - $120,000",
     location: "New York, NY",
     dateRange: "4 hours ago",
@@ -44,7 +44,7 @@ const latestJobs: JobPost[] = [
   {
     id: "3",
     title: "Full Stack Engineer",
-    type: WorkType.Remote,
+    type: WorkType.REMOTE,
     wage: "$100,000 - $130,000",
     location: "Remote",
     dateRange: "1 day ago",
@@ -58,7 +58,7 @@ const latestJobs: JobPost[] = [
   {
     id: "4",
     title: "Marketing Manager",
-    type: WorkType.OnSite,
+    type: WorkType.ON_SITE,
     wage: "$80,000 - $100,000",
     location: "Austin, TX",
     dateRange: "2 days ago",
@@ -73,7 +73,7 @@ const latestJobs: JobPost[] = [
   {
     id: "5",
     title: "Data Scientist",
-    type: WorkType.OnSite,
+    type: WorkType.ON_SITE,
     wage: "$130,000 - $160,000",
     location: "Seattle, WA",
     dateRange: "3 days ago",
@@ -86,7 +86,7 @@ const latestJobs: JobPost[] = [
   {
     id: "6",
     title: "UX Researcher",
-    type: WorkType.OnSite,
+    type: WorkType.ON_SITE,
     wage: "$70 - $90/hour",
     location: "Boston, MA",
     dateRange: "5 days ago",
@@ -110,8 +110,8 @@ function SeekerPage() {
       // 직무 타입 필터
       if (selectedJobType !== "All") {
         if (
-          (selectedJobType === "Remote" && job.type !== WorkType.Remote) ||
-          (selectedJobType === "OnSite" && job.type !== WorkType.OnSite)
+          (selectedJobType === "Remote" && job.type !== WorkType.REMOTE) ||
+          (selectedJobType === "OnSite" && job.type !== WorkType.ON_SITE)
         ) {
           return false;
         }

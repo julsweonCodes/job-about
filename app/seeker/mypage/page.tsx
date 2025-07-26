@@ -6,7 +6,6 @@ import {
   Calendar,
   Edit3,
   ChevronRight,
-  Target,
   Lightbulb,
   RefreshCw,
   Camera,
@@ -24,10 +23,18 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import { AvailableDay, AvailableHour, JobType, LanguageLevel, WorkType } from "@/constants/enums";
+import {
+  AvailableDay,
+  AvailableHour,
+  LanguageLevel,
+  WorkType,
+  AVAILABLE_DAYS,
+  AVAILABLE_HOURS,
+} from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { Location } from "@/constants/enums";
+import { Location } from "@/constants/location";
+import { JobType } from "@/constants/jobTypes";
 import { getEnumKeyFromValue } from "@/utils/client/seeker";
 
 export interface UserInfo {
@@ -156,19 +163,17 @@ function App() {
           month: "2-digit",
           day: "2-digit",
         }),
-        location: Location[seekerProfile.location as keyof typeof Location],
+        location: seekerProfile.location,
         phone: userInfo.phone_number,
         skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
         workType: seekerProfile.work_type.toString(),
         jobTypes: [
-          JobType[seekerProfile.job_type1 as keyof typeof JobType],
-          JobType[seekerProfile.job_type2 as keyof typeof JobType],
-          JobType[seekerProfile.job_type3 as keyof typeof JobType],
+          seekerProfile.job_type1,
+          seekerProfile.job_type2,
+          seekerProfile.job_type3,
         ].filter((jobType) => jobType != null),
-        availabilityDays: [AvailableDay[seekerProfile.available_day as keyof typeof AvailableDay]],
-        availabilityTimes: [
-          AvailableHour[seekerProfile.available_hour as keyof typeof AvailableHour],
-        ],
+        availabilityDays: [seekerProfile.available_day],
+        availabilityTimes: [seekerProfile.available_hour],
         englishLevel: seekerProfile.language_level,
         experiences: seekerProfile.work_experiences?.length
           ? seekerProfile.work_experiences.map((exp) => ({
@@ -283,7 +288,7 @@ function App() {
     switch (section) {
       case "location":
         payload = {
-          location: getEnumKeyFromValue(Location, tempData.location),
+          location: getEnumKeyFromValue(Location, tempData.location) as Location,
         };
         break;
       case "skills":
@@ -291,30 +296,36 @@ function App() {
         break;
       case "workType":
         payload = {
-          work_type: tempData.workType,
+          work_type: tempData.workType as WorkType,
         };
         break;
       case "jobTypes":
         payload = {
-          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]),
+          job_type1: getEnumKeyFromValue(JobType, tempData.jobTypes[0]) as JobType,
           ...(tempData.jobTypes[1] && {
-            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]),
+            job_type2: getEnumKeyFromValue(JobType, tempData.jobTypes[1]) as JobType,
           }),
           ...(tempData.jobTypes[2] && {
-            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]),
+            job_type3: getEnumKeyFromValue(JobType, tempData.jobTypes[2]) as JobType,
           }),
         };
         break;
 
       case "availability":
         payload = {
-          available_day: getEnumKeyFromValue(AvailableHour, tempData.availabilityDays[0]),
-          available_hour: getEnumKeyFromValue(AvailableHour, tempData.availabilityTimes[0]),
+          available_day: getEnumKeyFromValue(
+            AvailableDay,
+            tempData.availabilityDays[0]
+          ) as AvailableDay,
+          available_hour: getEnumKeyFromValue(
+            AvailableHour,
+            tempData.availabilityTimes[0]
+          ) as AvailableHour,
         };
         break;
       case "languages":
         payload = {
-          language_level: tempData.englishLevel,
+          language_level: tempData.englishLevel as LanguageLevel,
         };
         break;
       default:
@@ -840,17 +851,17 @@ function App() {
                 <div>
                   <p className="text-sm font-medium text-slate-700 mb-2">Days</p>
                   <div className="flex gap-2">
-                    {["Weekdays", "Weekends"].map((day) => (
+                    {AVAILABLE_DAYS.map(({ value, label }) => (
                       <button
-                        key={day}
-                        onClick={() => toggleAvailabilityDay(day)}
+                        key={value}
+                        onClick={() => toggleAvailabilityDay(label)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          tempData.availabilityDays.includes(day)
+                          tempData.availabilityDays.includes(label)
                             ? "bg-orange-500 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
                       >
-                        {day}
+                        {label}
                       </button>
                     ))}
                   </div>
@@ -858,17 +869,17 @@ function App() {
                 <div>
                   <p className="text-sm font-medium text-slate-700 mb-2">Times</p>
                   <div className="flex gap-2">
-                    {["AM", "PM"].map((time) => (
+                    {AVAILABLE_HOURS.map(({ value, label }) => (
                       <button
-                        key={time}
-                        onClick={() => toggleAvailabilityTime(time)}
+                        key={value}
+                        onClick={() => toggleAvailabilityTime(label)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          tempData.availabilityTimes.includes(time)
+                          tempData.availabilityTimes.includes(label)
                             ? "bg-red-500 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
                       >
-                        {time}
+                        {label}
                       </button>
                     ))}
                   </div>

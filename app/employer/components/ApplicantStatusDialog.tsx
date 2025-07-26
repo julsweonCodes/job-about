@@ -15,7 +15,7 @@ interface ApplicantStatusDialogProps {
 
 const statusList = [
   {
-    value: ApplicantStatus.InReview,
+    value: ApplicantStatus.IN_REVIEW,
     label: "In Review",
     icon: Eye,
     color: "border-blue-500",
@@ -24,7 +24,7 @@ const statusList = [
     iconColor: "text-blue-500",
   },
   {
-    value: ApplicantStatus.Rejected,
+    value: ApplicantStatus.REJECTED,
     label: "Rejected",
     icon: XCircle,
     color: "border-red-500",
@@ -33,7 +33,7 @@ const statusList = [
     iconColor: "text-red-500",
   },
   {
-    value: ApplicantStatus.Hired,
+    value: ApplicantStatus.HIRED,
     label: "Hired",
     icon: CheckCircle,
     color: "border-green-500",

@@ -1,4 +1,4 @@
-import { JobType } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 
 // 서버에서 사용할 데이터 검증 유틸리티
 

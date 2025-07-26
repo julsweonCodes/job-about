@@ -4,11 +4,13 @@ import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
-import JobPostView, { JobPostData } from "@/components/common/JobPostView";
-import { JobType, JobStatus, LanguageLevel } from "@/constants/enums";
-import {useSearchParams} from "next/navigation";
+import JobPostView from "@/components/common/JobPostView";
+import { JobPostData } from "@/types/jobPost";
+import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
+import { useSearchParams } from "next/navigation";
 
-interface Props {
+interface Props { 
   geminiRes: any;
   description: string;
 }
@@ -21,7 +23,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description }) => {
     id: "1",
     title: "Cashier",
     jobType: JobType.ACCOUNTANT,
-    status: JobStatus.Published,
+    status: JobStatus.PUBLISHED,
     business: {
       id: "1",
       name: "Fresh Market Grocery",
@@ -41,7 +43,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description }) => {
     schedule: "Flexible, 10–20 hrs/week",
     requiredSkills: ["Cash handling", "Customer service", "Teamwork"],
     requiredPersonality: ["Friendly", "Patient", "Team-oriented"],
-    languageLevel: LanguageLevel.Intermediate,
+    languageLevel: LanguageLevel.INTERMEDIATE,
     hourlyWage: "$15/hr",
     description,
   });

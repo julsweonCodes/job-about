@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { supabaseClient } from "@/utils/supabase/client"
+import { supabaseClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { PAGE_URLS, API_URLS } from "@/constants/api";
 function App() {
@@ -28,7 +28,7 @@ function App() {
     if (isLoggedIn && profileStatus) {
       if (!profileStatus.hasRole) {
         console.log("User has no role, redirecting to onboarding");
-        router.replace(PAGE_URLS.ONBOARDING);
+        router.replace(PAGE_URLS.ONBOARDING.ROOT);
       } else if (profileStatus.hasRole && !profileStatus.isProfileCompleted) {
         // role은 있지만 프로필이 완성되지 않았으면 해당 role의 프로필 페이지로
         if (profileStatus.role === "APPLICANT") {

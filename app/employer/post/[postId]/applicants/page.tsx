@@ -22,7 +22,7 @@ const mockJobPost: JobPostWithRelations = {
   wage: "15/hour",
   location: "Gangnam",
   description: "Server position at Starbucks Gangnam",
-  status: JobStatus.Published,
+  status: JobStatus.PUBLISHED,
   applicants: [
     {
       id: "1",
@@ -34,7 +34,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "3 years of restaurant experience with excellent customer service skills",
       applied_date: "2024-01-15",
-      status: ApplicantStatus.Applied,
+      status: ApplicantStatus.APPLIED,
       experience: "3 years",
       skills: ["Customer Service", "Team Work", "Fast Learner"],
     },
@@ -48,7 +48,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "Friendly server with experience in high-volume restaurants",
       applied_date: "2024-01-14",
-      status: ApplicantStatus.InReview,
+      status: ApplicantStatus.IN_REVIEW,
       experience: "2 years",
       skills: ["Communication", "Multitasking", "POS Systems"],
     },
@@ -62,7 +62,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "Experienced server looking for a stable full-time position",
       applied_date: "2024-01-13",
-      status: ApplicantStatus.InReview,
+      status: ApplicantStatus.IN_REVIEW,
       experience: "4 years",
       skills: ["Leadership", "Training", "Customer Relations"],
     },
@@ -76,7 +76,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "Recent hospitality graduate eager to start career in service",
       applied_date: "2024-01-12",
-      status: ApplicantStatus.Hired,
+      status: ApplicantStatus.HIRED,
       experience: "1 year",
       skills: ["Enthusiasm", "Quick Learner", "Reliability"],
     },
@@ -90,7 +90,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "Part-time server with flexible schedule availability",
       applied_date: "2024-01-11",
-      status: ApplicantStatus.Rejected,
+      status: ApplicantStatus.REJECTED,
       experience: "1 year",
       skills: ["Flexibility", "Weekend Availability"],
     },
@@ -104,7 +104,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "Experienced server with barista skills and morning availability",
       applied_date: "2024-01-10",
-      status: ApplicantStatus.Applied,
+      status: ApplicantStatus.APPLIED,
       experience: "5 years",
       skills: ["Barista", "Morning Shifts", "Training Others"],
     },
@@ -118,7 +118,7 @@ const mockJobPost: JobPostWithRelations = {
         "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150",
       description: "Bilingual server with strong communication and sales skills",
       applied_date: "2024-01-09",
-      status: ApplicantStatus.InReview,
+      status: ApplicantStatus.IN_REVIEW,
       experience: "3 years",
       skills: ["Bilingual", "Sales", "Customer Service"],
     },
@@ -179,16 +179,16 @@ function ReviewApplicantsPage() {
 
     jobPost.applicants?.forEach((applicant) => {
       switch (applicant.status) {
-        case ApplicantStatus.Applied:
+        case ApplicantStatus.APPLIED:
           counts.applied++;
           break;
-        case ApplicantStatus.InReview:
+        case ApplicantStatus.IN_REVIEW:
           counts.in_review++;
           break;
-        case ApplicantStatus.Hired:
+        case ApplicantStatus.HIRED:
           counts.hired++;
           break;
-        case ApplicantStatus.Rejected:
+        case ApplicantStatus.REJECTED:
           counts.rejected++;
           break;
       }
@@ -203,13 +203,13 @@ function ReviewApplicantsPage() {
 
   const getStatusColor = (status: ApplicantStatus) => {
     switch (status) {
-      case ApplicantStatus.Applied:
+      case ApplicantStatus.APPLIED:
         return "bg-amber-100 text-amber-700 border-amber-200";
-      case ApplicantStatus.InReview:
+      case ApplicantStatus.IN_REVIEW:
         return "bg-blue-100 text-blue-700 border-blue-200";
-      case ApplicantStatus.Hired:
+      case ApplicantStatus.HIRED:
         return "bg-green-100 text-green-700 border-green-200";
-      case ApplicantStatus.Rejected:
+      case ApplicantStatus.REJECTED:
         return "bg-red-100 text-red-700 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
@@ -218,13 +218,13 @@ function ReviewApplicantsPage() {
 
   const getStatusIcon = (status: ApplicantStatus) => {
     switch (status) {
-      case ApplicantStatus.Applied:
+      case ApplicantStatus.APPLIED:
         return <Clock className="w-3 h-3" />;
-      case ApplicantStatus.InReview:
+      case ApplicantStatus.IN_REVIEW:
         return <Eye className="w-3 h-3" />;
-      case ApplicantStatus.Hired:
+      case ApplicantStatus.HIRED:
         return <CheckCircle className="w-3 h-3" />;
-      case ApplicantStatus.Rejected:
+      case ApplicantStatus.REJECTED:
         return <XCircle className="w-3 h-3" />;
       default:
         return <Clock className="w-3 h-3" />;

@@ -32,7 +32,7 @@ export function Dialog({
       setTimeout(() => {
         const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
         if (!hasOpenDialogs) {
-          document.body.style.overflow = "";
+      document.body.style.overflow = "";
         }
       }, 0);
     }
@@ -41,7 +41,7 @@ export function Dialog({
       setTimeout(() => {
         const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
         if (!hasOpenDialogs) {
-          document.body.style.overflow = "";
+      document.body.style.overflow = "";
         }
       }, 0);
     };

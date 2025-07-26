@@ -56,8 +56,13 @@ export const API_URLS = {
     JOBS: "/api/recommendations/jobs",
   },
 
+  // enum 관련
+  ENUM: {
+    ROOT: "/api/enum",
+    BY_NAME: (name: string) => `/api/enum?name=${name}`,
+  },
+
   // 기타
-  ENUM: "/api/enum",
   WORK_STYLES: "/api/work-styles",
   UTILS: "/api/utils",
 } as const;

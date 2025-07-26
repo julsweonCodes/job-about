@@ -1,10 +1,11 @@
 "use client";
 import { supabaseClient } from "@/utils/supabase/client";
 import { Auth } from "@supabase/auth-ui-react";
+import { User } from "@supabase/supabase-js";
 import React, { useState, useEffect } from "react";
 
 const AuthUI = () => {
-  const [user, setUser] = useState();
+  const [user, setUser] = useState<User | undefined>();
   const supabase = supabaseClient;
 
   const getUserInfo = async () => {

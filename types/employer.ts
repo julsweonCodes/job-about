@@ -1,7 +1,6 @@
 import { Skill, WorkStyle } from "@/types/profile";
-import {Database} from "@/types/database.types";
-import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { JobType, WorkType, LanguageLevel } from "@/constants/enums";
+import { WorkType, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
 import { $Enums } from "@prisma/client";
 
 export interface EmployerProfilePayload {
@@ -9,7 +8,7 @@ export interface EmployerProfilePayload {
   phone_number: string;
   address: string;
   operating_start: string; // "08:00"
-  operating_end: string;   // "17:00"
+  operating_end: string; // "17:00"
   description?: string;
 
   logo_img: string;
@@ -21,7 +20,7 @@ export interface EmployerProfilePayload {
   img_url5?: string;
 
   // 추가 필드 예시: supabase user_id 또는 외래키 등
-  user_id : number;
+  user_id: number;
 
   // created_at, updated_at은 백엔드에서 추가
 }
@@ -34,7 +33,7 @@ export interface EmployerDashboardCnt {
 
 export interface JobPostPayload {
   jobTitle: string;
-  selectedJobType: JobType
+  selectedJobType: JobType;
   deadline: string; // extract yyyymmdd from calendar
   workSchedule: string;
   requiredSkills: Skill[];
@@ -47,9 +46,9 @@ export interface JobPostPayload {
 }
 
 export interface Dashboard {
-  activeJobPostsCnt: number,
-  allAppsCnt: number,
-  needsUpdateCnt: number,
+  activeJobPostsCnt: number;
+  allAppsCnt: number;
+  needsUpdateCnt: number;
 }
 
 export interface JobPost {

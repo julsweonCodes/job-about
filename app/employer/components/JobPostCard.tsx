@@ -1,6 +1,5 @@
 import React from "react";
 import { Users } from "lucide-react";
-import { WorkType } from "@/constants/enums";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +15,11 @@ interface JobPostCardProps {
 export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApplicants }) => {
   // WorkType에 따른 라벨/색상 분기 (예시)
   const typeLabel =
-    job.type === $Enums.WorkType.ON_SITE ? "On-Site" : job.type === $Enums.WorkType.REMOTE ? "Remote" : "Hybrid";
+    job.type === $Enums.WorkType.ON_SITE
+      ? "On-Site"
+      : job.type === $Enums.WorkType.REMOTE
+        ? "Remote"
+        : "Hybrid";
   const typeClass =
     job.type === $Enums.WorkType.ON_SITE
       ? "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
