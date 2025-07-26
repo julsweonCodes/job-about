@@ -129,8 +129,8 @@ function JobSeekerProfile() {
       const profileData = ApplicantProfileMapper.toApi({
         preferredJobTypes: formData.preferredJobTypes.filter(Boolean),
         workType: formData.workType || WorkType.REMOTE,
-        availableDay: [formData.availability.day || AvailableDay.WEEKDAYS],
-        availableHour: [formData.availability.hour || AvailableHour.AM],
+        availableDay: formData.availability.day || AvailableDay.WEEKDAYS,
+        availableHour: formData.availability.hour || AvailableHour.AM,
         location: formData.location || Location.TORONTO,
         englishLevel: formData.languageProficiency || LanguageLevel.BEGINNER,
         description: formData.selfIntroduction,
