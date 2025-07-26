@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "check-all": "yarn lint && yarn type-check && yarn build",
+    "pre-commit": "yarn lint && yarn type-check",
     "postinstall": "prisma generate"
   },
   "prisma": {
