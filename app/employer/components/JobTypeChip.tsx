@@ -1,6 +1,6 @@
 import React from "react";
 import { Check } from "lucide-react";
-import { JobType } from "../data/jobTypes";
+import { getJobTypeConfig, JobType } from "@/constants/jobTypes";
 
 interface JobTypeChipProps {
   jobType: JobType;
@@ -9,7 +9,7 @@ interface JobTypeChipProps {
 }
 
 const JobTypeChip: React.FC<JobTypeChipProps> = ({ jobType, isSelected, onClick }) => {
-  const Icon = jobType.icon;
+  const Icon = getJobTypeConfig(jobType).icon;
 
   return (
     <button
@@ -45,7 +45,7 @@ const JobTypeChip: React.FC<JobTypeChipProps> = ({ jobType, isSelected, onClick 
           ${isSelected ? "text-blue-900" : "text-gray-900"}
         `}
         >
-          {jobType.name}
+          {getJobTypeConfig(jobType).name}
         </h3>
         <p
           className={`
@@ -53,7 +53,7 @@ const JobTypeChip: React.FC<JobTypeChipProps> = ({ jobType, isSelected, onClick 
           ${isSelected ? "text-blue-600" : "text-gray-500"}
         `}
         >
-          {jobType.category}
+          {getJobTypeConfig(jobType).category}
         </p>
       </div>
 

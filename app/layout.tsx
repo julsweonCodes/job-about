@@ -30,7 +30,6 @@ export default function RootLayout({
         <Toaster
           position="bottom-center"
           className="toast-container"
-          duration={200000}
           icons={{
             success: <CheckIcon className="sm:w-6 sm:h-6 w-5 h-5 text-green-500" />,
             error: <XIcon className="sm:w-6 sm:h-6 w-5 h-5 text-red-500" />,

@@ -13,13 +13,12 @@ import {
 } from "lucide-react";
 import PageProgressHeader from "@/components/common/PageProgressHeader";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { Chip } from "@/components/ui/Chip";
 import Typography from "@/components/ui/Typography";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import { FullWidthChip } from "@/components/ui/FullWidthChip";
-import { LanguageLevel, LANGUAGE_LEVELS, JobType, WorkType } from "@/constants/enums";
+import { LanguageLevel, LANGUAGE_LEVELS, WorkType } from "@/constants/enums";
 import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
@@ -30,6 +29,7 @@ import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";
 import { workTypeOptions } from "@/constants/options";
 import { FormSection } from "@/components/common/FormSection";
+import { JobType } from "@/constants/jobTypes";
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);

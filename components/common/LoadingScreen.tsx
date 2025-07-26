@@ -6,6 +6,7 @@ interface LoadingScreenProps {
   overlay?: boolean;
   spinnerSize?: "sm" | "md" | "lg" | "xl";
   spinnerColor?: "primary" | "white" | "gray" | "purple" | "purple-circle";
+  opacity?: "light" | "medium" | "dark";
   className?: string;
 }
 
@@ -13,19 +14,31 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   overlay = true,
   spinnerSize = "md",
   spinnerColor = "purple-circle",
+  opacity = "medium",
   className = "",
-  message = "Loading...",
+  message,
 }) => {
   const content = (
     <div className={cn("flex flex-col items-center justify-center gap-4", className)}>
       <LoadingSpinner size={spinnerSize} color={spinnerColor} />
-      <p className="text-gray-600 text-xs sm:text-xl">{message}</p>
+      {message !== undefined && <p className="text-gray-600 text-xs sm:text-xl">{message}</p>}
     </div>
   );
 
+  const opacityClasses = {
+    light: "bg-white/40",
+    medium: "bg-white/80",
+    dark: "bg-black/20",
+  };
+
   if (overlay) {
     return (
-      <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex items-center justify-center">
+      <div
+        className={cn(
+          "fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center",
+          opacityClasses[opacity]
+        )}
+      >
         {content}
       </div>
     );

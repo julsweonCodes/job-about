@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { JobType } from "@/constants/jobTypes";
 import { Skill } from "@/types/profile";
 import { LanguageLevel, WorkType, AvailableDay, AvailableHour } from "@/constants/enums";
+import { Location } from "@/constants/location";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { API_URLS } from "@/constants/api";
 
@@ -13,14 +14,14 @@ interface JobSeekerFormData {
     day: AvailableDay | null;
     hour: AvailableHour | null;
   };
-  location: string;
+  location: Location | null;
   languageProficiency: LanguageLevel | null;
   selfIntroduction: string;
 }
 
 interface ExperienceForm {
   company: string;
-  jobType: string;
+  jobType: JobType | null;
   startYear: string;
   workedPeriod: string;
   description: string;
@@ -56,7 +57,7 @@ export const useJobSeekerForm = (): UseJobSeekerFormReturn => {
       day: null,
       hour: null,
     },
-    location: "",
+    location: null,
     languageProficiency: null,
     selfIntroduction: "",
   });
@@ -154,16 +155,16 @@ export const useJobSeekerForm = (): UseJobSeekerFormReturn => {
   };
 
   const calculateProgress = () => {
-    const totalFields = 7;
+    const totalFields = 6;
     let filledFields = 0;
 
     if (formData.skills.length > 0) filledFields++;
     if (formData.workType && formData.preferredJobTypes.length > 0) filledFields++;
     if (formData.availability.day !== null && formData.availability.hour !== null) filledFields++;
-    if (formData.location.trim()) filledFields++;
-    if (workExperiences.length > 0) filledFields++;
+    if (formData.location) filledFields++;
     if (formData.languageProficiency) filledFields++;
     if (formData.selfIntroduction.trim()) filledFields++;
+    // if (workExperiences.length > 0) filledFields++;
 
     return Math.round((filledFields / totalFields) * 100);
   };
