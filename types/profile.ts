@@ -56,8 +56,8 @@ export interface workExperience {
 export interface ApplicantProfileFormDataType {
   preferredJobTypes: ClientJobType[];
   workType: ClientWorkType;
-  availableDays: ClientAvailableDay[];
-  availableHours: ClientAvailableHour[];
+  availableDay: ClientAvailableDay;
+  availableHour: ClientAvailableHour;
   location: ClientLocation;
   englishLevel: ClientLanguageLevel;
   description: string;
@@ -86,8 +86,8 @@ export class ApplicantProfileMapper {
         ? toPrismaJobType(formData.preferredJobTypes[2] as any)
         : undefined,
       work_type: toPrismaWorkType(formData.workType as any),
-      available_day: toPrismaAvailableDay(formData.availableDays[0] as any),
-      available_hour: toPrismaAvailableHour(formData.availableHours[0] as any),
+      available_day: toPrismaAvailableDay(formData.availableDay as any),
+      available_hour: toPrismaAvailableHour(formData.availableHour as any),
       location: toPrismaLocation((formData.location as any) ?? "") as Location,
       language_level: toPrismaLanguageLevel(formData.englishLevel as any),
       description: formData.description,
@@ -115,8 +115,8 @@ export class ApplicantProfileMapper {
     return {
       preferredJobTypes,
       workType: fromPrismaWorkType(apiData.work_type) as ClientWorkType,
-      availableDays: [fromPrismaAvailableDay(apiData.available_day) as ClientAvailableDay],
-      availableHours: [fromPrismaAvailableHour(apiData.available_hour) as ClientAvailableHour],
+      availableDay: fromPrismaAvailableDay(apiData.available_day) as ClientAvailableDay,
+      availableHour: fromPrismaAvailableHour(apiData.available_hour) as ClientAvailableHour,
       location: fromPrismaLocation(apiData.location as any) as ClientLocation,
       englishLevel: fromPrismaLanguageLevel(apiData.language_level) as ClientLanguageLevel,
       description: apiData.description,
@@ -139,8 +139,8 @@ export class ApplicantProfileMapper {
     return (
       formData.preferredJobTypes.length > 0 &&
       !!formData.workType &&
-      formData.availableDays.length > 0 &&
-      formData.availableHours.length > 0 &&
+      !!formData.availableDay &&
+      !!formData.availableHour &&
       !!formData.location &&
       !!formData.englishLevel &&
       !!formData.description
@@ -154,8 +154,8 @@ export class ApplicantProfileMapper {
     return {
       preferredJobTypes: [],
       workType: "remote" as ClientWorkType,
-      availableDays: ["weekdays"] as ClientAvailableDay[],
-      availableHours: ["am"] as ClientAvailableHour[],
+      availableDay: "weekdays" as ClientAvailableDay,
+      availableHour: "am" as ClientAvailableHour,
       location: "toronto" as ClientLocation,
       englishLevel: "beginner" as ClientLanguageLevel,
       description: "",

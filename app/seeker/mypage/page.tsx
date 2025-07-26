@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Briefcase,
   Heart,
@@ -28,6 +28,7 @@ import LoadingScreen from "@/components/common/LoadingScreen";
 import { JobType } from "@/constants/jobTypes";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
+import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { useSeekerMypage } from "@/hooks/useSeekerMypage";
 import { useExperienceManagement } from "@/hooks/useExperienceManagement";
 import { applicantProfile } from "@/types/profile";
@@ -38,7 +39,18 @@ import {
   toPrismaLanguageLevel,
   toPrismaAvailableDay,
   toPrismaAvailableHour,
+  toPrismaLocation,
 } from "@/types/enumMapper";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { getLocationDisplayName } from "@/constants/location";
+import { Location } from "@prisma/client";
+import { Skill } from "@/types/profile";
 
 function SeekerMypage() {
   // 커스텀 훅 사용 (최상단에서 호출)
@@ -47,6 +59,9 @@ function SeekerMypage() {
     tempData,
     isLoading,
     isEditing,
+    availableSkills,
+    availableLocations,
+    loadingStates,
     handleEdit: handleEditSection,
     handleCancel: handleCancelSection,
     handleTempInputChange: handleInputChange,
@@ -74,11 +89,37 @@ function SeekerMypage() {
   const [newJobType, setNewJobType] = useState("");
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [showSkillsDialog, setShowSkillsDialog] = useState(false);
+  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
 
   // 로딩 상태 체크 (훅 호출 이후에 위치)
   if (isLoading || !applicantProfile || !tempData) {
     return <LoadingScreen message="Loading your profile..." />;
   }
+
+  // Skills 관련 함수들
+  const handleSkillsEdit = () => {
+    // 현재 선택된 skills를 id로 매칭하여 실제 Skill 객체 찾기
+    const currentSkills = tempData.skillIds
+      .map((skillId) => {
+        const foundSkill = availableSkills.find((skill) => skill.id === skillId);
+        return foundSkill;
+      })
+      .filter(Boolean) as Skill[];
+    setSelectedSkills(currentSkills);
+    setShowSkillsDialog(true);
+  };
+
+  const handleSkillsConfirm = (skills: Skill[]) => {
+    const skillIds = skills.map((skill) => skill.id);
+    // skillIds 배열로 저장
+    handleInputChange("skillIds", skillIds as any);
+    setShowSkillsDialog(false);
+  };
+
+  const handleSkillsCancel = () => {
+    setShowSkillsDialog(false);
+  };
 
   // TODO call api to get workStyle
   const workStyle = {
@@ -117,21 +158,17 @@ function SeekerMypage() {
   const handleOptionsSave = async (section: string) => {
     let payload: Partial<applicantProfile> = {};
 
-    console.log("Section:", section);
-    console.log("tempData:", tempData);
-
     switch (section) {
       case "location":
-        console.log("Location case - tempData.location:", tempData.location);
         payload = {
-          location: tempData.location as any,
+          location: toPrismaLocation(tempData.location as any) as Location,
         };
         break;
+      // TODO
       case "skills":
         payload = {};
         break;
       case "workType":
-        console.log("WorkType case - tempData.workType:", tempData.workType);
         payload = {
           work_type: toPrismaWorkType(tempData.workType as any),
         };
@@ -150,15 +187,15 @@ function SeekerMypage() {
         break;
 
       case "availability":
-        console.log("Availability case - tempData.availabilityDays:", tempData.availabilityDays);
-        console.log("Availability case - tempData.availabilityTimes:", tempData.availabilityTimes);
+        console.log("Availability case - tempData.availabilityDay:", tempData.availabilityDay);
+        console.log("Availability case - tempData.availabilityTime:", tempData.availabilityTime);
         payload = {
-          available_day: toPrismaAvailableDay(tempData.availabilityDays[0] as any),
-          available_hour: toPrismaAvailableHour(tempData.availabilityTimes[0] as any),
+          available_day: toPrismaAvailableDay(tempData.availabilityDay as any),
+          available_hour: toPrismaAvailableHour(tempData.availabilityTime as any),
         };
+        console.log("Availability case - payload:", payload);
         break;
       case "languages":
-        console.log("Languages case - tempData.englishLevel:", tempData.englishLevel);
         payload = {
           language_level: toPrismaLanguageLevel(tempData.englishLevel as any),
         };
@@ -211,13 +248,16 @@ function SeekerMypage() {
   // Job Preferences 관련 함수들
   const addSkill = () => {
     if (newSkill.trim()) {
-      handleInputChange("skills", [...tempData.skills, newSkill.trim()] as any);
-      setNewSkill("");
+      const selectedSkill = availableSkills.find((skill) => skill.name_en === newSkill.trim());
+      if (selectedSkill) {
+        handleInputChange("skillIds", [...tempData.skillIds, selectedSkill.id] as any);
+        setNewSkill("");
+      }
     }
   };
 
   const removeSkill = (index: number) => {
-    handleInputChange("skills", tempData.skills.filter((_, i) => i !== index) as any);
+    handleInputChange("skillIds", tempData.skillIds.filter((_, i) => i !== index) as any);
   };
 
   const addJobType = () => {
@@ -232,21 +272,11 @@ function SeekerMypage() {
   };
 
   const toggleAvailabilityDay = (day: string) => {
-    handleInputChange(
-      "availabilityDays",
-      tempData.availabilityDays.includes(day)
-        ? (tempData.availabilityDays.filter((d) => d !== day) as any)
-        : ([...tempData.availabilityDays, day] as any)
-    );
+    handleInputChange("availabilityDay", day);
   };
 
   const toggleAvailabilityTime = (time: string) => {
-    handleInputChange(
-      "availabilityTimes",
-      tempData.availabilityTimes.includes(time)
-        ? (tempData.availabilityTimes.filter((t) => t !== time) as any)
-        : ([...tempData.availabilityTimes, time] as any)
-    );
+    handleInputChange("availabilityTime", time);
   };
 
   const updateEnglishLevel = (level: LanguageLevel) => {
@@ -413,19 +443,42 @@ function SeekerMypage() {
             onCancel={() => handleCancelSection("location")}
           >
             {isEditing.location ? (
-              <Input
-                label="Location"
-                value={tempData.location}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleInputChange("location", e.target.value)
-                }
-                placeholder="City, State"
-                rightIcon={<MapPin className="w-5 h-5" />}
-              />
+              <div className="space-y-3">
+                <Select
+                  value={tempData.location || ""}
+                  onValueChange={(value) => handleInputChange("location", value)}
+                >
+                  <SelectTrigger className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all duration-200 outline-none text-slate-900 font-medium">
+                    <SelectValue placeholder="Select your location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(availableLocations) && availableLocations.length > 0 ? (
+                      availableLocations.map((city) => {
+                        const displayName = getLocationDisplayName(city);
+                        return (
+                          <SelectItem
+                            key={city}
+                            value={city}
+                            selectedValue={tempData.location || ""}
+                          >
+                            {displayName}
+                          </SelectItem>
+                        );
+                      })
+                    ) : (
+                      <SelectItem value="" disabled>
+                        No cities available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             ) : (
               <div className="flex items-center gap-3">
                 <MapPin size={16} className="text-slate-400" />
-                <span className="text-slate-700 font-medium">{applicantProfile.location}</span>
+                <span className="text-slate-700 font-medium">
+                  {getLocationDisplayName(applicantProfile.location)}
+                </span>
               </div>
             )}
           </InfoSection>
@@ -441,54 +494,79 @@ function SeekerMypage() {
             iconClassName="bg-gradient-to-br from-blue-100 to-indigo-100"
             title="Skills"
             subtitle="Your professional skills and expertise"
-            onEdit={() => handleEditSection("skills")}
+            onEdit={handleSkillsEdit}
             isEditing={isEditing.skills}
             onSave={() => handleOptionsSave("skills")}
             onCancel={() => handleCancelSection("skills")}
           >
             {!isEditing.skills ? (
               <div className="flex flex-wrap gap-2">
-                {tempData.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-                  >
-                    {skill}
-                  </span>
-                ))}
+                {tempData.skillIds.map((skillId, index) => {
+                  const skill = availableSkills.find((s) => s.id === skillId);
+                  return skill ? (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                    >
+                      {skill.name_en}
+                    </span>
+                  ) : null;
+                })}
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {tempData.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-2"
-                    >
-                      {skill}
-                      <button
-                        onClick={() => removeSkill(index)}
-                        className="hover:bg-blue-200 rounded-full p-0.5"
+                  {tempData.skillIds.map((skillId, index) => {
+                    const skill = availableSkills.find((s) => s.id === skillId);
+                    return skill ? (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-2"
                       >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
+                        {skill.name_en}
+                        <button
+                          onClick={() => removeSkill(index)}
+                          className="hover:bg-blue-200 rounded-full p-0.5"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addSkill()}
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Add a skill..."
-                  />
+                <div className="space-y-3">
+                  <Select value={newSkill || ""} onValueChange={(value) => setNewSkill(value)}>
+                    <SelectTrigger className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all duration-200 outline-none text-slate-900 font-medium">
+                      <SelectValue placeholder="Select a skill to add" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingStates.skills ? (
+                        <SelectItem value="" disabled>
+                          Loading skills...
+                        </SelectItem>
+                      ) : availableSkills.filter((skill) => !tempData.skillIds.includes(skill.id))
+                          .length > 0 ? (
+                        availableSkills
+                          .filter((skill) => !tempData.skillIds.includes(skill.id))
+                          .map((skill) => (
+                            <SelectItem key={skill.id} value={skill.name_en}>
+                              {skill.name_en}
+                            </SelectItem>
+                          ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No skills available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <button
                     onClick={addSkill}
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
+                    disabled={!newSkill}
+                    className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2"
                   >
                     <Plus size={16} />
+                    Add Skill
                   </button>
                 </div>
               </div>
@@ -603,24 +681,18 @@ function SeekerMypage() {
             {!isEditing.availability ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {tempData.availabilityDays.map((day, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium"
-                    >
-                      {day}
+                  {tempData.availabilityDay && (
+                    <span className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                      {tempData.availabilityDay}
                     </span>
-                  ))}
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {tempData.availabilityTimes.map((time, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium"
-                    >
-                      {time}
+                  {tempData.availabilityTime && (
+                    <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                      {tempData.availabilityTime}
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
             ) : (
@@ -631,9 +703,9 @@ function SeekerMypage() {
                     {AVAILABLE_DAYS.map(({ value, label }) => (
                       <button
                         key={value}
-                        onClick={() => toggleAvailabilityDay(label)}
+                        onClick={() => toggleAvailabilityDay(value)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          tempData.availabilityDays.includes(label)
+                          tempData.availabilityDay === value
                             ? "bg-orange-500 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
@@ -649,9 +721,9 @@ function SeekerMypage() {
                     {AVAILABLE_HOURS.map(({ value, label }) => (
                       <button
                         key={value}
-                        onClick={() => toggleAvailabilityTime(label)}
+                        onClick={() => toggleAvailabilityTime(value)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                          tempData.availabilityTimes.includes(label)
+                          tempData.availabilityTime === value
                             ? "bg-red-500 text-white"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
@@ -845,6 +917,15 @@ function SeekerMypage() {
         selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType as JobType] : []}
         onConfirm={confirmJobType}
         maxSelected={1}
+      />
+
+      {/* Required Skills Dialog */}
+      <RequiredSkillsDialog
+        open={showSkillsDialog}
+        onClose={handleSkillsCancel}
+        selectedSkills={selectedSkills}
+        skills={availableSkills}
+        onConfirm={handleSkillsConfirm}
       />
     </div>
   );

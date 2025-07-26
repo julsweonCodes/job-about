@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { API_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { applicantProfile, ApplicantProfileMapper } from "@/types/profile";
+import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
+import { convertLocationKeyToValue } from "@/constants/location";
 
 export interface UserInfo {
   name: string;
@@ -19,11 +20,11 @@ export interface ApplicantProfile {
   joinDate: string;
   location: string;
   phone: string;
-  skills: string[];
+  skillIds: number[]; // skills를 skillIds로 변경
   workType: string;
   jobTypes: string[];
-  availabilityDays: string[];
-  availabilityTimes: string[];
+  availabilityDay: string; // availabilityDays에서 availabilityDay로 변경
+  availabilityTime: string; // availabilityTimes에서 availabilityTime으로 변경
   englishLevel: string;
   experiences: {
     title: string;
@@ -84,6 +85,14 @@ interface UseSeekerMypageReturn {
   isInitialized: boolean;
   isLoading: boolean;
 
+  // API 데이터 상태
+  availableSkills: Skill[]; // string[]에서 Skill[]로 변경
+  availableLocations: string[];
+  loadingStates: {
+    skills: boolean;
+    locations: boolean;
+  };
+
   // 편집 상태
   isEditing: {
     basicInfo: boolean;
@@ -107,6 +116,10 @@ interface UseSeekerMypageReturn {
   handleTempInputChange: (field: string, value: string) => void;
   updateUserProfile: () => Promise<void>;
   updateProfileImage: (file: File) => Promise<void>;
+
+  // API 데이터 fetch 함수들
+  fetchSkills: () => Promise<void>;
+  fetchLocations: () => Promise<void>;
 }
 
 export const useSeekerMypage = (): UseSeekerMypageReturn => {
@@ -123,17 +136,25 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     joinDate: "",
     location: "",
     phone: "",
-    skills: [],
+    skillIds: [],
     workType: "",
     jobTypes: [],
-    availabilityDays: [],
-    availabilityTimes: [],
+    availabilityDay: "",
+    availabilityTime: "",
     englishLevel: "",
     experiences: [],
   });
   const [tempData, setTempData] = useState<ApplicantProfile>(applicantProfile);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // API 데이터 상태
+  const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+  const [loadingStates, setLoadingStates] = useState({
+    skills: false,
+    locations: false,
+  });
 
   // 편집 상태 관리
   const [isEditing, setIsEditingState] = useState({
@@ -146,6 +167,56 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     availability: false,
     languages: false,
   });
+
+  // API 데이터 fetch 함수들
+  const fetchSkills = async () => {
+    try {
+      setLoadingStates((prev) => ({ ...prev, skills: true }));
+      const res = await fetch("/api/utils");
+      const data = await res.json();
+
+      if (res.ok) {
+        setAvailableSkills(data.data.skills);
+      } else {
+        console.error("Failed to fetch skills:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, skills: false }));
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      setLoadingStates((prev) => ({ ...prev, locations: true }));
+      const res = await fetch(API_URLS.ENUM.BY_NAME("Location"));
+      const data = await res.json();
+
+      if (res.ok) {
+        const locationsData = data.data?.values || data.values || [];
+        if (Array.isArray(locationsData)) {
+          const convertedCities = locationsData.map(convertLocationKeyToValue);
+          setAvailableLocations(convertedCities);
+        } else {
+          setAvailableLocations([]);
+        }
+      } else {
+        console.error("Failed to fetch locations:", data.error);
+        setAvailableLocations([]);
+      }
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, locations: false }));
+    }
+  };
+
+  // 컴포넌트 마운트 시 API 데이터 로드
+  useEffect(() => {
+    fetchSkills();
+    fetchLocations();
+  }, []);
 
   // 데이터 초기화
   useEffect(() => {
@@ -186,11 +257,13 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           setSeekerProfile(profileData.data);
         }
       } catch (error) {
+        // TODO remove 
         // 네트워크 에러 등에도 더미 데이터 사용
         console.log("네트워크 에러, 더미 데이터 사용:", error);
         setSeekerProfile(dummySeekerProfile);
       } finally {
         setIsLoading(false);
+        console.log("seekerProfile:", seekerProfile);
       }
     };
 
@@ -214,11 +287,11 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         }),
         location: formData.location,
         phone: userInfo.phone_number || "",
-        skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
+        skillIds: [1, 2, 3], // 하드코딩된 skill IDs
         workType: formData.workType,
         jobTypes: formData.preferredJobTypes,
-        availabilityDays: formData.availableDays,
-        availabilityTimes: formData.availableHours,
+        availabilityDay: formData.availableDay,
+        availabilityTime: formData.availableHour,
         englishLevel: formData.englishLevel,
         experiences: formData.experiences.map((exp: any) => ({
           title: exp.jobType,
@@ -336,6 +409,11 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     isLoading,
     isEditing,
 
+    // API 데이터 상태
+    availableSkills,
+    availableLocations,
+    loadingStates,
+
     // 액션
     setUserInfo,
     setSeekerProfile,
@@ -347,5 +425,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     handleTempInputChange,
     updateUserProfile,
     updateProfileImage,
+
+    // API 데이터 fetch 함수들
+    fetchSkills,
+    fetchLocations,
   };
 };
