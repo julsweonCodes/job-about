@@ -15,7 +15,7 @@ export interface QuestionChoice {
     ko: string;
     en: string;
   };
-  imogi: string;
+  emoji: string;
 }
 
 export interface Question {
@@ -28,6 +28,7 @@ export interface Question {
     ko: string;
     en: string;
   };
+  img_url: string;
   choices: QuestionChoice[];
 }
 
@@ -59,7 +60,7 @@ function QuizChoiceCard({
               : "bg-gray-100 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-600"
           }`}
         >
-          <span className="text-sm md:text-2xl">{choice.imogi}</span>
+          <span className="text-sm md:text-2xl">{choice.emoji}</span>
         </div>
         <div className="flex-1 min-w-0">
           <h3
@@ -118,31 +119,30 @@ function QuizPage() {
     const fetchQuestions = async () => {
       try {
         console.log("퀴즈 질문 로딩 시작");
-        const response = await fetch('/api/quiz');
-        
+        const response = await fetch("/api/quiz");
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log("퀴즈 질문 로딩 완료:", data);
-        
-        if (data.status === 'success' && data.data) {
+
+        if (data.status === "success" && data.data) {
           setQuestions(data.data);
         } else {
-          throw new Error(data.message || '퀴즈 질문을 불러오는데 실패했습니다.');
+          throw new Error(data.message || "퀴즈 질문을 불러오는데 실패했습니다.");
         }
       } catch (error) {
         console.error("퀴즈 질문 로딩 실패:", error);
-        setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+        setError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.");
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchQuestions();
   }, []);
-
 
   useEffect(() => {
     if (isComplete && questions.length > 0) {
@@ -152,23 +152,23 @@ function QuizPage() {
           console.log("퀴즈 답변 제출 시작");
           const responses = questions.map((q) => ({
             questionId: q.id,
-            answer: answers[q.question_code] === 'A' ? 1 : 2
+            answer: answers[q.question_code] === "A" ? 1 : 2,
           }));
-          
+
           console.log("제출할 응답 데이터:", responses);
-          
-          const response = await fetch('/api/quiz', {
-            method: 'POST',
+
+          const response = await fetch("/api/quiz", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({ responses }),
           });
-          
+
           const data = await response.json();
           console.log("퀴즈 제출 응답:", data);
-          
-          if (data.status === 'success') {
+
+          if (data.status === "success") {
             // 성공적으로 제출되면 결과 페이지로 이동
             if (typeof window !== "undefined") {
               sessionStorage.setItem("quizSubmitted", "true");
@@ -184,7 +184,7 @@ function QuizPage() {
           alert("퀴즈 제출 중 오류가 발생했습니다.");
         }
       };
-      
+
       submitQuiz();
     }
   }, [isComplete, router, questions, answers]);
@@ -235,7 +235,10 @@ function QuizPage() {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">퀴즈를 불러올 수 없습니다</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-blue-500 text-white px-6 py-2 rounded-lg">
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg"
+          >
             다시 시도
           </Button>
         </div>
@@ -271,21 +274,13 @@ function QuizPage() {
           <div
             className={`bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-white/50 backdrop-blur-sm aspect-[4/3] flex flex-col items-center gap-4 md:gap-8`}
           >
-            {/* 질문별 시각적 요소 */}
+            {/* 질문별   시각적 요소 */}
             <div className="w-full aspect-[16/9] bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-6xl mb-4">
-                  {currentQuestion === 0 ? '⚡' : 
-                   currentQuestion === 1 ? '🔧' :
-                   currentQuestion === 2 ? '📋' :
-                   currentQuestion === 3 ? '🤝' :
-                   currentQuestion === 4 ? '📚' :
-                   currentQuestion === 5 ? '💬' : '❓'}
-                </div>
-                <div className="text-blue-600 font-semibold text-lg">
-                  Question {currentQuestion + 1} of {questions.length}
-                </div>
-              </div>
+              <img
+                src={question.img_url}
+                alt="Question Image"
+                className="w-full h-full object-cover"
+              />
             </div>
             <blockquote className="text-gray-700 leading-relaxed text-sm sm:text-xl font-medium italic">
               "{question.content.en}"
