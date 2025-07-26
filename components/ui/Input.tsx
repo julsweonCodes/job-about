@@ -19,14 +19,15 @@ export default function Input({
   rightIcon,
   ...props
 }: InputProps) {
-  // phone formatting
+  // phone formatting for US/Canada format: (555) 123-4567
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
     if (type === "phone") {
       val = val.replace(/[^0-9]/g, "");
-      if (val.length < 4) val = val;
-      else if (val.length < 7) val = val.replace(/(\d{3})(\d{1,3})/, "$1-$2");
-      else val = val.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
+      if (val.length === 0) val = "";
+      else if (val.length <= 3) val = `(${val}`;
+      else if (val.length <= 6) val = `(${val.slice(0, 3)}) ${val.slice(3)}`;
+      else val = `(${val.slice(0, 3)}) ${val.slice(3, 6)}-${val.slice(6, 10)}`;
     }
     if (onChange) onChange({ ...e, target: { ...e.target, value: val } });
   };
