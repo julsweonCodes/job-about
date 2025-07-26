@@ -1,12 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, MapPin, Clock, Briefcase, Languages, FileText, Pencil, Trash2 } from "lucide-react";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
-import ProgressBar from "@/components/common/ProgressBar";
 import ProgressHeader from "@/components/common/ProgressHeader";
 import {
   Select,
@@ -15,9 +14,10 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/Select";
-import { Dialog } from "@/components/common/Dialog";
 import { workedPeriodOptions } from "@/constants/options";
 import { LanguageLevel, WorkType, LANGUAGE_LEVELS, WORK_TYPES } from "@/constants/enums";
+import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
+import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
 
 interface JobSeekerFormData {
   skills: string[];
@@ -92,6 +92,7 @@ function ExperienceCard({ experience, onEdit, onDelete }: ExperienceCardProps) {
 
 function JobSeekerProfile() {
   const [showExperienceForm, setShowExperienceForm] = useState(false);
+  const [showJobTypesDialog, setShowJobTypesDialog] = useState(false);
   const [formData, setFormData] = useState<JobSeekerFormData>({
     skills: [],
     currentSkillInput: "",
@@ -135,6 +136,31 @@ function JobSeekerProfile() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  // 스크롤 상태를 직접 관리
+  const handleExperienceFormOpen = () => {
+    setShowExperienceForm(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const handleExperienceFormClose = () => {
+    setShowExperienceForm(false);
+    setEditingIndex(null);
+    document.body.style.overflow = "";
+  };
+
+  const handleJobTypesDialogOpen = () => {
+    setShowJobTypesDialog(true);
+    // ExperienceFormDialog가 열려있으므로 스크롤은 이미 잠겨있음
+  };
+
+  const handleJobTypesDialogClose = () => {
+    setShowJobTypesDialog(false);
+    // ExperienceFormDialog가 여전히 열려있다면 스크롤 잠금 유지
+    if (showExperienceForm) {
+      document.body.style.overflow = "hidden";
+    }
   };
 
   const handleAddExperience = () => {
@@ -643,72 +669,34 @@ function JobSeekerProfile() {
           </Button>
 
           {/* Experience Form Dialog */}
-          <Dialog
+          <ExperienceFormDialog
             open={showExperienceForm}
-            onClose={() => {
-              setShowExperienceForm(false);
-              setEditingIndex(null);
+            onClose={handleExperienceFormClose}
+            experienceForm={experienceForm}
+            setExperienceForm={setExperienceForm}
+            onSave={handleAddExperience}
+            editingIndex={editingIndex}
+            years={years.map((year) => ({ value: year, label: year }))}
+            workedPeriodOptions={workedPeriodOptions.map((period) => ({
+              value: period,
+              label: period,
+            }))}
+            onJobTypeSelect={handleJobTypesDialogOpen}
+          />
+
+          <JobTypesDialog
+            title="Select Job Type"
+            open={showJobTypesDialog}
+            onClose={handleJobTypesDialogClose}
+            selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType as any] : []}
+            onConfirm={(jobTypes) => {
+              if (jobTypes.length > 0) {
+                setExperienceForm((f) => ({ ...f, jobType: jobTypes[0] }));
+              }
+              handleJobTypesDialogClose();
             }}
-            type="bottomSheet"
-          >
-            <div className="space-y-4">
-              <Typography as="h3" variant="titleBold" className="mb-4">
-                Add Job Experience
-              </Typography>
-              <Input
-                label="Company Name"
-                placeholder="Enter company name"
-                value={experienceForm.company}
-                onChange={(e) => setExperienceForm((f) => ({ ...f, company: e.target.value }))}
-                required
-              />
-              <Input
-                label="Job Type"
-                placeholder="Enter job type"
-                value={experienceForm.jobType}
-                onChange={(e) => setExperienceForm((f) => ({ ...f, jobType: e.target.value }))}
-                required
-              />
-              <div className="flex gap-2">
-                <div className="w-1/2">
-                  <Typography as="label" variant="bodySm" className="block mb-2">
-                    Start Year
-                  </Typography>
-                  <RenderSelect
-                    value={experienceForm.startYear}
-                    onValueChange={(val) => setExperienceForm((f) => ({ ...f, startYear: val }))}
-                    options={years}
-                    placeholder="Year"
-                  />
-                </div>
-                <div className="w-1/2">
-                  <Typography as="label" variant="bodySm" className="block mb-2">
-                    Worked Period
-                  </Typography>
-                  <RenderSelect
-                    value={experienceForm.workedPeriod}
-                    onValueChange={(val) => setExperienceForm((f) => ({ ...f, workedPeriod: val }))}
-                    options={workedPeriodOptions}
-                    placeholder="Period"
-                  />
-                </div>
-              </div>
-              <TextArea
-                label="Description"
-                placeholder="Enter description"
-                rows={3}
-                value={experienceForm.description}
-                onChange={(e) => setExperienceForm((f) => ({ ...f, description: e.target.value }))}
-              />
-              <Button
-                onClick={handleAddExperience}
-                size="lg"
-                className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
-              >
-                {editingIndex === null ? "Add" : "Save"}
-              </Button>
-            </div>
-          </Dialog>
+            maxSelected={1}
+          />
         </div>
       </div>
     </div>

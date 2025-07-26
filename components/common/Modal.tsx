@@ -24,6 +24,7 @@ export function Modal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 transition-opacity duration-300 opacity-100 animate-fadeIn"
       onClick={onClose}
+      data-dialog-open={open}
     >
       <div
         className={cn(

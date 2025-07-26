@@ -28,10 +28,22 @@ export function Dialog({
     if (open) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "";
+      // 다이얼로그가 닫힐 때 다른 다이얼로그가 열려있는지 확인
+      setTimeout(() => {
+        const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
+        if (!hasOpenDialogs) {
+          document.body.style.overflow = "";
+        }
+      }, 0);
     }
     return () => {
-      document.body.style.overflow = "";
+      // cleanup 시에도 다른 다이얼로그가 열려있는지 확인
+      setTimeout(() => {
+        const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
+        if (!hasOpenDialogs) {
+          document.body.style.overflow = "";
+        }
+      }, 0);
     };
   }, [open]);
 
@@ -46,6 +58,7 @@ export function Dialog({
         className={className}
         size={size}
         showCloseButton={showCloseButton}
+        data-dialog-open={open}
       >
         {children}
       </Modal>
@@ -55,7 +68,7 @@ export function Dialog({
   // 모바일: type에 따라 분기
   if (type === "bottomSheet") {
     return (
-      <BottomSheet open={open} onClose={onClose} className={className}>
+      <BottomSheet open={open} onClose={onClose} className={className} data-dialog-open={open}>
         {children}
       </BottomSheet>
     );
@@ -68,6 +81,7 @@ export function Dialog({
       className={className}
       size={size}
       showCloseButton={showCloseButton}
+      data-dialog-open={open}
     >
       {children}
     </Modal>

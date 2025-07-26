@@ -66,12 +66,17 @@ export function BottomSheet({
       document.body.style.overflow = "hidden";
 
       return () => {
-        // BottomSheet가 닫힐 때 원래 스크롤 위치로 복원
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        document.body.style.overflow = "";
-        window.scrollTo(0, scrollY);
+        // BottomSheet가 닫힐 때 다른 다이얼로그가 열려있는지 확인
+        setTimeout(() => {
+          const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
+          if (!hasOpenDialogs) {
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.width = "";
+            document.body.style.overflow = "";
+            window.scrollTo(0, scrollY);
+          }
+        }, 0);
       };
     }
   }, [open]);
@@ -79,7 +84,11 @@ export function BottomSheet({
   if (!open) return null;
 
   const sheet = (
-    <div className={cn(bottomSheetVariants({ size, align }), className)} onClick={onClose}>
+    <div
+      className={cn(bottomSheetVariants({ size, align }), className)}
+      onClick={onClose}
+      data-dialog-open={open}
+    >
       <div
         className={cn(bottomSheetContentVariants({ size }), "min-h-[10vh]", className)}
         onClick={(e) => e.stopPropagation()}
