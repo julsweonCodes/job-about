@@ -105,17 +105,20 @@ export async function getStatusUpdateCnt(userId: number, bizLocId: number): Prom
   const currDate = new Date();
   const tomorrow = new Date(currDate);
   tomorrow.setDate(currDate.getDate() + 1);
-  const tomorrowDate = formatDateYYYYMMDD(tomorrow);
+  const currDateStr = formatDateYYYYMMDD(currDate);
+  const tomorrowDateStr = formatDateYYYYMMDD(tomorrow);
   const urgentJobPosts = await prisma.job_posts.findMany({
     where: {
       created_at: {
         lte: currDate,
       },
-
-      deadline: tomorrowDate,
       business_loc_id: bizLocId,
       user_id: userId,
       status: "PUBLISHED",
+      OR: [
+        { deadline: currDateStr },
+        { deadline: tomorrowDateStr }
+      ],
     },
     select: {
       id: true,
@@ -174,12 +177,16 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
   const currDate = new Date();
   const tomorrow = new Date(currDate);
   tomorrow.setDate(currDate.getDate() + 1);
-  const tomorrowDate = formatDateYYYYMMDD(tomorrow);
+  const tomorrowDateStr = formatDateYYYYMMDD(tomorrow);
+  const currDateStr = formatDateYYYYMMDD(currDate);
   const activeJobPosts = await prisma.job_posts.findMany({
     where: {
       business_loc_id: bizLocInfo.id,
       user_id: userId,
       status: "PUBLISHED",
+      deadline: {
+        gte: currDateStr
+      }
     },
     include: {
       _count: {
@@ -189,7 +196,7 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
       },
     },
   });
-  console.log("everybody looooook at this!!!", bizLocInfo);
+  // console.log("bizLocInfo: ", bizLocInfo);
   const img_base_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/biz-loc-photo/`;
   const activeJobPostList: JobPost[] = activeJobPosts.map((post) => ({
     id: post.id.toString(),
@@ -200,12 +207,12 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     deadline_date: formatYYYYMMDDtoMonthDayYear(post.deadline),
     description: post.description,
     location: bizLocInfo.address,
-    needsUpdate: post.deadline === tomorrowDate,
+    needsUpdate: post.deadline === tomorrowDateStr || post.deadline === currDateStr,
     strt_date: formatYYYYMMDDtoMonthDayYear(formatDateYYYYMMDD(post.created_at)),
     type: post.work_type,
     views: 0,
     wage: post.wage,
   }));
-  console.log("activeJobPostList: ", activeJobPostList);
+  // console.log("activeJobPostList: ", activeJobPostList);
   return activeJobPostList;
 }
