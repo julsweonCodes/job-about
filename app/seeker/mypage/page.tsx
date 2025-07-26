@@ -603,7 +603,7 @@ function App() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleTempInputChange("phone", e.target.value)
                 }
-                placeholder="123-456-7890"
+                placeholder="(555) 123-4567"
                 rightIcon={<Phone className="w-5 h-5" />}
               />
             ) : (
