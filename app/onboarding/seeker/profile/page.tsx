@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, MapPin, Clock, Briefcase, Languages, FileText, Pencil, Trash2 } from "lucide-react";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
@@ -18,6 +18,7 @@ import { workedPeriodOptions } from "@/constants/options";
 import { LanguageLevel, WorkType, LANGUAGE_LEVELS, WORK_TYPES } from "@/constants/enums";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import JobTypesDialog from "@/app/employer/components/JobTypesDialog";
+import { FormSection } from "@/components/common/FormSection";
 
 interface JobSeekerFormData {
   skills: string[];
@@ -138,12 +139,6 @@ function JobSeekerProfile() {
     }));
   };
 
-  // 스크롤 상태를 직접 관리
-  const handleExperienceFormOpen = () => {
-    setShowExperienceForm(true);
-    document.body.style.overflow = "hidden";
-  };
-
   const handleExperienceFormClose = () => {
     setShowExperienceForm(false);
     setEditingIndex(null);
@@ -183,37 +178,6 @@ function JobSeekerProfile() {
     setShowExperienceForm(false);
     setEditingIndex(null);
   };
-
-  // 공통 Select 렌더 함수 (타입 명시, 컴포넌트 바깥에 선언)
-  type RenderSelectOption = string | { value: string; label: string };
-  interface RenderSelectProps {
-    value: string;
-    onValueChange: (val: string) => void;
-    options: RenderSelectOption[];
-    placeholder: string;
-  }
-  function RenderSelect({ value, onValueChange, options, placeholder }: RenderSelectProps) {
-    return (
-      <Select value={value} onValueChange={(val: string) => onValueChange(val)}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt: RenderSelectOption) =>
-            typeof opt === "string" ? (
-              <SelectItem key={opt} value={opt}>
-                {opt}
-              </SelectItem>
-            ) : (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            )
-          )}
-        </SelectContent>
-      </Select>
-    );
-  }
 
   const addSkill = () => {
     if (
@@ -339,19 +303,12 @@ function JobSeekerProfile() {
           </div>
 
           {/* Skills Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-200">
-                <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Skills
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                Add your key skills and competencies
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<User />}
+            title="Skills"
+            description="Add your key skills and competencies"
+            iconColor="blue"
+          >
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Input
@@ -373,22 +330,15 @@ function JobSeekerProfile() {
                 </div>
               )}
             </div>
-          </div>
+          </FormSection>
 
           {/* Job Preferences Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-green-200">
-                <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Job Preferences
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                Define your work preferences and job types
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<Briefcase />}
+            title="Job Preferences"
+            description="Define your work preferences and job types"
+            iconColor="green"
+          >
             <div className="space-y-6">
               {/* Work Type */}
               <div>
@@ -449,7 +399,7 @@ function JobSeekerProfile() {
                 )}
               </div>
             </div>
-          </div>
+          </FormSection>
 
           {/* Availability Section */}
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
@@ -664,7 +614,13 @@ function JobSeekerProfile() {
           </div>
 
           {/* 최종 제출 버튼 */}
-          <Button onClick={handleSubmit} size="xl" className="w-full" disabled={progress < 100}>
+          <Button
+            onClick={handleSubmit}
+            size="xl"
+            className="w-full"
+            disabled={progress < 100}
+            variant="gradient"
+          >
             Confirm Profile
           </Button>
 

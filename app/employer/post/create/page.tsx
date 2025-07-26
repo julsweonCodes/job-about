@@ -10,8 +10,6 @@ import {
   Briefcase,
   Smile,
   Settings,
-  Sparkles,
-  PenTool,
 } from "lucide-react";
 import PageProgressHeader from "@/components/common/PageProgressHeader";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -30,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";
 import { workTypeOptions } from "@/constants/options";
+import { FormSection } from "@/components/common/FormSection";
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -87,7 +86,7 @@ function JobPostCreatePage() {
         skills: true,
         jobTypes: true,
         workStyles: true,
-        workType: true
+        workType: true,
       });
 
       // 모든 API 호출을 병렬로 실행
@@ -116,7 +115,17 @@ function JobPostCreatePage() {
 
   const handleInputChange = (
     field: string,
-    value: string | boolean | Date | string[] | Skill[] | WorkStyle[] | JobType | WorkType | null | undefined
+    value:
+      | string
+      | boolean
+      | Date
+      | string[]
+      | Skill[]
+      | WorkStyle[]
+      | JobType
+      | WorkType
+      | null
+      | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -145,7 +154,6 @@ function JobPostCreatePage() {
     } else {
       router.push(`/employer/post/preview/${result.data.id}?useAI=false`);
     }
-
   };
 
   const handleBack = () => {
@@ -173,7 +181,7 @@ function JobPostCreatePage() {
   const progress = calculateCompletion();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
       {isLoading && <LoadingScreen message="Generating job post..." />}
 
       {/* Header */}
@@ -189,98 +197,83 @@ function JobPostCreatePage() {
         {/*<form onSubmit={handleSubmit} className="space-y-6"> */}
         <div className="space-y-6">
           {/* Job Title Section */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Job Title
-                </Typography>
-                <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Define the position title
-                </Typography>
-              </div>
-            </div>
-
+          <FormSection
+            icon={<Briefcase />}
+            title="Job Title"
+            description="Define the position title"
+            iconColor="blue"
+          >
             <Input
-              label="Job Title"
               value={formData.jobTitle}
               onChange={(e: any) => handleInputChange("jobTitle", e.target.value)}
               placeholder="Enter Job Title"
               required
             />
-          </div>
+          </FormSection>
 
           {/* Job Type Section */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <Settings className="w-5 h-5 text-green-600" />
-              </div>
+          <FormSection
+            icon={<Settings />}
+            title="Job Types"
+            description="Select multiple job categories"
+            iconColor="green"
+          >
+            <div className="space-y-6">
+              {/* Work Type Selection */}
               <div>
-                <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Job Types
+                <Typography
+                  as="label"
+                  variant="bodySm"
+                  className="block font-semibold text-gray-800 mb-3"
+                >
+                  Work Type
                 </Typography>
-                <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Select multiple job categories
+                <div className="grid grid-cols-3 gap-2">
+                  {workTypeOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      onClick={() => handleInputChange("selectedWorkType", option.value)}
+                      className={`px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 border-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                        formData.selectedWorkType === option.value
+                          ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 shadow-lg shadow-green-200"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                      }`}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              {/* Job Type Selection */}
+              <div>
+                <Typography
+                  as="label"
+                  variant="bodySm"
+                  className="block font-semibold text-gray-800 mb-3"
+                >
+                  Job Type
                 </Typography>
+                <Input
+                  readOnly
+                  required
+                  placeholder="Select Job Type"
+                  className="cursor-pointer"
+                  value={
+                    formData.selectedJobType ? getJobTypeConfig(formData.selectedJobType).name : ""
+                  }
+                  onClick={() => setJobTypesDialogOpen(true)}
+                />
               </div>
             </div>
-
-            <div>
-              <Input
-                readOnly
-                label="Job Type"
-                required
-                placeholder="Select Job Type"
-                className="cursor-pointer"
-                value={
-                  formData.selectedJobType ? getJobTypeConfig(formData.selectedJobType).name : ""
-                }
-                onClick={() => setJobTypesDialogOpen(true)}
-              />
-            </div>
-            <div className="py-2">
-              <Typography
-                variant="bodySm"
-                as="label"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Work Type
-              </Typography>
-              <div className="flex flex-wrap gap-3">
-                {workTypeOptions.map((option) => (
-                  <Chip
-                    key={option.value}
-                    selected={formData.selectedWorkType === option.value}
-                    onClick={() => handleInputChange("selectedWorkType", option.value)}
-                  >
-                    {option.label}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          </div>
-
+          </FormSection>
 
           {/* Schedule & Timing Section */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Schedule & Timing
-                </Typography>
-                <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Set deadlines and work schedule
-                </Typography>
-              </div>
-            </div>
-
+          <FormSection
+            icon={<Calendar />}
+            title="Schedule & Timing"
+            description="Set deadlines and work schedule"
+            iconColor="orange"
+          >
             <div className="space-y-4">
               {/* Deadline */}
               <div>
@@ -330,24 +323,15 @@ function JobPostCreatePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </FormSection>
 
           {/* Requirements Section */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Requirements
-                </Typography>
-                <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Define skills and personality traits
-                </Typography>
-              </div>
-            </div>
-
+          <FormSection
+            icon={<User />}
+            title="Requirements"
+            description="Define skills and personality traits"
+            iconColor="purple"
+          >
             <div className="space-y-4">
               {/* Required Skills */}
               <div>
@@ -378,20 +362,18 @@ function JobPostCreatePage() {
                 />
               </div>
 
-              {/* Required Personality */}
+              {/* Required Work Style */}
               <div>
                 <Input
                   readOnly
-                  label="Required Personality"
+                  label="Required Work Style"
                   required
-                  placeholder="Select Preferred Personality"
+                  placeholder="Select Required Work Style"
                   className="cursor-pointer"
                   rightIcon={<Smile className="w-5 h-5 text-gray-400" />}
                   value={formData.requiredWorkStyles
                     .map((ws) =>
-                      typeof ws === "string"
-                        ? capitalize(ws)
-                        : capitalize((ws as any).name_en)
+                      typeof ws === "string" ? capitalize(ws) : capitalize((ws as any).name_en)
                     )
                     .join(", ")}
                   onClick={() => setPersonalityDialogOpen(true)}
@@ -430,30 +412,20 @@ function JobPostCreatePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </FormSection>
 
           {/* Compensation Section */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Compensation
-                </Typography>
-                <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Set wage in hourly basis
-                </Typography>
-              </div>
-            </div>
-
+          <FormSection
+            icon={<DollarSign />}
+            title="Compensation"
+            description="Set wage in hourly basis"
+            iconColor="emerald"
+          >
             <div className="space-y-4">
               {/* Wage */}
               <div className="relative">
                 <Input
                   step="0.01"
-                  label="Wage"
                   value={formData.wage}
                   onChange={(e: any) => handleInputChange("wage", e.target.value)}
                   placeholder="Enter Wage"
@@ -461,24 +433,15 @@ function JobPostCreatePage() {
                 />
               </div>
             </div>
-          </div>
+          </FormSection>
 
           {/* Job Description Section */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <FileText className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <Typography as="h3" variant="headlineMd" className="font-semibold text-gray-900">
-                  Job Description
-                </Typography>
-                <Typography as="p" variant="bodySm" className="text-gray-600">
-                  Describe the role and responsibilities
-                </Typography>
-              </div>
-            </div>
-
+          <FormSection
+            icon={<FileText />}
+            title="Job Description"
+            description="Describe the role and responsibilities"
+            iconColor="orange"
+          >
             {/* AI 사용 여부 선택 */}
             <div className="mb-6">
               <Typography
@@ -492,26 +455,24 @@ function JobPostCreatePage() {
                 <button
                   type="button"
                   onClick={() => handleInputChange("useAI", true)}
-                  className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] ${
                     formData.useAI
-                      ? "border-purple-500 bg-purple-50 text-purple-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-purple-300"
+                      ? "border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 shadow-md"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:shadow-sm"
                   }`}
                 >
-                  <Sparkles className="w-5 h-5" />
-                  <span className="font-medium">Use AI</span>
+                  <span className="font-semibold">Use AI 🤖</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleInputChange("useAI", false)}
-                  className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] ${
                     !formData.useAI
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300"
+                      ? "border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-md"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:shadow-sm"
                   }`}
                 >
-                  <PenTool className="w-5 h-5" />
-                  <span className="font-medium">Write Manually</span>
+                  <span className="font-semibold">Write Manually 📝</span>
                 </button>
               </div>
               <p className="text-bodySm sm:text-bodyMd text-gray-500 mt-2">
@@ -533,7 +494,7 @@ function JobPostCreatePage() {
               rows={4}
               required
             />
-          </div>
+          </FormSection>
 
           {/* Submit Button */}
           <div className="pb-8">
@@ -541,7 +502,8 @@ function JobPostCreatePage() {
               //type="submit"
               onClick={handleSubmit}
               size="xl"
-              className="w-full bg-[#7C3AED] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-[#6D28D9] active:bg-[#5B21B6] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+              variant="gradient"
+              className="w-full"
             >
               {formData.useAI ? "Generate Job Posting with AI" : "Create Job Posting"}
             </Button>

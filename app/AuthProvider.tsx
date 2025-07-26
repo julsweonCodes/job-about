@@ -42,12 +42,8 @@ export default function AuthProvider() {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    // 개발 중에는 AuthProvider 라우팅 비활성화
-    if (process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true") {
-      console.log("AuthProvider routing disabled for development");
-      return;
-    }
-
+    // 개발 중에는 AuthProvider 라우팅만 비활성화 (로그인 처리는 계속)
+    const isRoutingDisabled = process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true";
     const supabase = supabaseClient;
 
     // 초기 로그인 상태 확인
@@ -82,6 +78,11 @@ export default function AuthProvider() {
             setProfileStatus(userData.data.profileStatus);
 
             console.log("userData", userData);
+
+            if (isRoutingDisabled) {
+              console.log("AuthProvider routing disabled for development");
+              return;
+            }
 
             const currentPath = window.location.pathname;
 
@@ -219,8 +220,9 @@ export default function AuthProvider() {
   }, [setIsLoggedIn, setUser]);
 
   useEffect(() => {
-    // 개발 중에는 AuthProvider 라우팅 비활성화
-    if (process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true") {
+    // 개발 중에는 AuthProvider 라우팅만 비활성화 (로그인 처리는 계속)
+    const isRoutingDisabled = process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true";
+    if (isRoutingDisabled) {
       return;
     }
 

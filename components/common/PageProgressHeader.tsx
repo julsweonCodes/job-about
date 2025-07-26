@@ -42,7 +42,7 @@ const PageProgressHeader: React.FC<PageProgressHeaderProps> = ({
             </Typography>
           </div>
 
-          <ProgressBar value={progress} className="h-2 mb-2" />
+          <ProgressBar value={progress} className="h-2 mb-2 h-2 md:h-3" />
         </div>
       </div>
     </div>

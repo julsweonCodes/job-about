@@ -16,6 +16,8 @@ export default function OnboardingPage() {
 
   // 프로필이 완성되었으면 해당 페이지로 리다이렉트
   useEffect(() => {
+    console.log("isLoggedIn", isLoggedIn);
+    console.log("profileStatus", profileStatus);
     if (isLoggedIn && profileStatus) {
       if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
         if (profileStatus.role === "APPLICANT") {
