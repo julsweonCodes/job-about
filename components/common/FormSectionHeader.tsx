@@ -5,7 +5,16 @@ interface FormSectionHeaderProps {
   icon: ReactNode;
   title: string;
   description: string;
-  iconColor?: "blue" | "green" | "orange" | "purple" | "emerald" | "red";
+  iconColor?:
+    | "blue"
+    | "green"
+    | "orange"
+    | "purple"
+    | "emerald"
+    | "red"
+    | "indigo"
+    | "teal"
+    | "pink";
   className?: string;
 }
 
@@ -23,6 +32,9 @@ export function FormSectionHeader({
     purple: "from-purple-500 to-purple-600 shadow-purple-200",
     emerald: "from-emerald-500 to-emerald-600 shadow-emerald-200",
     red: "from-red-500 to-red-600 shadow-red-200",
+    indigo: "from-indigo-500 to-indigo-600 shadow-indigo-200",
+    teal: "from-teal-500 to-teal-600 shadow-teal-200",
+    pink: "from-pink-500 to-pink-600 shadow-pink-200",
   };
 
   return (

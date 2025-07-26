@@ -1,12 +1,21 @@
 import { ReactNode } from "react";
-import { FormSectionHeader } from "./FormSectionHeader";
-import { FormSectionCard } from "./FormSectionCard";
+import { FormSectionHeader } from "@/components/common/FormSectionHeader";
+import { FormSectionCard } from "@/components/common/FormSectionCard";
 
 interface FormSectionProps {
   icon: ReactNode;
   title: string;
   description: string;
-  iconColor?: "blue" | "green" | "orange" | "purple" | "emerald" | "red";
+  iconColor?:
+    | "blue"
+    | "green"
+    | "orange"
+    | "purple"
+    | "emerald"
+    | "red"
+    | "indigo"
+    | "teal"
+    | "pink";
   children: ReactNode;
   className?: string;
 }

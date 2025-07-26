@@ -221,19 +221,12 @@ function JobSeekerProfile() {
           </FormSection>
 
           {/* Availability Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-200">
-                <Clock className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Availability
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                When are you available to work?
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<Clock />}
+            title="Availability"
+            description="When are you available to work?"
+            iconColor="orange"
+          >
             <div className="space-y-6">
               {/* Day */}
               <div>
@@ -293,22 +286,15 @@ function JobSeekerProfile() {
                 </div>
               </div>
             </div>
-          </div>
+          </FormSection>
 
           {/* Location Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-200">
-                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Location
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                Select your preferred work location
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<MapPin />}
+            title="Location"
+            description="Select your preferred work location"
+            iconColor="purple"
+          >
             <div className="relative">
               <Select
                 value={formData.location}
@@ -335,22 +321,15 @@ function JobSeekerProfile() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </FormSection>
 
           {/* Experiences Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-200">
-                <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Experiences
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                Add your previous work experiences
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<Briefcase />}
+            title="Experiences"
+            description="Add your previous work experiences"
+            iconColor="indigo"
+          >
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Input
@@ -375,22 +354,15 @@ function JobSeekerProfile() {
                 </div>
               )}
             </div>
-          </div>
+          </FormSection>
 
           {/* Language Proficiency Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-6 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-teal-200">
-                <Languages className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Language Proficiency
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                Select your language skill level
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<Languages />}
+            title="Language Proficiency"
+            description="Select your language skill level"
+            iconColor="teal"
+          >
             <div className="flex gap-2 sm:grid sm:grid-cols-3">
               {languageLevels.map((level) => (
                 <FullWidthChip
@@ -408,22 +380,15 @@ function JobSeekerProfile() {
                 </FullWidthChip>
               ))}
             </div>
-          </div>
+          </FormSection>
 
           {/* Self Introduction Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-gray-200/40 border border-white/50 p-5 mb-10 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500">
-            <div className="mb-6">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-pink-200">
-                <FileText className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <Typography variant="headlineMd" as="h2" className="mb-2 tracking-tight">
-                Self Introduction
-              </Typography>
-              <Typography variant="bodySm" as="p" className="text-gray-500 text-sm font-medium">
-                Tell employers about yourself and your experience
-              </Typography>
-            </div>
-
+          <FormSection
+            icon={<FileText />}
+            title="Self Introduction"
+            description="Tell employers about yourself and your experience"
+            iconColor="pink"
+          >
             <TextArea
               value={formData.selfIntroduction}
               onChange={(e) => handleInputChange("selfIntroduction", e.target.value)}
@@ -431,7 +396,7 @@ function JobSeekerProfile() {
               rows={5}
               className="w-full"
             />
-          </div>
+          </FormSection>
 
           {/* 최종 제출 버튼 */}
           <Button

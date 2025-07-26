@@ -122,6 +122,13 @@ export default function ExperienceFormDialog({
           onClick={onSave}
           size="lg"
           className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+          disabled={
+            !experienceForm.company ||
+            !experienceForm.jobType ||
+            !experienceForm.startYear ||
+            !experienceForm.workedPeriod ||
+            !experienceForm.description
+          }
         >
           {editingIndex === null ? "Add" : "Save"}
         </Button>

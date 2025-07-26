@@ -27,7 +27,6 @@ import TextArea from "@/components/ui/TextArea";
 import {
   AvailableDay,
   AvailableHour,
-  JobType,
   LanguageLevel,
   WorkType,
   AVAILABLE_DAYS,
@@ -35,7 +34,8 @@ import {
 } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { Location } from "@/constants/enums";
+import { Location } from "@/constants/location";
+import { JobType } from "@/constants/jobTypes";
 import { getEnumKeyFromValue } from "@/utils/client/seeker";
 
 export interface UserInfo {
@@ -164,19 +164,17 @@ function App() {
           month: "2-digit",
           day: "2-digit",
         }),
-        location: Location[seekerProfile.location as keyof typeof Location],
+        location: seekerProfile.location,
         phone: userInfo.phone_number,
         skills: ["UI/UX Design", "Figma", "Prototyping", "User Research"],
         workType: seekerProfile.work_type.toString(),
         jobTypes: [
-          JobType[seekerProfile.job_type1 as keyof typeof JobType],
-          JobType[seekerProfile.job_type2 as keyof typeof JobType],
-          JobType[seekerProfile.job_type3 as keyof typeof JobType],
+          seekerProfile.job_type1,
+          seekerProfile.job_type2,
+          seekerProfile.job_type3,
         ].filter((jobType) => jobType != null),
-        availabilityDays: [AvailableDay[seekerProfile.available_day as keyof typeof AvailableDay]],
-        availabilityTimes: [
-          AvailableHour[seekerProfile.available_hour as keyof typeof AvailableHour],
-        ],
+        availabilityDays: [seekerProfile.available_day],
+        availabilityTimes: [seekerProfile.available_hour],
         englishLevel: seekerProfile.language_level,
         experiences: seekerProfile.work_experiences?.length
           ? seekerProfile.work_experiences.map((exp) => ({
