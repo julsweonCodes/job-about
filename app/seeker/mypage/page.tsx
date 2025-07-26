@@ -36,6 +36,7 @@ import LoadingScreen from "@/components/common/LoadingScreen";
 import { Location } from "@/constants/location";
 import { JobType } from "@/constants/jobTypes";
 import { getEnumKeyFromValue } from "@/utils/client/seeker";
+import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 
 export interface UserInfo {
   name: string;
@@ -68,7 +69,7 @@ export interface SeekerProfile {
 interface ApplicantProfile {
   name: string;
   description: string;
-  profileImageUrl: string;
+  profileImageUrl: string | null;
   joinDate: string;
   location: string;
   phone: string;
@@ -82,12 +83,54 @@ interface ApplicantProfile {
     title: string;
     company: string;
     duration: string;
+    description?: string;
   }[];
 }
+
+const dummySeekerProfile: SeekerProfile = {
+  location: Location.TORONTO,
+  work_type: WorkType.REMOTE,
+  job_type1: JobType.SERVER,
+  job_type2: JobType.BARISTA,
+  job_type3: JobType.CASHIER,
+  available_day: AvailableDay.WEEKDAYS,
+  available_hour: AvailableHour.AM,
+  language_level: LanguageLevel.INTERMEDIATE,
+  work_experiences: [
+    {
+      company_name: "Starbucks Coffee",
+      job_type: JobType.BARISTA,
+      start_date: new Date("2023-01-15"),
+      end_date: new Date("2024-06-30"),
+      work_type: WorkType.ON_SITE,
+      description:
+        "Prepared and served coffee beverages, maintained cleanliness standards, and provided excellent customer service.",
+    },
+    {
+      company_name: "McDonald's",
+      job_type: JobType.CASHIER,
+      start_date: new Date("2022-03-01"),
+      end_date: new Date("2022-12-31"),
+      work_type: WorkType.ON_SITE,
+      description:
+        "Handled cash transactions, took customer orders, and ensured customer satisfaction.",
+    },
+    {
+      company_name: "Tim Hortons",
+      job_type: JobType.SERVER,
+      start_date: new Date("2021-06-01"),
+      end_date: new Date("2022-02-28"),
+      work_type: WorkType.ON_SITE,
+      description:
+        "Served customers, maintained dining area cleanliness, and assisted with food preparation.",
+    },
+  ],
+};
 
 function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
+  const [showExperienceDialog, setShowExperienceDialog] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isEditing, setIsEditing] = useState({
     basicInfo: false,
@@ -102,7 +145,7 @@ function App() {
   const initialApplicantProfile: ApplicantProfile = {
     name: "",
     description: "",
-    profileImageUrl: "",
+    profileImageUrl: null,
     joinDate: "",
     location: "",
     phone: "",
@@ -120,6 +163,16 @@ function App() {
     useState<ApplicantProfile>(initialApplicantProfile);
   const [tempData, setTempData] = useState<ApplicantProfile>(initialApplicantProfile);
 
+  // 경험 관련 상태
+  const [experienceForm, setExperienceForm] = useState({
+    company: "",
+    jobType: "",
+    startYear: "",
+    workedPeriod: "",
+    description: "",
+  });
+  const [editingExperienceIndex, setEditingExperienceIndex] = useState<number | null>(null);
+
   const router = useRouter();
 
   if (!applicantProfile || !tempData) {
@@ -135,7 +188,13 @@ function App() {
         ]);
 
         const userData = await userRes.json();
-        const profileData = await profileRes.json();
+        let profileData = await profileRes.json();
+
+        // API 실패 시 더미 데이터 사용
+        if (profileData.status !== "success" || !profileData.data) {
+          console.log("API 실패, 더미 데이터 사용");
+          profileData = { status: "success", data: dummySeekerProfile };
+        }
 
         if (userData.status === "success" && userData.data) {
           setUserInfo(userData.data.user);
@@ -145,7 +204,9 @@ function App() {
           setSeekerProfile(profileData.data);
         }
       } catch (error) {
-        console.error("초기 데이터 로딩 실패:", error);
+        // 네트워크 에러 등에도 더미 데이터 사용
+        console.log("네트워크 에러, 더미 데이터 사용:", error);
+        setSeekerProfile(dummySeekerProfile);
       }
     };
 
@@ -157,7 +218,7 @@ function App() {
       setApplicantProfile({
         name: userInfo.name,
         description: userInfo.description,
-        profileImageUrl: userInfo.img_url ? userInfo.img_url : "",
+        profileImageUrl: userInfo.img_url || null,
         joinDate: new Date(userInfo.created_at).toLocaleDateString("ko-KR", {
           year: "numeric",
           month: "2-digit",
@@ -419,6 +480,66 @@ function App() {
     setShowImageUploadDialog(true);
   };
 
+  // 경험 관련 함수들
+  const handleAddExperience = () => {
+    setExperienceForm({
+      company: "",
+      jobType: "",
+      startYear: "",
+      workedPeriod: "",
+      description: "",
+    });
+    setEditingExperienceIndex(null);
+    setShowExperienceDialog(true);
+  };
+
+  const handleEditExperience = (index: number) => {
+    const experience = tempData.experiences[index];
+    setExperienceForm({
+      company: experience.company,
+      jobType: experience.title,
+      startYear: experience.duration.split(" - ")[0].split("/")[0],
+      workedPeriod: experience.duration.split(" - ")[1].split("/")[0],
+      description: experience.description || "",
+    });
+    setEditingExperienceIndex(index);
+    setShowExperienceDialog(true);
+  };
+
+  const handleSaveExperience = () => {
+    if (editingExperienceIndex !== null) {
+      // 기존 경험 수정
+      const updatedExperiences = [...tempData.experiences];
+      updatedExperiences[editingExperienceIndex] = {
+        title: experienceForm.jobType,
+        company: experienceForm.company,
+        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
+        description: experienceForm.description,
+      };
+      setTempData((prev) => ({ ...prev, experiences: updatedExperiences }));
+    } else {
+      // 새 경험 추가
+      // TODO call api to add experience
+      const newExperience = {
+        title: experienceForm.jobType,
+        company: experienceForm.company,
+        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
+        description: experienceForm.description,
+      };
+      setTempData((prev) => ({ ...prev, experiences: [...prev.experiences, newExperience] }));
+    }
+    setShowExperienceDialog(false);
+  };
+
+  const handleJobTypeSelect = () => {
+    // JobType 선택 다이얼로그 구현 (임시로 간단한 선택)
+    const jobTypes = ["Server", "Barista", "Cashier", "Kitchen Help", "Delivery"];
+    const selected = prompt("Select job type:\n" + jobTypes.join("\n"));
+    if (selected && jobTypes.includes(selected)) {
+      setExperienceForm((prev) => ({ ...prev, jobType: selected }));
+    }
+  };
+
   // Job Preferences 관련 함수들
   const addSkill = () => {
     if (newSkill.trim()) {
@@ -503,8 +624,9 @@ function App() {
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
                     src={
-                      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}` ||
-                      "/images/img-default-profile.png"
+                      applicantProfile.profileImageUrl
+                        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`
+                        : "/images/img-default-profile.png"
                     }
                     alt={applicantProfile.name}
                     className="w-full h-full object-cover"
@@ -620,7 +742,9 @@ function App() {
             ) : (
               <div className="flex items-center gap-3">
                 <Phone size={16} className="text-slate-400" />
-                <span className="text-slate-700 font-medium">{applicantProfile.phone}</span>
+                <span className="text-slate-700 font-medium">
+                  {applicantProfile.phone || "Enter your phone number"}
+                </span>
               </div>
             )}
           </InfoSection>
@@ -897,14 +1021,26 @@ function App() {
           >
             <div className="space-y-3">
               {tempData.experiences.map((exp, index) => (
-                <div key={index} className="p-4 bg-slate-50 rounded-lg">
+                <div key={index} className="p-4 bg-slate-50 rounded-lg relative group">
+                  <button
+                    onClick={() => handleEditExperience(index)}
+                    className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm"
+                  >
+                    <Edit3 size={14} className="text-slate-600" />
+                  </button>
                   <h4 className="font-medium text-slate-900">{exp.title}</h4>
                   <p className="text-sm text-slate-600">{exp.company}</p>
                   <p className="text-xs text-slate-500">{exp.duration}</p>
+                  {exp.description && (
+                    <p className="text-xs text-slate-500 mt-2">{exp.description}</p>
+                  )}
                 </div>
               ))}
             </div>
-            <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation">
+            <button
+              onClick={handleAddExperience}
+              className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation"
+            >
               <Plus size={16} />
               Add Experience
             </button>
@@ -1029,8 +1165,27 @@ function App() {
         onClose={() => setShowImageUploadDialog(false)}
         onSave={handleProfileImageChange}
         title="Change Profile Image"
-        currentImage={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`}
+        currentImage={
+          applicantProfile.profileImageUrl
+            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`
+            : "/images/img-default-profile.png"
+        }
         type="profile"
+      />
+
+      {/* Experience Form Dialog */}
+      <ExperienceFormDialog
+        open={showExperienceDialog}
+        onClose={() => setShowExperienceDialog(false)}
+        experienceForm={experienceForm}
+        setExperienceForm={setExperienceForm}
+        onSave={handleSaveExperience}
+        editingIndex={editingExperienceIndex}
+        years={Array.from({ length: 20 }, (_, i) => ({
+          value: (2024 - i).toString(),
+          label: (2024 - i).toString(),
+        }))}
+        onJobTypeSelect={handleJobTypeSelect}
       />
     </div>
   );

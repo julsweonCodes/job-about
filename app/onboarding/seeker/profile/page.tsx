@@ -484,10 +484,6 @@ function JobSeekerProfile() {
             onSave={handleAddExperience}
             editingIndex={editingIndex}
             years={years.map((year) => ({ value: year, label: year }))}
-            workedPeriodOptions={workedPeriodOptions.map((period) => ({
-              value: period,
-              label: period,
-            }))}
             onJobTypeSelect={() => experienceJobTypesDialog.open()}
           />
 

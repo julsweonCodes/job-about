@@ -12,6 +12,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/Select";
+import { workedPeriodOptions } from "@/constants/options";
 
 interface ExperienceForm {
   company: string;
@@ -29,7 +30,6 @@ interface ExperienceFormDialogProps {
   onSave: () => void;
   editingIndex: number | null;
   years: { value: string; label: string }[];
-  workedPeriodOptions: { value: string; label: string }[];
   onJobTypeSelect: () => void;
 }
 
@@ -41,7 +41,6 @@ export default function ExperienceFormDialog({
   onSave,
   editingIndex,
   years,
-  workedPeriodOptions,
   onJobTypeSelect,
 }: ExperienceFormDialogProps) {
   return (
@@ -103,8 +102,8 @@ export default function ExperienceFormDialog({
               </SelectTrigger>
               <SelectContent>
                 {workedPeriodOptions.map((period) => (
-                  <SelectItem key={period.value} value={period.value}>
-                    {period.label}
+                  <SelectItem key={period} value={period}>
+                    {period}
                   </SelectItem>
                 ))}
               </SelectContent>
