@@ -223,6 +223,7 @@ export default function AuthProvider() {
     // 개발 중에는 AuthProvider 라우팅만 비활성화 (로그인 처리는 계속)
     const isRoutingDisabled = process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true";
     if (isRoutingDisabled) {
+      console.log("AuthProvider routing disabled for development");
       return;
     }
 

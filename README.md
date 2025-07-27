@@ -21,7 +21,18 @@ This project is a login example using Next.js, TypeScript, TailwindCSS, and Supa
 yarn install
 ```
 
-2. Set environment variables
+2. Set up Git hooks (for pre-commit checks)
+
+```bash
+# 자동 설정 스크립트 실행
+./setup-hooks.sh
+
+# 또는 수동으로 설정
+mkdir -p .git/hooks
+# .git/hooks/pre-commit 파일이 자동으로 생성됩니다
+```
+
+3. Set environment variables
 
 Create a Supabase project and add the following to your `.env.local` file:
 
@@ -30,7 +41,7 @@ NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-3. Start the development server
+4. Start the development server
 
 ```bash
 yarn dev

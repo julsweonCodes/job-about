@@ -39,7 +39,7 @@ export async function geminiTest(payload: JobPostPayload) {
   
   Business Information: jobTitle: "${payload.jobTitle}", jobType: "${payload.selectedJobType}", workType: ${payload.selectedWorkType}",  
   requiredSkills: "${payload.requiredSkills}", requiredWorkStyles: "${payload.requiredWorkStyles}",
-  wage: "${payload.wage}", languageLevel: "${payload.language_level}"
+  wage: "${payload.wage}", languageLevel: "${payload.languageLevel}"
   Job Description (in Korean):
   "${payload.jobDescription}"`
 
