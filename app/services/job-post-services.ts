@@ -15,8 +15,7 @@ import { JobType } from "@/constants/jobTypes";
  export async function createJobPost(payload: JobPostPayload) {
   const userId = await getUserIdFromSession();
   const bizLocId = await getBusinessLocId(userId);
-  console.log(userId, bizLocId);
-   console.log(payload);
+
   const createdPost = await prisma.job_posts.create({
     data: {
       deadline: formatDateYYYYMMDD(payload.deadline),
@@ -29,7 +28,7 @@ import { JobType } from "@/constants/jobTypes";
       business_loc_id: bizLocId,
       user_id: userId,
       work_type: toPrismaWorkType(payload.selectedWorkType),
-      language_level: toPrismaLanguageLevel(payload.language_level),
+      language_level: toPrismaLanguageLevel(payload.languageLevel),
     },
     select: {
       id: true,

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
@@ -9,17 +9,21 @@ import { JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { useSearchParams } from "next/navigation";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 interface Props { 
   geminiRes: any;
   description: string;
+  postId: string;
 }
 
-const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description }) => {
+const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description, postId }) => {
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const useAI = searchParams.get("useAI") === "true";
-  const [jobData, setJobData] = useState<JobPostData>({
+  const [jobPostData, setJobPostData] = useState<JobPostData>();
+  /*
+  {
     id: "1",
     title: "Cashier",
     jobType: JobType.ACCOUNTANT,
@@ -46,9 +50,56 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description }) => {
     languageLevel: LanguageLevel.INTERMEDIATE,
     hourlyWage: "$15/hr",
     description,
-  });
+  }
+
+   */
 
   const [tempEditData, setTempEditData] = useState<any>({});
+  const [loadingStates, setLoadingStates] = useState({
+    jobPostPreview: false,
+  });
+
+  const initializeData = async () => {
+    try {
+      // 로딩 시작
+      setLoadingStates({
+        jobPostPreview: true,
+      });
+
+      // 모든 API 호출을 병렬로 실행
+      await Promise.all([
+        fetchPreviewJobPost()
+        // 추가 API 호출들을 여기에 추가
+      ]);
+    } catch (error) {
+      console.error("Error initializing dashboard:", error);
+    } finally {
+      // 로딩 완료
+      setLoadingStates({
+        jobPostPreview: false
+      });
+    }
+  };
+
+  useEffect(() => {
+    initializeData();
+  }, []);
+
+  // 전체 로딩 상태 계산
+  const isLoading = Object.values(loadingStates).some((state) => state);
+  const fetchPreviewJobPost = async() => {
+    try {
+      const res = await fetch(`/api/employer/post/preview/${postId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setJobPostData(data.data);
+      } else {
+        console.log("Failed to fetch DRAFT job post");
+      }
+    } catch (e) {
+      console.log("Error fetching DRAFT job post", e);
+    }
+  };
 
   const handleEdit = (section: string, initialData?: any) => {
     setTempEditData(initialData || {});
@@ -56,27 +107,33 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description }) => {
   };
 
   const handleSave = (section: string, data: any) => {
-    setJobData((prev: any) => ({ ...prev, ...data }));
+    setJobPostData((prev: any) => ({ ...prev, ...data }));
     setEditingSection(null);
     setTempEditData({});
   };
 
   const handlePublish = () => {
-    console.log("Publishing job post:", jobData);
+    console.log("Publishing job post:", jobPostData);
   };
+
+  // 로딩 중일 때 LoadingScreen 표시
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
       <PostHeader previewMode />
-      <JobPostView
-        jobData={jobData}
+      {jobPostData && (
+        <JobPostView
+        jobData={jobPostData}
         mode="preview"
         onEdit={handleEdit}
         onPublish={handlePublish}
         showEditButtons
         showPublishButton
         editableSections={["description"]}
-      />
+      /> )}
       <BaseDialog
         type="bottomSheet"
         open={editingSection === "description"}
@@ -94,7 +151,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description }) => {
           </span>
           <TextArea
             rows={6}
-            value={tempEditData.description || jobData.description}
+            value={tempEditData.description || jobPostData?.jobDescription}
             onChange={(e) =>
               setTempEditData((prev: any) => ({ ...prev, description: e.target.value }))
             }

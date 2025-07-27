@@ -18,8 +18,6 @@ export async function POST (request: NextRequest) {
     console.log(createPostRes);
     if (body.useAI) {
       geminiRes = await geminiTest(body);
-      console.log(geminiRes);
-
       session.geminiRes = geminiRes;
     }
     session.jobDescTxt = createPostRes.description;
@@ -27,12 +25,9 @@ export async function POST (request: NextRequest) {
     console.log("session: ", session);
     return successResponse(
       {
-        data:
-          {
-            id: Number(createPostRes.id),
-            description: createPostRes.description,
-            geminiRes: geminiRes
-          }
+        id: Number(createPostRes.id),
+        description: createPostRes.description,
+        geminiRes: geminiRes
       }, 200);
   } catch (error) {
     console.error("❌ error on creating job post:", error);
