@@ -13,11 +13,20 @@ export interface UserInfo {
   created_at: Date;
 }
 
+export interface Personality {
+  name_ko: string;
+  name_en: string;
+  description_ko: string;
+  description_en: string
+}
+
 export interface ApplicantProfile {
   name: string;
   description: string;
   profileImageUrl: string | null;
   joinDate: string;
+  personalityName: string;
+  personalityDesc: string;
   location: string;
   phone: string;
   skillIds: number[]; // skills를 skillIds로 변경
@@ -45,6 +54,17 @@ const dummySeekerProfile: applicantProfile = {
   location: "TORONTO",
   language_level: "INTERMEDIATE",
   description: "Experienced service professional with strong customer service skills",
+  profile_practical_skills: [
+    {
+      practical_skill_id: 1
+    },
+    {
+      practical_skill_id: 2
+    },
+    {
+      practical_skill_id: 3
+    }
+  ],
   work_experiences: [
     {
       company_name: "Starbucks Coffee",
@@ -128,12 +148,15 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
 
   // 상태 관리
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [seekerPersonality, setSeekerPersonality] = useState<Personality | null>(null);
   const [seekerProfile, setSeekerProfile] = useState<applicantProfile | null>(null);
   const [applicantProfile, setApplicantProfile] = useState<ApplicantProfile>({
     name: "",
     description: "",
     profileImageUrl: null,
     joinDate: "",
+    personalityName: "",
+    personalityDesc: "",
     location: "",
     phone: "",
     skillIds: [],
@@ -242,6 +265,21 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           }
         }
 
+        // Seeker Personality 정보 가져오기
+        const prersonalityRes = await fetch(API_URLS.QUIZ.MY_PROFILE);
+        let PersonalityData = await prersonalityRes.json();
+
+        // API 실패 시 더미 데이터 사용
+        if (PersonalityData.status !== "success" || !PersonalityData.data) {
+          console.log("API 실패, 더미 데이터 사용");
+          console.log(dummySeekerProfile);
+          PersonalityData = { status: "success", data: dummySeekerProfile };
+        }
+
+        if (PersonalityData.status === "success" && PersonalityData.data) {
+          setSeekerPersonality(PersonalityData.data);
+        }
+
         // Seeker Profile 정보 가져오기
         const profileRes = await fetch(API_URLS.SEEKER.PROFILES);
         let profileData = await profileRes.json();
@@ -272,7 +310,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
 
   // 데이터 변환 및 초기화
   useEffect(() => {
-    if (userInfo && seekerProfile && !isInitialized) {
+    if (userInfo && seekerPersonality && seekerProfile && !isInitialized) {
       // API 데이터를 폼 데이터로 변환
       const formData = ApplicantProfileMapper.fromApi(seekerProfile);
 
@@ -285,9 +323,11 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           month: "2-digit",
           day: "2-digit",
         }),
+        personalityName: seekerPersonality.name_en,
+        personalityDesc: seekerPersonality.description_en,
         location: formData.location,
         phone: userInfo.phone_number || "",
-        skillIds: [1, 2, 3], // 하드코딩된 skill IDs
+        skillIds: formData.skillIds,
         workType: formData.workType,
         jobTypes: formData.preferredJobTypes,
         availabilityDay: formData.availableDay,
@@ -349,7 +389,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       formData.append("phone_number", tempData.phone);
 
       const response = await fetch("/api/users", {
-        method: "PUT",
+        method: "PATCH",
         body: formData,
       });
 

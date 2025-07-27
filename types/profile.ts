@@ -40,7 +40,25 @@ export interface applicantProfile {
   location: Location;
   language_level: LanguageLevel;
   description: string;
+  profile_practical_skills: profile_practical_skill[];
   work_experiences: workExperience[];
+}
+
+export interface updateApplicantProfile {
+  job_type1?: JobType;
+  job_type2?: JobType;
+  job_type3?: JobType;
+  work_type?: WorkType;
+  available_day?: AvailableDay;
+  available_hour?: AvailableHour;
+  location?: Location;
+  language_level?: LanguageLevel;
+  description?: string;
+  profile_practical_skills?: profile_practical_skill[];
+  work_experiences?: workExperience[];
+}
+export interface profile_practical_skill {
+  practical_skill_id: number
 }
 
 export interface workExperience {
@@ -61,6 +79,7 @@ export interface ApplicantProfileFormDataType {
   location: ClientLocation;
   englishLevel: ClientLanguageLevel;
   description: string;
+  skillIds: number[];
   experiences: {
     company: string;
     jobType: ClientJobType;
@@ -91,6 +110,9 @@ export class ApplicantProfileMapper {
       location: toPrismaLocation((formData.location as any) ?? "") as Location,
       language_level: toPrismaLanguageLevel(formData.englishLevel as any),
       description: formData.description,
+      profile_practical_skills: formData.skillIds.map((skillId) => ({
+        practical_skill_id: skillId
+      })),
       work_experiences: formData.experiences.map((exp) => ({
         company_name: exp.company,
         job_type: toPrismaJobType(exp.jobType as any),
@@ -120,6 +142,9 @@ export class ApplicantProfileMapper {
       location: fromPrismaLocation(apiData.location as any) as ClientLocation,
       englishLevel: fromPrismaLanguageLevel(apiData.language_level) as ClientLanguageLevel,
       description: apiData.description,
+      skillIds: apiData.profile_practical_skills?.map((skill) => (
+        skill.practical_skill_id
+      )) || [],
       experiences:
         apiData.work_experiences?.map((exp) => ({
           company: exp.company_name,
@@ -159,52 +184,43 @@ export class ApplicantProfileMapper {
       location: "toronto" as ClientLocation,
       englishLevel: "beginner" as ClientLanguageLevel,
       description: "",
+      skillIds: [],
       experiences: [],
     };
   }
-}
-
-export function toApplicantProfileUpdate(body: applicantProfile) {
-  const data: Prisma.applicant_profilesUpdateInput = {
-    updated_at: new Date(),
-  };
-
-  data.work_type = body.work_type;
-  data.job_type1 = body.job_type1;
-  data.available_day = body.available_day;
-  data.available_hour = body.available_hour;
-  data.location = body.location;
-  data.language_level = body.language_level;
-  data.description = body.description;
-
-  //optional
-  if (body.job_type2) data.job_type2 = body.job_type2;
-  if (body.job_type3) data.job_type3 = body.job_type3;
-
-  return data;
 }
 
 export function toApplicantProfileCreate(
   body: applicantProfile,
   userId: string
 ): Prisma.applicant_profilesCreateInput {
-  const { work_experiences, ...rest } = body;
+  const { profile_practical_skills, work_experiences, ...rest } = body;
 
   return {
     ...rest,
     user: { connect: { id: BigInt(userId) } },
+    ...(profile_practical_skills && profile_practical_skills.length > 0
+      ? {
+        profile_practical_skills: {
+          create: profile_practical_skills.map((skill) => ({
+            practical_skill_id: skill.practical_skill_id,
+            created_at: new Date()
+          })),
+        },
+      }
+      : {}),
     ...(work_experiences && work_experiences.length > 0
       ? {
-          work_experiences: {
-            create: work_experiences.map((exp) => ({
-              ...exp,
-              start_date: exp.start_date,
-              end_date: exp.end_date,
-              created_at: new Date(),
-              updated_at: new Date(),
-            })),
-          },
-        }
+        work_experiences: {
+          create: work_experiences.map((exp) => ({
+            ...exp,
+            start_date: exp.start_date,
+            end_date: exp.end_date,
+            created_at: new Date(),
+            updated_at: new Date(),
+          })),
+        },
+      }
       : {}),
     created_at: new Date(),
     updated_at: new Date(),
