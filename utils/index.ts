@@ -1,4 +1,5 @@
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
+import { Skill, WorkStyle } from "@/types/profile";
 
 
 export async function getPracticalSkills() {

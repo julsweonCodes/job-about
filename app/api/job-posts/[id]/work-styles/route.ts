@@ -24,11 +24,11 @@ export async function GET(
     console.log(`채용공고 work style 조회: jobPostId=${jobPostId}`);
 
     const jobWorkStyles = await getJobPostWorkStyles(jobPostId);
-    const workStyles = jobWorkStyles.map(jws => jws.work_style);
+    // const workStyles = jobWorkStyles.map(jws => jws.work_style);
     
-    console.log(`채용공고 work style ${workStyles.length}개 조회 성공`);
+    console.log(`채용공고 work style ${jobWorkStyles.length}개 조회 성공`);
     
-    return successResponse(parseBigInt(workStyles), 200, "Job post work styles fetched successfully.");
+    return successResponse(jobWorkStyles, 200, "Job post work styles fetched successfully.");
   } catch (error) {
     console.error(`API Error GET /api/job-posts/${params.id}/work-styles:`, error);
     return errorResponse("An internal server error occurred.", 500);

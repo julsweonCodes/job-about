@@ -1,24 +1,29 @@
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
+import { $Enums } from "@prisma/client";
+import { Skill, WorkStyle } from "@/types/profile";
 
 export interface JobPostData {
   id: string;
   title: string;
   jobType: JobType;
   status: JobStatus;
-  business: {
-    id: string;
-    name: string;
-    description: string;
-    photos: string[];
-    location: string;
-    tags: string[];
-  };
+  businessLocInfo: BizLocInfo;
   deadline: string;
   schedule: string;
-  requiredSkills: string[];
-  requiredPersonality: string[];
-  languageLevel: LanguageLevel;
+  requiredSkills: Skill[];
+  requiredWorkStyles: WorkStyle[];
+  languageLevel?: LanguageLevel;
   hourlyWage: string;
-  description: string;
+  jobDescription: string;
+}
+
+export interface BizLocInfo {
+  bizLocId: string;
+  name: string;
+  bizDescription: string;
+  logoImg: string;
+  extraPhotos: string[];
+  location: string;
+  tags?: string[];
 }

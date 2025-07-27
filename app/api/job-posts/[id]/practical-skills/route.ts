@@ -25,17 +25,9 @@ export async function GET(
 
     const jobPracticalSkills = await getJobPostPracSkills(jobPostId);
 
-    const practicalSkills = jobPracticalSkills.map(jps => ({
-      id: Number(jps.practical_skill.id),
-      category_ko: jps.practical_skill.category_ko,
-      category_en: jps.practical_skill.category_en,
-      name_ko: jps.practical_skill.name_ko,
-      name_en: jps.practical_skill.name_en
-    }));
-
-    console.log(`채용공고 실무능력 ${practicalSkills.length}개 조회 성공`);
+    console.log(`채용공고 실무능력 ${jobPracticalSkills.length}개 조회 성공`);
     
-    return successResponse(practicalSkills, 200, "Job post practical skills fetched successfully.");
+    return successResponse(jobPracticalSkills, 200, "Job post practical skills fetched successfully.");
   } catch (error) {
     console.error(`API Error GET /api/job-posts/${params.id}/practical-skills:`, error);
     return errorResponse("An internal server error occurred.", 500);
