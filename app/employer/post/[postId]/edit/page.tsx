@@ -10,6 +10,7 @@ import JobPostView from "@/components/common/JobPostView";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { JobPostData } from "@/types/jobPost";
+import { Skill } from "@/types/profile";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -18,18 +19,19 @@ const JobPostEditPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // Job data state
-  const [jobData, setJobData] = useState<JobPostData>({
+  const [jobData, setJobData] = useState<any>({
     id: "1",
     title: "Cashier",
     jobType: JobType.ACCOUNTANT,
     status: JobStatus.DRAFT,
-    business: {
-      id: "1",
+    businessLocInfo: {
+      bizLocId: "1",
       name: "Fresh Market Grocery",
-      description:
+      bizDescription:
         "Café Luna is a locally-owned coffee shop that's been serving the Vancouver community for over 8 years. We pride ourselves on creating a warm, inclusive environment where both customers and staff feel at home. Our team is like a family, and we believe in supporting each other's growth and goals.",
-      photos: [
+      logoImg:
         "https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
+      extraPhotos: [
         "https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
         "https://images.pexels.com/photos/2292837/pexels-photo-2292837.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
         "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
@@ -144,9 +146,9 @@ const JobPostEditPage: React.FC = () => {
           </span>
           <TextArea
             rows={6}
-            value={tempEditData.description || jobData.description}
+            value={tempEditData.jobDescription || jobData.jobDescription}
             onChange={(e) =>
-              setTempEditData((prev: any) => ({ ...prev, description: e.target.value }))
+              setTempEditData((prev: any) => ({ ...prev, jobDescription: e.target.value }))
             }
             className="w-full pt-3 pb-1 scrollbar-none"
             placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
