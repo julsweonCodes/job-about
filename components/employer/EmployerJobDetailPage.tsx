@@ -1,0 +1,85 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import { EllipsisVertical } from "lucide-react";
+import PostHeader from "@/components/common/PostHeader";
+import JobPostView from "@/components/common/JobPostView";
+import { JobPostActionsDialog } from "@/components/employer/JobPostActionsDialog";
+import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
+import { JobPostData } from "@/types/jobPost";
+interface Props {
+  postId: string;
+}
+
+const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [jobDetails, setJobDetails] = useState<JobPostData>();
+  const [loadingStates, setLoadingStates] = useState({
+    jobDetails: false,
+  });
+  const initializeData = async () => {
+    try {
+      // 로딩 시작
+      setLoadingStates({
+        jobDetails: true,
+      });
+
+      // 모든 API 호출을 병렬로 실행
+      await Promise.all([
+        fetchJobDetails(),
+        // 추가 API 호출들을 여기에 추가
+      ]);
+    } catch (error) {
+      console.error("Error initializing dashboard:", error);
+    } finally {
+      // 로딩 완료
+      setLoadingStates({
+        jobDetails: false
+      });
+    }
+  };
+
+  useEffect(() => {
+    initializeData();
+  }, []);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+  };
+  const isLoading = Object.values(loadingStates).some((state) => state);
+  const fetchJobDetails = async() => {
+    try {
+      const res = await fetch(`/api/employer/post/${postId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setJobDetails(data.data);
+      } else {
+        console.log("Failed to fetch DRAFT job post");
+      }
+    } catch (e) {
+      console.log("Error fetching DRAFT job post", e);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-pretendard">
+      {/* Header */}
+      <PostHeader
+        rightIcon={<EllipsisVertical className="w-5 h-5 text-gray-700" />}
+        onClickRight={handleOpen}
+      />
+      {jobDetails && <JobPostView jobData={jobDetails} mode="employer" />}
+      {jobDetails && (
+        <JobPostActionsDialog
+          open={isOpen}
+          onClose={() => setIsOpen(false)}
+          jobPost={jobDetails}
+          onStatusChange={() => {}}
+          onEdit={() => {}}
+        />
+      )}
+    </div>
+  );
+  };
+
+  export default EmployerJobDetailPage;

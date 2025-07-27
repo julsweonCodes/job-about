@@ -125,6 +125,7 @@ function JobPostCreatePage() {
       | WorkStyle[]
       | JobType
       | WorkType
+      | LanguageLevel
       | null
       | undefined
   ) => {

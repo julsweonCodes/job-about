@@ -10,5 +10,5 @@ export default async function Page({ params, searchParams }: { params: { postId:
   const geminiRes = session.geminiRes;
   const description = session.jobDescTxt;
 
-  return <JobPreviewEditPage geminiRes={geminiRes} description={description} />;
+  return <JobPreviewEditPage geminiRes={geminiRes} description={description} postId={params.postId}/>;
 }

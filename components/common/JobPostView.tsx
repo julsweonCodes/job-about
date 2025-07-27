@@ -15,7 +15,6 @@ import {
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { JobPostData } from "@/types/jobPost";
-import { mapLanguageLevelToServer } from "@/utils/client/enumMapper";
 
 interface JobPostViewProps {
   jobData: JobPostData;

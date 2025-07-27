@@ -40,7 +40,7 @@ export interface JobPostPayload {
   requiredWorkStyles: WorkStyle[];
   wage: string;
   jobDescription: string;
-  language_level: LanguageLevel;
+  languageLevel: LanguageLevel;
   selectedWorkType: WorkType;
   useAI?: boolean;
 }
