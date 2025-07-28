@@ -12,7 +12,8 @@ import {
 } from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
+import { JobType, } from "@/constants/jobTypes";
+import { STORAGE_URLS } from '@/constants/storage';
 
 // Create Job Post
 export async function createJobPost(payload: JobPostPayload) {
@@ -217,7 +218,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     return null;
   }
 
-  const img_base_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/biz-loc-photo/`;
+  const img_base_url = `${STORAGE_URLS.BIZ_LOC.PHOTO}`;
   const extraImgs = [
     bizLocRes.img_url1 ? img_base_url.concat(bizLocRes.img_url1) : "",
     bizLocRes.img_url2 ? img_base_url.concat(bizLocRes.img_url2) : "",

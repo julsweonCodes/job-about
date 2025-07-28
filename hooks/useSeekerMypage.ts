@@ -70,8 +70,8 @@ const dummySeekerProfile: applicantProfile = {
     {
       company_name: "Starbucks Coffee",
       job_type: "BARISTA",
-      start_date: new Date("2023-01-15"),
-      end_date: new Date("2024-06-30"),
+      start_year: "2022",
+      work_period: "ONE_TO_TWO_YEARS",
       work_type: "ON_SITE",
       description:
         "Prepared and served coffee beverages, maintained cleanliness standards, and provided excellent customer service.",
@@ -79,8 +79,8 @@ const dummySeekerProfile: applicantProfile = {
     {
       company_name: "McDonald's",
       job_type: "CASHIER",
-      start_date: new Date("2022-03-01"),
-      end_date: new Date("2022-12-31"),
+      start_year: "2022",
+      work_period: "SEVEN_TO_TEN_YEARS",
       work_type: "ON_SITE",
       description:
         "Handled cash transactions, took customer orders, and ensured customer satisfaction.",
@@ -88,8 +88,8 @@ const dummySeekerProfile: applicantProfile = {
     {
       company_name: "Tim Hortons",
       job_type: "SERVER",
-      start_date: new Date("2021-06-01"),
-      end_date: new Date("2022-02-28"),
+      start_year: "2018",
+      work_period: "SEVEN_TO_TEN_YEARS",
       work_type: "ON_SITE",
       description:
         "Served customers, maintained dining area cleanliness, and assisted with food preparation.",
@@ -332,15 +332,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         experiences: formData.experiences.map((exp: any) => ({
           title: exp.jobType,
           company: exp.company,
-          duration: `${new Date(exp.startDate).toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })} - ${new Date(exp.endDate).toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })}`,
+          duration: `${exp.startYear} ~  / ${exp.workPeriod}`,
           description: exp.description,
         })),
       };

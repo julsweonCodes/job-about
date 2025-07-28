@@ -5,6 +5,7 @@ import {
   LanguageLevel,
   Location,
   Prisma,
+  WorkPeriod,
   WorkType,
 } from "@prisma/client";
 import {
@@ -20,6 +21,8 @@ import {
   fromPrismaAvailableHour,
   fromPrismaLocation,
   fromPrismaLanguageLevel,
+  fromPrismaWorkPeriod,
+  toPrismaWorkPeriod,
 } from "@/types/enumMapper";
 import { JobType as ClientJobType } from "@/constants/jobTypes";
 import {
@@ -27,6 +30,7 @@ import {
   AvailableDay as ClientAvailableDay,
   AvailableHour as ClientAvailableHour,
   LanguageLevel as ClientLanguageLevel,
+  WorkPeriod as ClientWorkPeriod,
 } from "@/constants/enums";
 import { Location as ClientLocation } from "@/constants/location";
 
@@ -64,8 +68,8 @@ export interface profile_practical_skill {
 export interface workExperience {
   company_name: string;
   job_type: JobType;
-  start_date: Date;
-  end_date: Date;
+  start_year: string;
+  work_period: WorkPeriod;
   work_type: WorkType;
   description: string;
 }
@@ -83,8 +87,8 @@ export interface ApplicantProfileFormDataType {
   experiences: {
     company: string;
     jobType: ClientJobType;
-    startDate: Date;
-    endDate: Date;
+    startYear: string;
+    workPeriod: ClientWorkPeriod;
     workType: ClientWorkType;
     description: string;
   }[];
@@ -116,8 +120,8 @@ export class ApplicantProfileMapper {
       work_experiences: formData.experiences.map((exp) => ({
         company_name: exp.company,
         job_type: toPrismaJobType(exp.jobType as any),
-        start_date: exp.startDate,
-        end_date: exp.endDate,
+        start_year: exp.startYear,
+        work_period: toPrismaWorkPeriod(exp.workPeriod as any),
         work_type: toPrismaWorkType(exp.workType as any),
         description: exp.description,
       })),
@@ -149,8 +153,8 @@ export class ApplicantProfileMapper {
         apiData.work_experiences?.map((exp) => ({
           company: exp.company_name,
           jobType: fromPrismaJobType(exp.job_type) as ClientJobType,
-          startDate: exp.start_date,
-          endDate: exp.end_date,
+          startYear: exp.start_year,
+          workPeriod: fromPrismaWorkPeriod(exp.work_period) as ClientWorkPeriod,
           workType: fromPrismaWorkType(exp.work_type) as ClientWorkType,
           description: exp.description,
         })) || [],
@@ -214,8 +218,8 @@ export function toApplicantProfileCreate(
         work_experiences: {
           create: work_experiences.map((exp) => ({
             ...exp,
-            start_date: exp.start_date,
-            end_date: exp.end_date,
+            start_year: exp.start_year,
+            work_period: exp.work_period,
             created_at: new Date(),
             updated_at: new Date(),
           })),

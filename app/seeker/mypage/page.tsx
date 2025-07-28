@@ -51,6 +51,7 @@ import {
 import { getLocationDisplayName } from "@/constants/location";
 import { Location } from "@prisma/client";
 import { Skill } from "@/types/profile";
+import { STORAGE_URLS } from "@/constants/storage";
 
 function SeekerMypage() {
   // 커스텀 훅 사용 (최상단에서 호출)
@@ -326,7 +327,7 @@ function SeekerMypage() {
                   <img
                     src={
                       applicantProfile.profileImageUrl
-                        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`
+                        ? `${STORAGE_URLS.USER.PROFILE_IMG}${applicantProfile.profileImageUrl}`
                         : "/images/img-default-profile.png"
                     }
                     alt={applicantProfile.name}
@@ -859,7 +860,7 @@ function SeekerMypage() {
         title="Change Profile Image"
         currentImage={
           applicantProfile.profileImageUrl
-            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${applicantProfile.profileImageUrl}`
+            ? `${STORAGE_URLS.USER.PROFILE_IMG}${applicantProfile.profileImageUrl}`
             : "/images/img-default-profile.png"
         }
         type="profile"
