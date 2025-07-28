@@ -3,6 +3,7 @@ import { supabaseClient } from "@/utils/supabase/client";
 import { EmployerProfilePayload, JobPost } from "@/types/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { STORAGE_URLS } from "@/constants/storage";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -197,7 +198,7 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     },
   });
   // console.log("bizLocInfo: ", bizLocInfo);
-  const img_base_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/biz-loc-photo/`;
+  const img_base_url = `${STORAGE_URLS.BIZ_LOC.PHOTO}`;
   const activeJobPostList: JobPost[] = activeJobPosts.map((post) => ({
     id: post.id.toString(),
     title: post.title,

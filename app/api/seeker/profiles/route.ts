@@ -31,8 +31,7 @@ export const GET = async (request: NextRequest) => {
 export const POST = async (
     request: NextRequest) => {
     try {
-        // const userId = await getUserIdFromSession();
-        const userId = 13;
+        const userId = await getUserIdFromSession();
         if (!userId) {
             return errorResponse('User ID was not provided.', 400);
         }
@@ -59,8 +58,7 @@ export const POST = async (
 export const PATCH = async (
     request: NextRequest) => {
     try {
-        // const userId = await getUserIdFromSession();
-        const userId = 4;
+        const userId = await getUserIdFromSession();
         if (!userId) {
             return errorResponse('User ID was not provided.', 400);
         }
