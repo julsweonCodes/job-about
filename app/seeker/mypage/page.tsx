@@ -164,9 +164,12 @@ function SeekerMypage() {
           location: toPrismaLocation(tempData.location as any) as Location,
         };
         break;
-      // TODO
       case "skills":
-        payload = {};
+        payload = {
+          profile_practical_skills: tempData.skillIds.map((i) => ({
+            practical_skill_id: i,
+          })),
+        };
         break;
       case "workType":
         payload = {
@@ -209,7 +212,7 @@ function SeekerMypage() {
 
     try {
       const response = await fetch(API_URLS.SEEKER.PROFILES, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(payload),
       });
       if (response.ok) {
@@ -352,14 +355,14 @@ function SeekerMypage() {
                 </div>
                 <div>
                   <h4 className="text-xl sm:text-2xl font-bold text-slate-900 mb-0">
-                    {workStyle.type}
+                    {applicantProfile.personalityName}
                   </h4>
                 </div>
               </div>
 
               <div className="mb-5 sm:mb-6">
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  {workStyle.description}
+                  {applicantProfile.personalityDesc}
                 </p>
               </div>
 
