@@ -4,6 +4,7 @@ import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
 import { convertLocationKeyToValue } from "@/constants/location";
+import { apiGet, apiPatch } from "@/utils/client/API";
 
 export interface UserInfo {
   name: string;
@@ -17,7 +18,7 @@ export interface Personality {
   name_ko: string;
   name_en: string;
   description_ko: string;
-  description_en: string
+  description_en: string;
 }
 
 export interface ApplicantProfile {
@@ -56,14 +57,14 @@ const dummySeekerProfile: applicantProfile = {
   description: "Experienced service professional with strong customer service skills",
   profile_practical_skills: [
     {
-      practical_skill_id: 1
+      practical_skill_id: 1,
     },
     {
-      practical_skill_id: 2
+      practical_skill_id: 2,
     },
     {
-      practical_skill_id: 3
-    }
+      practical_skill_id: 3,
+    },
   ],
   work_experiences: [
     {
@@ -195,10 +196,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const fetchSkills = async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const res = await fetch("/api/utils");
-      const data = await res.json();
+      const data = await apiGet(API_URLS.UTILS);
 
-      if (res.ok) {
+      if (data.status === "success") {
         setAvailableSkills(data.data.skills);
       } else {
         console.error("Failed to fetch skills:", data.error);
@@ -213,10 +213,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const fetchLocations = async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, locations: true }));
-      const res = await fetch(API_URLS.ENUM.BY_NAME("Location"));
-      const data = await res.json();
+      const data = await apiGet(API_URLS.ENUM.BY_NAME("Location"));
 
-      if (res.ok) {
+      if (data.status === "success") {
         const locationsData = data.data?.values || data.values || [];
         if (Array.isArray(locationsData)) {
           const convertedCities = locationsData.map(convertLocationKeyToValue);
@@ -258,16 +257,14 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           });
         } else {
           // AuthProvider에서 정보가 없으면 API 호출
-          const userRes = await fetch(API_URLS.USER.ME);
-          const userData = await userRes.json();
+          const userData = await apiGet(API_URLS.USER.ME);
           if (userData.status === "success" && userData.data) {
             setUserInfo(userData.data.user);
           }
         }
 
         // Seeker Personality 정보 가져오기
-        const prersonalityRes = await fetch(API_URLS.QUIZ.MY_PROFILE);
-        let PersonalityData = await prersonalityRes.json();
+        let PersonalityData = await apiGet(API_URLS.QUIZ.MY_PROFILE);
 
         // API 실패 시 더미 데이터 사용
         if (PersonalityData.status !== "success" || !PersonalityData.data) {
@@ -281,8 +278,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         }
 
         // Seeker Profile 정보 가져오기
-        const profileRes = await fetch(API_URLS.SEEKER.PROFILES);
-        let profileData = await profileRes.json();
+        let profileData = await apiGet(API_URLS.SEEKER.PROFILES);
 
         // API 실패 시 더미 데이터 사용
         if (profileData.status !== "success" || !profileData.data) {
@@ -295,7 +291,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           setSeekerProfile(profileData.data);
         }
       } catch (error) {
-        // TODO remove 
+        // TODO remove
         // 네트워크 에러 등에도 더미 데이터 사용
         console.log("네트워크 에러, 더미 데이터 사용:", error);
         setSeekerProfile(dummySeekerProfile);
@@ -388,12 +384,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       formData.append("description", tempData.description);
       formData.append("phone_number", tempData.phone);
 
-      const response = await fetch("/api/users", {
-        method: "PATCH",
-        body: formData,
-      });
+      const response = await apiPatch("/api/users", formData);
 
-      if (response.ok) {
+      if (response.status === "success") {
         setApplicantProfile(tempData);
         showSuccessToast("Profile updated successfully!");
       } else {
@@ -420,11 +413,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       const formData = new FormData();
       formData.append("img", file);
 
-      const response = await fetch("/api/users", {
-        method: "PATCH",
-        body: formData,
-      });
-      const result = await response.json();
+      const result = await apiPatch("/api/users", formData);
 
       if (result.data.img_url) {
         setApplicantProfile((prev) => ({

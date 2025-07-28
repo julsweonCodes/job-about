@@ -33,7 +33,7 @@ import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { FormSection } from "@/components/common/FormSection";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { useJobSeekerForm } from "@/hooks/useJobSeekerForm";
+import { useSeekerForm } from "@/hooks/useSeekerForm";
 import { useDialogState } from "@/hooks/useDialogState";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
@@ -62,7 +62,7 @@ function JobSeekerProfile() {
     updateExperience,
     removeExperience,
     calculateProgress,
-  } = useJobSeekerForm();
+  } = useSeekerForm();
 
   // 다이얼로그 상태 관리
   const experienceFormDialog = useDialogState();
@@ -81,9 +81,6 @@ function JobSeekerProfile() {
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Select 옵션 배열
-  const years = Array.from({ length: 50 }, (_, i) => (new Date().getFullYear() - i).toString());
 
   // 이벤트 핸들러들
   const handleInputChange = (field: string, value: any) => {

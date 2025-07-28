@@ -91,6 +91,8 @@ function SeekerMypage() {
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   const [showSkillsDialog, setShowSkillsDialog] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
+  const [selectedJobTypes, setSelectedJobTypes] = useState<JobType[]>([]);
+  const [showPreferredJobTypesDialog, setShowPreferredJobTypesDialog] = useState(false);
 
   // 로딩 상태 체크 (훅 호출 이후에 위치)
   if (isLoading || !applicantProfile || !tempData) {
@@ -127,7 +129,6 @@ function SeekerMypage() {
     description:
       "You thrive in collaborative, people-oriented roles where communication and teamwork drive success.",
     emoji: "🤝",
-    traits: ["#Empathy", "#Customer-Focused", "#Positive Attitude", "#Team Player"],
     completedDate: "2 weeks ago",
   };
 
@@ -263,6 +264,20 @@ function SeekerMypage() {
     handleInputChange("skillIds", tempData.skillIds.filter((_, i) => i !== index) as any);
   };
 
+  const handleJobTypesEdit = () => {
+    // 현재 선택된 job types를 JobType[] 형태로 변환
+    const currentJobTypes = tempData.jobTypes.map((type: string) => type as JobType);
+    setSelectedJobTypes(currentJobTypes);
+    setShowPreferredJobTypesDialog(true);
+  };
+
+  const handleJobTypesConfirm = (jobTypes: JobType[]) => {
+    // JobType[]를 string[]로 변환하여 저장
+    const jobTypeStrings = jobTypes.map((type) => type);
+    handleInputChange("jobTypes", jobTypeStrings as any);
+    setShowPreferredJobTypesDialog(false);
+  };
+
   const addJobType = () => {
     if (newJobType.trim()) {
       handleInputChange("jobTypes", [...tempData.jobTypes, newJobType.trim()] as any);
@@ -351,34 +366,20 @@ function SeekerMypage() {
             <div className="p-5 sm:p-8">
               <div className="flex items-center gap-3 mb-4 sm:mb-6">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl">
-                  {workStyle.emoji}
+                  {workStyle.emoji || "🤝"}
                 </div>
                 <div>
                   <h4 className="text-xl sm:text-2xl font-bold text-slate-900 mb-0">
-                    {applicantProfile.personalityName}
+                    {applicantProfile.personalityName || "Empathetic Coordinator"}
                   </h4>
                 </div>
               </div>
 
               <div className="mb-5 sm:mb-6">
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  {applicantProfile.personalityDesc}
+                  {applicantProfile.personalityDesc ||
+                    "You thrive in collaborative, people-oriented roles where communication and teamwork drive success."}
                 </p>
-              </div>
-
-              {/* Traits */}
-              <div className="mb-6 sm:mb-8">
-                <h5 className="text-sm font-semibold text-slate-700 mb-3">Key Traits</h5>
-                <div className="flex flex-wrap gap-2">
-                  {workStyle.traits.map((trait, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 text-xs sm:text-sm font-medium rounded-full border border-orange-100/50"
-                    >
-                      {trait}
-                    </span>
-                  ))}
-                </div>
               </div>
 
               {/* Action Buttons */}
@@ -616,58 +617,21 @@ function SeekerMypage() {
             iconClassName="bg-gradient-to-br from-purple-100 to-pink-100"
             title="Preferred Job Types"
             subtitle="Types of roles you're interested in"
-            onEdit={() => handleEditSection("jobTypes")}
-            isEditing={isEditing.jobTypes}
-            onSave={() => handleOptionsSave("jobTypes")}
-            onCancel={() => handleCancelSection("jobTypes")}
+            onEdit={handleJobTypesEdit}
+            isEditing={false}
+            onSave={() => {}}
+            onCancel={() => {}}
           >
-            {!isEditing.jobTypes ? (
-              <div className="flex flex-wrap gap-2">
-                {tempData.jobTypes.map((type, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
-                  >
-                    {type}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {tempData.jobTypes.map((type, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium flex items-center gap-2"
-                    >
-                      {type}
-                      <button
-                        onClick={() => removeJobType(index)}
-                        className="hover:bg-purple-200 rounded-full p-0.5"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newJobType}
-                    onChange={(e) => setNewJobType(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addJobType()}
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Add a job type..."
-                  />
-                  <button
-                    onClick={addJobType}
-                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {tempData.jobTypes.map((type, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
+                >
+                  {type}
+                </span>
+              ))}
+            </div>
           </InfoSection>
 
           {/* Availability */}
@@ -920,6 +884,16 @@ function SeekerMypage() {
         selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType as JobType] : []}
         onConfirm={confirmJobType}
         maxSelected={1}
+      />
+
+      {/* Preferred Job Types Dialog */}
+      <JobTypesDialog
+        title="Select Preferred Job Types"
+        open={showPreferredJobTypesDialog}
+        onClose={() => setShowPreferredJobTypesDialog(false)}
+        selectedJobTypes={selectedJobTypes}
+        onConfirm={handleJobTypesConfirm}
+        maxSelected={5}
       />
 
       {/* Required Skills Dialog */}
