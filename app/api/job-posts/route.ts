@@ -13,13 +13,13 @@ export const GET = async (request: NextRequest) => {
         const page = parseInt(searchParams.get("page") ?? "1");
         const limit = parseInt(searchParams.get("limit") ?? "10");
 
-        const jobPosts = await getJobPosts({ 
-            workType: workType as any, 
-            location: location as any, 
-            page, 
-            limit 
+        const jobPosts = await getJobPosts({
+            workType: workType as any,
+            location: location as any,
+            page,
+            limit
         });
-        return successResponse(parseBigInt(jobPosts), 200, "Job post fetched");
+        return successResponse(parseBigInt(jobPosts), 200, "Job post list fetched");
 
     } catch (err: any) {
         if (err instanceof HttpError) {
