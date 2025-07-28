@@ -145,7 +145,7 @@ interface UseSeekerMypageReturn {
 
 export const useSeekerMypage = (): UseSeekerMypageReturn => {
   // Auth Store에서 사용자 정보 가져오기
-  const { user: authUser, appUser } = useAuthStore();
+  const { supabaseUser: authUser, appUser } = useAuthStore();
 
   // 상태 관리
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);

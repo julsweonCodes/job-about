@@ -8,14 +8,13 @@ interface LogoutButtonProps {
 }
 
 export default function LogoutButton({ className = "", children }: LogoutButtonProps) {
-  const { setIsLoggedIn, setUser } = useAuthStore();
+  const { logout } = useAuthStore();
   const supabase = supabaseClient;
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      // 상태 초기화는 AuthProvider에서 자동 처리됨
-      console.log("Logged out successfully");
+      logout();
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -29,4 +28,4 @@ export default function LogoutButton({ className = "", children }: LogoutButtonP
       {children || "Log out"}
     </button>
   );
-} 
+}
