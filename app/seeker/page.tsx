@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { MapPin, DollarSign, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
 import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
-import { useLatestJobs } from "@/hooks/useSeekerLatestJobs";
+import { useLatestJobs } from "@/hooks/useSeekerLatestJobPosts";
 import { useRecommendedJobs } from "@/hooks/useSeekerRecommendedJobs";
-
+import { useFilterStore } from "@/stores/useFilterStore";
 import {
   JobPost as ApiJobPost,
   JobPostCard as JobPostCardType,
@@ -18,9 +18,7 @@ import {
 
 function SeekerPage() {
   const router = useRouter();
-  const [selectedJobType, setSelectedJobType] = useState("All");
-  const [selectedLocation, setSelectedLocation] = useState("All");
-  const [selectedSalary, setSelectedSalary] = useState("All");
+  const { filters } = useFilterStore();
 
   // 최신 공고 (전체 최신 공고)
   const {
@@ -57,14 +55,13 @@ function SeekerPage() {
       title: apiJob.title,
       type: apiJob.work_type as WorkType,
       wage: apiJob.wage,
-      // TODO: location 필드 추가
       location: "Location not specified", // API에서 location 필드가 없음
       dateRange: apiJob.daysAgo ? `${apiJob.daysAgo} days ago` : "Recently",
-      businessName: "Company", // API에서 business 정보가 제한적이므로 기본값
+      businessName: "Company", // Placeholder, as business info might be limited in API response
       description: apiJob.description,
       applicants: apiJob.applicantCount || 0,
-      views: 0, // API에서 제공되지 않으므로 기본값
-      logoImage: apiJob.business_loc?.logo_url,
+      views: 0, // Placeholder
+      logoImage: apiJob.business_loc?.logo_url, // Changed from coverImage
     };
   };
 
@@ -85,61 +82,77 @@ function SeekerPage() {
     };
   };
 
-  // 필터링 함수
-  const filterJobs = (jobs: ApiJobPost[]) => {
-    // 배열이 아니거나 null/undefined인 경우 빈 배열 반환
-    if (!Array.isArray(jobs)) {
-      return [];
-    }
+  // 필터링된 최신 공고
+  const filteredLatestJobs = useMemo(() => {
+    if (!Array.isArray(latestJobs)) return [];
 
-    return jobs
+    return latestJobs
       .filter((job) => {
-        // 작업 타입 필터
-        if (selectedJobType !== "All") {
+        // Job Type filter
+        if (filters.jobType !== "all") {
           const jobTypeMap: Record<string, string> = {
             Remote: "REMOTE",
             OnSite: "ON_SITE",
             Hybrid: "HYBRID",
           };
-          if (job.work_type !== jobTypeMap[selectedJobType]) {
+          if (job.work_type !== jobTypeMap[filters.jobType]) {
             return false;
           }
         }
 
-        // 지역 필터 - API에서 location 필드가 없으므로 제거
-        // if (selectedLocation !== "All" && job.location !== selectedLocation) {
-        //   return false;
-        // }
+        // Salary filter
+        if (filters.salary !== "all" && job.wage !== filters.salary) {
+          return false;
+        }
 
-        // 급여 필터 (문자열 일치만)
-        if (selectedSalary !== "All" && job.wage !== selectedSalary) {
+        // Search query filter
+        if (
+          filters.searchQuery &&
+          !job.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
+        ) {
           return false;
         }
 
         return true;
       })
       .map(convertToJobPostCard);
-  };
+  }, [latestJobs, filters]);
 
-  // 추천 공고 필터링 (추천 공고는 이미 필터링되어 오므로 단순 변환만)
-  const filteredRecommendedJobs = Array.isArray(recommendedJobs)
-    ? recommendedJobs.map(convertRecommendedToJobPostCard)
-    : [];
-  const filteredLatestJobs = filterJobs(latestJobs);
+  // 필터링된 추천 공고
+  const filteredRecommendedJobs = useMemo(() => {
+    if (!Array.isArray(recommendedJobs)) return [];
 
-  const handleFilterSelect = (filterId: string, value: string) => {
-    switch (filterId) {
-      case "jobType":
-        setSelectedJobType(value);
-        break;
-      case "location":
-        setSelectedLocation(value);
-        break;
-      case "salary":
-        setSelectedSalary(value);
-        break;
-    }
-  };
+    return recommendedJobs
+      .filter((job) => {
+        // Job Type filter
+        if (filters.jobType !== "all") {
+          const jobTypeMap: Record<string, string> = {
+            Remote: "REMOTE",
+            OnSite: "ON_SITE",
+            Hybrid: "HYBRID",
+          };
+          if (job.jobType !== jobTypeMap[filters.jobType]) {
+            return false;
+          }
+        }
+
+        // Salary filter
+        if (filters.salary !== "all" && job.wage !== filters.salary) {
+          return false;
+        }
+
+        // Search query filter
+        if (
+          filters.searchQuery &&
+          !job.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .map(convertRecommendedToJobPostCard);
+  }, [recommendedJobs, filters]);
 
   const handleViewJob = (id: string) => {
     router.push(`/seeker/post/${id}`);
@@ -166,13 +179,11 @@ function SeekerPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <ProfileHeader
         onClickLogo={() => router.replace("/")}
         onClickProfile={() => router.push("/seeker/mypage")}
       />
 
-      {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div>
@@ -190,30 +201,24 @@ function SeekerPage() {
                 id: "jobType",
                 label: "Job Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["All", "Remote", "OnSite", "Hybrid"],
+                options: ["all", "Remote", "OnSite", "Hybrid"],
               }}
-              selectedValue={selectedJobType}
-              onSelect={(value) => handleFilterSelect("jobType", value)}
             />
             <FilterDropdown
               filter={{
                 id: "location",
                 label: "Location",
                 icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["All"], // API에서 location 필드가 없으므로 All만 표시
+                options: ["all"],
               }}
-              selectedValue={selectedLocation}
-              onSelect={(value) => handleFilterSelect("location", value)}
             />
             <FilterDropdown
               filter={{
                 id: "salary",
                 label: "Salary",
                 icon: <DollarSign className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["All", "15.00", "18.00", "20.00", "100.00"], // 실제 API 데이터의 wage 값들
+                options: ["all", "15.00", "18.00", "20.00", "100.00"],
               }}
-              selectedValue={selectedSalary}
-              onSelect={(value) => handleFilterSelect("salary", value)}
             />
           </div>
         </div>
@@ -254,7 +259,6 @@ function SeekerPage() {
                 </button>
               )}
             </div>
-
             {showRecommendedSkeleton ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 {[...Array(4)].map((_, i) => (
@@ -268,7 +272,6 @@ function SeekerPage() {
                     <JobPostCard key={job.id} job={job} onView={handleViewJob} isRecommended />
                   ))}
                 </div>
-
                 {recommendedHasMore && (
                   <div className="text-center pt-6">
                     <button
@@ -299,7 +302,6 @@ function SeekerPage() {
               </button>
             )}
           </div>
-
           {showLatestSkeleton ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               {[...Array(6)].map((_, i) => (
@@ -313,7 +315,6 @@ function SeekerPage() {
                   <JobPostCard key={job.id} job={job} onView={handleViewJob} />
                 ))}
               </div>
-
               {latestHasMore && (
                 <div className="text-center pt-8">
                   <button
@@ -325,7 +326,6 @@ function SeekerPage() {
                   </button>
                 </div>
               )}
-
               {!latestLoading && filteredLatestJobs.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">No jobs found matching your criteria.</p>
