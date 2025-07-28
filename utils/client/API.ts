@@ -1,0 +1,205 @@
+import { HTTP_METHODS, HttpMethod, API_URLS } from "@/constants/api";
+
+interface ApiConfig {
+  baseURL?: string;
+  headers?: Record<string, string>;
+  timeout?: number;
+}
+
+interface ApiResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Headers;
+}
+
+// Query parameter 타입
+type QueryParams = Record<string, string | number | boolean | undefined>;
+
+// URL에 query parameter 추가하는 헬퍼 함수
+function buildUrlWithParams(url: string, params?: QueryParams): string {
+  if (!params || Object.keys(params).length === 0) {
+    return url;
+  }
+
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
+
+export class API {
+  private baseURL: string;
+  private defaultHeaders: Record<string, string>;
+  private timeout: number;
+
+  constructor(config: ApiConfig = {}) {
+    this.baseURL = config.baseURL || "";
+    this.defaultHeaders = {
+      "Content-Type": "application/json",
+      ...config.headers,
+    };
+    this.timeout = config.timeout || 10000;
+  }
+
+  /**
+   * 기본 API 호출 메소드
+   */
+  private async request<T = any>(
+    url: string,
+    method: HttpMethod = HTTP_METHODS.GET,
+    data?: any,
+    customHeaders?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
+    const fullUrl = this.baseURL + url;
+    const headers = { ...this.defaultHeaders, ...customHeaders };
+
+    const config: RequestInit = {
+      method,
+      headers,
+    };
+
+    if (data && method !== HTTP_METHODS.GET) {
+      config.body = JSON.stringify(data);
+    }
+
+    // 타임아웃 설정
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    config.signal = controller.signal;
+
+    try {
+      const response = await fetch(fullUrl, config);
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      return {
+        data: responseData,
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  }
+
+  /**
+   * GET 요청 (query parameter 지원)
+   */
+  async get<T = any>(
+    url: string,
+    params?: QueryParams,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
+    const urlWithParams = buildUrlWithParams(url, params);
+    return this.request<T>(urlWithParams, HTTP_METHODS.GET, undefined, headers);
+  }
+
+  /**
+   * POST 요청
+   */
+  async post<T = any>(
+    url: string,
+    data: any,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(url, HTTP_METHODS.POST, data, headers);
+  }
+
+  /**
+   * PUT 요청
+   */
+  async put<T = any>(
+    url: string,
+    data: any,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(url, HTTP_METHODS.PUT, data, headers);
+  }
+
+  /**
+   * PATCH 요청
+   */
+  async patch<T = any>(
+    url: string,
+    data: any,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(url, HTTP_METHODS.PATCH, data, headers);
+  }
+
+  /**
+   * DELETE 요청
+   */
+  async delete<T = any>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.request<T>(url, HTTP_METHODS.DELETE, undefined, headers);
+  }
+
+  /**
+   * 헤더 설정
+   */
+  setHeader(key: string, value: string): void {
+    this.defaultHeaders[key] = value;
+  }
+
+  /**
+   * 헤더 제거
+   */
+  removeHeader(key: string): void {
+    delete this.defaultHeaders[key];
+  }
+
+  /**
+   * 기본 URL 설정
+   */
+  setBaseURL(url: string): void {
+    this.baseURL = url;
+  }
+
+  /**
+   * 타임아웃 설정
+   */
+  setTimeout(timeout: number): void {
+    this.timeout = timeout;
+  }
+}
+
+// 기본 API 인스턴스 생성
+export const api = new API({
+  baseURL:
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+});
+
+// 편의 함수들 (기존 호환성 유지)
+export const apiGet = <T = any>(
+  url: string,
+  params?: QueryParams,
+  headers?: Record<string, string>
+) => api.get<T>(url, params, headers).then((response) => response.data);
+
+export const apiPost = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api.post<T>(url, data, headers).then((response) => response.data);
+
+export const apiPut = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api.put<T>(url, data, headers).then((response) => response.data);
+
+export const apiPatch = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api.patch<T>(url, data, headers).then((response) => response.data);
+
+export const apiDelete = <T = any>(url: string, headers?: Record<string, string>) =>
+  api.delete<T>(url, headers).then((response) => response.data);

@@ -1,17 +1,17 @@
 import React from "react";
 import Image from "next/image";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 interface HeaderProps {
-  profileImage?: string;
   onClickLogo?: () => void;
   onClickProfile?: () => void;
 }
 
-export const ProfileHeader: React.FC<HeaderProps> = ({
-  profileImage,
-  onClickLogo,
-  onClickProfile,
-}) => {
+export const ProfileHeader: React.FC<HeaderProps> = ({ onClickLogo, onClickProfile }) => {
+  const { getUserProfileImageUrl } = useAuthStore();
+
+  // 우선순위: props > store의 img_url > 기본 이미지
+  const displayImage = getUserProfileImageUrl() || "/images/img-default-profile.png";
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,7 +35,7 @@ export const ProfileHeader: React.FC<HeaderProps> = ({
             {onClickProfile && (
               <div className="relative">
                 <Image
-                  src={profileImage || "/images/img-default-profile.png"}
+                  src={displayImage}
                   alt="Profile"
                   width={40}
                   height={40}

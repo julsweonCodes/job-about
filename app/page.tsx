@@ -18,8 +18,14 @@ import { supabaseClient } from "@/utils/supabase/client";
 
 function App() {
   const [activeTab, setActiveTab] = useState("seekers");
-  const { isLoggedIn } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
+  const { isLoggedIn, isInitialized } = useAuthStore();
   const supabase = supabaseClient;
+
+  // 클라이언트에서만 실행
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -96,7 +102,15 @@ function App() {
               <span className="text-xl md:text-2xl font-bold text-gray-900">job:about</span>
             </div>
 
-            {!isLoggedIn ? (
+            {!isClient ? (
+              // 서버 렌더링 시 빈 div (hydration 일치)
+              <div></div>
+            ) : !isInitialized() ? (
+              // 클라이언트에서 초기화 전
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin"></div>
+              </div>
+            ) : !isLoggedIn ? (
               // Logged-out view
               <>
                 <div className="flex items-center gap-3">

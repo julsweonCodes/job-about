@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Users } from "lucide-react";
 import { WorkType } from "@/constants/enums";
 import Typography from "@/components/ui/Typography";
@@ -16,7 +16,7 @@ export interface JobPost {
   description: string;
   applicants: number;
   views: number;
-  coverImage?: string;
+  logoImage?: string;
   pending?: number; // Added for pending applications
 }
 
@@ -26,7 +26,64 @@ interface JobPostCardProps {
   onView: (id: string) => void;
 }
 
+// JobPostCard 스켈레톤 컴포넌트
+export const JobPostCardSkeleton: React.FC = () => {
+  return (
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col p-5 lg:p-8">
+      {/* 상단: 썸네일 + 제목/타입 */}
+      <div className="flex items-center gap-4 mb-4 min-w-0 flex-shrink-0">
+        <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl bg-gray-200 animate-pulse flex-shrink-0"></div>
+        <div className="flex flex-col gap-1 mb-1 flex-1 min-w-0">
+          <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-16 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* 회사명, 위치, 기간 */}
+      <div className="space-y-2 mb-5 flex-shrink-0">
+        <div className="flex items-center">
+          <div className="w-4 h-4 bg-gray-200 rounded mr-2 animate-pulse"></div>
+          <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="flex items-center">
+          <div className="w-4 h-4 bg-gray-200 rounded mr-2 animate-pulse"></div>
+          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="flex-1 mb-6 min-h-0">
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* 지원자 통계 */}
+      <div className="flex items-center justify-between mb-6 flex-shrink-0">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 animate-pulse"></div>
+            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* 버튼 */}
+      <div className="flex space-x-3 flex-shrink-0">
+        <div className="h-10 md:h-14 bg-gray-200 rounded-lg animate-pulse w-full"></div>
+      </div>
+    </div>
+  );
+};
+
 export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, onView }) => {
+  const [imageError, setImageError] = useState(false);
+
   // WorkType에 따른 라벨/색상 분기 (예시)
   const typeLabel =
     job.type === WorkType.ON_SITE ? "On-Site" : job.type === WorkType.REMOTE ? "Remote" : "Hybrid";
@@ -39,15 +96,29 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
 
   const defaultImage = "/images/img-default-part-time-work.png";
 
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  const getImageSrc = () => {
+    if (imageError || !job.logoImage) {
+      return defaultImage;
+    }
+    return job.logoImage;
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col p-5 lg:p-8">
       {/* 상단: 썸네일 + 제목/타입 */}
-      <div className="flex items-center gap-4 mb-4 min-w-0">
-        <img
-          src={job.coverImage || defaultImage}
-          alt={job.title}
-          className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl object-cover flex-shrink-0"
-        />
+      <div className="flex items-center gap-4 mb-4 min-w-0 flex-shrink-0">
+        <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 overflow-hidden bg-gray-100">
+          <img
+            src={getImageSrc()}
+            alt={job.title}
+            className="w-full h-full object-cover rounded-xl"
+            onError={handleImageError}
+          />
+        </div>
 
         <div className="flex flex-col gap-1 mb-1 flex-1 min-w-0">
           <Typography as="h3" variant="headlineSm" className="font-bold text-gray-900">
@@ -66,7 +137,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
       </div>
 
       {/* 회사명, 위치, 기간 */}
-      <div className="space-y-2 mb-5">
+      <div className="space-y-2 mb-5 flex-shrink-0">
         <div className="flex items-center text-sm text-gray-700">
           <span className="mr-2">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
@@ -101,12 +172,24 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
         </div>
       </div>
 
-      <p className="text-sm lg:text-base text-gray-700 mb-6 leading-relaxed lg:line-clamp-none line-clamp-2">
-        {job.description}
-      </p>
+      {/* Description - 유연한 높이 설정 */}
+      <div className="flex-1 mb-6 min-h-0">
+        <p
+          className="text-sm lg:text-base text-gray-700 leading-relaxed"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {job.description}
+        </p>
+      </div>
 
       {/* 지원자 통계 및 버튼 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div className="flex items-center space-x-6">
           <div className="flex items-center text-sm lg:text-base text-gray-600">
             <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-2">
@@ -118,7 +201,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
         </div>
       </div>
 
-      <div className="flex space-x-3">
+      <div className="flex space-x-3 flex-shrink-0">
         <Button
           variant={isRecommended ? "default" : "secondary"}
           className="h-10 md:h-14"

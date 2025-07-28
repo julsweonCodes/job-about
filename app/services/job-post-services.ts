@@ -1,15 +1,18 @@
-import { supabaseClient } from '@/utils/supabase/client';
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { Database } from "@/types/database.types";
-import { capitalize, formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
-import { Location, Prisma, WorkType } from "@prisma/client";
+import { Location, WorkType } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
-import { toPrismaJobType, toPrismaWorkType, toPrismaLanguageLevel, toPrismaJobStatus } from "@/types/enumMapper";
+import {
+  toPrismaJobType,
+  toPrismaWorkType,
+  toPrismaLanguageLevel,
+  toPrismaJobStatus,
+} from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType, } from "@/constants/jobTypes";
+import { JobType } from "@/constants/jobTypes";
 
 // Create Job Post
 export async function createJobPost(payload: JobPostPayload) {
@@ -35,8 +38,14 @@ export async function createJobPost(payload: JobPostPayload) {
       description: true,
     },
   });
-  const resPracSkills = await deleteAndInsertPracticalSkills(Number(createdPost.id), payload.requiredSkills);
-  const recWorkStyles = await deleteAndInsertWorkStyles(Number(createdPost.id), payload.requiredWorkStyles);
+  const resPracSkills = await deleteAndInsertPracticalSkills(
+    Number(createdPost.id),
+    payload.requiredSkills
+  );
+  const recWorkStyles = await deleteAndInsertWorkStyles(
+    Number(createdPost.id),
+    payload.requiredWorkStyles
+  );
   console.log(createdPost, resPracSkills, recWorkStyles);
   return createdPost;
 }
@@ -67,10 +76,10 @@ export async function getJobPostPracSkills(jobPostId: number) {
           category_ko: true,
           category_en: true,
           name_ko: true,
-          name_en: true
-        }
-      }
-    }
+          name_en: true,
+        },
+      },
+    },
   });
 
   const skills: Skill[] = res
@@ -99,10 +108,10 @@ export async function getJobPostWorkStyles(jobPostId: number) {
         select: {
           id: true,
           name_ko: true,
-          name_en: true
-        }
-      }
-    }
+          name_en: true,
+        },
+      },
+    },
   });
 
   const workStyles: WorkStyle[] = res
@@ -125,7 +134,7 @@ export async function getJobPostWorkStyles(jobPostId: number) {
 export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: Skill[]) {
   return prisma.$transaction(async (tx) => {
     await tx.job_post_practical_skills.deleteMany({
-      where: { job_post_id: jobPostId }
+      where: { job_post_id: jobPostId },
     });
 
     if (skills.length > 0) {
@@ -148,7 +157,7 @@ export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: 
 export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: WorkStyle[]) {
   return prisma.$transaction(async (tx) => {
     await tx.job_post_work_styles.deleteMany({
-      where: { job_post_id: jobPostId }
+      where: { job_post_id: jobPostId },
     });
 
     if (workStyles.length > 0) {
@@ -173,11 +182,11 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const bizLocId = await prisma.job_posts.findFirst({
     where: {
       id: Number(jobPostId),
-      status: toPrismaJobStatus(jobPostStatus)
+      status: toPrismaJobStatus(jobPostStatus),
     },
     select: {
-      business_loc_id: true
-    }
+      business_loc_id: true,
+    },
   });
 
   if (!bizLocId) {
@@ -187,8 +196,8 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
 
   const bizLocRes = await prisma.business_loc.findFirst({
     where: {
-      id: Number(bizLocId.business_loc_id)
-    }
+      id: Number(bizLocId.business_loc_id),
+    },
   });
 
   if (!bizLocRes) {
@@ -200,7 +209,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     where: {
       id: Number(jobPostId),
       status: toPrismaJobStatus(jobPostStatus),
-    }
+    },
   });
 
   if (!jobPostRes) {
@@ -224,9 +233,8 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     name: bizLocRes.name,
     logoImg: img_base_url.concat(bizLocRes.logo_url ?? ""),
     extraPhotos: extraImgs,
-    tags: []
-  }
-    ;
+    tags: [],
+  };
   const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
   const jobPostData: JobPostData = {
@@ -242,7 +250,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     schedule: jobPostRes.work_schedule,
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
-  }
+  };
   console.log(jobPostData);
   return jobPostData;
 }
@@ -256,12 +264,7 @@ type GetJobPostsParams = {
 
 // Get Job Post
 export async function getJobPosts(params: GetJobPostsParams) {
-  const {
-    workType,
-    location,
-    page,
-    limit
-  } = params;
+  const { workType, location, page, limit } = params;
 
   const skip = (page - 1) * limit;
 
@@ -272,20 +275,20 @@ export async function getJobPosts(params: GetJobPostsParams) {
       ...(location && { location: location }),
     },
     orderBy: {
-      created_at: "desc"
+      created_at: "desc",
     },
     skip,
     take: limit,
     include: {
       business_loc: {
         select: {
-          logo_url: true
-        }
+          logo_url: true,
+        },
       },
       _count: {
-        select: { applications: true }
-      }
-    }
+        select: { applications: true },
+      },
+    },
   });
 
   const jobPostsWithExtras = jobPosts.map(({ _count, ...rest }) => {

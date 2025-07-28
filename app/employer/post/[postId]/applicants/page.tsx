@@ -17,6 +17,7 @@ const mockJobPost: JobPostWithRelations = {
   job_type: "server",
   deadline: "2024-12-31",
   work_schedule: "Full-Time",
+  work_type: "Full-Time",
   job_fit_type_id_1: "fit1",
   skill_id_1: "skill1",
   wage: "15/hour",

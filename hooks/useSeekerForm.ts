@@ -5,6 +5,7 @@ import { LanguageLevel, WorkType, AvailableDay, AvailableHour } from "@/constant
 import { Location } from "@/constants/location";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { API_URLS } from "@/constants/api";
+import { apiGet } from "@/utils/client/API";
 
 interface JobSeekerFormData {
   skills: Skill[];
@@ -27,7 +28,7 @@ interface ExperienceForm {
   description: string;
 }
 
-interface UseJobSeekerFormReturn {
+interface UseSeekerFormReturn {
   // 상태
   formData: JobSeekerFormData;
   workExperiences: ExperienceForm[];
@@ -47,7 +48,7 @@ interface UseJobSeekerFormReturn {
   calculateProgress: () => number;
 }
 
-export const useJobSeekerForm = (): UseJobSeekerFormReturn => {
+export const useSeekerForm = (): UseSeekerFormReturn => {
   // 폼 데이터 상태
   const [formData, setFormData] = useState<JobSeekerFormData>({
     skills: [],
@@ -81,10 +82,9 @@ export const useJobSeekerForm = (): UseJobSeekerFormReturn => {
   const fetchSkills = async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const res = await fetch("/api/utils");
-      const data = await res.json();
+      const data = await apiGet(API_URLS.UTILS);
 
-      if (res.ok) {
+      if (data.status === "success") {
         setAvailableSkills(data.data.skills);
       } else {
         console.error("Failed to fetch skills:", data.error);
@@ -99,10 +99,9 @@ export const useJobSeekerForm = (): UseJobSeekerFormReturn => {
   const fetchCities = async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, cities: true }));
-      const res = await fetch(API_URLS.ENUM.BY_NAME("Location"));
-      const data = await res.json();
+      const data = await apiGet(API_URLS.ENUM.BY_NAME("Location"));
 
-      if (res.ok) {
+      if (data.status === "success") {
         const citiesData = data.data?.values || data.values || [];
         if (Array.isArray(citiesData)) {
           const convertedCities = citiesData.map(convertLocationKeyToValue);

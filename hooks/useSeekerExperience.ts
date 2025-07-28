@@ -9,7 +9,7 @@ export interface ExperienceForm {
   description: string;
 }
 
-export const useExperienceManagement = () => {
+export const useSeekerExperience = () => {
   const [experienceForm, setExperienceForm] = useState<ExperienceForm>({
     company: "",
     jobType: "",

@@ -4,9 +4,11 @@ import { supabaseClient } from "@/utils/supabase/client";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
+import { SupabaseUserMapper } from "@/types/user";
 
 export default function AuthProvider() {
-  const { setIsLoggedIn, setUser, setProfileStatus, isLoggedIn, profileStatus } = useAuthStore();
+  const { isLoggedIn, profileStatus, login, logout, setIsLoading, setError, clearError } =
+    useAuthStore();
   const router = useRouter();
   const isInitialized = useRef(false);
 
@@ -49,6 +51,9 @@ export default function AuthProvider() {
     // 초기 로그인 상태 확인
     const checkAuthStatus = async () => {
       try {
+        setIsLoading(true);
+        clearError();
+
         const {
           data: { user },
           error,
@@ -56,8 +61,8 @@ export default function AuthProvider() {
 
         if (error) {
           console.error("Error fetching user:", error);
-          setIsLoggedIn(false);
-          setUser(null);
+          setError("Failed to fetch user authentication status");
+          logout();
           return;
         }
 
@@ -73,11 +78,10 @@ export default function AuthProvider() {
           if (response.ok) {
             // 사용자가 데이터베이스에 존재함
             const userData = await response.json();
-            setIsLoggedIn(true);
-            setUser(user);
-            setProfileStatus(userData.data.profileStatus);
+            const supabaseUser = SupabaseUserMapper.fromSupabaseUser(user);
+            login(supabaseUser, userData.data.user, userData.data.profileStatus);
 
-            console.log("userData", userData);
+            console.log("set logged in user data", userData);
 
             if (isRoutingDisabled) {
               console.log("AuthProvider routing disabled for development");
@@ -123,18 +127,18 @@ export default function AuthProvider() {
           } else {
             // 사용자가 데이터베이스에 없음
             console.log("User not found in database, setting logged out");
-            setIsLoggedIn(false);
-            setUser(null);
-            setProfileStatus(null);
+            setError("User not found in database");
+            logout();
           }
         } else {
-          setIsLoggedIn(false);
-          setUser(null);
+          logout();
         }
       } catch (error) {
         console.error("Auth status check error:", error);
-        setIsLoggedIn(false);
-        setUser(null);
+        setError("Authentication check failed");
+        logout();
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -167,11 +171,10 @@ export default function AuthProvider() {
           if (response.ok) {
             // 사용자가 데이터베이스에 존재함
             const userData = await response.json();
-            setIsLoggedIn(true);
-            setUser(session.user);
-            setProfileStatus(userData.data.profileStatus);
+            const supabaseUser = SupabaseUserMapper.fromSupabaseUser(session.user);
+            login(supabaseUser, userData.data.user, userData.data.profileStatus);
 
-            const currentPath = window.location.pathname;
+            console.log("set logged in user data", userData);
 
             // role이 없으면 온보딩 페이지로 리다이렉트
             if (!userData.data.profileStatus.hasRole) {
@@ -195,29 +198,24 @@ export default function AuthProvider() {
           } else {
             // 사용자가 데이터베이스에 없음
             console.log("User not found in database after sign in");
-            setIsLoggedIn(false);
-            setUser(null);
-            setProfileStatus(null);
+            logout();
           }
         } catch (error) {
           console.error("User check error after sign in:", error);
-          setIsLoggedIn(false);
-          setUser(null);
+          logout();
         }
       }
 
       if (event === "SIGNED_OUT") {
         console.log("User signed out");
-        setIsLoggedIn(false);
-        setUser(null);
-        setProfileStatus(null);
+        logout();
       }
     });
 
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, [setIsLoggedIn, setUser]);
+  }, []);
 
   useEffect(() => {
     // 개발 중에는 AuthProvider 라우팅만 비활성화 (로그인 처리는 계속)
@@ -235,22 +233,26 @@ export default function AuthProvider() {
     if (profileStatus.role === "APPLICANT" && !profileStatus.isProfileCompleted) {
       if (!profileStatus.hasPersonalityProfile) {
         if (currentPath !== PAGE_URLS.ONBOARDING.SEEKER.QUIZ) {
+          console.log("Redirecting seeker to quiz");
           router.replace(PAGE_URLS.ONBOARDING.SEEKER.QUIZ);
         }
         return;
       } else if (!profileStatus.hasApplicantProfile) {
         if (currentPath !== PAGE_URLS.ONBOARDING.SEEKER.PROFILE) {
+          console.log("Redirecting seeker to profile");
           router.replace(PAGE_URLS.ONBOARDING.SEEKER.PROFILE);
         }
         return;
       }
     } else if (profileStatus.role === "EMPLOYER" && !profileStatus.isProfileCompleted) {
       if (currentPath !== PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE) {
+        console.log("Redirecting employer to profile");
         router.replace(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE);
       }
       return;
     } else if (!profileStatus.hasRole) {
       if (currentPath !== PAGE_URLS.ONBOARDING.ROOT) {
+        console.log("Redirecting to onboarding root");
         router.replace(PAGE_URLS.ONBOARDING.ROOT);
       }
       return;
