@@ -15,6 +15,7 @@ import {
   JobPostCard as JobPostCardType,
   RecommendedJobPost,
 } from "@/types/job";
+import { STORAGE_URLS } from "@/constants/storage";
 
 function SeekerPage() {
   const router = useRouter();
@@ -61,7 +62,9 @@ function SeekerPage() {
       description: apiJob.description,
       applicants: apiJob.applicantCount || 0,
       views: 0, // Placeholder
-      logoImage: apiJob.business_loc?.logo_url, // Changed from coverImage
+      logoImage: apiJob.business_loc?.logo_url
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc?.logo_url}`
+        : undefined, // Changed from coverImage
     };
   };
 

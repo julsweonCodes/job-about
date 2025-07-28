@@ -14,6 +14,7 @@ import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType, } from "@/constants/jobTypes";
 import { STORAGE_URLS } from '@/constants/storage';
+import { HttpError } from "../lib/server/commonResponse";
 
 // Create Job Post
 export async function createJobPost(payload: JobPostPayload) {
@@ -305,4 +306,74 @@ export async function getJobPosts(params: GetJobPostsParams) {
   });
 
   return jobPostsWithExtras;
+}
+
+export async function getJobPostById(jobPostId: number) {
+  const jobPost = await prisma.job_posts.findUnique({
+    where: {
+      id: jobPostId,
+      deleted_at: null,
+    },
+    include: {
+      business_loc: true
+    }
+  });
+
+  return jobPost;
+}
+
+export async function getbookmarkedJobPosts(userId: number, page: number, limit: number) {
+  const user = await prisma.users.findUnique({
+    where: { id: userId }
+  });
+  if (!user) {
+    throw new HttpError("User not found", 404);
+  }
+
+  const skip = (page - 1) * limit;
+
+  const jobPosts = await prisma.bookmarked_jobs.findMany({
+    where: {
+      user_id: userId
+    },
+    skip,
+    take: limit,
+    include: {
+      job_post: {
+        include: {
+          business_loc: true
+        }
+      }
+    }
+  });
+
+  return jobPosts;
+}
+
+export async function getAppliedJobPosts(userId: number, profileId: number, page: number, limit: number) {
+  const user = await prisma.users.findUnique({
+    where: { id: userId }
+  });
+  if (!user) {
+    throw new HttpError("User not found", 404);
+  }
+
+  const skip = (page - 1) * limit;
+
+  const jobPosts = await prisma.applications.findMany({
+    where: {
+      profile_id: profileId
+    },
+    skip,
+    take: limit,
+    include: {
+      job_post: {
+        include: {
+          business_loc: true
+        }
+      }
+    }
+  });
+
+  return jobPosts;
 }
