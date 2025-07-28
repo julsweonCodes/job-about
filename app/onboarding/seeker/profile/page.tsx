@@ -39,6 +39,7 @@ import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { API_URLS } from "@/constants/api";
 import { ApplicantProfileMapper } from "@/types/profile";
+import { WorkPeriod } from "@prisma/client";
 
 interface LocalExperienceForm {
   company: string;
@@ -134,11 +135,12 @@ function JobSeekerProfile() {
         location: formData.location || Location.TORONTO,
         englishLevel: formData.languageProficiency || LanguageLevel.BEGINNER,
         description: formData.selfIntroduction,
+        skillIds: formData.skills.map((skill) => skill.id),
         experiences: workExperiences.map((exp) => ({
           company: exp.company,
           jobType: exp.jobType || JobType.SERVER,
-          startDate: new Date(parseInt(exp.startYear), 0, 1), // 년도만 있으므로 1월 1일로 설정
-          endDate: new Date(parseInt(exp.startYear) + parseInt(exp.workedPeriod), 0, 1),
+          startYear: exp.startYear,
+          workPeriod: (exp.workedPeriod || WorkPeriod.SHORT_TERM) as any,
           workType: (exp.jobType || WorkType.REMOTE) as any,
           description: exp.description,
         })),

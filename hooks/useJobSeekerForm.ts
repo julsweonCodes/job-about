@@ -5,6 +5,7 @@ import { LanguageLevel, WorkType, AvailableDay, AvailableHour } from "@/constant
 import { Location } from "@/constants/location";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { API_URLS } from "@/constants/api";
+import { WorkPeriod } from "@prisma/client";
 
 interface JobSeekerFormData {
   skills: Skill[];
@@ -23,7 +24,7 @@ interface ExperienceForm {
   company: string;
   jobType: JobType | null;
   startYear: string;
-  workedPeriod: string;
+  workedPeriod: WorkPeriod;
   description: string;
 }
 
