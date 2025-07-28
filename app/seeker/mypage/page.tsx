@@ -30,7 +30,7 @@ import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { useSeekerMypage } from "@/hooks/useSeekerMypage";
-import { useExperienceManagement } from "@/hooks/useExperienceManagement";
+import { useSeekerExperience } from "@/hooks/useSeekerExperience";
 import { applicantProfile } from "@/types/profile";
 import { API_URLS } from "@/constants/api";
 import {
@@ -82,7 +82,7 @@ function SeekerMypage() {
     handleSaveExperience: saveExperience,
     handleJobTypeSelect: selectJobType,
     handleJobTypeConfirm: confirmJobType,
-  } = useExperienceManagement();
+  } = useSeekerExperience();
 
   // 모든 useState 훅을 조건문 이전에 호출
   const [newSkill, setNewSkill] = useState("");
