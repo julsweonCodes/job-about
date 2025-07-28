@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiGet } from "@/utils/client/API";
-import { RecommendedJobPost, RecommendationResponse } from "@/types/job";
-import { WorkType, Location } from "@prisma/client";
+import { JobPost } from "@/types/job";
 import { API_URLS } from "@/constants/api";
+import { WorkType } from "@/constants/enums";
+import { Location } from "@/constants/location";
 
-interface UseRecommendedJobsParams {
+interface UseLatestJobsParams {
   workType?: WorkType;
   location?: Location;
   page?: number;
@@ -12,26 +13,26 @@ interface UseRecommendedJobsParams {
   autoFetch?: boolean;
 }
 
-interface UseRecommendedJobsReturn {
-  recommendedJobs: RecommendedJobPost[];
+interface UseLatestJobsReturn {
+  latestJobs: JobPost[];
   loading: boolean;
   error: string | null;
   hasMore: boolean;
   totalCount: number;
   isInitialized: boolean;
-  fetchRecommendedJobs: (params?: Partial<UseRecommendedJobsParams>) => Promise<void>;
+  fetchLatestJobs: (params?: Partial<UseLatestJobsParams>) => Promise<void>;
   loadMore: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
-export function useRecommendedJobs({
+export function useLatestJobs({
   workType,
   location,
   page = 1,
   limit = 10,
   autoFetch = true,
-}: UseRecommendedJobsParams = {}): UseRecommendedJobsReturn {
-  const [recommendedJobs, setRecommendedJobs] = useState<RecommendedJobPost[]>([]);
+}: UseLatestJobsParams = {}): UseLatestJobsReturn {
+  const [latestJobs, setLatestJobs] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -39,8 +40,8 @@ export function useRecommendedJobs({
   const [currentPage, setCurrentPage] = useState(page);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const fetchRecommendedJobs = useCallback(
-    async (params?: Partial<UseRecommendedJobsParams>) => {
+  const fetchLatestJobs = useCallback(
+    async (params?: Partial<UseLatestJobsParams>) => {
       try {
         setLoading(true);
         setError(null);
@@ -63,36 +64,28 @@ export function useRecommendedJobs({
           queryParams.limit = params?.limit || limit;
         }
 
-        const response = await apiGet<{ data: RecommendationResponse }>(
-          API_URLS.RECOMMENDATIONS.JOBS,
-          queryParams
-        );
+        const response = await apiGet<{ data: JobPost[] }>(API_URLS.JOB_POSTS.ROOT, queryParams);
 
-        if (
-          response &&
-          response.data &&
-          response.data.recommendations &&
-          Array.isArray(response.data.recommendations)
-        ) {
-          const newRecommendedJobs = response.data.recommendations;
+        if (response && response.data && Array.isArray(response.data)) {
+          const newLatestJobs = response.data;
 
           if (params?.page === 1 || currentPage === 1) {
             // 첫 페이지면 전체 교체
-            setRecommendedJobs(newRecommendedJobs);
+            setLatestJobs(newLatestJobs);
           } else {
             // 추가 페이지면 기존에 추가
-            setRecommendedJobs((prev) => [...prev, ...newRecommendedJobs]);
+            setLatestJobs((prev) => [...prev, ...newLatestJobs]);
           }
 
-          setHasMore(newRecommendedJobs.length === (params?.limit || limit));
-          setTotalCount(response.data.totalCount || 0);
+          setHasMore(newLatestJobs.length === (params?.limit || limit));
+          setTotalCount(newLatestJobs.length || 0);
         } else {
-          setError("Failed to fetch recommended jobs");
-          setRecommendedJobs([]);
+          setError("Failed to fetch latest jobs");
+          setLatestJobs([]);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
-        setRecommendedJobs([]);
+        setLatestJobs([]);
       } finally {
         setLoading(false);
         setIsInitialized(true);
@@ -106,30 +99,30 @@ export function useRecommendedJobs({
 
     const nextPage = currentPage + 1;
     setCurrentPage(nextPage);
-    await fetchRecommendedJobs({ page: nextPage });
-  }, [loading, hasMore, currentPage, fetchRecommendedJobs]);
+    await fetchLatestJobs({ page: nextPage });
+  }, [loading, hasMore, currentPage, fetchLatestJobs]);
 
   const refresh = useCallback(async () => {
     setCurrentPage(1);
-    setRecommendedJobs([]);
+    setLatestJobs([]);
     setHasMore(true);
-    await fetchRecommendedJobs({ page: 1 });
-  }, [fetchRecommendedJobs]);
+    await fetchLatestJobs({ page: 1 });
+  }, [fetchLatestJobs]);
 
   useEffect(() => {
     if (autoFetch) {
-      fetchRecommendedJobs();
+      fetchLatestJobs();
     }
-  }, [autoFetch, fetchRecommendedJobs]);
+  }, [autoFetch, fetchLatestJobs]);
 
   return {
-    recommendedJobs,
+    latestJobs,
     loading,
     error,
     hasMore,
     totalCount,
     isInitialized,
-    fetchRecommendedJobs,
+    fetchLatestJobs,
     loadMore,
     refresh,
   };
