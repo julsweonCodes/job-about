@@ -114,3 +114,15 @@ export const getApiBaseUrl = () => {
 export const createApiUrl = (path: string) => {
   return `${getApiBaseUrl()}${path}`;
 };
+
+// HTTP 메소드 상수
+export const HTTP_METHODS = {
+  GET: "GET",
+  POST: "POST",
+  PUT: "PUT",
+  PATCH: "PATCH",
+  DELETE: "DELETE",
+} as const;
+
+// HTTP 메소드 타입
+export type HttpMethod = (typeof HTTP_METHODS)[keyof typeof HTTP_METHODS];
