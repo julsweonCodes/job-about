@@ -5,7 +5,6 @@ import {
   LanguageLevel,
   Location,
   Prisma,
-  WorkPeriod,
   WorkType,
 } from "@prisma/client";
 import {
@@ -62,14 +61,14 @@ export interface updateApplicantProfile {
   work_experiences?: workExperience[];
 }
 export interface profile_practical_skill {
-  practical_skill_id: number
+  practical_skill_id: number;
 }
 
 export interface workExperience {
   company_name: string;
   job_type: JobType;
   start_year: string;
-  work_period: WorkPeriod;
+  work_period: ClientWorkPeriod;
   work_type: WorkType;
   description: string;
 }
@@ -115,13 +114,14 @@ export class ApplicantProfileMapper {
       language_level: toPrismaLanguageLevel(formData.englishLevel as any),
       description: formData.description,
       profile_practical_skills: formData.skillIds.map((skillId) => ({
-        practical_skill_id: skillId
+        practical_skill_id: skillId,
       })),
       work_experiences: formData.experiences.map((exp) => ({
         company_name: exp.company,
         job_type: toPrismaJobType(exp.jobType as any),
         start_year: exp.startYear,
-        work_period: toPrismaWorkPeriod(exp.workPeriod as any),
+        start_date: new Date(exp.startYear + "-01-01"), // 임시로 start_date 추가
+        work_period: toPrismaWorkPeriod(exp.workPeriod as any) as ClientWorkPeriod,
         work_type: toPrismaWorkType(exp.workType as any),
         description: exp.description,
       })),
@@ -146,9 +146,7 @@ export class ApplicantProfileMapper {
       location: fromPrismaLocation(apiData.location as any) as ClientLocation,
       englishLevel: fromPrismaLanguageLevel(apiData.language_level) as ClientLanguageLevel,
       description: apiData.description,
-      skillIds: apiData.profile_practical_skills?.map((skill) => (
-        skill.practical_skill_id
-      )) || [],
+      skillIds: apiData.profile_practical_skills?.map((skill) => skill.practical_skill_id) || [],
       experiences:
         apiData.work_experiences?.map((exp) => ({
           company: exp.company_name,
@@ -205,26 +203,27 @@ export function toApplicantProfileCreate(
     user: { connect: { id: BigInt(userId) } },
     ...(profile_practical_skills && profile_practical_skills.length > 0
       ? {
-        profile_practical_skills: {
-          create: profile_practical_skills.map((skill) => ({
-            practical_skill_id: skill.practical_skill_id,
-            created_at: new Date()
-          })),
-        },
-      }
+          profile_practical_skills: {
+            create: profile_practical_skills.map((skill) => ({
+              practical_skill_id: skill.practical_skill_id,
+              created_at: new Date(),
+            })),
+          },
+        }
       : {}),
     ...(work_experiences && work_experiences.length > 0
       ? {
-        work_experiences: {
-          create: work_experiences.map((exp) => ({
-            ...exp,
-            start_year: exp.start_year,
-            work_period: exp.work_period,
-            created_at: new Date(),
-            updated_at: new Date(),
-          })),
-        },
-      }
+          work_experiences: {
+            create: work_experiences.map((exp) => ({
+              ...exp,
+              start_year: exp.start_year,
+              start_date: new Date(exp.start_year + "-01-01"),
+              work_period: exp.work_period,
+              created_at: new Date(),
+              updated_at: new Date(),
+            })),
+          },
+        }
       : {}),
     created_at: new Date(),
     updated_at: new Date(),

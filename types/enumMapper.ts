@@ -29,8 +29,8 @@ export function toPrismaJobStatus(value: JobStatus): $Enums.JobStatus {
   return map[value];
 }
 
-export function toPrismaWorkPeriod(value: WorkPeriod): $Enums.WorkPeriod {
-  const map: Record<WorkPeriod, $Enums.WorkPeriod> = {
+export function toPrismaWorkPeriod(value: WorkPeriod): string {
+  const map: Record<WorkPeriod, string> = {
     [WorkPeriod.SHORT_TERM]: "SHORT_TERM",
     [WorkPeriod.UNDER_3_MONTHS]: "UNDER_3_MONTHS",
     [WorkPeriod.UNDER_6_MONTHS]: "UNDER_6_MONTHS",

@@ -2,6 +2,7 @@
   "name": "job-about",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "PORT=3000 next dev",
     "build": "next build",
@@ -10,7 +11,9 @@
     "type-check": "tsc --noEmit",
     "check-all": "yarn lint && yarn type-check && yarn build",
     "pre-commit": "yarn lint && yarn type-check",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "mcp:start": "node mcp-server.js",
+    "mcp:dev": "nodemon mcp-server.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed_quiz.ts"
@@ -30,6 +33,7 @@
     "clsx": "^2.1.1",
     "cookies-next": "^4.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
     "iron-session": "^8.0.4",
     "lucide-react": "^0.523.0",
     "next": "14.1.4",
@@ -51,6 +55,7 @@
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.1.4",
+    "nodemon": "^3.0.0",
     "postcss": "^8",
     "prettier": "^3.6.0",
     "prisma": "^6.10.1",

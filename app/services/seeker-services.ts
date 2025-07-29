@@ -114,6 +114,7 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
                             create: work_experiences.map((exp) => ({
                                 ...exp,
                                 start_year: exp.start_year,
+                                start_date: new Date(exp.start_year + "-01-01"),
                                 work_period: exp.work_period,
                                 created_at: new Date(),
                                 updated_at: new Date(),

@@ -6,7 +6,7 @@ import { Location } from "@/constants/location";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { API_URLS } from "@/constants/api";
 import { apiGet } from "@/utils/client/API";
-import { WorkPeriod } from "@prisma/client";
+import { WorkPeriod } from "@/constants/enums";
 
 interface JobSeekerFormData {
   skills: Skill[];

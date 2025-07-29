@@ -40,7 +40,7 @@ import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { API_URLS } from "@/constants/api";
 import { apiPost } from "@/utils/client/API";
 import { ApplicantProfileMapper } from "@/types/profile";
-import { WorkPeriod } from "@prisma/client";
+import { WorkPeriod } from "@/constants/enums";
 
 interface LocalExperienceForm {
   company: string;

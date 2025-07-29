@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { apiGet, apiPatch } from "@/utils/client/API";
+import { WorkPeriod } from "@/constants/enums";
 
 export interface UserInfo {
   name: string;
@@ -71,7 +72,7 @@ const dummySeekerProfile: applicantProfile = {
       company_name: "Starbucks Coffee",
       job_type: "BARISTA",
       start_year: "2022",
-      work_period: "ONE_TO_TWO_YEARS",
+      work_period: WorkPeriod.ONE_TO_TWO_YEARS,
       work_type: "ON_SITE",
       description:
         "Prepared and served coffee beverages, maintained cleanliness standards, and provided excellent customer service.",
@@ -80,7 +81,7 @@ const dummySeekerProfile: applicantProfile = {
       company_name: "McDonald's",
       job_type: "CASHIER",
       start_year: "2022",
-      work_period: "SEVEN_TO_TEN_YEARS",
+      work_period: WorkPeriod.SEVEN_TO_TEN_YEARS,
       work_type: "ON_SITE",
       description:
         "Handled cash transactions, took customer orders, and ensured customer satisfaction.",
@@ -89,7 +90,7 @@ const dummySeekerProfile: applicantProfile = {
       company_name: "Tim Hortons",
       job_type: "SERVER",
       start_year: "2018",
-      work_period: "SEVEN_TO_TEN_YEARS",
+      work_period: WorkPeriod.SEVEN_TO_TEN_YEARS,
       work_type: "ON_SITE",
       description:
         "Served customers, maintained dining area cleanliness, and assisted with food preparation.",
