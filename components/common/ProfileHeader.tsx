@@ -1,6 +1,6 @@
 import React from "react";
-import Image from "next/image";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 
 interface HeaderProps {
   onClickLogo?: () => void;
@@ -33,14 +33,12 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ onClickLogo, onClickProfi
           <div className="flex items-center space-x-3 lg:space-x-4">
             {/* Profile Avatar */}
             {onClickProfile && (
-              <div className="relative">
-                <Image
+              <div className="relative cursor-pointer" onClick={onClickProfile}>
+                <ImageWithSkeleton
                   src={displayImage}
                   alt="Profile"
-                  width={40}
-                  height={40}
-                  className="rounded-full cursor-pointer"
-                  onClick={onClickProfile}
+                  className="w-10 h-10 rounded-full object-cover"
+                  fallbackSrc="/images/img-default-profile.png"
                 />
               </div>
             )}

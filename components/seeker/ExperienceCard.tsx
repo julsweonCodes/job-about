@@ -1,55 +1,38 @@
 import React from "react";
-import { Pencil, Trash2 } from "lucide-react";
-import Typography from "@/components/ui/Typography";
-import { WORK_PERIOD_OPTIONS } from "@/constants/options";
-import { getJobTypeConfig } from "@/constants/jobTypes";
-import { JobType } from "@/constants/jobTypes";
+import { Edit3 } from "lucide-react";
 
-interface ExperienceForm {
+interface Experience {
   company: string;
-  jobType: JobType;
+  jobType: string;
   startYear: string;
   workedPeriod: string;
+  workType: string;
   description: string;
 }
 
 interface ExperienceCardProps {
-  experience: ExperienceForm;
-  onEdit: () => void;
-  onDelete: () => void;
+  experience: Experience;
+  index: number;
+  onEdit: (index: number, experience: Experience) => void;
 }
 
-export function ExperienceCard({ experience, onEdit, onDelete }: ExperienceCardProps) {
+export const ExperienceCard: React.FC<ExperienceCardProps> = ({ experience, index, onEdit }) => {
   return (
-    <div className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow">
-      <div>
-        <Typography as="div" className="font-bold text-gray-800 text-base mb-1">
-          {experience.company}
-        </Typography>
-        <Typography as="div" className="text-gray-500 text-sm">
-          {getJobTypeConfig(experience.jobType).name} • {experience.startYear},{" "}
-          {WORK_PERIOD_OPTIONS.find((option) => option.value === experience.workedPeriod)?.label ||
-            experience.workedPeriod}
-        </Typography>
-      </div>
-      <div className="flex items-center gap-2 ml-4">
-        <button
-          type="button"
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-indigo-500 transition-colors"
-          onClick={onEdit}
-          aria-label="Edit"
-        >
-          <Pencil className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-rose-500 transition-colors"
-          onClick={onDelete}
-          aria-label="Delete"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="p-4 bg-slate-50 rounded-lg relative group">
+      <button
+        onClick={() => onEdit(index, experience)}
+        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm hover:bg-slate-50 transition-colors duration-200"
+      >
+        <Edit3 size={14} className="text-slate-600" />
+      </button>
+      <h4 className="font-medium text-slate-900">{experience.company}</h4>
+      <p className="text-sm text-slate-600">{experience.jobType}</p>
+      <p className="text-xs text-slate-500">
+        {experience.startYear} ~ {experience.workedPeriod}
+      </p>
+      {experience.description && (
+        <p className="text-xs text-slate-500 mt-2">{experience.description}</p>
+      )}
     </div>
   );
-}
+};

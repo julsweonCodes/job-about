@@ -24,7 +24,6 @@ export interface Personality {
 export interface ApplicantProfile {
   name: string;
   description: string;
-  profileImageUrl: string | null;
   joinDate: string;
   personalityName: string;
   personalityDesc: string;
@@ -37,10 +36,12 @@ export interface ApplicantProfile {
   availabilityTime: string; // availabilityTimes에서 availabilityTime으로 변경
   englishLevel: string;
   experiences: {
-    title: string;
     company: string;
-    duration: string;
-    description?: string;
+    jobType: string;
+    startYear: string;
+    workedPeriod: string;
+    workType: string;
+    description: string;
   }[];
 }
 
@@ -111,7 +112,6 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const [applicantProfile, setApplicantProfile] = useState<ApplicantProfile>({
     name: "",
     description: "",
-    profileImageUrl: null,
     joinDate: "",
     personalityName: "",
     personalityDesc: "",
@@ -205,13 +205,14 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
 
         // AuthProvider에서 이미 설정된 사용자 정보가 있으면 활용
         if (authUser && appUser) {
-          setUserInfo({
+          const userInfoData = {
             name: appUser.name || authUser.email || "",
             description: "", // AppUser에는 description이 없으므로 빈 문자열
             phone_number: "", // AppUser에는 phone_number가 없으므로 빈 문자열
             img_url: appUser.img_url || undefined,
             created_at: new Date(appUser.created_at || Date.now()),
-          });
+          };
+          setUserInfo(userInfoData);
         } else {
           // AuthProvider에서 정보가 없으면 API 호출
           const userData = await apiGet(API_URLS.USER.ME);
@@ -249,12 +250,11 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
 
   // 데이터 변환 및 초기화
   useEffect(() => {
-    if (userInfo && seekerPersonality && !isInitialized) {
+    if (userInfo && seekerPersonality) {
       // seekerProfile이 없어도 기본 정보로 초기화
       const profile: ApplicantProfile = {
         name: userInfo.name || "",
         description: userInfo.description || "",
-        profileImageUrl: userInfo.img_url || null,
         joinDate: new Date(userInfo.created_at).toLocaleDateString("ko-KR", {
           year: "numeric",
           month: "2-digit",
@@ -262,14 +262,14 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         }),
         personalityName: seekerPersonality.name_en,
         personalityDesc: seekerPersonality.description_en,
-        location: "toronto", // 기본값
+        location: "", // 기본값
         phone: userInfo.phone_number || "",
         skillIds: [],
-        workType: "remote",
+        workType: "",
         jobTypes: [],
-        availabilityDay: "weekdays",
-        availabilityTime: "am",
-        englishLevel: "beginner",
+        availabilityDay: "",
+        availabilityTime: "",
+        englishLevel: "",
         experiences: [],
       };
 
@@ -277,6 +277,10 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       if (seekerProfile) {
         try {
           const formData = ApplicantProfileMapper.fromApi(seekerProfile);
+          console.log("🔍 Seeker Profile Data:", seekerProfile);
+          console.log("🔍 Mapped Form Data:", formData);
+          console.log("🔍 Skill IDs:", formData.skillIds);
+
           profile.location = formData.location;
           profile.skillIds = formData.skillIds;
           profile.workType = formData.workType;
@@ -284,10 +288,13 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           profile.availabilityDay = formData.availableDay;
           profile.availabilityTime = formData.availableHour;
           profile.englishLevel = formData.englishLevel;
+          profile.description = formData.description;
           profile.experiences = formData.experiences.map((exp: any) => ({
-            title: exp.jobType,
             company: exp.company,
-            duration: `${exp.startYear} ~  / ${exp.workPeriod}`,
+            jobType: exp.jobType,
+            startYear: exp.startYear,
+            workedPeriod: exp.workPeriod,
+            workType: exp.workType,
             description: exp.description,
           }));
         } catch (error) {
@@ -299,7 +306,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       setTempData(profile);
       setIsInitialized(true);
     }
-  }, [userInfo, seekerPersonality, seekerProfile, isInitialized]);
+  }, [userInfo, seekerPersonality, seekerProfile]);
 
   // 임시 데이터 동기화
   useEffect(() => {
@@ -332,7 +339,6 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       const formData = new FormData();
       formData.append("name", tempData.name);
       formData.append("description", tempData.description);
-      formData.append("phone_number", tempData.phone);
 
       const response = await apiPatch(API_URLS.USER.UPDATE, formData);
 
@@ -350,28 +356,19 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
 
   const updateProfileImage = async (file: File) => {
     try {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setApplicantProfile((prev) => ({
-          ...prev,
-          profileImageUrl: imageUrl,
-        }));
-      };
-      reader.readAsDataURL(file);
-
       const formData = new FormData();
       formData.append("img", file);
 
       const result = await apiPatch(API_URLS.USER.UPDATE, formData);
 
-      if (result.data.img_url) {
-        setApplicantProfile((prev) => ({
-          ...prev,
-          profileImageUrl: result.data.img_url,
-        }));
+      if (result.data && result.data.img_url !== undefined) {
+        // AuthStore 업데이트 - 더 안전한 방식
+        const authStore = useAuthStore.getState();
+        authStore.updateProfileImage(result.data.img_url);
+        showSuccessToast("Profile image updated!");
+      } else {
+        showErrorToast("Failed to update profile image");
       }
-      showSuccessToast("Profile image updated!");
     } catch (error) {
       console.error("Error updating profile image:", error);
       showErrorToast("Failed to update profile image");

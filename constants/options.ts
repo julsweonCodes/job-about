@@ -1,4 +1,4 @@
-import { AvailableDay, AvailableHour, WorkType, WorkPeriod } from "./enums";
+import { AvailableDay, AvailableHour, WorkType, WorkPeriod, LanguageLevel } from "./enums";
 
 export const WORK_TYPE_OPTIONS = [
   { value: WorkType.REMOTE, label: "Remote" },
@@ -27,4 +27,10 @@ export const AVAILABLE_DAY_OPTIONS = [
 export const AVAILABLE_HOUR_OPTIONS = [
   { value: AvailableHour.AM, label: "AM" },
   { value: AvailableHour.PM, label: "PM" },
+] as const;
+
+export const LANGUAGE_LEVEL_OPTIONS = [
+  { value: LanguageLevel.BEGINNER, label: "Beginner" },
+  { value: LanguageLevel.INTERMEDIATE, label: "Intermediate" },
+  { value: LanguageLevel.FLUENT, label: "Fluent" },
 ] as const;

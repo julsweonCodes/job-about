@@ -136,7 +136,7 @@ export class ApplicantProfileMapper {
       location: fromPrismaLocation(apiData.location as any) as ClientLocation,
       englishLevel: fromPrismaLanguageLevel(apiData.language_level) as ClientLanguageLevel,
       description: apiData.description,
-      skillIds: apiData.profile_practical_skills?.map((skill) => skill.practical_skill_id) || [],
+      skillIds: apiData.profile_practical_skills?.map((skill) => Number(skill.practical_skill_id)) || [],
       experiences:
         apiData.work_experiences?.map((exp) => ({
           company: exp.company_name,

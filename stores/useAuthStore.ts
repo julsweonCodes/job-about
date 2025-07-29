@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type { AppUser, ProfileStatus, SupabaseUser } from "@/types/user";
 import { SupabaseUserMapper } from "@/types/user";
+import { STORAGE_URLS } from "@/constants/storage";
 
 // 역할별 데이터 타입
 interface SeekerData {
@@ -93,6 +94,7 @@ interface AuthState {
   login: (supabaseUser: SupabaseUser, appUser: AppUser, profileStatus: ProfileStatus) => void;
   logout: () => void;
   updateProfileStatus: (updates: Partial<ProfileStatus>) => void;
+  updateProfileImage: (imgUrl: string) => void;
   clearError: () => void; // 에러 클리어 액션
 
   // 셀렉터
@@ -183,6 +185,11 @@ export const useAuthStore = create<AuthState>()(
             profileStatus: state.profileStatus ? { ...state.profileStatus, ...updates } : null,
           })),
 
+        updateProfileImage: (imgUrl) =>
+          set((state) => ({
+            appUser: state.appUser ? { ...state.appUser, img_url: imgUrl } : null,
+          })),
+
         // 기본 셀렉터
         isEmployer: () => {
           const { profileStatus } = get();
@@ -218,9 +225,12 @@ export const useAuthStore = create<AuthState>()(
 
         getUserProfileImageUrl: () => {
           const { appUser } = get();
-          if (!appUser) return null;
 
-          return appUser.img_url || null;
+          if (!appUser || !appUser.img_url) {
+            return null;
+          }
+
+          return `${STORAGE_URLS.USER.PROFILE_IMG}${appUser.img_url}`;
         },
 
         getRoleSpecificData: () => {

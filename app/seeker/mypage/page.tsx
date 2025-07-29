@@ -24,10 +24,15 @@ import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { LanguageLevel, WORK_TYPES } from "@/constants/enums";
-import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
+import {
+  AVAILABLE_DAY_OPTIONS,
+  AVAILABLE_HOUR_OPTIONS,
+  LANGUAGE_LEVEL_OPTIONS,
+} from "@/constants/options";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { JobType } from "@/constants/jobTypes";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
+import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { useSeekerMypage } from "@/hooks/useSeekerMypage";
@@ -50,11 +55,19 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { getLocationDisplayName } from "@/constants/location";
-import { Location } from "@/constants/location";
 import { Skill } from "@/types/profile";
 import { STORAGE_URLS } from "@/constants/storage";
-import { apiDelete } from "@/utils/client/API";
+import { apiDelete, apiPatch } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
+
+import {
+  getWorkTypeLabel,
+  getAvailabilityDayLabel,
+  getAvailabilityHourLabel,
+  getLanguageLevelLabel,
+  getJobTypeName,
+} from "@/utils/client/enumDisplayUtils";
 
 function SeekerMypage() {
   // 커스텀 훅 사용 (최상단에서 호출)
@@ -66,12 +79,32 @@ function SeekerMypage() {
     availableSkills,
     availableLocations,
     loadingStates,
+    userInfo, // userInfo 추가
     handleEdit: handleEditSection,
     handleCancel: handleCancelSection,
     handleTempInputChange: handleInputChange,
     updateUserProfile: updateProfile,
-    updateProfileImage: updateImage,
+    setApplicantProfile,
   } = useSeekerMypage();
+
+  // 로컬 상태로 프로필 이미지 관리
+  const [profileImageUrl, setProfileImageUrl] = useState<string>("/images/img-default-profile.png");
+
+  // 초기 프로필 이미지 URL 설정
+  React.useEffect(() => {
+    if (userInfo?.img_url) {
+      const fullImageUrl = `${STORAGE_URLS.USER.PROFILE_IMG}${userInfo.img_url}`;
+      setProfileImageUrl(fullImageUrl);
+    }
+  }, [userInfo?.img_url]);
+
+  // 프로필 이미지 URL 계산
+  const displayImage = React.useMemo(() => {
+    if (!profileImageUrl || profileImageUrl === "/images/img-default-profile.png") {
+      return "/images/img-default-profile.png";
+    }
+    return profileImageUrl;
+  }, [profileImageUrl]);
 
   const {
     experienceForm,
@@ -105,7 +138,7 @@ function SeekerMypage() {
   // Skills 관련 함수들
   const handleSkillsEdit = () => {
     // 현재 선택된 skills를 id로 매칭하여 실제 Skill 객체 찾기
-    const currentSkills = tempData.skillIds
+    const currentSkills = applicantProfile.skillIds
       .map((skillId) => {
         const foundSkill = availableSkills.find((skill) => skill.id === skillId);
         return foundSkill;
@@ -115,11 +148,29 @@ function SeekerMypage() {
     setShowSkillsDialog(true);
   };
 
-  const handleSkillsConfirm = (skills: Skill[]) => {
+  const handleSkillsConfirm = async (skills: Skill[]) => {
     const skillIds = skills.map((skill) => skill.id);
     // skillIds 배열로 저장
     handleInputChange("skillIds", skillIds as any);
     setShowSkillsDialog(false);
+
+    // skills 선택 후 자동으로 저장
+    const payload = {
+      profile_practical_skills: skillIds.map((i: number) => ({
+        practical_skill_id: i,
+      })),
+    };
+
+    const success = await updateProfileSection("skills", payload, false);
+    if (success) {
+      // 성공 시 applicantProfile도 업데이트하여 페이지에 반영
+      setApplicantProfile({
+        ...applicantProfile,
+        skillIds: skillIds,
+      });
+      // skills 전용 toast 메시지
+      showSuccessToast("Skills updated successfully!");
+    }
   };
 
   const handleSkillsCancel = () => {
@@ -159,23 +210,23 @@ function SeekerMypage() {
   ];
 
   // API 호출 로직을 별도 함수로 분리
-  const updateProfileSection = async (section: string, payload: Partial<applicantProfile>) => {
+  const updateProfileSection = async (
+    section: string,
+    payload: Partial<applicantProfile>,
+    showToast: boolean = true
+  ) => {
     try {
-      const response = await fetch(API_URLS.SEEKER.PROFILES, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      console.log("🔍 updateProfileSection payload:", payload);
+      const result = await apiPatch(API_URLS.SEEKER.PROFILES, payload);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
       if (result.status === "success") {
-        showSuccessToast(`${section} updated successfully`);
+        if (showToast) {
+          showSuccessToast(`${section} updated successfully`);
+        }
+
+        // 성공 시 tempData를 applicantProfile로 업데이트하여 페이지 상태 새로고침
+        setApplicantProfile(tempData);
+
         return true;
       } else {
         throw new Error(result.message || "Update failed");
@@ -222,6 +273,8 @@ function SeekerMypage() {
   const handleOptionsSave = async (section: keyof typeof SECTION_MAPPINGS) => {
     try {
       const mapper = SECTION_MAPPINGS[section];
+      console.log("🔍 mapper:", mapper);
+
       if (!mapper) {
         showErrorToast(`Unknown section: ${section}`);
         return;
@@ -257,7 +310,25 @@ function SeekerMypage() {
   };
 
   const handleProfileImageChange = async (file: File) => {
-    await updateImage(file);
+    try {
+      const formData = new FormData();
+      formData.append("img", file);
+
+      const result = await apiPatch(API_URLS.USER.UPDATE, formData);
+
+      if (result.data && result.data.img_url !== undefined) {
+        // 로컬 상태 업데이트만 수행
+        const newImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/user-photo/${result.data.img_url}`;
+        setProfileImageUrl(newImageUrl);
+
+        showSuccessToast("Profile image updated!");
+      } else {
+        showErrorToast("Failed to update profile image");
+      }
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      showErrorToast("Failed to update profile image");
+    }
   };
 
   const handleImageUploadDialog = () => {
@@ -326,39 +397,14 @@ function SeekerMypage() {
           <div className="p-5 sm:p-8">
             <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left gap-4 sm:gap-6">
               <div className="relative flex-shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden relative">
-                  {/* 스켈레톤 로더 */}
-                  <div
-                    id="profile-skeleton"
-                    className="absolute inset-0 bg-gray-200 animate-pulse rounded-xl sm:rounded-2xl z-10"
-                  />
-                  <img
-                    src={
-                      applicantProfile.profileImageUrl
-                        ? `${STORAGE_URLS.USER.PROFILE_IMG}${applicantProfile.profileImageUrl}`
-                        : "/images/img-default-profile.png"
-                    }
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
+                  <ImageWithSkeleton
+                    key={displayImage} // URL이 변경될 때마다 컴포넌트 재생성
+                    src={displayImage}
                     alt={applicantProfile.name}
-                    className="w-full h-full object-cover relative z-20"
-                    onLoad={(e) => {
-                      const skeleton = document.getElementById("profile-skeleton");
-                      if (skeleton) {
-                        skeleton.style.opacity = "0";
-                        setTimeout(() => {
-                          skeleton.style.display = "none";
-                        }, 300);
-                      }
-                    }}
-                    onError={(e) => {
-                      e.currentTarget.src = "/images/img-default-profile.png";
-                      const skeleton = document.getElementById("profile-skeleton");
-                      if (skeleton) {
-                        skeleton.style.opacity = "0";
-                        setTimeout(() => {
-                          skeleton.style.display = "none";
-                        }, 300);
-                      }
-                    }}
+                    fallbackSrc="/images/img-default-profile.png"
+                    className="w-full h-full object-cover"
+                    skeletonClassName="bg-gray-200 animate-pulse rounded-xl sm:rounded-2xl"
                   />
                 </div>
                 <button
@@ -546,7 +592,7 @@ function SeekerMypage() {
           >
             {!isEditing.skills ? (
               <div className="flex flex-wrap gap-2">
-                {tempData.skillIds.map((skillId, index) => {
+                {applicantProfile.skillIds.map((skillId, index) => {
                   const skill = availableSkills.find((s) => s.id === skillId);
                   return skill ? (
                     <span
@@ -631,7 +677,7 @@ function SeekerMypage() {
           >
             {!isEditing.workType ? (
               <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                {tempData.workType}
+                {getWorkTypeLabel(tempData.workType)}
               </span>
             ) : (
               <div className="flex gap-2">
@@ -645,7 +691,7 @@ function SeekerMypage() {
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
-                    {type.charAt(0).toUpperCase() + type.slice(1).replace("-", " ")}
+                    {getWorkTypeLabel(type)}
                   </button>
                 ))}
               </div>
@@ -669,7 +715,7 @@ function SeekerMypage() {
                   key={index}
                   className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
                 >
-                  {type}
+                  {getJobTypeName(type)}
                 </span>
               ))}
             </div>
@@ -691,14 +737,14 @@ function SeekerMypage() {
                 <div className="flex flex-wrap gap-2">
                   {tempData.availabilityDay && (
                     <span className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                      {tempData.availabilityDay}
+                      {getAvailabilityDayLabel(tempData.availabilityDay)}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tempData.availabilityTime && (
                     <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-medium">
-                      {tempData.availabilityTime}
+                      {getAvailabilityHourLabel(tempData.availabilityTime)}
                     </span>
                   )}
                 </div>
@@ -754,20 +800,12 @@ function SeekerMypage() {
           >
             <div className="space-y-3">
               {tempData.experiences.map((exp, index) => (
-                <div key={index} className="p-4 bg-slate-50 rounded-lg relative group">
-                  <button
-                    onClick={() => editExperience(index, tempData.experiences[index])}
-                    className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm"
-                  >
-                    <Edit3 size={14} className="text-slate-600" />
-                  </button>
-                  <h4 className="font-medium text-slate-900">{exp.title}</h4>
-                  <p className="text-sm text-slate-600">{exp.company}</p>
-                  <p className="text-xs text-slate-500">{exp.duration}</p>
-                  {exp.description && (
-                    <p className="text-xs text-slate-500 mt-2">{exp.description}</p>
-                  )}
-                </div>
+                <ExperienceCard
+                  key={index}
+                  experience={exp}
+                  index={index}
+                  onEdit={editExperience}
+                />
               ))}
             </div>
             <button
@@ -792,7 +830,7 @@ function SeekerMypage() {
           >
             {!isEditing.languages ? (
               <span className="px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
-                {tempData.englishLevel}
+                {getLanguageLevelLabel(tempData.englishLevel)}
               </span>
             ) : (
               <div className="flex gap-2">
@@ -898,11 +936,7 @@ function SeekerMypage() {
         onClose={() => setShowImageUploadDialog(false)}
         onSave={handleProfileImageChange}
         title="Change Profile Image"
-        currentImage={
-          applicantProfile.profileImageUrl
-            ? `${STORAGE_URLS.USER.PROFILE_IMG}${applicantProfile.profileImageUrl}`
-            : "/images/img-default-profile.png"
-        }
+        currentImage={displayImage}
         type="profile"
       />
 
