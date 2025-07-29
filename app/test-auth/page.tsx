@@ -53,7 +53,7 @@ export default function TestAuthPage() {
         <button
           onClick={async () => {
             try {
-              const response = await fetch(API_URLS.USER.ROOT, {
+              const response = await fetch(API_URLS.USER.CREATE, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
