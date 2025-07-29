@@ -85,6 +85,7 @@ function SeekerMypage() {
     handleTempInputChange: handleInputChange,
     updateUserProfile: updateProfile,
     setApplicantProfile,
+    setTempData,
   } = useSeekerMypage();
 
   // 로컬 상태로 프로필 이미지 관리
@@ -129,6 +130,8 @@ function SeekerMypage() {
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [selectedJobTypes, setSelectedJobTypes] = useState<JobType[]>([]);
   const [showPreferredJobTypesDialog, setShowPreferredJobTypesDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [experienceToDelete, setExperienceToDelete] = useState<number | null>(null);
 
   // 로딩 상태 체크 (훅 호출 이후에 위치)
   if (isLoading || !applicantProfile || !tempData) {
@@ -348,6 +351,27 @@ function SeekerMypage() {
 
   const removeSkill = (index: number) => {
     handleInputChange("skillIds", tempData.skillIds.filter((_, i) => i !== index) as any);
+  };
+
+  const deleteExperience = (index: number) => {
+    setExperienceToDelete(index);
+    setShowDeleteConfirmDialog(true);
+  };
+
+  const confirmDeleteExperience = () => {
+    if (experienceToDelete !== null) {
+      const experience = tempData.experiences[experienceToDelete];
+      const updatedExperiences = tempData.experiences.filter((_, i) => i !== experienceToDelete);
+      setTempData({ ...tempData, experiences: updatedExperiences });
+      showSuccessToast("Experience deleted successfully!");
+    }
+    setShowDeleteConfirmDialog(false);
+    setExperienceToDelete(null);
+  };
+
+  const cancelDeleteExperience = () => {
+    setShowDeleteConfirmDialog(false);
+    setExperienceToDelete(null);
   };
 
   const handleJobTypesEdit = () => {
@@ -805,6 +829,7 @@ function SeekerMypage() {
                   experience={exp}
                   index={index}
                   onEdit={editExperience}
+                  onDelete={deleteExperience}
                 />
               ))}
             </div>
@@ -979,6 +1004,40 @@ function SeekerMypage() {
         skills={availableSkills}
         onConfirm={handleSkillsConfirm}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <BaseDialog
+        open={showDeleteConfirmDialog}
+        onClose={cancelDeleteExperience}
+        title="Delete Experience"
+        size="sm"
+        type="bottomSheet"
+        actions={
+          <div className="flex gap-3 w-full">
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={cancelDeleteExperience}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmDeleteExperience} className="w-full" variant="red" size="lg">
+              Delete
+            </Button>
+          </div>
+        }
+      >
+        <div className="text-center py-6">
+          <p className="text-sm text-gray-600 leading-relaxed text-sm sm:text-base">
+            Are you sure you want to delete your experience at{" "}
+            <span className="font-semibold text-gray-900">
+              {experienceToDelete !== null ? tempData.experiences[experienceToDelete].company : ""}
+            </span>
+            ? This action cannot be undone.
+          </p>
+        </div>
+      </BaseDialog>
     </div>
   );
 }

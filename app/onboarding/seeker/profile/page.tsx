@@ -86,6 +86,19 @@ function JobSeekerProfile() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 경험 삭제 함수
+  const deleteExperience = (index: number) => {
+    const experience = workExperiences[index];
+    const confirmed = window.confirm(
+      `Are you sure you want to delete your experience at ${experience.company}?`
+    );
+
+    if (confirmed) {
+      removeExperience(index);
+      showSuccessToast("Experience deleted successfully!");
+    }
+  };
+
   // 이벤트 핸들러들
   const handleInputChange = (field: string, value: any) => {
     updateFormData(field as any, value);
@@ -124,16 +137,16 @@ function JobSeekerProfile() {
     }
   };
 
-  const handleEditExperience = (index: number) => {
+  const handleEditExperience = (index: number, experience?: any) => {
     setEditingIndex(index);
-    const experience = workExperiences[index];
+    const exp = experience || workExperiences[index];
     setExperienceForm({
-      company: experience.company,
-      jobType: experience.jobType || undefined,
-      startYear: experience.startYear,
-      workedPeriod: experience.workedPeriod || undefined,
-      workType: experience.workType || undefined,
-      description: experience.description,
+      company: exp.company,
+      jobType: exp.jobType || undefined,
+      startYear: exp.startYear,
+      workedPeriod: exp.workedPeriod || undefined,
+      workType: exp.workType || undefined,
+      description: exp.description,
     });
     experienceFormDialog.open();
   };
@@ -431,9 +444,10 @@ function JobSeekerProfile() {
                   {workExperiences.map((experience, index) => (
                     <ExperienceCard
                       key={index}
+                      index={index}
                       experience={experience as any}
                       onEdit={() => handleEditExperience(index)}
-                      onDelete={() => removeExperience(index)}
+                      onDelete={() => deleteExperience(index)}
                     />
                   ))}
                 </div>
