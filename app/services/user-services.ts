@@ -112,7 +112,7 @@ export async function getUserWithProfileStatus(userId: string) {
     if (user.role === "APPLICANT") {
       hasPersonalityProfile = !!user.personality_profile_id;
       const applicantProfile = await prisma.applicant_profiles.findFirst({
-        where: { user_id: user.id },
+        where: { user_id: user.id, deleted_at: null },
         select: { id: true },
       });
       hasApplicantProfile = !!applicantProfile;
