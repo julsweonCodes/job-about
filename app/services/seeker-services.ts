@@ -84,7 +84,7 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
                 }),
 
                 prisma.applicant_profiles.update({
-                    where: { id: profile.id },
+                    where: { id: profile.id, deleted_at: null },
                     data: {
                         profile_practical_skills: {
                             create: profile_practical_skills.map((skill) => ({
@@ -108,7 +108,7 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
                     where: { profile_id: profile.id },
                 }),
                 prisma.applicant_profiles.update({
-                    where: { id: profile.id },
+                    where: { id: profile.id, deleted_at: null },
                     data: {
                         work_experiences: {
                             create: work_experiences.map((exp) => ({
@@ -137,7 +137,7 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
             );
 
             updated = await prisma.applicant_profiles.update({
-                where: { id: profile.id },
+                where: { id: profile.id, deleted_at: null },
                 data: filtered,
                 include: {
                     profile_practical_skills: {
@@ -177,7 +177,7 @@ export async function deleteSeekerProfile(userId: number) {
     }
 
     const updated = await prisma.applicant_profiles.update({
-        where: { id: profile.id },
+        where: { id: profile.id, deleted_at: null },
         data: {
             deleted_at: new Date(),
         },
