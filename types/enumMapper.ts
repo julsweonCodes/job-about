@@ -1,5 +1,12 @@
 import { $Enums } from "@prisma/client";
-import { WorkType, LanguageLevel, JobStatus, AvailableDay, AvailableHour, WorkPeriod } from "@/constants/enums";
+import {
+  WorkType,
+  LanguageLevel,
+  JobStatus,
+  AvailableDay,
+  AvailableHour,
+  WorkPeriod,
+} from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
 

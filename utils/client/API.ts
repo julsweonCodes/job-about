@@ -66,7 +66,13 @@ export class API {
     };
 
     if (data && method !== HTTP_METHODS.GET) {
+      if (data instanceof FormData) {
+        // FormData인 경우 Content-Type 헤더를 제거하고 body를 그대로 사용
+        delete headers["Content-Type"];
+        config.body = data;
+      } else {
       config.body = JSON.stringify(data);
+      }
     }
 
     // 타임아웃 설정

@@ -5,6 +5,8 @@ export const API_URLS = {
     ME: "/api/user/me",
     CHECK: "/api/users/check",
     ROLE: "/api/users/role",
+    CREATE: "/api/users",
+    UPDATE: "/api/users",
   },
 
   // 인증 관련

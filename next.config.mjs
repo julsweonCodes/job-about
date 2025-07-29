@@ -6,6 +6,16 @@ const __dirname = dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ffljwadxkmnkczqygftv.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   webpack: (config, { dev, isServer }) => {
     // 개발 환경에서만 캐시 최적화
     if (dev) {

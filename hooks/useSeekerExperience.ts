@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { JobType } from "@/constants/jobTypes";
+import { WorkType, WorkPeriod } from "@/constants/enums";
 
 export interface ExperienceForm {
   company: string;
-  jobType: string;
+  jobType?: JobType;
   startYear: string;
-  workedPeriod: string;
+  workedPeriod?: WorkPeriod;
+  workType?: WorkType;
   description: string;
 }
 
 export const useSeekerExperience = () => {
   const [experienceForm, setExperienceForm] = useState<ExperienceForm>({
     company: "",
-    jobType: "",
+    jobType: undefined,
     startYear: "",
-    workedPeriod: "",
+    workedPeriod: undefined,
+    workType: undefined,
     description: "",
   });
 
@@ -25,9 +28,10 @@ export const useSeekerExperience = () => {
   const handleAddExperience = () => {
     setExperienceForm({
       company: "",
-      jobType: "",
+      jobType: undefined,
       startYear: "",
-      workedPeriod: "",
+      workedPeriod: undefined,
+      workType: undefined,
       description: "",
     });
     setEditingExperienceIndex(-1);
@@ -40,6 +44,7 @@ export const useSeekerExperience = () => {
       jobType: experience.jobType || "",
       startYear: experience.startYear || "",
       workedPeriod: experience.workedPeriod || "",
+      workType: experience.workType || "remote",
       description: experience.description || "",
     });
     setEditingExperienceIndex(index);
@@ -58,13 +63,6 @@ export const useSeekerExperience = () => {
       };
       callback();
     } else {
-      // 추가 모드
-      const newExperience = {
-        title: experienceForm.jobType,
-        company: experienceForm.company,
-        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
-        description: experienceForm.description,
-      };
       callback();
     }
     setShowExperienceDialog(false);
@@ -75,9 +73,10 @@ export const useSeekerExperience = () => {
   const resetExperienceForm = () => {
     setExperienceForm({
       company: "",
-      jobType: "",
+      jobType: undefined,
       startYear: "",
-      workedPeriod: "",
+      workedPeriod: undefined,
+      workType: undefined,
       description: "",
     });
   };

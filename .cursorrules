@@ -1,0 +1,42 @@
+# Cursor MCP 설정
+
+## MCP 서버 설정
+이 프로젝트는 MCP(Model Context Protocol)를 통해 Supabase 데이터베이스에 접근할 수 있습니다.
+
+### 사용 가능한 도구:
+- `query_database`: Supabase 데이터베이스에서 SQL 쿼리 실행
+- `get_table_schema`: 특정 테이블의 스키마 정보 조회
+- `list_tables`: 데이터베이스의 모든 테이블 목록 조회
+
+### 환경변수 설정:
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase 익명 키
+
+### MCP 서버 실행:
+```bash
+yarn mcp:start
+```
+
+### 개발 모드 실행:
+```bash
+yarn mcp:dev
+```
+
+## 프로젝트 구조
+- `mcp-server.js`: MCP 서버 메인 파일
+- `app/services/`: 데이터베이스 서비스 레이어
+- `types/database.types.ts`: Supabase 데이터베이스 타입 정의
+
+## 데이터베이스 테이블
+주요 테이블들:
+- `users`: 사용자 정보
+- `job_posts`: 채용 공고
+- `applicant_profiles`: 구직자 프로필
+- `applications`: 지원 내역
+- `business_loc`: 사업장 정보
+- `quiz_questions`: 퀴즈 질문
+- `quiz_choices`: 퀴즈 선택지
+- `user_responses`: 사용자 응답
+- `personality_profiles`: 성향 프로필
+- `work_styles`: 업무 스타일
+- `practical_skills`: 실무 스킬 

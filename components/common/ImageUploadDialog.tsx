@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 interface ImageUploadDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (file: File) => void;
+  onSave: (file: File) => Promise<void>;
   title: string;
   type: "logo" | "profile";
   currentImage?: string;
@@ -42,16 +42,27 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
     onClose();
   };
 
-  const handleSave = () => {
+  const handleSave = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+
     if (selectedFile) {
-      onSave(selectedFile);
-      setPreviewImage(null);
-      setSelectedFile(null);
-      onClose();
+      try {
+        await onSave(selectedFile);
+        setPreviewImage(null);
+        setSelectedFile(null);
+        onClose();
+      } catch (error) {
+        console.error("Error saving image:", error);
+      }
     }
   };
 
-  const handleUploadClick = () => {
+  const handleUploadClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     fileInputRef.current?.click();
   };
 
@@ -98,7 +109,8 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
             </div>
           ) : (
             <Button
-              onClick={handleUploadClick}
+              type="button"
+              onClick={(e) => handleUploadClick(e)}
               variant="outline"
               size="lg"
               className="h-32 sm:h-48 aspect-square border-dashed border-2 border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 py-10"
@@ -122,7 +134,8 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4">
           <Button
-            onClick={handleSave}
+            type="button"
+            onClick={(e) => handleSave(e)}
             size="lg"
             className="flex-1"
             disabled={!selectedFile}

@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/Select";
-import { workedPeriodOptions } from "@/constants/options";
+import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
 import { getJobTypeConfig } from "@/constants/jobTypes";
 import {
   WorkType,
@@ -23,8 +23,6 @@ import {
   LanguageLevel,
   WORK_TYPES,
   LANGUAGE_LEVELS,
-  AVAILABLE_DAYS,
-  AVAILABLE_HOURS,
 } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location, getLocationDisplayName } from "@/constants/location";
@@ -37,20 +35,24 @@ import { useSeekerForm } from "@/hooks/useSeekerForm";
 import { useDialogState } from "@/hooks/useDialogState";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
-import { API_URLS } from "@/constants/api";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { apiPost } from "@/utils/client/API";
 import { ApplicantProfileMapper } from "@/types/profile";
-import { WorkPeriod } from "@prisma/client";
+import { WorkPeriod } from "@/constants/enums";
+import { useRouter } from "next/navigation";
 
 interface LocalExperienceForm {
   company: string;
-  jobType: string;
+  jobType?: JobType;
   startYear: string;
-  workedPeriod: string;
+  workedPeriod?: WorkPeriod;
+  workType?: WorkType;
   description: string;
 }
 
 function JobSeekerProfile() {
+  const router = useRouter();
+
   // 커스텀 훅 사용
   const {
     formData,
@@ -74,14 +76,28 @@ function JobSeekerProfile() {
   // 경험 폼 상태
   const [experienceForm, setExperienceForm] = useState<LocalExperienceForm>({
     company: "",
-    jobType: "" as string,
+    jobType: undefined,
     startYear: new Date().getFullYear().toString(),
-    workedPeriod: workedPeriodOptions[0],
+    workedPeriod: undefined,
+    workType: undefined,
     description: "",
   });
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 경험 삭제 함수
+  const deleteExperience = (index: number) => {
+    const experience = workExperiences[index];
+    const confirmed = window.confirm(
+      `Are you sure you want to delete your experience at ${experience.company}?`
+    );
+
+    if (confirmed) {
+      removeExperience(index);
+      showSuccessToast("Experience deleted successfully!");
+    }
+  };
 
   // 이벤트 핸들러들
   const handleInputChange = (field: string, value: any) => {
@@ -93,27 +109,45 @@ function JobSeekerProfile() {
     setEditingIndex(null);
     setExperienceForm({
       company: "",
-      jobType: "" as string,
+      jobType: undefined,
       startYear: new Date().getFullYear().toString(),
-      workedPeriod: workedPeriodOptions[0],
+      workedPeriod: undefined,
+      workType: undefined,
       description: "",
-    } as LocalExperienceForm);
+    });
   };
 
   const handleAddExperience = () => {
-    if (experienceForm.company.trim() && experienceForm.jobType.trim()) {
+    if (experienceForm.company.trim() && experienceForm.jobType !== undefined) {
+      const experienceData = {
+        company: experienceForm.company,
+        jobType: experienceForm.jobType!,
+        startYear: experienceForm.startYear,
+        workedPeriod: experienceForm.workedPeriod!,
+        workType: experienceForm.workType!,
+        description: experienceForm.description,
+      };
+
       if (editingIndex !== null) {
-        updateExperience(editingIndex, experienceForm as any);
+        updateExperience(editingIndex, experienceData);
       } else {
-        addExperience(experienceForm as any);
+        addExperience(experienceData);
       }
       handleExperienceFormClose();
     }
   };
 
-  const handleEditExperience = (index: number) => {
+  const handleEditExperience = (index: number, experience?: any) => {
     setEditingIndex(index);
-    setExperienceForm(workExperiences[index] as any);
+    const exp = experience || workExperiences[index];
+    setExperienceForm({
+      company: exp.company,
+      jobType: exp.jobType || undefined,
+      startYear: exp.startYear,
+      workedPeriod: exp.workedPeriod || undefined,
+      workType: exp.workType || undefined,
+      description: exp.description,
+    });
     experienceFormDialog.open();
   };
 
@@ -122,9 +156,6 @@ function JobSeekerProfile() {
 
     setIsSubmitting(true);
     try {
-      // TODO
-      // skill 추가 필요
-      // work experience 수정 필요
       const profileData = ApplicantProfileMapper.toApi({
         preferredJobTypes: formData.preferredJobTypes.filter(Boolean),
         workType: formData.workType || WorkType.REMOTE,
@@ -134,19 +165,22 @@ function JobSeekerProfile() {
         englishLevel: formData.languageProficiency || LanguageLevel.BEGINNER,
         description: formData.selfIntroduction,
         skillIds: formData.skills?.map((skill) => skill.id) || [],
-        experiences: workExperiences.map((exp) => ({
-          company: exp.company,
-          jobType: exp.jobType || JobType.SERVER,
-          startYear: exp.startYear,
-          workPeriod: (exp.workedPeriod || WorkPeriod.SHORT_TERM) as any,
-          workType: (exp.jobType || WorkType.REMOTE) as any,
-          description: exp.description,
-        })),
+        experiences: workExperiences
+          .filter((exp) => exp.jobType && exp.workedPeriod && exp.workType)
+          .map((exp) => ({
+            company: exp.company,
+            jobType: exp.jobType!,
+            startYear: exp.startYear,
+            workPeriod: exp.workedPeriod!,
+            workType: exp.workType!,
+            description: exp.description,
+          })),
       });
 
       try {
         const response = await apiPost(API_URLS.SEEKER.PROFILES, profileData);
         console.log(response);
+        router.replace(PAGE_URLS.SEEKER.ROOT);
         showSuccessToast("Profile saved successfully!");
       } catch (error) {
         console.error(error);
@@ -302,7 +336,7 @@ function JobSeekerProfile() {
                   Day
                 </Typography>
                 <div className="flex gap-3">
-                  {AVAILABLE_DAYS.map(({ value, label }) => (
+                  {AVAILABLE_DAY_OPTIONS.map(({ value, label }) => (
                     <FullWidthChip
                       key={value}
                       selected={formData.availability.day === value}
@@ -331,7 +365,7 @@ function JobSeekerProfile() {
                   Hour
                 </Typography>
                 <div className="flex gap-3">
-                  {AVAILABLE_HOURS.map(({ value, label }) => (
+                  {AVAILABLE_HOUR_OPTIONS.map(({ value, label }) => (
                     <FullWidthChip
                       key={value}
                       selected={formData.availability.hour === value}
@@ -410,9 +444,10 @@ function JobSeekerProfile() {
                   {workExperiences.map((experience, index) => (
                     <ExperienceCard
                       key={index}
+                      index={index}
                       experience={experience as any}
                       onEdit={() => handleEditExperience(index)}
-                      onDelete={() => removeExperience(index)}
+                      onDelete={() => deleteExperience(index)}
                     />
                   ))}
                 </div>
@@ -477,8 +512,8 @@ function JobSeekerProfile() {
           <ExperienceFormDialog
             open={experienceFormDialog.isOpen}
             onClose={handleExperienceFormClose}
-            experienceForm={experienceForm as any}
-            setExperienceForm={setExperienceForm as any}
+            experienceForm={experienceForm}
+            setExperienceForm={setExperienceForm}
             onSave={handleAddExperience}
             editingIndex={editingIndex}
             onJobTypeSelect={() => experienceJobTypesDialog.open()}
@@ -488,10 +523,10 @@ function JobSeekerProfile() {
             title="Select Job Type"
             open={experienceJobTypesDialog.isOpen}
             onClose={experienceJobTypesDialog.close}
-            selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType] : ([] as any)}
+            selectedJobTypes={experienceForm.jobType ? [experienceForm.jobType] : []}
             onConfirm={(jobTypes) => {
               if (jobTypes.length > 0) {
-                setExperienceForm((f) => ({ ...f, jobType: jobTypes[0] as any }));
+                setExperienceForm((f) => ({ ...f, jobType: jobTypes[0] as JobType }));
               }
               experienceJobTypesDialog.close();
             }}

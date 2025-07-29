@@ -12,13 +12,16 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/Select";
-import { workedPeriodOptions } from "@/constants/options";
+import { WORK_PERIOD_OPTIONS } from "@/constants/options";
+import { WorkType, WorkPeriod } from "@/constants/enums";
+import { JobType, getJobTypeConfig } from "@/constants/jobTypes";
 
 interface ExperienceForm {
   company: string;
-  jobType: string;
+  jobType?: JobType;
   startYear: string;
-  workedPeriod: string;
+  workedPeriod?: WorkPeriod;
+  workType?: WorkType;
   description: string;
 }
 
@@ -43,8 +46,8 @@ export default function ExperienceFormDialog({
 }: ExperienceFormDialogProps) {
   // 컴포넌트 내부에서 years 생성
   const years = Array.from({ length: 20 }, (_, i) => ({
-    value: (2024 - i).toString(),
-    label: (2024 - i).toString(),
+    value: (2025 - i).toString(),
+    label: (2025 - i).toString(),
   }));
 
   return (
@@ -58,25 +61,51 @@ export default function ExperienceFormDialog({
           placeholder="Enter company name"
           value={experienceForm.company}
           onChange={(e) => setExperienceForm((f) => ({ ...f, company: e.target.value }))}
-          required
         />
+
+        <div className="flex gap-2">
+          <div className="w-1/2">
+            <Typography as="label" variant="bodySm" className="block mb-2">
+              Work Type
+            </Typography>
+            <Select
+              value={experienceForm.workType || ""}
+              onValueChange={(val: string) =>
+                setExperienceForm((f) => ({ ...f, workType: val as WorkType }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Work Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={WorkType.REMOTE}>Remote</SelectItem>
+                <SelectItem value={WorkType.ON_SITE}>On-site</SelectItem>
+                <SelectItem value={WorkType.HYBRID}>Hybrid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-1/2">
         <Input
           label="Job Type"
-          placeholder="Click to select job type"
-          value={experienceForm.jobType}
-          onChange={(e) => setExperienceForm((f) => ({ ...f, jobType: e.target.value }))}
+              placeholder="Select Job Type"
+              value={experienceForm.jobType ? getJobTypeConfig(experienceForm.jobType).name : ""}
+              onChange={(e) =>
+                setExperienceForm((f) => ({ ...f, jobType: e.target.value as JobType }))
+              }
           onClick={onJobTypeSelect}
           readOnly
-          required
           className="cursor-pointer"
         />
+          </div>
+        </div>
+
         <div className="flex gap-2">
           <div className="w-1/2">
             <Typography as="label" variant="bodySm" className="block mb-2">
               Start Year
             </Typography>
             <Select
-              value={experienceForm.startYear}
+              value={experienceForm.startYear || ""}
               onValueChange={(val: string) => setExperienceForm((f) => ({ ...f, startYear: val }))}
             >
               <SelectTrigger>
@@ -96,18 +125,18 @@ export default function ExperienceFormDialog({
               Worked Period
             </Typography>
             <Select
-              value={experienceForm.workedPeriod}
+              value={experienceForm.workedPeriod || ""}
               onValueChange={(val: string) =>
-                setExperienceForm((f) => ({ ...f, workedPeriod: val }))
+                setExperienceForm((f) => ({ ...f, workedPeriod: val as WorkPeriod }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
-                {workedPeriodOptions.map((period) => (
-                  <SelectItem key={period} value={period}>
-                    {period}
+                {WORK_PERIOD_OPTIONS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -130,6 +159,7 @@ export default function ExperienceFormDialog({
             !experienceForm.jobType ||
             !experienceForm.startYear ||
             !experienceForm.workedPeriod ||
+            !experienceForm.workType ||
             !experienceForm.description
           }
         >

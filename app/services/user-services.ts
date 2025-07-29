@@ -51,7 +51,6 @@ export async function uploadUserImage(photo: File, userId: number): Promise<stri
 }
 
 export async function updateUser(updateUser: UpdateUser, userId: number) {
-  const { name, phone_number, description, img_url } = updateUser;
   const user = await prisma.users.findUnique({
     where: { id: userId },
   });

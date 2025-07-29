@@ -1,14 +1,4 @@
 import {
-  AvailableDay,
-  AvailableHour,
-  JobType,
-  LanguageLevel,
-  Location,
-  Prisma,
-  WorkPeriod,
-  WorkType,
-} from "@prisma/client";
-import {
   toPrismaJobType,
   toPrismaWorkType,
   toPrismaAvailableDay,
@@ -24,6 +14,7 @@ import {
   fromPrismaWorkPeriod,
   toPrismaWorkPeriod,
 } from "@/types/enumMapper";
+import { Location as ClientLocation } from "@/constants/location";
 import { JobType as ClientJobType } from "@/constants/jobTypes";
 import {
   WorkType as ClientWorkType,
@@ -32,45 +23,45 @@ import {
   LanguageLevel as ClientLanguageLevel,
   WorkPeriod as ClientWorkPeriod,
 } from "@/constants/enums";
-import { Location as ClientLocation } from "@/constants/location";
+import { $Enums } from "@prisma/client";
 
 export interface applicantProfile {
-  job_type1: JobType;
-  job_type2?: JobType;
-  job_type3?: JobType;
-  work_type: WorkType;
-  available_day: AvailableDay;
-  available_hour: AvailableHour;
-  location: Location;
-  language_level: LanguageLevel;
+  job_type1: string;
+  job_type2?: string;
+  job_type3?: string;
+  work_type: string;
+  available_day: string;
+  available_hour: string;
+  location: string;
+  language_level: string;
   description: string;
   profile_practical_skills: profile_practical_skill[];
   work_experiences: workExperience[];
 }
 
 export interface updateApplicantProfile {
-  job_type1?: JobType;
-  job_type2?: JobType;
-  job_type3?: JobType;
-  work_type?: WorkType;
-  available_day?: AvailableDay;
-  available_hour?: AvailableHour;
+  job_type1?: ClientJobType;
+  job_type2?: ClientJobType;
+  job_type3?: ClientJobType;
+  work_type?: ClientWorkType;
+  available_day?: ClientAvailableDay;
+  available_hour?: ClientAvailableHour;
   location?: Location;
-  language_level?: LanguageLevel;
+  language_level?: ClientLanguageLevel;
   description?: string;
   profile_practical_skills?: profile_practical_skill[];
   work_experiences?: workExperience[];
 }
 export interface profile_practical_skill {
-  practical_skill_id: number
+  practical_skill_id: number;
 }
 
 export interface workExperience {
   company_name: string;
-  job_type: JobType;
+  job_type: string;
   start_year: string;
-  work_period: WorkPeriod;
-  work_type: WorkType;
+  work_period: string;
+  work_type: string;
   description: string;
 }
 
@@ -100,29 +91,28 @@ export class ApplicantProfileMapper {
    * 클라이언트 폼 데이터를 API 요청 데이터로 변환
    */
   static toApi(formData: ApplicantProfileFormDataType): applicantProfile {
+    // JobType 변환을 한 번에 처리
+    const jobTypes = formData.preferredJobTypes.map(toPrismaJobType);
+
     return {
-      job_type1: toPrismaJobType(formData.preferredJobTypes[0] as any),
-      job_type2: formData.preferredJobTypes[1]
-        ? toPrismaJobType(formData.preferredJobTypes[1] as any)
-        : undefined,
-      job_type3: formData.preferredJobTypes[2]
-        ? toPrismaJobType(formData.preferredJobTypes[2] as any)
-        : undefined,
-      work_type: toPrismaWorkType(formData.workType as any),
-      available_day: toPrismaAvailableDay(formData.availableDay as any),
-      available_hour: toPrismaAvailableHour(formData.availableHour as any),
-      location: toPrismaLocation((formData.location as any) ?? "") as Location,
-      language_level: toPrismaLanguageLevel(formData.englishLevel as any),
+      job_type1: jobTypes[0],
+      job_type2: jobTypes[1],
+      job_type3: jobTypes[2],
+      work_type: toPrismaWorkType(formData.workType),
+      available_day: toPrismaAvailableDay(formData.availableDay),
+      available_hour: toPrismaAvailableHour(formData.availableHour),
+      location: toPrismaLocation(formData.location),
+      language_level: toPrismaLanguageLevel(formData.englishLevel),
       description: formData.description,
       profile_practical_skills: formData.skillIds.map((skillId) => ({
-        practical_skill_id: skillId
+        practical_skill_id: skillId,
       })),
       work_experiences: formData.experiences.map((exp) => ({
         company_name: exp.company,
-        job_type: toPrismaJobType(exp.jobType as any),
+        job_type: toPrismaJobType(exp.jobType),
         start_year: exp.startYear,
-        work_period: toPrismaWorkPeriod(exp.workPeriod as any),
-        work_type: toPrismaWorkType(exp.workType as any),
+        work_period: toPrismaWorkPeriod(exp.workPeriod),
+        work_type: toPrismaWorkType(exp.workType),
         description: exp.description,
       })),
     };
@@ -146,9 +136,7 @@ export class ApplicantProfileMapper {
       location: fromPrismaLocation(apiData.location as any) as ClientLocation,
       englishLevel: fromPrismaLanguageLevel(apiData.language_level) as ClientLanguageLevel,
       description: apiData.description,
-      skillIds: apiData.profile_practical_skills?.map((skill) => (
-        skill.practical_skill_id
-      )) || [],
+      skillIds: apiData.profile_practical_skills?.map((skill) => Number(skill.practical_skill_id)) || [],
       experiences:
         apiData.work_experiences?.map((exp) => ({
           company: exp.company_name,
@@ -194,10 +182,7 @@ export class ApplicantProfileMapper {
   }
 }
 
-export function toApplicantProfileCreate(
-  body: applicantProfile,
-  userId: string
-): Prisma.applicant_profilesCreateInput {
+export function toApplicantProfileCreate(body: applicantProfile, userId: string): any {
   const { profile_practical_skills, work_experiences, ...rest } = body;
 
   return {
@@ -205,26 +190,29 @@ export function toApplicantProfileCreate(
     user: { connect: { id: BigInt(userId) } },
     ...(profile_practical_skills && profile_practical_skills.length > 0
       ? {
-        profile_practical_skills: {
-          create: profile_practical_skills.map((skill) => ({
-            practical_skill_id: skill.practical_skill_id,
-            created_at: new Date()
-          })),
-        },
-      }
+          profile_practical_skills: {
+            create: profile_practical_skills.map((skill) => ({
+              practical_skill_id: skill.practical_skill_id,
+              created_at: new Date(),
+            })),
+          },
+        }
       : {}),
     ...(work_experiences && work_experiences.length > 0
       ? {
-        work_experiences: {
-          create: work_experiences.map((exp) => ({
-            ...exp,
-            start_year: exp.start_year,
-            work_period: exp.work_period,
-            created_at: new Date(),
-            updated_at: new Date(),
-          })),
-        },
-      }
+          work_experiences: {
+            create: work_experiences.map((exp) => ({
+              company_name: exp.company_name,
+              job_type: exp.job_type,
+              start_year: exp.start_year,
+              work_period: exp.work_period,
+              work_type: exp.work_type,
+              description: exp.description,
+              created_at: new Date(),
+              updated_at: new Date(),
+            })),
+          },
+        }
       : {}),
     created_at: new Date(),
     updated_at: new Date(),
