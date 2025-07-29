@@ -510,6 +510,7 @@ function JobSeekerProfile() {
 
           {/* Experience Form Dialog */}
           <ExperienceFormDialog
+            title={editingIndex !== null ? "Edit Job Experience" : "Add Job Experience"}
             open={experienceFormDialog.isOpen}
             onClose={handleExperienceFormClose}
             experienceForm={experienceForm}
