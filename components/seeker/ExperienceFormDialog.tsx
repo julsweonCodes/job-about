@@ -85,17 +85,17 @@ export default function ExperienceFormDialog({
             </Select>
           </div>
           <div className="w-1/2">
-            <Input
-              label="Job Type"
+        <Input
+          label="Job Type"
               placeholder="Select Job Type"
               value={experienceForm.jobType ? getJobTypeConfig(experienceForm.jobType).name : ""}
               onChange={(e) =>
                 setExperienceForm((f) => ({ ...f, jobType: e.target.value as JobType }))
               }
-              onClick={onJobTypeSelect}
-              readOnly
-              className="cursor-pointer"
-            />
+          onClick={onJobTypeSelect}
+          readOnly
+          className="cursor-pointer"
+        />
           </div>
         </div>
 

@@ -5,15 +5,6 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { apiGet, apiPatch } from "@/utils/client/API";
-import { 
-  WorkPeriod, 
-  WorkType, 
-  AvailableDay, 
-  AvailableHour, 
-  LanguageLevel 
-} from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
-import { Location } from "@/constants/location";
 
 export interface UserInfo {
   name: string;
@@ -53,57 +44,14 @@ export interface ApplicantProfile {
   }[];
 }
 
-// 더미 데이터
-const dummySeekerProfile: applicantProfile = {
-  job_type1: JobType.SERVER,
-  job_type2: JobType.BARISTA,
-  job_type3: JobType.CASHIER,
-  work_type: WorkType.REMOTE,
-  available_day: AvailableDay.WEEKDAYS,
-  available_hour: AvailableHour.AM,
-  location: Location.TORONTO,
-  language_level: LanguageLevel.INTERMEDIATE,
-  description: "Experienced service professional with strong customer service skills",
-  profile_practical_skills: [
-    {
-      practical_skill_id: 1,
-    },
-    {
-      practical_skill_id: 2,
-    },
-    {
-      practical_skill_id: 3,
-    },
-  ],
-  work_experiences: [
-    {
-      company_name: "Starbucks Coffee",
-      job_type: JobType.BARISTA,
-      start_year: "2022",
-      work_period: WorkPeriod.ONE_TO_TWO_YEARS,
-      work_type: WorkType.ON_SITE,
-      description:
-        "Prepared and served coffee beverages, maintained cleanliness standards, and provided excellent customer service.",
-    },
-    {
-      company_name: "McDonald's",
-      job_type: JobType.CASHIER,
-      start_year: "2022",
-      work_period: WorkPeriod.SEVEN_TO_TEN_YEARS,
-      work_type: WorkType.ON_SITE,
-      description:
-        "Handled cash transactions, took customer orders, and ensured customer satisfaction.",
-    },
-    {
-      company_name: "Tim Hortons",
-      job_type: JobType.SERVER,
-      start_year: "2018",
-      work_period: WorkPeriod.SEVEN_TO_TEN_YEARS,
-      work_type: WorkType.ON_SITE,
-      description:
-        "Served customers, maintained dining area cleanliness, and assisted with food preparation.",
-    },
-  ],
+const dummyPersonalityData = {
+  id: 3,
+  name_ko: "공감형 코디네이터",
+  name_en: "Empathetic Coordinator",
+  description_ko:
+    "사람들과의 협업과 소통에서 에너지를 얻습니다. 특히 고객의 감정을 잘 파악하고 긍정적인 관계를 맺는 데 강점이 있습니다.",
+  description_en:
+    "Gains energy from collaboration and communication. Excellent at understanding customer emotions and building positive relationships.",
 };
 
 interface UseSeekerMypageReturn {
@@ -275,38 +223,24 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         // Seeker Personality 정보 가져오기
         let PersonalityData = await apiGet(API_URLS.QUIZ.MY_PROFILE);
 
-        // API 실패 시 더미 데이터 사용
-        if (PersonalityData.status !== "success" || !PersonalityData.data) {
-          console.log("API 실패, 더미 데이터 사용");
-          console.log(dummySeekerProfile);
-          PersonalityData = { status: "success", data: dummySeekerProfile };
-        }
-
         if (PersonalityData.status === "success" && PersonalityData.data) {
           setSeekerPersonality(PersonalityData.data);
+        } else {
+          setSeekerPersonality(dummyPersonalityData);
         }
 
         // Seeker Profile 정보 가져오기
         let profileData = await apiGet(API_URLS.SEEKER.PROFILES);
 
-        // API 실패 시 더미 데이터 사용
-        if (profileData.status !== "success" || !profileData.data) {
-          console.log("API 실패, 더미 데이터 사용");
-          console.log(dummySeekerProfile);
-          profileData = { status: "success", data: dummySeekerProfile };
-        }
-
         if (profileData.status === "success" && profileData.data) {
           setSeekerProfile(profileData.data);
         }
       } catch (error) {
-        // TODO remove
-        // 네트워크 에러 등에도 더미 데이터 사용
-        console.log("네트워크 에러, 더미 데이터 사용:", error);
-        setSeekerProfile(dummySeekerProfile);
+        console.error("Error fetching initial data:", error);
+        showErrorToast("Failed to fetch initial data");
+        setIsLoading(false);
       } finally {
         setIsLoading(false);
-        console.log("seekerProfile:", seekerProfile);
       }
     };
 
@@ -315,11 +249,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
 
   // 데이터 변환 및 초기화
   useEffect(() => {
-    if (userInfo && seekerPersonality && seekerProfile && !isInitialized) {
-      // API 데이터를 폼 데이터로 변환
-      const formData = ApplicantProfileMapper.fromApi(seekerProfile);
-
-      const profile = {
+    if (userInfo && seekerPersonality && !isInitialized) {
+      // seekerProfile이 없어도 기본 정보로 초기화
+      const profile: ApplicantProfile = {
         name: userInfo.name || "",
         description: userInfo.description || "",
         profileImageUrl: userInfo.img_url || null,
@@ -330,27 +262,44 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         }),
         personalityName: seekerPersonality.name_en,
         personalityDesc: seekerPersonality.description_en,
-        location: formData.location,
+        location: "toronto", // 기본값
         phone: userInfo.phone_number || "",
-        skillIds: formData.skillIds,
-        workType: formData.workType,
-        jobTypes: formData.preferredJobTypes,
-        availabilityDay: formData.availableDay,
-        availabilityTime: formData.availableHour,
-        englishLevel: formData.englishLevel,
-        experiences: formData.experiences.map((exp: any) => ({
-          title: exp.jobType,
-          company: exp.company,
-          duration: `${exp.startYear} ~  / ${exp.workPeriod}`,
-          description: exp.description,
-        })),
+        skillIds: [],
+        workType: "remote",
+        jobTypes: [],
+        availabilityDay: "weekdays",
+        availabilityTime: "am",
+        englishLevel: "beginner",
+        experiences: [],
       };
+
+      // seekerProfile이 있으면 데이터로 업데이트
+      if (seekerProfile) {
+        try {
+          const formData = ApplicantProfileMapper.fromApi(seekerProfile);
+          profile.location = formData.location;
+          profile.skillIds = formData.skillIds;
+          profile.workType = formData.workType;
+          profile.jobTypes = formData.preferredJobTypes;
+          profile.availabilityDay = formData.availableDay;
+          profile.availabilityTime = formData.availableHour;
+          profile.englishLevel = formData.englishLevel;
+          profile.experiences = formData.experiences.map((exp: any) => ({
+            title: exp.jobType,
+            company: exp.company,
+            duration: `${exp.startYear} ~  / ${exp.workPeriod}`,
+            description: exp.description,
+          }));
+        } catch (error) {
+          console.error("Error parsing seeker profile:", error);
+        }
+      }
 
       setApplicantProfile(profile);
       setTempData(profile);
       setIsInitialized(true);
     }
-  }, [userInfo, seekerProfile, isInitialized]);
+  }, [userInfo, seekerPersonality, seekerProfile, isInitialized]);
 
   // 임시 데이터 동기화
   useEffect(() => {
@@ -385,7 +334,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       formData.append("description", tempData.description);
       formData.append("phone_number", tempData.phone);
 
-      const response = await apiPatch("/api/users", formData);
+      const response = await apiPatch(API_URLS.USER.UPDATE, formData);
 
       if (response.status === "success") {
         setApplicantProfile(tempData);
@@ -414,7 +363,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       const formData = new FormData();
       formData.append("img", file);
 
-      const result = await apiPatch("/api/users", formData);
+      const result = await apiPatch(API_URLS.USER.UPDATE, formData);
 
       if (result.data.img_url) {
         setApplicantProfile((prev) => ({

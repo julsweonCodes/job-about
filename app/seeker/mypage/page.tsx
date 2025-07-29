@@ -90,7 +90,6 @@ function SeekerMypage() {
 
   // 모든 useState 훅을 조건문 이전에 호출
   const [newSkill, setNewSkill] = useState("");
-  const [newJobType, setNewJobType] = useState("");
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   const [showSkillsDialog, setShowSkillsDialog] = useState(false);
@@ -159,72 +158,84 @@ function SeekerMypage() {
     },
   ];
 
-  // update contact, location
-  const handleOptionsSave = async (section: string) => {
-    let payload: Partial<applicantProfile> = {};
-
-    switch (section) {
-      case "location":
-        payload = {
-          location: toPrismaLocation(tempData.location as any) as Location,
-        };
-        break;
-      case "skills":
-        payload = {
-          profile_practical_skills: tempData.skillIds.map((i) => ({
-            practical_skill_id: i,
-          })),
-        };
-        break;
-      case "workType":
-        payload = {
-          work_type: toPrismaWorkType(tempData.workType as any) as any,
-        };
-        break;
-      case "jobTypes":
-        console.log("JobTypes case - tempData.jobTypes:", tempData.jobTypes);
-        payload = {
-          job_type1: toPrismaJobType(tempData.jobTypes[0] as any) as any,
-          ...(tempData.jobTypes[1] && {
-            job_type2: toPrismaJobType(tempData.jobTypes[1] as any) as any,
-          }),
-          ...(tempData.jobTypes[2] && {
-            job_type3: toPrismaJobType(tempData.jobTypes[2] as any) as any,
-          }),
-        };
-        break;
-
-      case "availability":
-        console.log("Availability case - tempData.availabilityDay:", tempData.availabilityDay);
-        console.log("Availability case - tempData.availabilityTime:", tempData.availabilityTime);
-        payload = {
-          available_day: toPrismaAvailableDay(tempData.availabilityDay as any) as any,
-          available_hour: toPrismaAvailableHour(tempData.availabilityTime as any) as any,
-        };
-        console.log("Availability case - payload:", payload);
-        break;
-      case "languages":
-        payload = {
-          language_level: toPrismaLanguageLevel(tempData.englishLevel as any) as any,
-        };
-        break;
-      default:
-        console.warn("Unknown section:", section);
-        return;
-    }
-
-    console.log("Final payload:", payload);
-
+  // API 호출 로직을 별도 함수로 분리
+  const updateProfileSection = async (section: string, payload: Partial<applicantProfile>) => {
     try {
       const response = await fetch(API_URLS.SEEKER.PROFILES, {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
-      if (response.ok) {
-        // 성공 처리
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (result.status === "success") {
+        showSuccessToast(`${section} updated successfully`);
+        return true;
+      } else {
+        throw new Error(result.message || "Update failed");
       }
     } catch (error) {
       console.error(`Failed to save ${section}:`, error);
+      showErrorToast(`Failed to update ${section}: ${(error as Error).message}`);
+      return false;
+    }
+  };
+
+  // 섹션별 매핑 객체로 리팩토링
+  const SECTION_MAPPINGS = {
+    location: (data: any) => ({
+      location: toPrismaLocation(data.location),
+    }),
+    skills: (data: any) => ({
+      profile_practical_skills: data.skillIds.map((i: number) => ({
+        practical_skill_id: i,
+      })),
+    }),
+    workType: (data: any) => ({
+      work_type: toPrismaWorkType(data.workType),
+    }),
+    jobTypes: (data: any) => ({
+      job_type1: toPrismaJobType(data.jobTypes[0]),
+      ...(data.jobTypes[1] && {
+        job_type2: toPrismaJobType(data.jobTypes[1]),
+      }),
+      ...(data.jobTypes[2] && {
+        job_type3: toPrismaJobType(data.jobTypes[2]),
+      }),
+    }),
+    availability: (data: any) => ({
+      available_day: toPrismaAvailableDay(data.availabilityDay),
+      available_hour: toPrismaAvailableHour(data.availabilityTime),
+    }),
+    languages: (data: any) => ({
+      language_level: toPrismaLanguageLevel(data.englishLevel),
+    }),
+  } as const;
+
+  // SECTION_MAPPINGS를 사용하는 개선된 저장 함수
+  const handleOptionsSave = async (section: keyof typeof SECTION_MAPPINGS) => {
+    try {
+      const mapper = SECTION_MAPPINGS[section];
+      if (!mapper) {
+        showErrorToast(`Unknown section: ${section}`);
+        return;
+      }
+
+      const payload = mapper(tempData);
+      const success = await updateProfileSection(section, payload);
+
+      if (success) {
+        handleCancelSection(section);
+      }
+    } catch (error) {
+      console.error(`Error updating ${section}:`, error);
+      showErrorToast(`Failed to update ${section}`);
     }
   };
 
@@ -282,17 +293,6 @@ function SeekerMypage() {
     setShowPreferredJobTypesDialog(false);
   };
 
-  const addJobType = () => {
-    if (newJobType.trim()) {
-      handleInputChange("jobTypes", [...tempData.jobTypes, newJobType.trim()] as any);
-      setNewJobType("");
-    }
-  };
-
-  const removeJobType = (index: number) => {
-    handleInputChange("jobTypes", tempData.jobTypes.filter((_, i) => i !== index) as any);
-  };
-
   const toggleAvailabilityDay = (day: string) => {
     handleInputChange("availabilityDay", day);
   };
@@ -326,7 +326,12 @@ function SeekerMypage() {
           <div className="p-5 sm:p-8">
             <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left gap-4 sm:gap-6">
               <div className="relative flex-shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden relative">
+                  {/* 스켈레톤 로더 */}
+                  <div
+                    id="profile-skeleton"
+                    className="absolute inset-0 bg-gray-200 animate-pulse rounded-xl sm:rounded-2xl z-10"
+                  />
                   <img
                     src={
                       applicantProfile.profileImageUrl
@@ -334,12 +339,31 @@ function SeekerMypage() {
                         : "/images/img-default-profile.png"
                     }
                     alt={applicantProfile.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover relative z-20"
+                    onLoad={(e) => {
+                      const skeleton = document.getElementById("profile-skeleton");
+                      if (skeleton) {
+                        skeleton.style.opacity = "0";
+                        setTimeout(() => {
+                          skeleton.style.display = "none";
+                        }, 300);
+                      }
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/img-default-profile.png";
+                      const skeleton = document.getElementById("profile-skeleton");
+                      if (skeleton) {
+                        skeleton.style.opacity = "0";
+                        setTimeout(() => {
+                          skeleton.style.display = "none";
+                        }, 300);
+                      }
+                    }}
                   />
                 </div>
                 <button
                   onClick={handleImageUploadDialog}
-                  className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200"
+                  className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors duration-200 z-20"
                 >
                   <Camera className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
                 </button>
