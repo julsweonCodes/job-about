@@ -21,7 +21,9 @@ This project is a login example using Next.js, TypeScript, TailwindCSS, and Supa
 yarn install
 ```
 
-2. Set up Git hooks (for pre-commit checks)
+**Git hooks는 자동으로 설정됩니다!** `yarn install` 실행 시 자동으로 pre-commit 체크가 설정됩니다.
+
+2. 수동으로 Git hooks 설정 (필요한 경우)
 
 ```bash
 # 자동 설정 스크립트 실행

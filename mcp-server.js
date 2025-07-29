@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 
-import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "fs";
-import { config } from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+const { createClient } = require("@supabase/supabase-js");
+const { readFileSync } = require("fs");
+const { config } = require("dotenv");
+const { join } = require("path");
 
 // 환경변수 로드
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 config({ path: join(__dirname, ".env") });
 
 // 환경변수 확인

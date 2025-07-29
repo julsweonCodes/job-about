@@ -2,7 +2,6 @@
   "name": "job-about",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "PORT=3000 next dev",
     "build": "next build",
@@ -11,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "check-all": "yarn lint && yarn type-check && yarn build",
     "pre-commit": "yarn lint && yarn type-check",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && ./setup-hooks.sh",
     "mcp:start": "node mcp-server.js",
     "mcp:dev": "nodemon mcp-server.js"
   },
