@@ -381,11 +381,38 @@ function SeekerMypage() {
     setShowPreferredJobTypesDialog(true);
   };
 
-  const handleJobTypesConfirm = (jobTypes: JobType[]) => {
+  const handleJobTypesConfirm = async (jobTypes: JobType[]) => {
     // JobType[]를 string[]로 변환하여 저장
     const jobTypeStrings = jobTypes.map((type) => type);
-    handleInputChange("jobTypes", jobTypeStrings as any);
+    setTempData({ ...tempData, jobTypes: jobTypeStrings });
     setShowPreferredJobTypesDialog(false);
+
+    // job types 선택 후 자동으로 저장 (ENUM으로 변환)
+    const payload = {
+      job_type1: jobTypeStrings[0] ? toPrismaJobType(jobTypeStrings[0]) : null,
+      job_type2: jobTypeStrings[1] ? toPrismaJobType(jobTypeStrings[1]) : null,
+      job_type3: jobTypeStrings[2] ? toPrismaJobType(jobTypeStrings[2]) : null,
+    };
+
+    try {
+      console.log("🔍 job types payload:", payload);
+      const result = await apiPatch(API_URLS.SEEKER.PROFILES, payload);
+
+      if (result.status === "success") {
+        // 성공 시 applicantProfile도 업데이트하여 페이지에 반영
+        setApplicantProfile({
+          ...applicantProfile,
+          jobTypes: jobTypeStrings,
+        });
+        // job types 전용 toast 메시지
+        showSuccessToast("Job types updated successfully!");
+      } else {
+        throw new Error(result.message || "Update failed");
+      }
+    } catch (error) {
+      console.error("Failed to save job types:", error);
+      showErrorToast(`Failed to update job types: ${(error as Error).message}`);
+    }
   };
 
   const toggleAvailabilityDay = (day: string) => {
