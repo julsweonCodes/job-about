@@ -25,7 +25,8 @@ interface ExperienceForm {
   company: string;
   jobType: JobType | null;
   startYear: string;
-  workedPeriod: WorkPeriod;
+  workedPeriod: WorkPeriod | null;
+  workType: WorkType | null;
   description: string;
 }
 

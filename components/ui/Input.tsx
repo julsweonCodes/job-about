@@ -43,7 +43,7 @@ export default function Input({
         <div className="flex items-center relative w-full">
           <input
             type={type === "phone" ? "text" : type}
-            value={value}
+            value={value || ""}
             onChange={handleChange}
             className={`input-style ${rightIcon ? "pr-10" : ""} ${error ? "border-red-400" : ""} ${className}`}
             {...(type === "time" ? { min: "00:00", max: "23:59", step: 60 } : {})}
@@ -54,7 +54,7 @@ export default function Input({
       ) : (
         <input
           type={type === "phone" ? "text" : type}
-          value={value}
+          value={value || ""}
           onChange={handleChange}
           className={`input-style ${error ? "border-red-400" : ""} ${className}`}
           {...(type === "time" ? { min: "00:00", max: "23:59", step: 60 } : {})}

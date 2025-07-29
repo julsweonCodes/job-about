@@ -1,5 +1,12 @@
 import { $Enums } from "@prisma/client";
-import { WorkType, LanguageLevel, JobStatus, AvailableDay, AvailableHour, WorkPeriod } from "@/constants/enums";
+import {
+  WorkType,
+  LanguageLevel,
+  JobStatus,
+  AvailableDay,
+  AvailableHour,
+  WorkPeriod,
+} from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
 
@@ -29,8 +36,8 @@ export function toPrismaJobStatus(value: JobStatus): $Enums.JobStatus {
   return map[value];
 }
 
-export function toPrismaWorkPeriod(value: WorkPeriod): string {
-  const map: Record<WorkPeriod, string> = {
+export function toPrismaWorkPeriod(value: WorkPeriod): $Enums.WorkPeriod {
+  const map: Record<WorkPeriod, $Enums.WorkPeriod> = {
     [WorkPeriod.SHORT_TERM]: "SHORT_TERM",
     [WorkPeriod.UNDER_3_MONTHS]: "UNDER_3_MONTHS",
     [WorkPeriod.UNDER_6_MONTHS]: "UNDER_6_MONTHS",

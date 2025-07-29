@@ -23,7 +23,8 @@ import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
-import { LanguageLevel, AVAILABLE_DAYS, AVAILABLE_HOURS, WORK_TYPES } from "@/constants/enums";
+import { LanguageLevel, WORK_TYPES } from "@/constants/enums";
+import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { JobType } from "@/constants/jobTypes";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
@@ -49,9 +50,11 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { getLocationDisplayName } from "@/constants/location";
-import { Location } from "@prisma/client";
+import { Location } from "@/constants/location";
 import { Skill } from "@/types/profile";
 import { STORAGE_URLS } from "@/constants/storage";
+import { apiDelete } from "@/utils/client/API";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 
 function SeekerMypage() {
   // 커스텀 훅 사용 (최상단에서 호출)
@@ -175,18 +178,18 @@ function SeekerMypage() {
         break;
       case "workType":
         payload = {
-          work_type: toPrismaWorkType(tempData.workType as any),
+          work_type: toPrismaWorkType(tempData.workType as any) as any,
         };
         break;
       case "jobTypes":
         console.log("JobTypes case - tempData.jobTypes:", tempData.jobTypes);
         payload = {
-          job_type1: toPrismaJobType(tempData.jobTypes[0] as any),
+          job_type1: toPrismaJobType(tempData.jobTypes[0] as any) as any,
           ...(tempData.jobTypes[1] && {
-            job_type2: toPrismaJobType(tempData.jobTypes[1] as any),
+            job_type2: toPrismaJobType(tempData.jobTypes[1] as any) as any,
           }),
           ...(tempData.jobTypes[2] && {
-            job_type3: toPrismaJobType(tempData.jobTypes[2] as any),
+            job_type3: toPrismaJobType(tempData.jobTypes[2] as any) as any,
           }),
         };
         break;
@@ -195,14 +198,14 @@ function SeekerMypage() {
         console.log("Availability case - tempData.availabilityDay:", tempData.availabilityDay);
         console.log("Availability case - tempData.availabilityTime:", tempData.availabilityTime);
         payload = {
-          available_day: toPrismaAvailableDay(tempData.availabilityDay as any),
-          available_hour: toPrismaAvailableHour(tempData.availabilityTime as any),
+          available_day: toPrismaAvailableDay(tempData.availabilityDay as any) as any,
+          available_hour: toPrismaAvailableHour(tempData.availabilityTime as any) as any,
         };
         console.log("Availability case - payload:", payload);
         break;
       case "languages":
         payload = {
-          language_level: toPrismaLanguageLevel(tempData.englishLevel as any),
+          language_level: toPrismaLanguageLevel(tempData.englishLevel as any) as any,
         };
         break;
       default:
@@ -385,10 +388,23 @@ function SeekerMypage() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30 touch-manipulation active:scale-[0.98]">
+                <button
+                  onClick={async () => {
+                    try {
+                      console.log("Starting DELETE request...");
+                      const response = await apiDelete(API_URLS.SEEKER.PROFILES);
+                      console.log("DELETE response:", response);
+                      showSuccessToast(response.message || "Profile deleted");
+                    } catch (error) {
+                      console.error("DELETE error:", error);
+                      showErrorToast("Error deleting profile: " + (error as Error).message);
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30 touch-manipulation active:scale-[0.98]"
+                >
                   <div className="flex items-center justify-center gap-2">
                     <Lightbulb size={16} className="sm:w-5 sm:h-5" />
-                    <span className="text-sm sm:text-base">See Recommended Jobs</span>
+                    <span className="text-sm sm:text-base">See Recommended Jobs (DELETE TEST)</span>
                   </div>
                 </button>
                 <button className="flex-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md touch-manipulation active:scale-[0.98]">
@@ -668,7 +684,7 @@ function SeekerMypage() {
                 <div>
                   <p className="text-sm font-medium text-slate-700 mb-2">Days</p>
                   <div className="flex gap-2">
-                    {AVAILABLE_DAYS.map(({ value, label }) => (
+                    {AVAILABLE_DAY_OPTIONS.map(({ value, label }) => (
                       <button
                         key={value}
                         onClick={() => toggleAvailabilityDay(value)}
@@ -686,7 +702,7 @@ function SeekerMypage() {
                 <div>
                   <p className="text-sm font-medium text-slate-700 mb-2">Times</p>
                   <div className="flex gap-2">
-                    {AVAILABLE_HOURS.map(({ value, label }) => (
+                    {AVAILABLE_HOUR_OPTIONS.map(({ value, label }) => (
                       <button
                         key={value}
                         onClick={() => toggleAvailabilityTime(value)}

@@ -1,10 +1,13 @@
 import React from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import Typography from "@/components/ui/Typography";
+import { WORK_PERIOD_OPTIONS } from "@/constants/options";
+import { getJobTypeConfig } from "@/constants/jobTypes";
+import { JobType } from "@/constants/jobTypes";
 
 interface ExperienceForm {
   company: string;
-  jobType: string;
+  jobType: JobType;
   startYear: string;
   workedPeriod: string;
   description: string;
@@ -24,7 +27,9 @@ export function ExperienceCard({ experience, onEdit, onDelete }: ExperienceCardP
           {experience.company}
         </Typography>
         <Typography as="div" className="text-gray-500 text-sm">
-          {experience.startYear}, {experience.workedPeriod}
+          {getJobTypeConfig(experience.jobType).name} • {experience.startYear},{" "}
+          {WORK_PERIOD_OPTIONS.find((option) => option.value === experience.workedPeriod)?.label ||
+            experience.workedPeriod}
         </Typography>
       </div>
       <div className="flex items-center gap-2 ml-4">

@@ -5,7 +5,15 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { apiGet, apiPatch } from "@/utils/client/API";
-import { WorkPeriod } from "@/constants/enums";
+import { 
+  WorkPeriod, 
+  WorkType, 
+  AvailableDay, 
+  AvailableHour, 
+  LanguageLevel 
+} from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
+import { Location } from "@/constants/location";
 
 export interface UserInfo {
   name: string;
@@ -47,14 +55,14 @@ export interface ApplicantProfile {
 
 // 더미 데이터
 const dummySeekerProfile: applicantProfile = {
-  job_type1: "SERVER",
-  job_type2: "BARISTA",
-  job_type3: "CASHIER",
-  work_type: "REMOTE",
-  available_day: "WEEKDAYS",
-  available_hour: "AM",
-  location: "TORONTO",
-  language_level: "INTERMEDIATE",
+  job_type1: JobType.SERVER,
+  job_type2: JobType.BARISTA,
+  job_type3: JobType.CASHIER,
+  work_type: WorkType.REMOTE,
+  available_day: AvailableDay.WEEKDAYS,
+  available_hour: AvailableHour.AM,
+  location: Location.TORONTO,
+  language_level: LanguageLevel.INTERMEDIATE,
   description: "Experienced service professional with strong customer service skills",
   profile_practical_skills: [
     {
@@ -70,28 +78,28 @@ const dummySeekerProfile: applicantProfile = {
   work_experiences: [
     {
       company_name: "Starbucks Coffee",
-      job_type: "BARISTA",
+      job_type: JobType.BARISTA,
       start_year: "2022",
       work_period: WorkPeriod.ONE_TO_TWO_YEARS,
-      work_type: "ON_SITE",
+      work_type: WorkType.ON_SITE,
       description:
         "Prepared and served coffee beverages, maintained cleanliness standards, and provided excellent customer service.",
     },
     {
       company_name: "McDonald's",
-      job_type: "CASHIER",
+      job_type: JobType.CASHIER,
       start_year: "2022",
       work_period: WorkPeriod.SEVEN_TO_TEN_YEARS,
-      work_type: "ON_SITE",
+      work_type: WorkType.ON_SITE,
       description:
         "Handled cash transactions, took customer orders, and ensured customer satisfaction.",
     },
     {
       company_name: "Tim Hortons",
-      job_type: "SERVER",
+      job_type: JobType.SERVER,
       start_year: "2018",
       work_period: WorkPeriod.SEVEN_TO_TEN_YEARS,
-      work_type: "ON_SITE",
+      work_type: WorkType.ON_SITE,
       description:
         "Served customers, maintained dining area cleanliness, and assisted with food preparation.",
     },
