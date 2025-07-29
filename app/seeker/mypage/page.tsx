@@ -68,6 +68,7 @@ import {
   getLanguageLevelLabel,
   getJobTypeName,
 } from "@/utils/client/enumDisplayUtils";
+import MypageActionButtons from "@/components/common/MypageActionButtons";
 
 // Types
 interface DeleteConfirmDialogState {
@@ -407,6 +408,29 @@ function SeekerMypage() {
       showErrorToast("Failed to update profile image");
     }
   }, []);
+
+  const handleSaveExperiences = useCallback(async () => {
+    try {
+      const payload = {
+        work_experiences: tempData.experiences.map((exp: any) => ({
+          company_name: exp.company,
+          job_type: exp.jobType,
+          start_year: exp.startYear,
+          work_period: exp.workedPeriod,
+          work_type: exp.workType,
+          description: exp.description,
+        })),
+      };
+
+      const success = await updateProfileSection("work_experiences", payload);
+      if (success) {
+        showSuccessToast("Work experiences saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving work experiences:", error);
+      showErrorToast("Failed to save work experiences");
+    }
+  }, [tempData.experiences, updateProfileSection]);
 
   const handleImageUploadDialog = useCallback(() => {
     setDialogStates((prev) => ({ ...prev, imageUpload: true }));
@@ -833,18 +857,27 @@ function SeekerMypage() {
                       key={index}
                       index={index}
                       experience={experience as any}
-                      onEdit={(experience) => editExperience(index, experience)}
+                      onEdit={(_, experience) => editExperience(index, experience)}
                       onDelete={() => deleteExperience(index)}
                     />
                   ))}
                 </div>
-                <button
-                  onClick={addExperience}
-                  className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 touch-manipulation mt-3"
-                >
-                  <Plus size={16} />
-                  Add Experience
-                </button>
+
+                <div className={`flex gap-2 justify-end`}>
+                  <button
+                    onClick={addExperience}
+                    className="w-full flex items-center gap-2 sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 hover:shadow-xl touch-manipulation active:scale-[0.98]"
+                  >
+                    <Plus size={16} />
+                    <span className="text-sm sm:text-base">Add Experience</span>
+                  </button>
+                  <button
+                    onClick={handleSaveExperiences}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30 touch-manipulation active:scale-[0.98]"
+                  >
+                    <span className="text-sm sm:text-base">Save Changes</span>
+                  </button>
+                </div>
               </InfoSection>
 
               {/* Language Proficiency */}
@@ -928,11 +961,16 @@ function SeekerMypage() {
 
           {/* Dialogs */}
           <ExperienceFormDialog
+            title={editingExperienceIndex >= 0 ? "Edit Job Experience" : "Add Job Experience"}
             open={showExperienceDialog}
             onClose={() => setShowExperienceDialog(false)}
             experienceForm={experienceForm}
             setExperienceForm={setExperienceForm}
-            onSave={() => saveExperience(tempData.experiences, () => {})}
+            onSave={() =>
+              saveExperience(tempData.experiences, (updatedExperiences) => {
+                setTempData({ ...tempData, experiences: updatedExperiences });
+              })
+            }
             editingIndex={editingExperienceIndex}
             onJobTypeSelect={() => setShowJobTypesDialog(true)}
           />
@@ -1041,7 +1079,7 @@ function SeekerMypage() {
                 <Button
                   onClick={confirmDeleteExperience}
                   className="w-full"
-                  variant="destructive"
+                  variant="red"
                   size="lg"
                 >
                   Delete
