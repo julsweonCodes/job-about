@@ -282,9 +282,6 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     if (seekerProfile) {
       try {
         const formData = ApplicantProfileMapper.fromApi(seekerProfile);
-        console.log("🔍 Seeker Profile Data:", seekerProfile);
-        console.log("🔍 Mapped Form Data:", formData);
-        console.log("🔍 Skill IDs:", formData.skillIds);
 
         Object.assign(profile, {
           location: formData.location,
