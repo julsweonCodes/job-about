@@ -74,7 +74,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // 실제 존재하는 경로만 인증/온보딩 체크 (정확한 경로 매칭)
-  const existingRoutes = [
+  const staticRoutes = [
     PAGE_URLS.HOME,
     PAGE_URLS.ONBOARDING.ROOT,
     PAGE_URLS.ONBOARDING.SEEKER.ROOT,
@@ -83,16 +83,36 @@ export async function middleware(req: NextRequest) {
     PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
     PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE,
     PAGE_URLS.SEEKER.ROOT,
-    PAGE_URLS.SEEKER.MYPAGE,
+    PAGE_URLS.SEEKER.MYPAGE.ROOT,
+    PAGE_URLS.SEEKER.MYPAGE.PROFILE,
+    PAGE_URLS.SEEKER.MYPAGE.APPLIES,
+    PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS,
     PAGE_URLS.EMPLOYER.ROOT,
     PAGE_URLS.EMPLOYER.MYPAGE,
     PAGE_URLS.EMPLOYER.POST.CREATE,
     PAGE_URLS.EMPLOYER.POST.DASHBOARD,
     PAGE_URLS.AUTH.CALLBACK,
     PAGE_URLS.AUTH.ERROR,
-  ];
-  const isExistingRoute = existingRoutes.some((route) => req.nextUrl.pathname === route);
-  if (!isExistingRoute) {
+  ] as const;
+
+  const isExistingRoute = (pathname: string) => {
+    // Static routes 체크
+    if (staticRoutes.includes(pathname as any)) {
+      return true;
+    }
+
+    // Dynamic routes 패턴 매칭
+    const dynamicRoutePatterns = [
+      /^\/seeker\/post\/[\w-]+$/, // /seeker/post/[id]
+      /^\/employer\/post\/[\w-]+\/edit$/, // /employer/post/[id]/edit
+      /^\/employer\/post\/[\w-]+\/applicants$/, // /employer/post/[id]/applicants
+      /^\/employer\/post\/[\w-]+\/applicants\/[\w-]+$/, // /employer/post/[id]/applicants/[applicationId]
+    ];
+
+    return dynamicRoutePatterns.some((pattern) => pattern.test(pathname));
+  };
+
+  if (!isExistingRoute(req.nextUrl.pathname)) {
     // 존재하지 않는 경로는 그냥 통과 (Next.js가 404 처리)
     return res;
   }

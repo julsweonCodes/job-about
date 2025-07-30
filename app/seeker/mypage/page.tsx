@@ -22,7 +22,7 @@ import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
 import { apiPatch } from "@/utils/client/API";
-import { API_URLS } from "@/constants/api";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 
 interface DialogStates {
   imageUpload: boolean;
@@ -122,15 +122,15 @@ function SeekerMypage() {
   }, []);
 
   const handleNavigateToProfile = useCallback(() => {
-    router.push("/seeker/mypage/profile");
+    router.push(PAGE_URLS.SEEKER.MYPAGE.PROFILE);
   }, [router]);
 
   const handleNavigateToAppliedJobs = useCallback(() => {
-    router.push("/seeker/mypage/applied");
+    router.push(PAGE_URLS.SEEKER.MYPAGE.APPLIES);
   }, [router]);
 
   const handleNavigateToBookmarks = useCallback(() => {
-    router.push("/seeker/mypage/bookmarks");
+    router.push(PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS);
   }, [router]);
 
   // Loading states

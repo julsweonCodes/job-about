@@ -37,6 +37,7 @@ export const API_URLS = {
   // 구직자 관련
   SEEKER: {
     PROFILES: "/api/seeker/profiles",
+    APPLY: "/api/seeker/apply",
   },
 
   // 직업 관련
@@ -91,7 +92,15 @@ export const PAGE_URLS = {
   },
   SEEKER: {
     ROOT: "/seeker",
-    MYPAGE: "/seeker/mypage",
+    MYPAGE: {
+      ROOT: "/seeker/mypage",
+      PROFILE: "/seeker/mypage/profile",
+      APPLIES: "/seeker/mypage/applies",
+      BOOKMARKS: "/seeker/mypage/bookmarks",
+    },
+    POST: {
+      DETAIL: (id: string) => `/seeker/post/${id}`,
+    },
   },
   EMPLOYER: {
     ROOT: "/employer",

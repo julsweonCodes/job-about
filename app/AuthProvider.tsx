@@ -12,7 +12,7 @@ export default function AuthProvider() {
 
   // 실제 존재하는 경로인지 체크하는 함수
   const isExistingRoute = (pathname: string) => {
-    const existingRoutes = [
+    const staticRoutes = [
       PAGE_URLS.HOME,
       PAGE_URLS.ONBOARDING.ROOT,
       PAGE_URLS.ONBOARDING.SEEKER.ROOT,
@@ -21,15 +21,32 @@ export default function AuthProvider() {
       PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
       PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE,
       PAGE_URLS.SEEKER.ROOT,
-      PAGE_URLS.SEEKER.MYPAGE,
+      PAGE_URLS.SEEKER.MYPAGE.ROOT,
+      PAGE_URLS.SEEKER.MYPAGE.PROFILE,
+      PAGE_URLS.SEEKER.MYPAGE.APPLIES,
+      PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS,
       PAGE_URLS.EMPLOYER.ROOT,
       PAGE_URLS.EMPLOYER.MYPAGE,
       PAGE_URLS.EMPLOYER.POST.CREATE,
       PAGE_URLS.EMPLOYER.POST.DASHBOARD,
       PAGE_URLS.AUTH.CALLBACK,
       PAGE_URLS.AUTH.ERROR,
+    ] as const;
+
+    // Static routes 체크
+    if (staticRoutes.includes(pathname as any)) {
+      return true;
+    }
+
+    // Dynamic routes 패턴 매칭
+    const dynamicRoutePatterns = [
+      /^\/seeker\/post\/[\w-]+$/, // /seeker/post/[id]
+      /^\/employer\/post\/[\w-]+\/edit$/, // /employer/post/[id]/edit
+      /^\/employer\/post\/[\w-]+\/applicants$/, // /employer/post/[id]/applicants
+      /^\/employer\/post\/[\w-]+\/applicants\/[\w-]+$/, // /employer/post/[id]/applicants/[applicationId]
     ];
-    return existingRoutes.some((route) => pathname === route);
+
+    return dynamicRoutePatterns.some((pattern) => pattern.test(pathname));
   };
 
   // 404(존재하지 않는 경로)에서는 AuthProvider 자체를 렌더하지 않음
