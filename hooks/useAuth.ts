@@ -11,7 +11,6 @@ export function useAuth() {
     retryCount,
     lastError,
     setAuthState,
-    setRetryCount,
     setLastError,
     login,
     logout,
@@ -24,6 +23,97 @@ export function useAuth() {
 
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitializedRef = useRef(false);
+  const networkStatusRef = useRef<boolean>(true);
+  const sessionRefreshRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 세션 갱신 로직
+  const refreshSession = useCallback(async () => {
+    try {
+      console.log("Attempting to refresh session...");
+      const { data, error } = await supabaseClient.auth.refreshSession();
+
+      if (error) {
+        console.warn("Session refresh failed:", error);
+        logout();
+        return false;
+      }
+
+      if (data.session) {
+        console.log("Session refreshed successfully");
+        // 갱신된 세션으로 사용자 정보 업데이트
+        const response = await fetch(API_URLS.USER.ME, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          const supabaseUser = SupabaseUserMapper.fromSupabaseUser(data.session.user);
+          login(supabaseUser, userData.data.user, userData.data.profileStatus);
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Session refresh error:", error);
+      logout();
+      return false;
+    }
+  }, [login, logout]);
+
+  // 세션 만료 시간 체크 및 갱신 스케줄링
+  const scheduleSessionRefresh = useCallback(
+    (expiresAt: number) => {
+      // 기존 타이머 클리어
+      if (sessionRefreshRef.current) {
+        clearTimeout(sessionRefreshRef.current);
+      }
+
+      const now = Date.now() / 1000;
+      const timeUntilExpiry = expiresAt - now;
+
+      // 만료 5분 전에 갱신 시도
+      const refreshTime = Math.max(timeUntilExpiry - 300, 0);
+
+      console.log(`Session expires in ${timeUntilExpiry}s, scheduling refresh in ${refreshTime}s`);
+
+      sessionRefreshRef.current = setTimeout(async () => {
+        const success = await refreshSession();
+        if (!success) {
+          console.warn("Session refresh failed, user will be logged out");
+        }
+      }, refreshTime * 1000);
+    },
+    [refreshSession]
+  );
+
+  // 네트워크 상태 감지
+  useEffect(() => {
+    const handleOnline = () => {
+      networkStatusRef.current = true;
+      console.log("Network is online, retrying auth if needed");
+      if (authState === "error" && canRetry()) {
+        retryAuth();
+        checkAuthStatus();
+      }
+    };
+
+    const handleOffline = () => {
+      networkStatusRef.current = false;
+      console.log("Network is offline");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [authState, canRetry, retryAuth]);
 
   // 인증 상태 확인
   const checkAuthStatus = useCallback(async () => {
@@ -37,6 +127,14 @@ export function useAuth() {
         console.warn("Browser compatibility issues detected:", recommendations);
         setAuthState("error");
         setLastError("브라우저 설정을 확인해주세요. 쿠키와 로컬 스토리지가 활성화되어야 합니다.");
+        return;
+      }
+
+      // 네트워크 상태 확인
+      if (!navigator.onLine) {
+        console.warn("Network is offline, skipping auth check");
+        setAuthState("error");
+        setLastError("네트워크 연결을 확인해주세요.");
         return;
       }
 
@@ -58,6 +156,20 @@ export function useAuth() {
             "Auth session missing (likely incognito mode or storage disabled), treating as logged out"
           );
           setAuthState("unauthenticated");
+          return;
+        }
+
+        // 토큰 만료 에러 처리
+        if (
+          error.message.includes("JWT expired") ||
+          error.message.includes("Token expired") ||
+          error.message.includes("Invalid JWT")
+        ) {
+          console.warn("Token expired, attempting to refresh session");
+          const refreshSuccess = await refreshSession();
+          if (!refreshSuccess) {
+            logout();
+          }
           return;
         }
 
@@ -116,6 +228,27 @@ export function useAuth() {
       }
 
       if (user) {
+        // 세션 만료 시간 확인 및 갱신 스케줄링
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
+        const expiresAt = session?.expires_at;
+
+        if (expiresAt) {
+          const now = Date.now() / 1000;
+          if (now > expiresAt) {
+            console.warn("Session expired, attempting to refresh");
+            const refreshSuccess = await refreshSession();
+            if (!refreshSuccess) {
+              logout();
+              return;
+            }
+          } else {
+            // 세션 갱신 스케줄링
+            scheduleSessionRefresh(expiresAt);
+          }
+        }
+
         // 우리 서비스 DB에서 사용자 확인
         try {
           const response = await fetch(API_URLS.USER.ME, {
@@ -151,7 +284,18 @@ export function useAuth() {
       setAuthState("error");
       setLastError("Authentication check failed");
     }
-  }, [setAuthState, setLastError, canRetry, retryCount, getRetryDelay, retryAuth, login]);
+  }, [
+    setAuthState,
+    setLastError,
+    canRetry,
+    retryCount,
+    getRetryDelay,
+    retryAuth,
+    login,
+    logout,
+    refreshSession,
+    scheduleSessionRefresh,
+  ]);
 
   // 인증 초기화
   const initializeAuth = useCallback(() => {
@@ -170,8 +314,19 @@ export function useAuth() {
         return;
       }
 
+      // TOKEN_REFRESHED 이벤트도 무시 (불필요한 API 호출 방지)
+      if (event === "TOKEN_REFRESHED") {
+        console.log("Token refreshed event, skipping...");
+        return;
+      }
+
       if (event === "SIGNED_IN" && session?.user) {
         console.log("User signed in:", session.user.email);
+
+        // 세션 갱신 스케줄링
+        if (session.expires_at) {
+          scheduleSessionRefresh(session.expires_at);
+        }
 
         // 우리 서비스 DB에서 사용자 확인
         try {
@@ -204,6 +359,10 @@ export function useAuth() {
 
       if (event === "SIGNED_OUT") {
         console.log("User signed out");
+        // 세션 갱신 타이머 클리어
+        if (sessionRefreshRef.current) {
+          clearTimeout(sessionRefreshRef.current);
+        }
         logout();
       }
     });
@@ -212,9 +371,12 @@ export function useAuth() {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
       }
+      if (sessionRefreshRef.current) {
+        clearTimeout(sessionRefreshRef.current);
+      }
       listener.subscription.unsubscribe();
     };
-  }, [checkAuthStatus, login, logout]);
+  }, [checkAuthStatus, login, logout, scheduleSessionRefresh]);
 
   // 로그아웃 처리
   const handleLogout = useCallback(async () => {

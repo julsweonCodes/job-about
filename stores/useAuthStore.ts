@@ -129,6 +129,15 @@ interface AuthStoreState {
   // 재시도 관련
   canRetry: () => boolean;
   getRetryDelay: () => number;
+
+  // 초기화 상태 확인 개선
+  isAuthenticated: () => boolean;
+
+  // 세션 타임아웃 확인
+  isSessionValid: () => boolean;
+
+  // 마지막 활동 시간 업데이트
+  updateLastActivity: () => void;
 }
 
 export const useAuthStore = create<AuthStoreState>()(
@@ -269,9 +278,40 @@ export const useAuthStore = create<AuthStoreState>()(
           return !!lastError;
         },
 
+        // 초기화 상태 확인 개선
         isInitialized: () => {
           const { authState } = get();
           return authState !== "initializing";
+        },
+
+        // 인증 완료 상태 확인
+        isAuthenticated: () => {
+          const { authState, appUser, profileStatus } = get();
+          return authState === "authenticated" && !!appUser && !!profileStatus;
+        },
+
+        // 세션 타임아웃 확인
+        isSessionValid: () => {
+          const { authState, appUser } = get();
+          if (authState !== "authenticated" || !appUser) return false;
+
+          // 마지막 활동 시간 확인 (30분)
+          const lastActivity = localStorage.getItem("lastActivity");
+          if (lastActivity) {
+            const lastActivityTime = parseInt(lastActivity);
+            const now = Date.now();
+            const timeout = 30 * 60 * 1000; // 30분
+
+            if (now - lastActivityTime > timeout) {
+              return false; // 세션 만료
+            }
+          }
+          return true;
+        },
+
+        // 마지막 활동 시간 업데이트
+        updateLastActivity: () => {
+          localStorage.setItem("lastActivity", Date.now().toString());
         },
 
         canAccessRoleData: () => {

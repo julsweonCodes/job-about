@@ -70,17 +70,11 @@ function SeekerAppliedPage() {
   const { filters } = useFilterStore();
   const { appUser, authState } = useAuthStore();
 
-  // 지원한 공고 목록 - 항상 호출 (조건부 렌더링 전에)
   const { appliedJobs, loading, error, hasMore, loadMore, refresh, isInitialized } =
-    useSeekerAppliedJobs({
-      limit: 20,
-      autoFetch: true,
-    });
+    useSeekerAppliedJobs({ limit: 20, autoFetch: true });
 
-  // 필터링된 지원한 공고 - 메모이제이션으로 성능 최적화
   const filteredAppliedJobs = useMemo(() => {
     if (!Array.isArray(appliedJobs)) return [];
-
     return appliedJobs
       .filter(
         (job) =>
@@ -89,7 +83,6 @@ function SeekerAppliedPage() {
       .map(convertToJobPostCard);
   }, [appliedJobs, filters.jobType, filters.location]);
 
-  // 이벤트 핸들러들을 useCallback으로 메모이제이션
   const handleViewJob = useCallback(
     (id: string) => {
       router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
@@ -111,110 +104,79 @@ function SeekerAppliedPage() {
     router.push(PAGE_URLS.SEEKER.ROOT);
   }, [router]);
 
-  // 인증되지 않은 경우
-  if (authState === "unauthenticated") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Please log in</h2>
-          <p className="text-gray-600 mb-4">You need to be logged in to view your applications.</p>
-          <button
-            onClick={() => router.push("/")}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 인증 상태 로딩 중
-  if (authState === "initializing") {
-    return <LoadingScreen message="Checking authentication..." />;
-  }
-
-  if (!isInitialized) {
-    return <LoadingScreen message="Loading your applications..." />;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <BackHeader title="My Applications" />
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Stats */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Applications</h1>
-              <p className="text-slate-600 mt-1">
-                {filteredAppliedJobs.length} job{filteredAppliedJobs.length !== 1 ? "s" : ""}{" "}
-                applied
-              </p>
+              {appliedJobs && appliedJobs.length > 0 && (
+                <p className="text-slate-600 mt-1">
+                  {filteredAppliedJobs.length} job{filteredAppliedJobs.length !== 1 ? "s" : ""}{" "}
+                  applied
+                </p>
+              )}
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
-            >
-              Refresh
-            </button>
           </div>
         </div>
-
-        {/* Job Posts Grid */}
         <div className="space-y-4">
-          {loading && appliedJobs.length === 0 ? (
-            // Loading skeletons
+          {/* 초기 렌더링 시 스켈레톤 표시 (데이터가 없거나 로딩 중일 때) */}
+          {(loading || !appliedJobs || appliedJobs.length === 0) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {Array.from({ length: DEFAULT_VALUES.SKELETON_COUNT }).map((_, index) => (
                 <JobPostCardSkeleton key={index} />
               ))}
             </div>
-          ) : filteredAppliedJobs.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {filteredAppliedJobs.map((job) => (
-                  <JobPostCard key={job.id} job={job} onView={() => handleViewJob(job.id)} />
-                ))}
-              </div>
+          )}
 
-              {/* Load More Button */}
-              {hasMore && (
-                <div className="flex justify-center mt-8">
+          {/* 데이터가 있고 로딩이 완료된 경우에만 UI 표시 */}
+          {!loading && appliedJobs && appliedJobs.length > 0 && (
+            <>
+              {/* 데이터가 있는 경우 */}
+              {filteredAppliedJobs.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {filteredAppliedJobs.map((job) => (
+                      <JobPostCard key={job.id} job={job} onView={() => handleViewJob(job.id)} />
+                    ))}
+                  </div>
+                  {hasMore && (
+                    <div className="flex justify-center mt-8">
+                      <button
+                        onClick={handleLoadMore}
+                        disabled={loading}
+                        className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      >
+                        {loading ? "Loading..." : "Load More"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* 데이터가 없는 경우 (빈 상태) */
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Briefcase className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No applications yet</h3>
+                  <p className="text-slate-600 mb-6">
+                    You haven't applied to any jobs yet. Start exploring opportunities!
+                  </p>
                   <button
-                    onClick={handleLoadMore}
-                    disabled={loading}
-                    className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    onClick={handleBrowseJobs}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200"
                   >
-                    {loading ? "Loading..." : "Load More"}
+                    Browse Jobs
                   </button>
                 </div>
               )}
             </>
-          ) : (
-            // Empty state
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Briefcase className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No applications yet</h3>
-              <p className="text-slate-600 mb-6">
-                You haven't applied to any jobs yet. Start exploring opportunities!
-              </p>
-              <button
-                onClick={handleBrowseJobs}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200"
-              >
-                Browse Jobs
-              </button>
-            </div>
           )}
         </div>
 
-        {/* Error State */}
+        {/* 에러 상태는 로딩 상태와 독립적으로 표시 */}
         {error && (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

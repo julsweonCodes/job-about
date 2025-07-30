@@ -61,7 +61,7 @@ export default function AuthProvider() {
     return cleanup;
   }, [initializeAuth]);
 
-  // 라우팅 처리
+  // 중앙화된 인증 체크 및 라우팅 처리
   useEffect(() => {
     const isRoutingDisabled = process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true";
     if (isRoutingDisabled) {
@@ -69,40 +69,81 @@ export default function AuthProvider() {
       return;
     }
 
-    if (authState !== "authenticated") return;
-    if (!profileStatus) return;
-
     const currentPath = window.location.pathname;
+
+    // 공개 페이지들 (인증 불필요)
+    const publicPages = [PAGE_URLS.HOME, PAGE_URLS.AUTH.CALLBACK, PAGE_URLS.AUTH.ERROR];
+    const isPublicPage = publicPages.some((page) => currentPath === page);
+
+    // 온보딩 관련 페이지들
+    const onboardingPages = [
+      PAGE_URLS.ONBOARDING.ROOT,
+      PAGE_URLS.ONBOARDING.SEEKER.ROOT,
+      PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
+    ];
+    const isOnboardingPage = onboardingPages.some((page) => currentPath.startsWith(page));
+
+    // 인증이 완료되지 않은 경우
+    if (authState === "unauthenticated") {
+      // 공개 페이지가 아니면 홈으로 리다이렉트
+      if (!isPublicPage) {
+        console.log("User not authenticated, redirecting to home");
+        router.replace(PAGE_URLS.HOME);
+      }
+      return;
+    }
+
+    // 인증 에러가 발생한 경우
+    if (authState === "error") {
+      // 공개 페이지가 아니면 홈으로 리다이렉트
+      if (!isPublicPage) {
+        console.log("Authentication error, redirecting to home");
+        router.replace(PAGE_URLS.HOME);
+      }
+      return;
+    }
+
+    // 인증이 완료되지 않았거나 프로필 상태가 없으면 라우팅하지 않음
+    if (authState !== "authenticated" || !profileStatus) {
+      return;
+    }
+
+    // 이미 올바른 페이지에 있다면 리다이렉트하지 않음
+    const shouldRedirect = (targetPath: string) => {
+      return currentPath !== targetPath;
+    };
 
     // seeker 온보딩 분기
     if (profileStatus.role === "APPLICANT" && !profileStatus.isProfileCompleted) {
       if (!profileStatus.hasPersonalityProfile) {
-        if (currentPath !== PAGE_URLS.ONBOARDING.SEEKER.QUIZ) {
+        if (shouldRedirect(PAGE_URLS.ONBOARDING.SEEKER.QUIZ)) {
           console.log("Redirecting seeker to quiz");
           router.replace(PAGE_URLS.ONBOARDING.SEEKER.QUIZ);
         }
         return;
       } else if (!profileStatus.hasApplicantProfile) {
-        if (currentPath !== PAGE_URLS.ONBOARDING.SEEKER.PROFILE) {
+        if (shouldRedirect(PAGE_URLS.ONBOARDING.SEEKER.PROFILE)) {
           console.log("Redirecting seeker to profile");
           router.replace(PAGE_URLS.ONBOARDING.SEEKER.PROFILE);
         }
         return;
       }
     } else if (profileStatus.role === "EMPLOYER" && !profileStatus.isProfileCompleted) {
-      if (currentPath !== PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE) {
+      if (shouldRedirect(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE)) {
         console.log("Redirecting employer to profile");
         router.replace(PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE);
       }
       return;
     } else if (!profileStatus.hasRole) {
-      if (currentPath !== PAGE_URLS.ONBOARDING.ROOT) {
+      if (shouldRedirect(PAGE_URLS.ONBOARDING.ROOT)) {
         console.log("Redirecting to onboarding root");
         router.replace(PAGE_URLS.ONBOARDING.ROOT);
       }
       return;
     }
+
     // 온보딩이 모두 끝난 경우에는 추가 라우팅 없음
+    console.log("Onboarding completed, no redirect needed");
   }, [authState, profileStatus, router]);
 
   return null;
