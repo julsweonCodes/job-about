@@ -1,5 +1,5 @@
 import { errorResponse, HttpError, successResponse } from "@/app/lib/server/commonResponse";
-import { createUser, updateUser, uploadUserImage } from "@/app/services/user-services";
+import { createUser, updateUser } from "@/app/services/user-services";
 import { parseBigInt } from "@/lib/utils";
 import { SupabaseUser, UpdateUser } from "@/types/user";
 import { getUserIdFromSession } from "@/utils/auth";
@@ -34,26 +34,13 @@ export async function PATCH(req: NextRequest) {
         return errorResponse('Invalid User ID format.', 400);
     }
 
-    const formData = await req.formData();
+    const body = await req.json();
+    const updateData: UpdateUser = {};
 
-    const file = formData.get('img') as File;
-    const body: UpdateUser = {};
-
-    const name = formData.get('name')?.toString();
-    if (name) body.name = name;
-
-    const phone = formData.get('phone_number')?.toString();
-    if (phone) body.phone_number = phone;
-
-    const description = formData.get('description')?.toString();
-    if (description) body.description = description;
+    if (body.name) updateData.name = body.name;
+    if (body.phone_number) updateData.phone_number = body.phone_number;
 
     try {
-        if (file && file.size > 0) {
-            const img_url = await uploadUserImage(file, userId);
-            body.img_url = img_url;
-        }
-
         const user = await updateUser(body, userId);
         return successResponse(parseBigInt(user), 200, "User updated");
 

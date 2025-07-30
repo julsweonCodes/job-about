@@ -16,6 +16,7 @@ export interface JobPostData {
   languageLevel?: LanguageLevel;
   hourlyWage: string;
   jobDescription: string;
+  isBookmarked?: boolean;
 }
 
 export interface BizLocInfo {
