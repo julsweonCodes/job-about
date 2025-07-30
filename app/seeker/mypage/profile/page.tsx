@@ -8,6 +8,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { LanguageLevel, WORK_TYPES } from "@/constants/enums";
 import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import { JobType } from "@/constants/jobTypes";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
@@ -438,24 +439,7 @@ function SeekerProfilePage() {
         loadingStates.imageUpload ||
         loadingStates.skillsUpdate ||
         loadingStates.jobTypesUpdate ||
-        loadingStates.experienceSave) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-48" />
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
-            </div>
-          </div>
-        </div>
-      )}
+        loadingStates.experienceSave) && <LoadingScreen overlay={true} opacity="light" />}
 
       {/* Header */}
       <BackHeader title="Profile Settings" />
