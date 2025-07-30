@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
-import BaseDialog from "@/components/common/BaseDialog";
 import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -30,6 +29,8 @@ import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
+import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
+import { DeleteExperienceDialog } from "@/components/seeker/DeleteExperienceDialog";
 import { useSeekerMypage } from "@/hooks/useSeekerMypage";
 import { useSeekerExperience } from "@/hooks/useSeekerExperience";
 import { applicantProfile } from "@/types/profile";
@@ -1026,48 +1027,16 @@ function SeekerMypage() {
       />
 
       {/* Profile Dialog */}
-      <BaseDialog
+      <ProfileEditDialog
         open={dialogStates.profile}
         onClose={handleCloseProfileDialog}
-        title="Edit Profile"
-        size="md"
-        type="bottomSheet"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Name</label>
-            <Input
-              value={tempData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="Enter your name"
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-            <TextArea
-              value={tempData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Tell us about yourself..."
-              rows={4}
-              className="w-full"
-            />
-          </div>
-        </div>
-        <div className="flex gap-3 mt-6">
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={handleCloseProfileDialog}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleProfileSave} className="flex-1" variant="gradient" size="lg">
-            Save
-          </Button>
-        </div>
-      </BaseDialog>
+        onSave={handleProfileSave}
+        data={{
+          name: tempData.name,
+          description: tempData.description,
+        }}
+        onChange={handleInputChange}
+      />
 
       {/* Image Upload Dialog */}
       <ImageUploadDialog
@@ -1079,40 +1048,16 @@ function SeekerMypage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <BaseDialog
+      <DeleteExperienceDialog
         open={dialogStates.deleteConfirm.isOpen}
         onClose={cancelDeleteExperience}
-        title="Delete Experience"
-        size="sm"
-        type="bottomSheet"
-        actions={
-          <div className="flex gap-3 w-full">
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={cancelDeleteExperience}
-              className="w-full"
-            >
-              Cancel
-            </Button>
-            <Button onClick={confirmDeleteExperience} className="w-full" variant="red" size="lg">
-              Delete
-            </Button>
-          </div>
+        onConfirm={confirmDeleteExperience}
+        companyName={
+          dialogStates.deleteConfirm.experienceIndex !== null
+            ? tempData.experiences[dialogStates.deleteConfirm.experienceIndex]?.company || ""
+            : ""
         }
-      >
-        <div className="text-center py-6">
-          <p className="text-sm text-gray-600 leading-relaxed text-sm sm:text-base">
-            Are you sure you want to delete your experience at{" "}
-            <span className="font-semibold text-gray-900">
-              {dialogStates.deleteConfirm.experienceIndex !== null
-                ? tempData.experiences[dialogStates.deleteConfirm.experienceIndex]?.company
-                : ""}
-            </span>
-            ? This action cannot be undone.
-          </p>
-        </div>
-      </BaseDialog>
+      />
     </div>
   );
 }
