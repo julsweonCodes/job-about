@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Bookmark, BookmarkCheck, ArrowLeft } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
@@ -9,6 +9,7 @@ import { apiGetData, apiPostData, apiDeleteData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface Props {
   params: { postId: string };
@@ -17,12 +18,16 @@ interface Props {
 const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   const router = useRouter();
   const [jobDetails, setJobDetails] = useState<JobPostData | null>(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [loadingStates, setLoadingStates] = useState({
     jobDetails: false,
     bookmark: false,
     apply: false,
   });
+
+  // 북마크 상태 관리
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const [bookmarkError, setBookmarkError] = useState<string | null>(null);
 
   const initializeData = async () => {
     try {
@@ -47,11 +52,27 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     }
   };
 
+  // 북마크 상태 확인 (API가 없으므로 로컬 상태로 관리)
+  const fetchBookmarkStatus = useCallback(async () => {
+    try {
+      // TODO: 북마크 상태 확인 API가 구현되면 여기서 호출
+      // const data = await apiGetData(API_URLS.SEEKER.BOOKMARK_STATUS(params.postId));
+      // setIsBookmarked(data.isBookmarked);
+
+      // 현재는 로컬 상태로 관리 (실제로는 서버에서 가져와야 함)
+      console.log("Bookmark status check - API not implemented yet");
+    } catch (error) {
+      console.error("Error fetching bookmark status:", error);
+      setBookmarkError("Failed to fetch bookmark status");
+    }
+  }, [params.postId]);
+
   useEffect(() => {
     if (params.postId) {
       initializeData();
+      fetchBookmarkStatus();
     }
-  }, [params.postId]);
+  }, [params.postId, fetchBookmarkStatus]);
 
   const fetchJobDetails = async () => {
     try {
@@ -65,42 +86,37 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     }
   };
 
-  const fetchBookmarkStatus = async () => {
+  // 북마크 토글 함수
+  const toggleBookmark = useCallback(async () => {
     try {
-      // 북마크 상태 확인을 위해 사용자의 북마크 목록에서 확인
-      const res = await fetch(`/api/seeker/bookmarks`);
-      if (res.ok) {
-        const data = await res.json();
-        const bookmarkedJobs = data.data || [];
-        const isBookmarked = bookmarkedJobs.some(
-          (bookmark: any) => bookmark.job_post_id === parseInt(params.postId)
-        );
-        setIsBookmarked(isBookmarked);
-      }
-    } catch (error) {
-      console.error("Error fetching bookmark status:", error);
-    }
-  };
-
-  const handleBookmark = async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, bookmark: true }));
+      setIsBookmarkLoading(true);
+      setBookmarkError(null);
 
       if (isBookmarked) {
         // 북마크 제거
         await apiDeleteData(API_URLS.JOB_POSTS.BOOKMARK(params.postId));
         setIsBookmarked(false);
+        showSuccessToast("Bookmark removed");
       } else {
         // 북마크 추가
         await apiPostData(API_URLS.JOB_POSTS.BOOKMARK(params.postId), {});
         setIsBookmarked(true);
+        showSuccessToast("Bookmark added");
       }
     } catch (error) {
       console.error("Error toggling bookmark:", error);
+      setBookmarkError((error as Error).message || "Failed to toggle bookmark");
+      showErrorToast((error as Error).message || "Failed to toggle bookmark");
+
+      // 에러 발생 시 상태 롤백
+      setIsBookmarked(!isBookmarked);
     } finally {
-      setLoadingStates((prev) => ({ ...prev, bookmark: false }));
+      setIsBookmarkLoading(false);
     }
-  };
+  }, [isBookmarked, params.postId]);
+
+  // debounce된 북마크 함수 (300ms 지연)
+  const debouncedToggleBookmark = useDebounce(toggleBookmark, 300);
 
   const handleApply = async () => {
     try {
@@ -121,7 +137,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   };
 
   const isInitialLoading = loadingStates.jobDetails;
-  const isActionLoading = loadingStates.bookmark || loadingStates.apply;
+  const isActionLoading = isBookmarkLoading || loadingStates.apply;
 
   // 로딩 상태일 때
   if (isInitialLoading) {
@@ -137,13 +153,15 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
         leftIcon={<ArrowLeft className="w-5 h-5 text-gray-700" />}
         onClickLeft={handleBack}
         rightIcon={
-          isBookmarked ? (
-            <BookmarkCheck className="w-5 h-5 text-purple-600" />
+          isBookmarkLoading ? (
+            <div className="w-5 h-5 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+          ) : isBookmarked ? (
+            <Bookmark fill="currentColor" className="w-5 h-5 text-purple-600" />
           ) : (
             <Bookmark className="w-5 h-5 text-gray-700" />
           )
         }
-        onClickRight={handleBookmark}
+        onClickRight={debouncedToggleBookmark}
       />
 
       {/* Job Post Content */}
