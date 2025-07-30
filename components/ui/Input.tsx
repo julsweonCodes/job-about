@@ -8,6 +8,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   rightIcon?: React.ReactNode;
   showClearButton?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export default function Input({
@@ -20,9 +21,30 @@ export default function Input({
   className = "",
   rightIcon,
   showClearButton = true,
+  onValidationChange,
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
+
+  // 유효성 검사 함수
+  const validateInput = (val: string): boolean => {
+    if (type === "phone") {
+      const digits = val.replace(/[^0-9]/g, "");
+      return digits.length === 10 || digits.length === 11;
+    }
+    if (required) {
+      return val.trim().length > 0;
+    }
+    return true;
+  };
+
+  // 유효성 상태 업데이트
+  React.useEffect(() => {
+    if (onValidationChange) {
+      const isValid = validateInput(String(value || ""));
+      onValidationChange(isValid);
+    }
+  }, [value, type, required, onValidationChange]);
 
   // phone formatting for US/Canada format: (555) 123-4567
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,6 +127,10 @@ export default function Input({
             <button
               type="button"
               onClick={handleClear}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors z-10"
             >
               <X size={16} className="text-gray-400 hover:text-gray-600" />

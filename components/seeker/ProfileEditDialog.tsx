@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import BaseDialog from "@/components/common/BaseDialog";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -21,6 +21,10 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
   data,
   onChange,
 }) => {
+  // 유효성 상태
+  const [isNameValid, setIsNameValid] = useState(false);
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const isFormValid = isNameValid && isPhoneValid;
   return (
     <BaseDialog open={open} onClose={onClose} title="Edit Profile" size="md" type="bottomSheet">
       <div className="space-y-4">
@@ -31,6 +35,13 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             onChange={(e) => onChange("name", e.target.value)}
             placeholder="Enter your name"
             className="w-full"
+            required
+            onValidationChange={setIsNameValid}
+            error={
+              !isNameValid && data.name.trim().length > 0
+                ? "Name must be at least 2 characters"
+                : undefined
+            }
           />
         </div>
         <div>
@@ -41,6 +52,7 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             placeholder="Enter your phone number"
             type="phone"
             className="w-full"
+            onValidationChange={setIsPhoneValid}
           />
         </div>
       </div>
@@ -48,7 +60,13 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         <Button variant="secondary" size="lg" onClick={onClose} className="flex-1">
           Cancel
         </Button>
-        <Button onClick={onSave} className="flex-1" variant="gradient" size="lg">
+        <Button
+          onClick={onSave}
+          className="flex-1"
+          variant="gradient"
+          size="lg"
+          disabled={!isFormValid}
+        >
           Save
         </Button>
       </div>
