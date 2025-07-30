@@ -26,6 +26,7 @@ interface ExperienceForm {
 }
 
 interface ExperienceFormDialogProps {
+  title: string;
   open: boolean;
   onClose: () => void;
   experienceForm: ExperienceForm;
@@ -36,6 +37,7 @@ interface ExperienceFormDialogProps {
 }
 
 export default function ExperienceFormDialog({
+  title,
   open,
   onClose,
   experienceForm,
@@ -54,7 +56,7 @@ export default function ExperienceFormDialog({
     <Dialog open={open} onClose={onClose} type="bottomSheet">
       <div className="space-y-4">
         <Typography as="h3" variant="titleBold" className="mb-4">
-          Add Job Experience
+          {title || "Add Job Experience"}
         </Typography>
         <Input
           label="Company Name"
@@ -85,17 +87,17 @@ export default function ExperienceFormDialog({
             </Select>
           </div>
           <div className="w-1/2">
-        <Input
-          label="Job Type"
+            <Input
+              label="Job Type"
               placeholder="Select Job Type"
               value={experienceForm.jobType ? getJobTypeConfig(experienceForm.jobType).name : ""}
               onChange={(e) =>
                 setExperienceForm((f) => ({ ...f, jobType: e.target.value as JobType }))
               }
-          onClick={onJobTypeSelect}
-          readOnly
-          className="cursor-pointer"
-        />
+              onClick={onJobTypeSelect}
+              readOnly
+              className="cursor-pointer"
+            />
           </div>
         </div>
 

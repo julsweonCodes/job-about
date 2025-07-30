@@ -8,17 +8,17 @@ import { ProfileHeader } from "@/components/common/ProfileHeader";
 import { Role } from "@prisma/client";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function OnboardingPage() {
   const [selectedType, setSelectedType] = useState<Role | null>(null);
   const router = useRouter();
-  const { profileStatus, isLoggedIn } = useAuthStore();
+  const { profileStatus } = useAuthStore();
+  const { authState, isAuthenticated, isLoading } = useAuth();
 
   // 프로필이 완성되었으면 해당 페이지로 리다이렉트
   useEffect(() => {
-    console.log("isLoggedIn", isLoggedIn);
-    console.log("profileStatus", profileStatus);
-    if (isLoggedIn && profileStatus) {
+    if (isAuthenticated && profileStatus) {
       if (profileStatus.hasRole && profileStatus.isProfileCompleted) {
         if (profileStatus.role === "APPLICANT") {
           router.replace(PAGE_URLS.SEEKER.ROOT);
@@ -27,10 +27,10 @@ export default function OnboardingPage() {
         }
       }
     }
-  }, [profileStatus, isLoggedIn, router]);
+  }, [profileStatus, authState, isAuthenticated, router]);
 
   // 로딩 중이면 로딩 화면 표시
-  if (!isLoggedIn || !profileStatus) {
+  if (isLoading || !isAuthenticated || !profileStatus) {
     return <LoadingScreen />;
   }
 

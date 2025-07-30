@@ -12,8 +12,6 @@ import {
   CheckCircle,
   Edit3,
 } from "lucide-react";
-import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
 import { JobPostData } from "@/types/jobPost";
 
 interface JobPostViewProps {
@@ -45,8 +43,16 @@ const JobPostView: React.FC<JobPostViewProps> = ({
 }) => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
+  // 테스트용 더미 extraPhotos 데이터
+
+  // 실제 extraPhotos가 없으면 더미 데이터 사용
+  const extraPhotos =
+    jobData.businessLocInfo.extraPhotos && jobData.businessLocInfo.extraPhotos.length > 0
+      ? jobData.businessLocInfo.extraPhotos
+      : [];
+
   const jobDetailItems = [
-    {
+  {
       icon: MapPin,
       label: "Location",
       value: jobData.businessLocInfo.location,
@@ -89,8 +95,12 @@ const JobPostView: React.FC<JobPostViewProps> = ({
         {/* Job Header */}
         <div className="py-6 lg:py-8">
           <div className="flex items-start space-x-4">
-            <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Building2 className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+            <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+              <img
+                src={jobData.businessLocInfo.logoImg}
+                alt="Company Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
@@ -98,7 +108,9 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
                     {jobData.title}
                   </h1>
-                  <p className="text-lg lg:text-xl text-gray-600 mb-3">{jobData.businessLocInfo.name}</p>
+                  <p className="text-lg lg:text-xl text-gray-600 mb-3">
+                    {jobData.businessLocInfo.name}
+                  </p>
                 </div>
                 {showEditButtons && onEdit && editableSections.includes("header") && (
                   <button
@@ -212,36 +224,40 @@ const JobPostView: React.FC<JobPostViewProps> = ({
           <h2 className="text-xl font-bold text-gray-900 mb-6">Workplace Photos</h2>
 
           {/* Main Photo */}
-          <div className="mb-4">
+          <div className="mb-8">
             <img
-              src={jobData.businessLocInfo.logoImg}
+              src={extraPhotos[selectedPhotoIndex]}
               alt="Workplace"
               className="w-full h-64 lg:h-80 object-cover rounded-3xl shadow-lg"
             />
           </div>
 
           {/* Photo Thumbnails */}
-          <div className="flex space-x-3 overflow-x-auto pb-2">
-            {jobData.businessLocInfo.extraPhotos
-              .filter((photo) => photo)
-              .map((photo, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedPhotoIndex(index)}
-                className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all ${
-                  selectedPhotoIndex === index
-                    ? "border-purple-500 shadow-lg scale-105"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <img
-                  src={photo}
-                  alt={`Workplace ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          {extraPhotos && extraPhotos.length > 0 && (
+            <div className="mt-8">
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {extraPhotos
+                  .filter((photo) => photo)
+                  .map((photo, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className={`flex-shrink-0 w-24 h-24 rounded-xl transition-all ${
+                        selectedPhotoIndex === index
+                          ? "border-4 border-purple-500 shadow-lg"
+                          : "border-2 border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <img
+                        src={photo}
+                        alt={`Workplace ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Employer Info Section */}

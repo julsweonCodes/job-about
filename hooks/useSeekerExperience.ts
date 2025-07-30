@@ -39,31 +39,48 @@ export const useSeekerExperience = () => {
   };
 
   const handleEditExperience = (index: number, experience: any) => {
-    setExperienceForm({
+    const formData = {
       company: experience.company || "",
       jobType: experience.jobType || "",
       startYear: experience.startYear || "",
       workedPeriod: experience.workedPeriod || "",
       workType: experience.workType || "remote",
       description: experience.description || "",
-    });
+    };
+
+    setExperienceForm(formData);
     setEditingExperienceIndex(index);
     setShowExperienceDialog(true);
   };
 
-  const handleSaveExperience = (experiences: any[], callback: () => void) => {
+  const handleSaveExperience = (
+    experiences: any[],
+    callback: (updatedExperiences: any[]) => void
+  ) => {
     if (editingExperienceIndex >= 0) {
       // 편집 모드
       const updatedExperiences = [...experiences];
       updatedExperiences[editingExperienceIndex] = {
-        title: experienceForm.jobType,
         company: experienceForm.company,
-        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
+        jobType: experienceForm.jobType,
+        startYear: experienceForm.startYear,
+        workedPeriod: experienceForm.workedPeriod,
+        workType: experienceForm.workType,
         description: experienceForm.description,
       };
-      callback();
+      callback(updatedExperiences);
     } else {
-      callback();
+      // 추가 모드
+      const newExperience = {
+        company: experienceForm.company,
+        jobType: experienceForm.jobType,
+        startYear: experienceForm.startYear,
+        workedPeriod: experienceForm.workedPeriod,
+        workType: experienceForm.workType,
+        description: experienceForm.description,
+      };
+      const updatedExperiences = [...experiences, newExperience];
+      callback(updatedExperiences);
     }
     setShowExperienceDialog(false);
     setEditingExperienceIndex(-1);

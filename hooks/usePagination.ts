@@ -13,7 +13,7 @@ interface UsePaginationOptions<T> {
 }
 
 export interface UsePaginationReturn<T> {
-  data: T[];
+  data: T[] | null; // null 허용
   pagination: PaginationState;
   loading: boolean;
   error: string | null;
@@ -30,8 +30,8 @@ export function usePagination<T>({
   autoFetch = true,
   fetchFunction,
 }: UsePaginationOptions<T>): UsePaginationReturn<T> {
-  const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<T[] | null>(null); // null로 초기화
+  const [loading, setLoading] = useState(autoFetch); // autoFetch가 true면 초기 로딩 상태
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -53,9 +53,16 @@ export function usePagination<T>({
         };
 
         const result = await fetchFunction(params);
+
         const totalPages = Math.ceil(result.totalCount / initialLimit);
 
-        setData(result.data);
+        // 첫 페이지인 경우 데이터 교체, 그 외에는 추가
+        if (page === 1) {
+          setData(result.data);
+        } else {
+          setData((prevData) => [...(prevData || []), ...result.data]);
+        }
+
         setPagination({
           currentPage: page,
           totalPages,
@@ -64,7 +71,9 @@ export function usePagination<T>({
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
-        setData([]);
+        if (page === 1) {
+          setData(null);
+        }
       } finally {
         setLoading(false);
         setIsInitialized(true);
@@ -100,7 +109,7 @@ export function usePagination<T>({
   }, [autoFetch, fetchPage, initialPage]);
 
   return {
-    data,
+    data: data, // null 상태 그대로 반환
     pagination,
     loading,
     error,

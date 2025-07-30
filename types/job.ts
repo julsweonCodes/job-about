@@ -27,6 +27,7 @@ export interface JobPost {
   applicantCount?: number; // API에서 추가되는 필드
   business_loc?: {
     logo_url?: string;
+    name?: string;
   };
 }
 

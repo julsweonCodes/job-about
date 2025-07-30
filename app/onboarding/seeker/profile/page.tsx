@@ -36,7 +36,7 @@ import { useDialogState } from "@/hooks/useDialogState";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
-import { apiPost } from "@/utils/client/API";
+import { apiPostData } from "@/utils/client/API";
 import { ApplicantProfileMapper } from "@/types/profile";
 import { WorkPeriod } from "@/constants/enums";
 import { useRouter } from "next/navigation";
@@ -178,13 +178,12 @@ function JobSeekerProfile() {
       });
 
       try {
-        const response = await apiPost(API_URLS.SEEKER.PROFILES, profileData);
-        console.log(response);
+        await apiPostData(API_URLS.SEEKER.PROFILES, profileData);
         router.replace(PAGE_URLS.SEEKER.ROOT);
         showSuccessToast("Profile saved successfully!");
       } catch (error) {
         console.error(error);
-        showErrorToast("Error saving profile");
+        showErrorToast((error as Error).message || "Error saving profile");
       }
     } catch (error) {
       console.error(error);
@@ -510,6 +509,7 @@ function JobSeekerProfile() {
 
           {/* Experience Form Dialog */}
           <ExperienceFormDialog
+            title={editingIndex !== null ? "Edit Job Experience" : "Add Job Experience"}
             open={experienceFormDialog.isOpen}
             onClose={handleExperienceFormClose}
             experienceForm={experienceForm}

@@ -4,6 +4,9 @@ import type { AppUser, ProfileStatus, SupabaseUser } from "@/types/user";
 import { SupabaseUserMapper } from "@/types/user";
 import { STORAGE_URLS } from "@/constants/storage";
 
+// 인증 상태 타입 정의
+export type AuthState = "initializing" | "authenticated" | "unauthenticated" | "error";
+
 // 역할별 데이터 타입
 interface SeekerData {
   // 구직자 관련 데이터 (마이 페이지)
@@ -61,28 +64,30 @@ interface EmployerData {
   };
 }
 
-interface AuthState {
-  // 기본 상태
-  isLoggedIn: boolean;
+interface AuthStoreState {
+  // 인증 상태 관리
+  authState: AuthState;
+  retryCount: number;
+  lastError: string | null;
+
+  // 사용자 데이터
   supabaseUser: SupabaseUser | null;
   appUser: AppUser | null;
   profileStatus: ProfileStatus | null;
-  loginTried: boolean;
-  isLoading: boolean;
-  error: string | null; // 에러 상태 추가
 
   // 역할별 데이터
   seekerData: SeekerData | null;
   employerData: EmployerData | null;
 
-  // 기본 액션
-  setIsLoggedIn: (value: boolean) => void;
+  // 상태 관리 액션
+  setAuthState: (state: AuthState) => void;
+  setRetryCount: (count: number) => void;
+  setLastError: (error: string | null) => void;
+
+  // 사용자 데이터 액션
   setSupabaseUser: (user: SupabaseUser | null) => void;
   setAppUser: (appUser: AppUser | null) => void;
   setProfileStatus: (status: ProfileStatus | null) => void;
-  setLoginTried: (value: boolean) => void;
-  setIsLoading: (value: boolean) => void;
-  setError: (error: string | null) => void; // 에러 액션 추가
 
   // 역할별 데이터 액션
   setSeekerData: (data: SeekerData | null) => void;
@@ -90,12 +95,15 @@ interface AuthState {
   clearSeekerData: () => void;
   clearEmployerData: () => void;
 
-  // 유틸리티 액션
+  // 인증 액션
   login: (supabaseUser: SupabaseUser, appUser: AppUser, profileStatus: ProfileStatus) => void;
   logout: () => void;
+  retryAuth: () => void;
+  resetAuth: () => void;
+
+  // 프로필 업데이트 액션
   updateProfileStatus: (updates: Partial<ProfileStatus>) => void;
   updateProfileImage: (imgUrl: string) => void;
-  clearError: () => void; // 에러 클리어 액션
 
   // 셀렉터
   isEmployer: () => boolean;
@@ -109,44 +117,52 @@ interface AuthState {
   // 역할별 데이터 셀렉터
   getRoleSpecificData: () => SeekerData | EmployerData | null;
 
-  // 유틸리티 셀렉터 (실무에서 자주 사용)
+  // 유틸리티 셀렉터
   hasError: () => boolean;
   isInitialized: () => boolean;
   canAccessRoleData: () => boolean;
-
-  // 추가 유틸리티 셀렉터
   getSeekerData: () => SeekerData | null;
   getEmployerData: () => EmployerData | null;
-
-  // 역할별 완성도 체크
   isSeekerProfileComplete: () => boolean;
   isEmployerProfileComplete: () => boolean;
+
+  // 재시도 관련
+  canRetry: () => boolean;
+  getRetryDelay: () => number;
+
+  // 초기화 상태 확인 개선
+  isAuthenticated: () => boolean;
+
+  // 세션 타임아웃 확인
+  isSessionValid: () => boolean;
+
+  // 마지막 활동 시간 업데이트
+  updateLastActivity: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<AuthStoreState>()(
   devtools(
     persist(
       (set, get) => ({
         // 초기 상태
-        isLoggedIn: false,
+        authState: "initializing",
+        retryCount: 0,
+        lastError: null,
         supabaseUser: null,
         appUser: null,
         profileStatus: null,
-        loginTried: false,
-        isLoading: false,
-        error: null,
         seekerData: null,
         employerData: null,
 
-        // 기본 액션
-        setIsLoggedIn: (value) => set({ isLoggedIn: value }),
+        // 상태 관리 액션
+        setAuthState: (state) => set({ authState: state }),
+        setRetryCount: (count) => set({ retryCount: count }),
+        setLastError: (error) => set({ lastError: error }),
+
+        // 사용자 데이터 액션
         setSupabaseUser: (user) => set({ supabaseUser: user }),
         setAppUser: (appUser) => set({ appUser }),
         setProfileStatus: (status) => set({ profileStatus: status }),
-        setLoginTried: (value) => set({ loginTried: value }),
-        setIsLoading: (value) => set({ isLoading: value }),
-        setError: (error) => set({ error }),
-        clearError: () => set({ error: null }),
 
         // 역할별 데이터 액션
         setSeekerData: (data) => set({ seekerData: data }),
@@ -154,31 +170,47 @@ export const useAuthStore = create<AuthState>()(
         clearSeekerData: () => set({ seekerData: null }),
         clearEmployerData: () => set({ employerData: null }),
 
-        // 유틸리티 액션
+        // 인증 액션
         login: (supabaseUser, appUser, profileStatus) =>
           set({
-            isLoggedIn: true,
+            authState: "authenticated",
             supabaseUser,
             appUser,
             profileStatus,
-            loginTried: true,
-            error: null, // 로그인 시 에러 클리어
-            // 역할별 데이터는 별도로 로드
+            retryCount: 0,
+            lastError: null,
             seekerData: null,
             employerData: null,
           }),
 
         logout: () =>
           set({
-            isLoggedIn: false,
+            authState: "unauthenticated",
             supabaseUser: null,
             appUser: null,
             profileStatus: null,
-            loginTried: false,
-            error: null,
+            retryCount: 0,
+            lastError: null,
             seekerData: null,
             employerData: null,
           }),
+
+        retryAuth: () => {
+          const { retryCount } = get();
+          set({
+            authState: "initializing",
+            retryCount: retryCount + 1,
+            lastError: null,
+          });
+        },
+
+        resetAuth: () => {
+          set({
+            authState: "initializing",
+            retryCount: 0,
+            lastError: null,
+          });
+        },
 
         updateProfileStatus: (updates) =>
           set((state) => ({
@@ -214,7 +246,6 @@ export const useAuthStore = create<AuthState>()(
         getUserDisplayName: () => {
           const { supabaseUser } = get();
           if (!supabaseUser) return "";
-
           return SupabaseUserMapper.getDisplayName(supabaseUser);
         },
 
@@ -225,43 +256,69 @@ export const useAuthStore = create<AuthState>()(
 
         getUserProfileImageUrl: () => {
           const { appUser } = get();
-
           if (!appUser || !appUser.img_url) {
             return null;
           }
-
           return `${STORAGE_URLS.USER.PROFILE_IMG}${appUser.img_url}`;
         },
 
         getRoleSpecificData: () => {
           const { profileStatus, seekerData, employerData } = get();
-
           if (profileStatus?.role === "APPLICANT") {
             return seekerData;
           } else if (profileStatus?.role === "EMPLOYER") {
             return employerData;
           }
-
           return null;
         },
 
-        // 유틸리티 셀렉터 (실무에서 자주 사용)
+        // 유틸리티 셀렉터
         hasError: () => {
-          const { error } = get();
-          return !!error;
+          const { lastError } = get();
+          return !!lastError;
         },
 
+        // 초기화 상태 확인 개선
         isInitialized: () => {
-          const { loginTried } = get();
-          return loginTried;
+          const { authState } = get();
+          return authState !== "initializing";
+        },
+
+        // 인증 완료 상태 확인
+        isAuthenticated: () => {
+          const { authState, appUser, profileStatus } = get();
+          return authState === "authenticated" && !!appUser && !!profileStatus;
+        },
+
+        // 세션 타임아웃 확인
+        isSessionValid: () => {
+          const { authState, appUser } = get();
+          if (authState !== "authenticated" || !appUser) return false;
+
+          // 마지막 활동 시간 확인 (30분)
+          const lastActivity = localStorage.getItem("lastActivity");
+          if (lastActivity) {
+            const lastActivityTime = parseInt(lastActivity);
+            const now = Date.now();
+            const timeout = 30 * 60 * 1000; // 30분
+
+            if (now - lastActivityTime > timeout) {
+              return false; // 세션 만료
+            }
+          }
+          return true;
+        },
+
+        // 마지막 활동 시간 업데이트
+        updateLastActivity: () => {
+          localStorage.setItem("lastActivity", Date.now().toString());
         },
 
         canAccessRoleData: () => {
-          const { isLoggedIn, profileStatus } = get();
-          return isLoggedIn && !!profileStatus?.hasRole;
+          const { authState, profileStatus } = get();
+          return authState === "authenticated" && !!profileStatus?.hasRole;
         },
 
-        // 추가 유틸리티 셀렉터
         getSeekerData: () => {
           const { seekerData } = get();
           return seekerData;
@@ -272,7 +329,6 @@ export const useAuthStore = create<AuthState>()(
           return employerData;
         },
 
-        // 역할별 완성도 체크
         isSeekerProfileComplete: () => {
           const { profileStatus } = get();
           return (
@@ -286,14 +342,40 @@ export const useAuthStore = create<AuthState>()(
           const { profileStatus } = get();
           return profileStatus?.role === "EMPLOYER" && profileStatus?.isProfileCompleted;
         },
+
+        // 재시도 관련
+        canRetry: () => {
+          const { retryCount } = get();
+          return retryCount < 3; // 최대 3번 재시도
+        },
+
+        getRetryDelay: () => {
+          const { retryCount } = get();
+          return Math.min(1000 * Math.pow(2, retryCount), 5000); // 지수 백오프, 최대 5초
+        },
       }),
       {
         name: "auth-storage",
-        // 민감한 데이터는 제외
+        // 민감한 데이터는 제외하고 최소한의 정보만 저장
         partialize: (state) => ({
-          isLoggedIn: state.isLoggedIn,
-          loginTried: state.loginTried,
+          authState: state.authState,
+          retryCount: state.retryCount,
         }),
+        // 스토리지 에러 처리
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            try {
+              // localStorage 접근 테스트
+              const testKey = "__test_storage__";
+              localStorage.setItem(testKey, "test");
+              localStorage.removeItem(testKey);
+            } catch (e) {
+              // 스토리지 접근 실패 시 안전한 상태로 리셋
+              state.authState = "unauthenticated";
+              state.retryCount = 0;
+            }
+          }
+        },
       }
     ),
     {

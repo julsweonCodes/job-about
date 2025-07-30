@@ -1,26 +1,45 @@
-import { errorResponse, HttpError, successResponse } from "@/app/lib/server/commonResponse";
-import { getJobPostById, getJobPosts } from "@/app/services/job-post-services";
-import { parseBigInt } from "@/lib/utils";
 import { NextRequest } from "next/server";
+import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
+import { getJobPostView } from "@/app/services/job-post-services";
+import { JobStatus } from "@/constants/enums";
+import { HttpError } from "@/app/lib/server/commonResponse";
+import { JobPostData } from "@/types/jobPost";
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: { id: string } }) {
-    try {
-        const jobPostId = parseInt(params.id);
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const jobPostId = parseInt(params.id);
+    let jobPost: JobPostData | null = null;
+    const status = req.nextUrl.searchParams.get("status");
 
-        if (isNaN(jobPostId)) {
-            console.error(`잘못된 job post ID: ${params.id}`);
-            return errorResponse("Invalid job post ID.", 400);
-        }
-
-        const jobPost = await getJobPostById(jobPostId);
-        return successResponse(parseBigInt(jobPost), 200, "Job post fetched");
-    } catch (err: any) {
-        if (err instanceof HttpError) {
-            return errorResponse(err.message, err.status);
-        }
-        console.error(err);
-        return errorResponse("Internal server error", 500);
+    if (isNaN(jobPostId)) {
+      console.error(`Wrong job post ID: ${params.id}`);
+      return errorResponse("Invalid job post ID.", 400);
     }
+
+    switch (status) {
+      case "published":
+        jobPost = await getJobPostView(jobPostId.toString(), JobStatus.PUBLISHED);
+        break;
+      case "draft":
+        jobPost = await getJobPostView(jobPostId.toString(), JobStatus.DRAFT);
+        break;
+      case "closed":
+        jobPost = await getJobPostView(jobPostId.toString(), JobStatus.CLOSED);
+        break;
+      default:
+        return errorResponse("Invalid job status parameter.", 400);
+    }
+
+    if (!jobPost) {
+      return errorResponse("Job post not found.", 404);
+    }
+
+    return successResponse(jobPost, 200, "Job post fetched successfully");
+  } catch (err: any) {
+    if (err instanceof HttpError) {
+      return errorResponse(err.message, err.status);
+    }
+    console.error("Error fetching job post:", err);
+    return errorResponse("Internal server error", 500);
+  }
 }

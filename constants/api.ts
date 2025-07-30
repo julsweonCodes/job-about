@@ -37,13 +37,19 @@ export const API_URLS = {
   // 구직자 관련
   SEEKER: {
     PROFILES: "/api/seeker/profiles",
+    APPLY: "/api/seeker/apply",
   },
 
   // 직업 관련
   JOB_POSTS: {
     ROOT: "/api/job-posts",
+    DETAIL: (id: string, status: string) => `/api/job-posts/${id}?status=${status}`,
     WORK_STYLES: (id: string) => `/api/job-posts/${id}/work-styles`,
     MATCH_CANDIDATES: (id: string) => `/api/job-posts/${id}/match-candidates`,
+    APPLY: (id: string) => `/api/job-posts/${id}/apply`,
+    BOOKMARK: (id: string) => `/api/job-posts/${id}/bookmark`,
+    BOOKMARKS: "/api/seeker/bookmarks",
+    APPLIES: "/api/seeker/applies",
   },
 
   // 퀴즈 관련
@@ -86,7 +92,15 @@ export const PAGE_URLS = {
   },
   SEEKER: {
     ROOT: "/seeker",
-    MYPAGE: "/seeker/mypage",
+    MYPAGE: {
+      ROOT: "/seeker/mypage",
+      PROFILE: "/seeker/mypage/profile",
+      APPLIES: "/seeker/mypage/applies",
+      BOOKMARKS: "/seeker/mypage/bookmarks",
+    },
+    POST: {
+      DETAIL: (id: string) => `/seeker/post/${id}`,
+    },
   },
   EMPLOYER: {
     ROOT: "/employer",
