@@ -8,7 +8,6 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { LanguageLevel, WORK_TYPES } from "@/constants/enums";
 import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
-import LoadingScreen from "@/components/common/LoadingScreen";
 import { JobType } from "@/constants/jobTypes";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
@@ -70,6 +69,26 @@ const INITIAL_DIALOG_STATES: DialogStates = {
   preferredJobTypes: false,
   deleteConfirm: { isOpen: false, experienceIndex: null },
 };
+
+// 스켈레톤 컴포넌트들
+const InfoSectionSkeleton = () => (
+  <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
+    <div className="p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-48" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+      </div>
+    </div>
+  </div>
+);
 
 const SECTION_MAPPINGS = {
   contact: (data: any) => ({
@@ -397,7 +416,19 @@ function SeekerProfilePage() {
   );
 
   if (isLoading || !applicantProfile || !tempData) {
-    return <LoadingScreen message="Loading your profile..." />;
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <BackHeader title="Profile Settings" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
+          <div className="space-y-4 sm:space-y-5">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Profile Details</h3>
+            {Array.from({ length: 7 }).map((_, index) => (
+              <InfoSectionSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -408,7 +439,22 @@ function SeekerProfilePage() {
         loadingStates.skillsUpdate ||
         loadingStates.jobTypesUpdate ||
         loadingStates.experienceSave) && (
-        <LoadingScreen overlay={true} spinnerSize="lg" spinnerColor="purple" opacity="light" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-48" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Header */}
