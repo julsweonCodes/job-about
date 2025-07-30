@@ -126,7 +126,7 @@ export function useAuth() {
         const recommendations = getBrowserRecommendations();
         console.warn("Browser compatibility issues detected:", recommendations);
         setAuthState("error");
-        setLastError("브라우저 설정을 확인해주세요. 쿠키와 로컬 스토리지가 활성화되어야 합니다.");
+        setLastError("Check your browser settings. Cookies and local storage must be enabled.");
         return;
       }
 
@@ -134,7 +134,7 @@ export function useAuth() {
       if (!navigator.onLine) {
         console.warn("Network is offline, skipping auth check");
         setAuthState("error");
-        setLastError("네트워크 연결을 확인해주세요.");
+        setLastError("Check your network connection.");
         return;
       }
 

@@ -33,13 +33,21 @@ export function useSeekerBookmarks({
       totalCount: number;
       hasMore: boolean;
     }> => {
-      const response = await apiGetData<{
-        data: JobPost[];
-        totalCount: number;
-        hasMore: boolean;
-      }>(API_URLS.JOB_POSTS.BOOKMARKS, params as any);
+      console.log("🔍 useSeekerBookmarks - API 호출 시작:", params);
 
-      if (!response) {
+      const response = await apiGetData<
+        Array<{
+          id: string;
+          user_id: string;
+          job_post_id: string;
+          job_post: JobPost;
+        }>
+      >(API_URLS.JOB_POSTS.BOOKMARKS, params as any);
+
+      console.log("📡 useSeekerBookmarks - API 응답:", response);
+
+      if (!response || !Array.isArray(response)) {
+        console.log("❌ useSeekerBookmarks - 응답이 없거나 배열이 아님");
         return {
           data: [],
           totalCount: 0,
@@ -47,11 +55,20 @@ export function useSeekerBookmarks({
         };
       }
 
-      return {
-        data: response.data,
-        totalCount: response.totalCount,
-        hasMore: response.hasMore,
+      // job_post 객체만 추출하여 JobPost 배열로 변환
+      const jobPosts = response.map((item) => item.job_post);
+
+      console.log("🔄 useSeekerBookmarks - 변환된 jobPosts:", jobPosts);
+
+      const result = {
+        data: jobPosts,
+        totalCount: jobPosts.length, // 실제로는 API에서 totalCount를 받아야 하지만 현재는 배열 길이 사용
+        hasMore: jobPosts.length === params.limit,
       };
+
+      console.log("✅ useSeekerBookmarks - 최종 결과:", result);
+
+      return result;
     },
     []
   );
@@ -68,6 +85,14 @@ export function useSeekerBookmarks({
     initialLimit: limit,
     autoFetch,
     fetchFunction: fetchBookmarkedJobs,
+  });
+
+  console.log("🔍 useSeekerBookmarks - 훅 상태:", {
+    bookmarkedJobs: bookmarkedJobs?.length,
+    loading,
+    error,
+    isInitialized,
+    hasMore: pagination.hasMore,
   });
 
   return {

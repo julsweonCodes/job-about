@@ -51,20 +51,17 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
-  // Fetch user info
-  const fetchUserInfo = useCallback(async () => {
-    if (!appUser?.id) return;
-
-    try {
-      const userData = await apiGetData<{ user: UserInfo }>(API_URLS.USER.ME);
-      if (userData?.user) {
-        setUserInfo(userData.user);
-      }
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      showErrorToast("Failed to load user information");
+  const setUserInfoFromAppUser = useCallback(() => {
+    if (appUser) {
+      setUserInfo({
+        name: appUser.name || "",
+        description: appUser.description || "",
+        phone_number: appUser.phone_number || "",
+        img_url: appUser.img_url || undefined,
+        created_at: appUser.created_at ? new Date(appUser.created_at) : new Date(),
+      });
     }
-  }, [appUser?.id]);
+  }, [appUser]);
 
   // Fetch personality profile (Work Style)
   const fetchPersonalityProfile = useCallback(async () => {
@@ -132,7 +129,10 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        await Promise.all([fetchUserInfo(), fetchPersonalityProfile()]);
+        // userInfo는 동기적으로 설정
+        setUserInfoFromAppUser();
+        // personality profile만 비동기로 가져오기
+        await fetchPersonalityProfile();
       } catch (error) {
         console.error("Error initializing data:", error);
       } finally {
@@ -143,7 +143,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
     if (appUser?.id) {
       initializeData();
     }
-  }, [appUser?.id, fetchUserInfo, fetchPersonalityProfile]);
+  }, [appUser?.id, setUserInfoFromAppUser, fetchPersonalityProfile]);
 
   return {
     userInfo,

@@ -4,70 +4,18 @@ import React, { useMemo, useCallback } from "react";
 import { Bookmark } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
-import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { useSeekerBookmarks } from "@/hooks/useSeekerBookmarks";
-import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPost as ApiJobPost, JobPostCard as JobPostCardType } from "@/types/job";
-import { STORAGE_URLS } from "@/constants/storage";
-import LoadingScreen from "@/components/common/LoadingScreen";
+import { convertToJobPostCard } from "@/utils/client/jobPostUtils";
 import { PAGE_URLS } from "@/constants/api";
 
 // 상수 분리
 const DEFAULT_VALUES = {
-  LOCATION: "Location not specified",
-  BUSINESS_NAME: "Company",
-  VIEWS: 0,
   SKELETON_COUNT: 6,
 } as const;
 
-// 타입 정의
-interface JobTypeMapping {
-  [key: string]: string;
-}
-
-// 유틸리티 함수들을 컴포넌트 외부로 분리
-const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
-  return {
-    id: apiJob.id,
-    title: apiJob.title,
-    type: apiJob.work_type as WorkType,
-    wage: apiJob.wage,
-    location: DEFAULT_VALUES.LOCATION,
-    dateRange: apiJob.daysAgo ? `${apiJob.daysAgo} days ago` : "Recently",
-    businessName: DEFAULT_VALUES.BUSINESS_NAME,
-    description: apiJob.description,
-    applicants: apiJob.applicantCount || 0,
-    views: DEFAULT_VALUES.VIEWS,
-    logoImage: apiJob.business_loc?.logo_url
-      ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc.logo_url}`
-      : undefined,
-  };
-};
-
-const filterJobsByType = (job: ApiJobPost, jobType: string): boolean => {
-  if (jobType === "all") return true;
-
-  const jobTypeMap: JobTypeMapping = {
-    Remote: "REMOTE",
-    OnSite: "ON_SITE",
-    Hybrid: "HYBRID",
-  };
-
-  return job.work_type === jobTypeMap[jobType];
-};
-
-const filterJobsByLocation = (job: ApiJobPost, location: string): boolean => {
-  if (location === "all") return true;
-  // Location filtering logic would go here
-  // For now, we'll skip location filtering as it's not available in the API
-  return true;
-};
-
 function SeekerBookmarksPage() {
   const router = useRouter();
-  const { filters } = useFilterStore();
 
   const { bookmarkedJobs, loading, error, hasMore, loadMore, refresh } = useSeekerBookmarks({
     limit: 20,
@@ -75,14 +23,27 @@ function SeekerBookmarksPage() {
   });
 
   const filteredBookmarkedJobs = useMemo(() => {
-    if (!Array.isArray(bookmarkedJobs)) return [];
-    return bookmarkedJobs
-      .filter(
-        (job) =>
-          filterJobsByType(job, filters.jobType) && filterJobsByLocation(job, filters.location)
-      )
-      .map(convertToJobPostCard);
-  }, [bookmarkedJobs, filters.jobType, filters.location]);
+    console.log("🔍 bookmarks 페이지 - bookmarkedJobs:", {
+      bookmarkedJobs: bookmarkedJobs?.length,
+    });
+
+    if (!bookmarkedJobs || bookmarkedJobs.length === 0) {
+      console.log("📭 bookmarks 페이지 - 북마크된 작업이 없음");
+      return [];
+    }
+
+    console.log("✅ bookmarks 페이지 - 북마크된 작업 수:", bookmarkedJobs.length);
+    // JobPostCard 형태로 변환
+    return bookmarkedJobs.map(convertToJobPostCard);
+  }, [bookmarkedJobs]);
+
+  console.log("🔍 bookmarks 페이지 - 전체 상태:", {
+    bookmarkedJobs: bookmarkedJobs?.length,
+    filteredBookmarkedJobs: filteredBookmarkedJobs.length,
+    loading,
+    error,
+    hasMore,
+  });
 
   const handleViewJob = useCallback(
     (id: string) => {
