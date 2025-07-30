@@ -22,6 +22,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
 import { apiPatch } from "@/utils/client/API";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 interface DialogStates {
   imageUpload: boolean;
@@ -189,16 +190,7 @@ function SeekerMypage() {
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
       {/* Loading Screen for API calls */}
-      {imageUploadLoading && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center gap-4">
-              <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
-              <span className="text-slate-700 font-medium">Updating profile image...</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {imageUploadLoading && <LoadingScreen overlay={true} opacity="light" />}
 
       {/* Header */}
       <BackHeader title="My Page" />
