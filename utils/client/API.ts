@@ -1,5 +1,5 @@
 import { HTTP_METHODS, HttpMethod } from "@/constants/api";
-import { SUCCESS_STATUS } from "@/app/lib/server/commonResponse";
+import { SUCCESS_STATUS, ERROR_STATUS } from "@/app/lib/server/commonResponse";
 
 interface ApiConfig {
   baseURL?: string;
@@ -12,6 +12,27 @@ interface ApiResponse<T = any> {
   status: number;
   statusText: string;
   headers: Headers;
+}
+
+// 서버 응답 타입 정의
+interface ServerResponse<T> {
+  status: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+  code: number;
+  message: string;
+  data?: T;
+}
+
+// 커스텀 에러 클래스
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code: number,
+    public originalError?: Error
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
 }
 
 // Query parameter 타입
@@ -60,6 +81,7 @@ export class API {
   ): Promise<ApiResponse<T>> {
     const fullUrl = this.baseURL + url;
     const headers = { ...this.defaultHeaders, ...customHeaders };
+    const startTime = Date.now();
 
     const config: RequestInit = {
       method,
@@ -86,6 +108,13 @@ export class API {
       clearTimeout(timeoutId);
 
       const responseData = await response.json();
+      // const duration = Date.now() - startTime;
+
+      // 로깅
+      // console.log(`API ${method} ${url} - ${response.status} (${duration}ms)`, {
+      //   request: { url: fullUrl, method, headers: config.headers },
+      //   response: { status: response.status, data: responseData },
+      // });
 
       return {
         data: responseData,
@@ -95,8 +124,55 @@ export class API {
       };
     } catch (error) {
       clearTimeout(timeoutId);
+      const duration = Date.now() - startTime;
+
+      // 에러 로깅
+      console.error(`API ${method} ${url} failed (${duration}ms):`, error);
       throw error;
     }
+  }
+
+  /**
+   * 재시도 로직이 포함된 API 호출
+   */
+  private async requestWithRetry<T = any>(
+    url: string,
+    method: HttpMethod = HTTP_METHODS.GET,
+    data?: any,
+    customHeaders?: Record<string, string>,
+    maxRetries = 3
+  ): Promise<ApiResponse<T>> {
+    let lastError: Error;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await this.request<T>(url, method, data, customHeaders);
+      } catch (error) {
+        lastError = error as Error;
+
+        // 마지막 시도이거나 네트워크 오류가 아닌 경우 재시도하지 않음
+        if (i === maxRetries - 1 || !this.isRetryableError(error as Error)) {
+          throw lastError;
+        }
+
+        // 지수 백오프: 1초, 2초, 4초
+        const delay = Math.pow(2, i) * 1000;
+        console.log(`Retrying API call in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError!;
+  }
+
+  /**
+   * 재시도 가능한 에러인지 확인
+   */
+  private isRetryableError(error: Error): boolean {
+    // 네트워크 오류, 타임아웃, 5xx 서버 오류는 재시도
+    if (error.name === "AbortError") return true;
+    if (error.message.includes("fetch")) return true;
+    return false;
   }
 
   /**
@@ -108,7 +184,7 @@ export class API {
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     const urlWithParams = buildUrlWithParams(url, params);
-    return this.request<T>(urlWithParams, HTTP_METHODS.GET, undefined, headers);
+    return this.requestWithRetry<T>(urlWithParams, HTTP_METHODS.GET, undefined, headers);
   }
 
   /**
@@ -119,7 +195,7 @@ export class API {
     data: any,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(url, HTTP_METHODS.POST, data, headers);
+    return this.requestWithRetry<T>(url, HTTP_METHODS.POST, data, headers);
   }
 
   /**
@@ -130,7 +206,7 @@ export class API {
     data: any,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(url, HTTP_METHODS.PUT, data, headers);
+    return this.requestWithRetry<T>(url, HTTP_METHODS.PUT, data, headers);
   }
 
   /**
@@ -141,14 +217,14 @@ export class API {
     data: any,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(url, HTTP_METHODS.PATCH, data, headers);
+    return this.requestWithRetry<T>(url, HTTP_METHODS.PATCH, data, headers);
   }
 
   /**
    * DELETE 요청
    */
   async delete<T = any>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
-    return this.request<T>(url, HTTP_METHODS.DELETE, undefined, headers);
+    return this.requestWithRetry<T>(url, HTTP_METHODS.DELETE, undefined, headers);
   }
 
   /**
@@ -188,57 +264,86 @@ export const api = new API({
       : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 });
 
+// 편의 함수들 (기존 호환성 유지)
+export const apiGet = <T = any>(
+  url: string,
+  params?: QueryParams,
+  headers?: Record<string, string>
+) => api.get<T>(url, params, headers);
+
+export const apiPost = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api.post<T>(url, data, headers);
+
+export const apiPut = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api.put<T>(url, data, headers);
+
+export const apiPatch = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api.patch<T>(url, data, headers);
+
+export const apiDelete = <T = any>(url: string, headers?: Record<string, string>) =>
+  api.delete<T>(url, headers);
+
 // 편의 함수들 - 성공 시에만 data를 반환하는 함수들
 export const apiGetData = <T = any>(
   url: string,
   params?: QueryParams,
   headers?: Record<string, string>
 ) =>
-  api
-    .get<{ status: string; code: number; message: string; data?: T }>(url, params, headers)
-    .then((response) => {
-      if (response.data.status === SUCCESS_STATUS) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || "API call failed");
-    });
+  api.get<ServerResponse<T>>(url, params, headers).then((response) => {
+    if (response.data.status === SUCCESS_STATUS) {
+      return response.data.data;
+    }
+    throw new ApiError(
+      response.data.message || "API call failed",
+      response.status,
+      response.data.code
+    );
+  });
 
 export const apiPostData = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
-  api
-    .post<{ status: string; code: number; message: string; data?: T }>(url, data, headers)
-    .then((response) => {
-      if (response.data.status === SUCCESS_STATUS) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || "API call failed");
-    });
+  api.post<ServerResponse<T>>(url, data, headers).then((response) => {
+    if (response.data.status === SUCCESS_STATUS) {
+      return response.data.data;
+    }
+    throw new ApiError(
+      response.data.message || "API call failed",
+      response.status,
+      response.data.code
+    );
+  });
 
 export const apiPutData = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
-  api
-    .put<{ status: string; code: number; message: string; data?: T }>(url, data, headers)
-    .then((response) => {
-      if (response.data.status === SUCCESS_STATUS) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || "API call failed");
-    });
+  api.put<ServerResponse<T>>(url, data, headers).then((response) => {
+    if (response.data.status === SUCCESS_STATUS) {
+      return response.data.data;
+    }
+    throw new ApiError(
+      response.data.message || "API call failed",
+      response.status,
+      response.data.code
+    );
+  });
 
 export const apiPatchData = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
-  api
-    .patch<{ status: string; code: number; message: string; data?: T }>(url, data, headers)
-    .then((response) => {
-      if (response.data.status === SUCCESS_STATUS) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || "API call failed");
-    });
+  api.patch<ServerResponse<T>>(url, data, headers).then((response) => {
+    if (response.data.status === SUCCESS_STATUS) {
+      return response.data.data;
+    }
+    throw new ApiError(
+      response.data.message || "API call failed",
+      response.status,
+      response.data.code
+    );
+  });
 
 export const apiDeleteData = <T = any>(url: string, headers?: Record<string, string>) =>
-  api
-    .delete<{ status: string; code: number; message: string; data?: T }>(url, headers)
-    .then((response) => {
-      if (response.data.status === SUCCESS_STATUS) {
-        return response.data.data;
-      }
-      throw new Error(response.data.message || "API call failed");
-    });
+  api.delete<ServerResponse<T>>(url, headers).then((response) => {
+    if (response.data.status === SUCCESS_STATUS) {
+      return response.data.data;
+    }
+    throw new ApiError(
+      response.data.message || "API call failed",
+      response.status,
+      response.data.code
+    );
+  });
