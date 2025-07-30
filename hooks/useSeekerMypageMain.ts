@@ -149,7 +149,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
     userInfo,
     applicantProfile,
     isLoading,
-  imageUploadLoading,
+    imageUploadLoading,
     updateProfileImage,
   };
 };

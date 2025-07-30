@@ -4,6 +4,7 @@ import { getJobPostView } from "@/app/services/job-post-services";
 import { JobStatus } from "@/constants/enums";
 import { HttpError } from "@/app/lib/server/commonResponse";
 import { JobPostData } from "@/types/jobPost";
+import { getUserIdFromSession } from "@/utils/auth";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -16,9 +17,18 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return errorResponse("Invalid job post ID.", 400);
     }
 
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return errorResponse('User ID was not provided.', 400);
+    }
+
+    if (isNaN(userId)) {
+      return errorResponse('Invalid User ID format.', 400);
+    }
+
     switch (status) {
       case "published":
-        jobPost = await getJobPostView(jobPostId.toString(), JobStatus.PUBLISHED);
+        jobPost = await getJobPostView(jobPostId.toString(), JobStatus.PUBLISHED, userId);
         break;
       case "draft":
         jobPost = await getJobPostView(jobPostId.toString(), JobStatus.DRAFT);

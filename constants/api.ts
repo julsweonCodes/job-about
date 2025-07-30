@@ -37,7 +37,7 @@ export const API_URLS = {
   // 구직자 관련
   SEEKER: {
     PROFILES: "/api/seeker/profiles",
-    APPLY: "/api/seeker/apply",
+    APPLY: "/api/seeker/applies",
   },
 
   // 직업 관련

@@ -1,7 +1,7 @@
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
-import { Location, WorkType } from "@prisma/client";
+import { Location, Role, WorkType } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
 import {
@@ -180,7 +180,7 @@ export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: W
 }
 
 // Get Job Post Preview/view
-export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus) {
+export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus, userId?: number) {
   const bizLocId = await prisma.job_posts.findFirst({
     where: {
       id: Number(jobPostId),
@@ -211,8 +211,25 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     where: {
       id: Number(jobPostId),
       status: toPrismaJobStatus(jobPostStatus),
-    },
+    }, include: {
+      bookmarked_jobs: {
+        where: userId ? { user_id: userId } : { id: -1 },
+        select: { id: true },
+      },
+    }
   });
+
+  //북마크 여부 확인을 위한 역할 체크
+  let user;
+  if (userId) {
+    user = await prisma.users.findUnique({
+      where: {
+        id: userId, deleted_at: null
+      }, select: {
+        role: true
+      }
+    })
+  }
 
   if (!jobPostRes) {
     console.log("Job Post not found");
@@ -239,6 +256,10 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   };
   const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
+
+  const isBookmarked =
+    user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
+
   const jobPostData: JobPostData = {
     businessLocInfo: bizLocInfo,
     deadline: formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline),
@@ -252,6 +273,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     schedule: jobPostRes.work_schedule,
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
+    isBookmarked
   };
   console.log(jobPostData);
   return jobPostData;
@@ -273,6 +295,7 @@ export async function getJobPosts(params: GetJobPostsParams) {
   const jobPosts = await prisma.job_posts.findMany({
     where: {
       deleted_at: null,
+      status: toPrismaJobStatus(JobStatus.PUBLISHED),
       ...(workType && { work_type: workType }),
       ...(location && { location: location }),
     },
