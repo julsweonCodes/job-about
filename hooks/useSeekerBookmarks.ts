@@ -21,53 +21,40 @@ interface UseSeekerBookmarksReturn {
   isInitialized: boolean;
 }
 
-export const useSeekerBookmarks = (
-  options: UseSeekerBookmarksOptions = {}
-): UseSeekerBookmarksReturn => {
-  const { limit = 20, autoFetch = true } = options;
+export function useSeekerBookmarks({
+  limit = 10,
+  autoFetch = true,
+}: UseSeekerBookmarksOptions = {}): UseSeekerBookmarksReturn {
+  const fetchBookmarkedJobs = useCallback(
+    async (
+      params: PaginationParams
+    ): Promise<{
+      data: JobPost[];
+      totalCount: number;
+      hasMore: boolean;
+    }> => {
+      const response = await apiGetData<{
+        data: JobPost[];
+        totalCount: number;
+        hasMore: boolean;
+      }>(API_URLS.JOB_POSTS.BOOKMARKS, params as any);
 
-  const fetchBookmarkedJobs = useCallback(async (params: PaginationParams) => {
-    try {
-      const response = await apiGetData<JobPost[]>(API_URLS.JOB_POSTS.BOOKMARKS, {
-        page: params.page,
-        limit: params.limit,
-      });
-
-      if (Array.isArray(response)) {
-        const processedJobs = response.map((job: any) => {
-          return {
-            ...job,
-            id: job.job_post?.id || job.id,
-            title: job.job_post?.title || job.title,
-            description: job.job_post?.description || job.description,
-            work_type: job.job_post?.work_type || job.work_type,
-            wage: job.job_post?.wage || job.wage,
-            business_loc: job.job_post?.business_loc || job.business_loc,
-            created_at: job.job_post?.created_at || job.created_at,
-            daysAgo: job.job_post?.daysAgo || job.daysAgo,
-            applicantCount: job.job_post?.applicantCount || job.applicantCount,
-          };
-        });
-
-        return {
-          data: processedJobs,
-          totalCount: processedJobs.length,
-          hasMore: processedJobs.length === params.limit,
-        };
-      } else {
-        console.warn("Response is not an array:", response);
+      if (!response) {
         return {
           data: [],
           totalCount: 0,
           hasMore: false,
         };
       }
-    } catch (err) {
-      console.error("Error fetching bookmarked jobs:", err);
-      showErrorToast("Failed to load bookmarked jobs");
-      throw new Error("Failed to load bookmarked jobs");
-    }
-  }, []);
+
+      return {
+        data: response.data,
+        totalCount: response.totalCount,
+        hasMore: response.hasMore,
+      };
+    },
+    []
+  );
 
   const {
     data: bookmarkedJobs,
@@ -78,14 +65,13 @@ export const useSeekerBookmarks = (
     loadMore,
     refresh,
   } = usePagination({
-    initialPage: 1,
     initialLimit: limit,
     autoFetch,
     fetchFunction: fetchBookmarkedJobs,
   });
 
   return {
-    bookmarkedJobs: bookmarkedJobs || null, // null로 초기화
+    bookmarkedJobs: bookmarkedJobs || [], // null일 경우 빈 배열 반환
     loading,
     error,
     hasMore: pagination.hasMore,
@@ -93,4 +79,4 @@ export const useSeekerBookmarks = (
     refresh,
     isInitialized,
   };
-};
+}

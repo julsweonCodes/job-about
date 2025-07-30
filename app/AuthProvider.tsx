@@ -75,14 +75,6 @@ export default function AuthProvider() {
     const publicPages = [PAGE_URLS.HOME, PAGE_URLS.AUTH.CALLBACK, PAGE_URLS.AUTH.ERROR];
     const isPublicPage = publicPages.some((page) => currentPath === page);
 
-    // 온보딩 관련 페이지들
-    const onboardingPages = [
-      PAGE_URLS.ONBOARDING.ROOT,
-      PAGE_URLS.ONBOARDING.SEEKER.ROOT,
-      PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
-    ];
-    const isOnboardingPage = onboardingPages.some((page) => currentPath.startsWith(page));
-
     // 인증이 완료되지 않은 경우
     if (authState === "unauthenticated") {
       // 공개 페이지가 아니면 홈으로 리다이렉트

@@ -102,7 +102,7 @@ export function useRecommendedJobs({
   );
 
   return {
-    recommendedJobs,
+    recommendedJobs: recommendedJobs || [], // null일 경우 빈 배열 반환
     loading,
     error,
     hasMore: pagination.hasMore,

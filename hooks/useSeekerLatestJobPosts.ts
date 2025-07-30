@@ -67,7 +67,7 @@ export function useLatestJobs({
   );
 
   const {
-    data: latestJobs,
+    data: latestJobPosts,
     pagination,
     loading,
     error,
@@ -99,7 +99,7 @@ export function useLatestJobs({
   );
 
   return {
-    latestJobs,
+    latestJobs: latestJobPosts || [], // null일 경우 빈 배열 반환
     loading,
     error,
     hasMore: pagination.hasMore,
