@@ -2,7 +2,6 @@ import React from "react";
 import BaseDialog from "@/components/common/BaseDialog";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import TextArea from "@/components/ui/TextArea";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -10,9 +9,9 @@ interface ProfileEditDialogProps {
   onSave: () => void;
   data: {
     name: string;
-    description: string;
+    phone_number: string;
   };
-  onChange: (field: "name" | "description", value: string) => void;
+  onChange: (field: "name" | "phone_number", value: string) => void;
 }
 
 export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
@@ -35,12 +34,12 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-          <TextArea
-            value={data.description}
-            onChange={(e) => onChange("description", e.target.value)}
-            placeholder="Tell us about yourself..."
-            rows={4}
+          <Input
+            label="Phone Number"
+            value={data.phone_number}
+            onChange={(e) => onChange("phone_number", e.target.value)}
+            placeholder="Enter your phone number"
+            type="phone"
             className="w-full"
           />
         </div>

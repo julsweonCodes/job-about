@@ -39,6 +39,7 @@ export interface AppUser {
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+  phone_number?: string;
 }
 
 // user role 정의
