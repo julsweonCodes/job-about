@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useCallback } from "react";
-import { Briefcase, Calendar, MapPin, Star, Globe, Plus, X } from "lucide-react";
+import { Briefcase, Calendar, Lightbulb, MapPin, Star, Globe, Plus, X } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import InfoSection from "@/components/common/InfoSection";
 import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import TextArea from "@/components/ui/TextArea";
 import { LanguageLevel, WORK_TYPES } from "@/constants/enums";
 import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -76,6 +77,9 @@ const SECTION_MAPPINGS = {
   }),
   location: (data: any) => ({
     location: toPrismaLocation(data.location),
+  }),
+  description: (data: any) => ({
+    description: data.description,
   }),
   skills: (data: any) => ({
     profile_practical_skills: data.skillIds.map((i: number) => ({
@@ -414,6 +418,47 @@ function SeekerProfilePage() {
         {/* Profile Sections */}
         <div className="space-y-4 sm:space-y-5">
           <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Profile Details</h3>
+
+          {/* Description */}
+          <InfoSection
+            icon={<Lightbulb size={18} className="text-amber-600" />}
+            iconClassName="bg-gradient-to-br from-amber-100 to-orange-100"
+            title="About Me"
+            subtitle="Tell us about yourself and your experience"
+            onEdit={() => handleEditSection("description")}
+            isEditing={isEditing.description}
+            onSave={() => handleOptionsSave("description")}
+            onCancel={() => handleCancelSection("description")}
+          >
+            {!isEditing.description ? (
+              <div className="text-slate-700">
+                {tempData.description ? (
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
+                    <p className="text-sm leading-relaxed text-slate-700">{tempData.description}</p>
+                  </div>
+                ) : (
+                  <div className="bg-gradient-to-br from-slate-50 to-gray-50 border border-slate-200 rounded-xl p-4 text-center">
+                    <Lightbulb size={24} className="text-slate-400 mx-auto mb-2" />
+                    <span className="text-slate-500 text-sm">Share your story and experience</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <TextArea
+                  value={tempData.description}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  placeholder="Tell us about yourself, your experience, skills, and what you're looking for in your next opportunity..."
+                  rows={6}
+                  className="w-full resize-none"
+                />
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
+                  <span>Share your background, skills, and career goals</span>
+                </div>
+              </div>
+            )}
+          </InfoSection>
 
           {/* Location */}
           <InfoSection

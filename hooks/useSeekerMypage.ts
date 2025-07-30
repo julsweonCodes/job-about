@@ -57,6 +57,7 @@ export interface EditingStates {
   basicInfo: boolean;
   contact: boolean;
   location: boolean;
+  description: boolean;
   skills: boolean;
   workType: boolean;
   jobTypes: boolean;
@@ -103,6 +104,7 @@ const INITIAL_EDITING_STATES: EditingStates = {
   basicInfo: false,
   contact: false,
   location: false,
+  description: false,
   skills: false,
   workType: false,
   jobTypes: false,
