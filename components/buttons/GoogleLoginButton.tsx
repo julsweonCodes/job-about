@@ -4,14 +4,15 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { supabaseClient } from "@/utils/supabase/client";
 
 export default function GoogleLoginButton() {
-  const { setLoginTried } = useAuthStore();
+  const { setAuthState, setLastError } = useAuthStore();
 
   const handleGoogleLogin = async () => {
-    setLoginTried(true);
-    const supabase = supabaseClient;
-
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      // 로그인 시도 시작
+      setAuthState("initializing");
+      setLastError(null);
+
+      const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -20,7 +21,8 @@ export default function GoogleLoginButton() {
 
       if (error) {
         console.error("Google login error:", error);
-        alert("Login Failed");
+        setAuthState("error");
+        setLastError("Google 로그인에 실패했습니다. 다시 시도해주세요.");
         return;
       }
 
@@ -28,7 +30,8 @@ export default function GoogleLoginButton() {
       console.log("Google login initiated, redirecting...");
     } catch (error) {
       console.error("Login process error:", error);
-      alert("Login process failed");
+      setAuthState("error");
+      setLastError("로그인 과정에서 오류가 발생했습니다.");
     }
   };
 
