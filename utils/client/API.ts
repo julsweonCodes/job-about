@@ -1,4 +1,5 @@
-import { HTTP_METHODS, HttpMethod, API_URLS } from "@/constants/api";
+import { HTTP_METHODS, HttpMethod } from "@/constants/api";
+import { SUCCESS_STATUS } from "@/app/lib/server/commonResponse";
 
 interface ApiConfig {
   baseURL?: string;
@@ -71,7 +72,7 @@ export class API {
         delete headers["Content-Type"];
         config.body = data;
       } else {
-      config.body = JSON.stringify(data);
+        config.body = JSON.stringify(data);
       }
     }
 
@@ -83,10 +84,6 @@ export class API {
     try {
       const response = await fetch(fullUrl, config);
       clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const responseData = await response.json();
 
@@ -191,21 +188,57 @@ export const api = new API({
       : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 });
 
-// 편의 함수들 (기존 호환성 유지)
-export const apiGet = <T = any>(
+// 편의 함수들 - 성공 시에만 data를 반환하는 함수들
+export const apiGetData = <T = any>(
   url: string,
   params?: QueryParams,
   headers?: Record<string, string>
-) => api.get<T>(url, params, headers).then((response) => response.data);
+) =>
+  api
+    .get<{ status: string; code: number; message: string; data?: T }>(url, params, headers)
+    .then((response) => {
+      if (response.data.status === SUCCESS_STATUS) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || "API call failed");
+    });
 
-export const apiPost = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
-  api.post<T>(url, data, headers).then((response) => response.data);
+export const apiPostData = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api
+    .post<{ status: string; code: number; message: string; data?: T }>(url, data, headers)
+    .then((response) => {
+      if (response.data.status === SUCCESS_STATUS) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || "API call failed");
+    });
 
-export const apiPut = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
-  api.put<T>(url, data, headers).then((response) => response.data);
+export const apiPutData = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api
+    .put<{ status: string; code: number; message: string; data?: T }>(url, data, headers)
+    .then((response) => {
+      if (response.data.status === SUCCESS_STATUS) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || "API call failed");
+    });
 
-export const apiPatch = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
-  api.patch<T>(url, data, headers).then((response) => response.data);
+export const apiPatchData = <T = any>(url: string, data: any, headers?: Record<string, string>) =>
+  api
+    .patch<{ status: string; code: number; message: string; data?: T }>(url, data, headers)
+    .then((response) => {
+      if (response.data.status === SUCCESS_STATUS) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || "API call failed");
+    });
 
-export const apiDelete = <T = any>(url: string, headers?: Record<string, string>) =>
-  api.delete<T>(url, headers).then((response) => response.data);
+export const apiDeleteData = <T = any>(url: string, headers?: Record<string, string>) =>
+  api
+    .delete<{ status: string; code: number; message: string; data?: T }>(url, headers)
+    .then((response) => {
+      if (response.data.status === SUCCESS_STATUS) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || "API call failed");
+    });

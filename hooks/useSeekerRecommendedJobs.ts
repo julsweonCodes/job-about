@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { apiGet } from "@/utils/client/API";
+import { apiGetData } from "@/utils/client/API";
 import { RecommendedJobPost, RecommendationResponse } from "@/types/job";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
@@ -51,21 +51,16 @@ export function useRecommendedJobs({
         queryParams.location = location;
       }
 
-      const response = await apiGet<{ data: RecommendationResponse }>(
+      const data = await apiGetData<RecommendationResponse>(
         API_URLS.RECOMMENDATIONS.JOBS,
         queryParams
       );
 
-      if (
-        response &&
-        response.data &&
-        response.data.recommendations &&
-        Array.isArray(response.data.recommendations)
-      ) {
+      if (data && data.recommendations && Array.isArray(data.recommendations)) {
         return {
-          data: response.data.recommendations,
-          totalCount: response.data.totalCount || 0,
-          hasMore: response.data.recommendations.length === params.limit,
+          data: data.recommendations,
+          totalCount: data.totalCount || 0,
+          hasMore: data.recommendations.length === params.limit,
         };
       } else {
         throw new Error("Failed to fetch recommended jobs");

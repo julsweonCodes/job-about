@@ -4,7 +4,7 @@ import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
 import { convertLocationKeyToValue } from "@/constants/location";
-import { apiGet, apiPatch } from "@/utils/client/API";
+import { apiGetData, apiPatchData } from "@/utils/client/API";
 
 // Types
 export interface UserInfo {
@@ -149,14 +149,8 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const fetchSkills = useCallback(async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const data = await apiGet(API_URLS.UTILS);
-
-      if (data.status === "success") {
-        setAvailableSkills(data.data.skills);
-      } else {
-        console.error("Failed to fetch skills:", data.error);
-        showErrorToast("Failed to load skills");
-      }
+      const data = await apiGetData(API_URLS.UTILS);
+      setAvailableSkills(data.skills);
     } catch (error) {
       console.error("Error fetching skills:", error);
       showErrorToast("Failed to load skills");
@@ -168,20 +162,14 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const fetchLocations = useCallback(async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, locations: true }));
-      const data = await apiGet(API_URLS.ENUM.BY_NAME("Location"));
+      const data = await apiGetData(API_URLS.ENUM.BY_NAME("Location"));
 
-      if (data.status === "success") {
-        const locationsData = data.data?.values || data.values || [];
-        if (Array.isArray(locationsData)) {
-          const convertedCities = locationsData.map(convertLocationKeyToValue);
-          setAvailableLocations(convertedCities);
-        } else {
-          setAvailableLocations([]);
-        }
+      const locationsData = data?.values || [];
+      if (Array.isArray(locationsData)) {
+        const convertedCities = locationsData.map(convertLocationKeyToValue);
+        setAvailableLocations(convertedCities);
       } else {
-        console.error("Failed to fetch locations:", data.error);
         setAvailableLocations([]);
-        showErrorToast("Failed to load locations");
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -207,17 +195,28 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         };
         setUserInfo(userInfoData);
       } else {
-        const userData = await apiGet(API_URLS.USER.ME);
-        if (userData.status === "success" && userData.data) {
-          setUserInfo(userData.data.user);
-        }
+        const userData = await apiGetData(API_URLS.USER.ME);
+        setUserInfo(userData.user);
       }
 
       // Personality Data
-      const personalityData = await apiGet(API_URLS.QUIZ.MY_PROFILE);
-      if (personalityData.status === "success" && personalityData.data) {
-        setSeekerPersonality(personalityData.data);
-      } else {
+      try {
+        const personalityData = await apiGetData(API_URLS.QUIZ.MY_PROFILE);
+        if (personalityData) {
+          setSeekerPersonality(personalityData);
+        } else {
+          // Fallback to dummy data
+          setSeekerPersonality({
+            id: 3,
+            name_ko: "공감형 코디네이터",
+            name_en: "Empathetic Coordinator",
+            description_ko:
+              "사람들과의 협업과 소통에서 에너지를 얻습니다. 특히 고객의 감정을 잘 파악하고 긍정적인 관계를 맺는 데 강점이 있습니다.",
+            description_en:
+              "Gains energy from collaboration and communication. Excellent at understanding customer emotions and building positive relationships.",
+          });
+        }
+      } catch (error) {
         // Fallback to dummy data
         setSeekerPersonality({
           id: 3,
@@ -231,10 +230,8 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       }
 
       // Profile Data
-      const profileData = await apiGet(API_URLS.SEEKER.PROFILES);
-      if (profileData.status === "success" && profileData.data) {
-        setSeekerProfile(profileData.data);
-      }
+      const profileData = await apiGetData(API_URLS.SEEKER.PROFILES);
+      setSeekerProfile(profileData);
     } catch (error) {
       console.error("Error fetching initial data:", error);
       showErrorToast("Failed to load profile data");
@@ -349,14 +346,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       formData.append("name", tempData.name);
       formData.append("description", tempData.description);
 
-      const response = await apiPatch(API_URLS.USER.UPDATE, formData);
-
-      if (response.status === "success") {
-        setApplicantProfile(tempData);
-        showSuccessToast("Profile updated successfully!");
-      } else {
-        showErrorToast("Failed to update profile");
-      }
+      await apiPatchData(API_URLS.USER.UPDATE, formData);
+      setApplicantProfile(tempData);
+      showSuccessToast("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
       showErrorToast("Failed to update profile");
@@ -369,9 +361,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
         const formData = new FormData();
         formData.append("img", file);
 
-        const result = await apiPatch(API_URLS.USER.UPDATE, formData);
+        const result = await apiPatchData(API_URLS.USER.UPDATE, formData);
 
-        if (result.data && result.data.img_url !== undefined) {
+        if (result && result.img_url !== undefined) {
           showSuccessToast("Profile image updated!");
         } else {
           showErrorToast("Failed to update profile image");

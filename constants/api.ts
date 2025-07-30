@@ -45,6 +45,10 @@ export const API_URLS = {
     DETAIL: (id: string, status: string) => `/api/job-posts/${id}?status=${status}`,
     WORK_STYLES: (id: string) => `/api/job-posts/${id}/work-styles`,
     MATCH_CANDIDATES: (id: string) => `/api/job-posts/${id}/match-candidates`,
+    APPLY: (id: string) => `/api/job-posts/${id}/apply`,
+    BOOKMARK: (id: string) => `/api/job-posts/${id}/bookmark`,
+    BOOKMARKS: "/api/seeker/bookmarks",
+    APPLIES: "/api/seeker/applies",
   },
 
   // 퀴즈 관련

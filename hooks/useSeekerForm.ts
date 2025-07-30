@@ -5,7 +5,7 @@ import { LanguageLevel, WorkType, AvailableDay, AvailableHour } from "@/constant
 import { Location } from "@/constants/location";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { API_URLS } from "@/constants/api";
-import { apiGet } from "@/utils/client/API";
+import { apiGetData } from "@/utils/client/API";
 import { WorkPeriod } from "@/constants/enums";
 
 interface JobSeekerFormData {
@@ -84,13 +84,8 @@ export const useSeekerForm = (): UseSeekerFormReturn => {
   const fetchSkills = async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const data = await apiGet(API_URLS.UTILS);
-
-      if (data.status === "success") {
-        setAvailableSkills(data.data.skills);
-      } else {
-        console.error("Failed to fetch skills:", data.error);
-      }
+      const data = await apiGetData(API_URLS.UTILS);
+      setAvailableSkills(data.skills);
     } catch (error) {
       console.error("Error fetching skills:", error);
     } finally {
@@ -101,18 +96,12 @@ export const useSeekerForm = (): UseSeekerFormReturn => {
   const fetchCities = async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, cities: true }));
-      const data = await apiGet(API_URLS.ENUM.BY_NAME("Location"));
-
-      if (data.status === "success") {
-        const citiesData = data.data?.values || data.values || [];
-        if (Array.isArray(citiesData)) {
-          const convertedCities = citiesData.map(convertLocationKeyToValue);
-          setCities(convertedCities);
-        } else {
-          setCities([]);
-        }
+      const data = await apiGetData(API_URLS.ENUM.BY_NAME("Location"));
+      const citiesData = data?.values || [];
+      if (Array.isArray(citiesData)) {
+        const convertedCities = citiesData.map(convertLocationKeyToValue);
+        setCities(convertedCities);
       } else {
-        console.error("Failed to fetch cities:", data.error);
         setCities([]);
       }
     } catch (error) {

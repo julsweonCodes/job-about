@@ -5,9 +5,10 @@ import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
 import { JobPostData } from "@/types/jobPost";
 import { useRouter } from "next/navigation";
-import { apiGet } from "@/utils/client/API";
+import { apiGetData, apiPostData, apiDeleteData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
 import LoadingScreen from "@/components/common/LoadingScreen";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 
 interface Props {
   params: { postId: string };
@@ -20,6 +21,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   const [loadingStates, setLoadingStates] = useState({
     jobDetails: false,
     bookmark: false,
+    apply: false,
   });
 
   const initializeData = async () => {
@@ -28,6 +30,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
       setLoadingStates({
         jobDetails: true,
         bookmark: false,
+        apply: false,
       });
 
       // 모든 API 호출을 병렬로 실행
@@ -39,6 +42,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
       setLoadingStates({
         jobDetails: false,
         bookmark: false,
+        apply: false,
       });
     }
   };
@@ -52,17 +56,11 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   const fetchJobDetails = async () => {
     try {
       // 올바른 API 호출 - status 파라미터를 함수에 직접 전달
-      const res = await apiGet(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
-
-      if (res.status === "success") {
-        setJobDetails(res.data);
-      } else {
-        console.error("Failed to fetch job post:", res.message);
-        // 에러 처리 - 404 페이지로 리다이렉트 또는 에러 표시
-        router.push("/seeker");
-      }
+      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
+      setJobDetails(data);
     } catch (error) {
       console.error("Error fetching job post:", error);
+      // 에러 처리 - 404 페이지로 리다이렉트 또는 에러 표시
       router.push("/seeker");
     }
   };
@@ -90,29 +88,12 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
 
       if (isBookmarked) {
         // 북마크 제거
-        const res = await fetch(`/api/job-posts/${params.postId}/bookmark`, {
-          method: "DELETE",
-        });
-
-        if (res.ok) {
-          setIsBookmarked(false);
-        } else {
-          console.error("Failed to remove bookmark");
-        }
+        await apiDeleteData(API_URLS.JOB_POSTS.BOOKMARK(params.postId));
+        setIsBookmarked(false);
       } else {
         // 북마크 추가
-        const res = await fetch(`/api/job-posts/${params.postId}/bookmark`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (res.ok) {
-          setIsBookmarked(true);
-        } else {
-          console.error("Failed to add bookmark");
-        }
+        await apiPostData(API_URLS.JOB_POSTS.BOOKMARK(params.postId), {});
+        setIsBookmarked(true);
       }
     } catch (error) {
       console.error("Error toggling bookmark:", error);
@@ -123,24 +104,15 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
 
   const handleApply = async () => {
     try {
-      const res = await fetch(`/api/job-posts/${params.postId}/apply`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      setLoadingStates((prev) => ({ ...prev, apply: true }));
 
-      if (res.ok) {
-        // 지원 성공 처리
-        alert("지원이 완료되었습니다!");
-        router.push("/seeker/mypage");
-      } else {
-        const data = await res.json();
-        alert(data.message || "지원에 실패했습니다. 다시 시도해주세요.");
-      }
+      await apiPostData(API_URLS.JOB_POSTS.APPLY(params.postId), {});
+      // 지원 성공 처리
+      showSuccessToast("Application submitted successfully!");
     } catch (error) {
-      console.error("Error applying for job:", error);
-      alert("지원 중 오류가 발생했습니다. 다시 시도해주세요.");
+      showErrorToast((error as Error).message || "Application failed. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, apply: false }));
     }
   };
 
@@ -148,16 +120,18 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     router.back();
   };
 
-  const isLoading = Object.values(loadingStates).some((state) => state);
+  const isInitialLoading = loadingStates.jobDetails;
+  const isActionLoading = loadingStates.bookmark || loadingStates.apply;
 
   // 로딩 상태일 때
-  if (isLoading) {
+  if (isInitialLoading) {
     return <LoadingScreen message="Loading job post..." />;
   }
 
   // 메인 렌더링
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
+      {isActionLoading && <LoadingScreen overlay={true} message="Processing..." opacity="light" />}
       {/* Header */}
       <PostHeader
         leftIcon={<ArrowLeft className="w-5 h-5 text-gray-700" />}

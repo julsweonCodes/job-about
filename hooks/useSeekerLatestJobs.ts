@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { apiGet } from "@/utils/client/API";
+import { apiGetData } from "@/utils/client/API";
 import { JobPost } from "@/types/job";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
@@ -64,10 +64,10 @@ export function useLatestJobs({
           queryParams.limit = params?.limit || limit;
         }
 
-        const response = await apiGet<{ data: JobPost[] }>(API_URLS.JOB_POSTS.ROOT, queryParams);
+        const data = await apiGetData<JobPost[]>(API_URLS.JOB_POSTS.ROOT, queryParams);
 
-        if (response && response.data && Array.isArray(response.data)) {
-          const newLatestJobs = response.data;
+        if (data && Array.isArray(data)) {
+          const newLatestJobs = data;
 
           if (params?.page === 1 || currentPage === 1) {
             // 첫 페이지면 전체 교체

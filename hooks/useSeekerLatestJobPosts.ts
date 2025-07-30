@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { apiGet } from "@/utils/client/API";
+import { apiGetData } from "@/utils/client/API";
 import { JobPost } from "@/types/job";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
@@ -51,13 +51,13 @@ export function useLatestJobs({
         queryParams.location = location;
       }
 
-      const response = await apiGet<{ data: JobPost[] }>(API_URLS.JOB_POSTS.ROOT, queryParams);
+      const data = await apiGetData<{ data: JobPost[] }>(API_URLS.JOB_POSTS.ROOT, queryParams);
 
-      if (response && response.data && Array.isArray(response.data)) {
+      if (data && Array.isArray(data)) {
         return {
-          data: response.data,
-          totalCount: response.data.length,
-          hasMore: response.data.length === params.limit,
+          data: data,
+          totalCount: data.length,
+          hasMore: data.length === params.limit,
         };
       } else {
         throw new Error("Failed to fetch latest jobs");

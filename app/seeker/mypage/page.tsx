@@ -7,7 +7,6 @@ import {
   Edit3,
   ChevronRight,
   Lightbulb,
-  RefreshCw,
   Camera,
   MapPin,
   Phone,
@@ -57,7 +56,7 @@ import {
 import { getLocationDisplayName } from "@/constants/location";
 import { Skill } from "@/types/profile";
 import { STORAGE_URLS } from "@/constants/storage";
-import { apiDelete, apiPatch } from "@/utils/client/API";
+import { apiPatchData } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 
@@ -68,7 +67,6 @@ import {
   getLanguageLevelLabel,
   getJobTypeName,
 } from "@/utils/client/enumDisplayUtils";
-import MypageActionButtons from "@/components/common/MypageActionButtons";
 
 // Types
 interface DeleteConfirmDialogState {
@@ -221,17 +219,13 @@ function SeekerMypage() {
     async (section: string, payload: Partial<applicantProfile>, showToast: boolean = true) => {
       try {
         console.log("🔍 updateProfileSection payload:", payload);
-        const result = await apiPatch(API_URLS.SEEKER.PROFILES, payload);
+        await apiPatchData(API_URLS.SEEKER.PROFILES, payload);
 
-        if (result.status === "success") {
-          if (showToast) {
-            showSuccessToast(`${section} updated successfully`);
-          }
-          setApplicantProfile(tempData);
-          return true;
-        } else {
-          throw new Error(result.message || "Update failed");
+        if (showToast) {
+          showSuccessToast(`${section} updated successfully`);
         }
+        setApplicantProfile(tempData);
+        return true;
       } catch (error) {
         console.error(`Failed to save ${section}:`, error);
         showErrorToast(`Failed to update ${section}: ${(error as Error).message}`);
@@ -322,17 +316,13 @@ function SeekerMypage() {
 
       try {
         console.log("🔍 job types payload:", payload);
-        const result = await apiPatch(API_URLS.SEEKER.PROFILES, payload);
+        await apiPatchData(API_URLS.SEEKER.PROFILES, payload);
 
-        if (result.status === "success") {
-          setApplicantProfile({
-            ...applicantProfile,
-            jobTypes: jobTypeStrings,
-          });
-          showSuccessToast("Job types updated successfully!");
-        } else {
-          throw new Error(result.message || "Update failed");
-        }
+        setApplicantProfile({
+          ...applicantProfile,
+          jobTypes: jobTypeStrings,
+        });
+        showSuccessToast("Job types updated successfully!");
       } catch (error) {
         console.error("Failed to save job types:", error);
         showErrorToast(`Failed to update job types: ${(error as Error).message}`);
@@ -393,11 +383,11 @@ function SeekerMypage() {
       const formData = new FormData();
       formData.append("img", file);
 
-      const result = await apiPatch(API_URLS.USER.UPDATE, formData);
+      const result = await apiPatchData(API_URLS.USER.UPDATE, formData);
 
-      if (result.data && result.data.img_url !== undefined) {
+      if (result && result.img_url !== undefined) {
         // 프로필 이미지 URL을 직접 업데이트
-        const fullImageUrl = `${STORAGE_URLS.USER.PROFILE_IMG}${result.data.img_url}`;
+        const fullImageUrl = `${STORAGE_URLS.USER.PROFILE_IMG}${result.img_url}`;
         setProfileImageUrl(fullImageUrl);
         showSuccessToast("Profile image updated!");
       } else {

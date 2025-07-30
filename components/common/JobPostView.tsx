@@ -44,24 +44,15 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   // 테스트용 더미 extraPhotos 데이터
-  const dummyExtraPhotos = [
-    "https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-    "https://images.pexels.com/photos/2292837/pexels-photo-2292837.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-    "https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-    "https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-  ];
 
   // 실제 extraPhotos가 없으면 더미 데이터 사용
-  // const extraPhotos =
-  //   jobData.businessLocInfo.extraPhotos && jobData.businessLocInfo.extraPhotos.length > 0
-  //     ? jobData.businessLocInfo.extraPhotos
-  //     : dummyExtraPhotos;
-
-  const extraPhotos = dummyExtraPhotos;
+  const extraPhotos =
+    jobData.businessLocInfo.extraPhotos && jobData.businessLocInfo.extraPhotos.length > 0
+      ? jobData.businessLocInfo.extraPhotos
+      : [];
 
   const jobDetailItems = [
-    {
+  {
       icon: MapPin,
       label: "Location",
       value: jobData.businessLocInfo.location,
