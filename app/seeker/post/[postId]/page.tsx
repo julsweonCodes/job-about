@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { Bookmark, BookmarkCheck, ArrowLeft } from "lucide-react";
+import { Bookmark, ArrowLeft } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
 import { JobPostData } from "@/types/jobPost";
