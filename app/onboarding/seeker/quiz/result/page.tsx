@@ -99,23 +99,54 @@ function App() {
     const fetchPersonalityProfile = async () => {
       try {
         console.log("사용자 성향 프로필 로딩 시작");
-        const response = await fetch('/api/quiz/my-profile');
+        const sessionData = {
+          quizSubmitted: sessionStorage.getItem("quizSubmitted"),
+          profileId: sessionStorage.getItem("profileId")
+        };
+        console.log("세션 스토리지 데이터:", sessionData);
         
-        if (!response.ok) {
-          if (response.status === 401) {
+        let response: Response | null = null;
+        let data: any = null;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        // 퀴즈를 방금 완료한 경우 재시도 로직 적용
+        while (retryCount < maxRetries) {
+          response = await fetch('/api/quiz/my-profile');
+          
+          if (response.ok) {
+            data = await response.json();
+            console.log(`재시도 ${retryCount + 1}회차 응답:`, data);
+            
+            // 데이터가 있거나 퀴즈를 완료하지 않은 상태라면 중단
+            if (data.data || sessionData.quizSubmitted !== "true") {
+              break;
+            }
+          }
+          
+          retryCount++;
+          if (retryCount < maxRetries) {
+            console.log(`프로필 데이터 없음, ${retryCount + 1}초 후 재시도... (${retryCount}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          }
+        }
+        
+        if (!response || !response.ok) {
+          if (response && response.status === 401) {
             // 401 Unauthorized인 경우 바로 퀴즈 페이지로 리다이렉션
             console.log('인증되지 않은 사용자, 퀴즈 페이지로 이동합니다.');
             router.replace('/onboarding/seeker/quiz');
             return;
           }
-          throw new Error(`HTTP error! status: ${response.status}`);
+          console.error(`API 요청 실패: HTTP ${response?.status || 'unknown'}`);
+          throw new Error(`HTTP error! status: ${response?.status || 'unknown'}`);
         }
         
-        const data = await response.json();
         console.log("성향 프로필 로딩 완료:", data);
         
         if (data.status === 'success') {
           if (data.data) {
+            console.log('성향 프로필 데이터 설정:', data.data);
             setPersonalityResult({
               name_en: data.data.name_en,
               name_ko: data.data.name_ko,
@@ -125,10 +156,12 @@ function App() {
           } else {
             // 아직 퀴즈를 완료하지 않은 경우 -> 퀴즈 페이지로 리다이렉션
             console.log('퀴즈 결과가 없어 퀴즈 페이지로 이동합니다.');
+            console.log('API 응답 데이터:', data);
             router.replace('/onboarding/seeker/quiz');
             return;
           }
         } else {
+          console.error('API 응답 실패:', data);
           throw new Error(data.message || '성향 프로필을 불러오는데 실패했습니다.');
         }
       } catch (error) {
