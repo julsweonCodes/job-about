@@ -62,7 +62,6 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     try {
       // 올바른 API 호출 - status 파라미터를 함수에 직접 전달
       const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
-      console.log("🔍 job details:", data);
       setJobDetails(data);
 
       // API 응답에서 isBookmarked 상태 설정

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   Briefcase,
   Heart,
@@ -14,25 +14,11 @@ import {
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import { useSeekerMypageMain } from "@/hooks/useSeekerMypageMain";
-import { useRouter } from "next/navigation";
 import { STORAGE_URLS } from "@/constants/storage";
-import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
-import { apiPatch } from "@/utils/client/API";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
 import LoadingScreen from "@/components/common/LoadingScreen";
-
-interface DialogStates {
-  imageUpload: boolean;
-  profileEdit: boolean;
-}
-
-const INITIAL_DIALOG_STATES: DialogStates = {
-  imageUpload: false,
-  profileEdit: false,
-};
 
 // 스켈레톤 컴포넌트들
 const ProfileSkeleton = () => (
@@ -89,19 +75,27 @@ const QuickActionSkeleton = () => (
 );
 
 function SeekerMypage() {
-  const router = useRouter();
-  const { appUser, setAppUser } = useAuthStore();
+  const { appUser } = useAuthStore();
 
   // Custom hooks
-  const { userInfo, applicantProfile, isLoading, imageUploadLoading, updateProfileImage } =
-    useSeekerMypageMain();
-
-  // Local state
-  const [dialogStates, setDialogStates] = useState<DialogStates>(INITIAL_DIALOG_STATES);
-  const [profileEditData, setProfileEditData] = useState({
-    name: appUser?.name || "",
-    phone_number: appUser?.phone_number || "",
-  });
+  const {
+    userInfo,
+    applicantProfile,
+    isLoading,
+    imageUploadLoading,
+    dialogStates,
+    profileEditData,
+    handleProfileImageChange,
+    handleImageUploadDialog,
+    handleProfileEditDialog,
+    handleProfileEditClose,
+    handleProfileEditSave,
+    handleProfileEditChange,
+    handleNavigateToProfile,
+    handleNavigateToAppliedJobs,
+    handleNavigateToBookmarks,
+    setDialogStates,
+  } = useSeekerMypageMain();
 
   // Computed values
   const displayImage = useMemo(() => {
@@ -110,82 +104,6 @@ function SeekerMypage() {
     }
     return "/images/img-default-profile.png";
   }, [userInfo?.img_url]);
-
-  // API Functions
-  const handleProfileImageChange = useCallback(
-    async (file: File) => {
-      try {
-        await updateProfileImage(file);
-        showSuccessToast("Profile image updated!");
-      } catch (error) {
-        console.error("Error updating profile image:", error);
-        showErrorToast("Failed to update profile image");
-      }
-    },
-    [updateProfileImage]
-  );
-
-  // Event handlers
-  const handleImageUploadDialog = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, imageUpload: true }));
-  }, []);
-
-  const handleProfileEditDialog = useCallback(() => {
-    setProfileEditData({
-      name: appUser?.name || "",
-      phone_number: appUser?.phone_number || "",
-    });
-    setDialogStates((prev) => ({ ...prev, profileEdit: true }));
-  }, [appUser?.name, appUser?.phone_number]);
-
-  const handleProfileEditClose = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, profileEdit: false }));
-  }, []);
-
-  const handleProfileEditSave = useCallback(async () => {
-    try {
-      const formData = new FormData();
-      formData.append("name", profileEditData.name);
-      formData.append("phone_number", profileEditData.phone_number);
-
-      const response = await apiPatch(API_URLS.USER.UPDATE, formData);
-
-      if (response.status === 200) {
-        // 성공 시 페이지 데이터 업데이트
-        if (appUser) {
-          setAppUser({
-            ...appUser,
-            name: profileEditData.name,
-            phone_number: profileEditData.phone_number,
-          });
-        }
-
-        setDialogStates((prev) => ({ ...prev, profileEdit: false }));
-        showSuccessToast("Profile updated successfully!");
-      } else {
-        throw new Error("Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showErrorToast("Failed to update profile");
-    }
-  }, [profileEditData, appUser]);
-
-  const handleProfileEditChange = useCallback((field: "name" | "phone_number", value: string) => {
-    setProfileEditData((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleNavigateToProfile = useCallback(() => {
-    router.push(PAGE_URLS.SEEKER.MYPAGE.PROFILE);
-  }, [router]);
-
-  const handleNavigateToAppliedJobs = useCallback(() => {
-    router.push(PAGE_URLS.SEEKER.MYPAGE.APPLIES);
-  }, [router]);
-
-  const handleNavigateToBookmarks = useCallback(() => {
-    router.push(PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS);
-  }, [router]);
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
@@ -243,13 +161,7 @@ function SeekerMypage() {
                       <span>
                         Joined{" "}
                         {appUser?.created_at
-                          ? new Date(appUser.created_at)
-                              .toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "2-digit",
-                                day: "2-digit",
-                              })
-                              .replace(/(\d+)\/(\d+)\/(\d+)/, "$3. $1. $2")
+                          ? new Date(appUser.created_at).toLocaleDateString()
                           : "Unknown"}
                       </span>
                     </div>
@@ -294,82 +206,70 @@ function SeekerMypage() {
 
         {/* Quick Actions */}
         <div className="space-y-4">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Quick Actions</h3>
-
-          <div className="grid grid-cols-1 gap-4">
-            {/* Applied Jobs */}
-            {isLoading ? (
+          {isLoading ? (
+            <>
               <QuickActionSkeleton />
-            ) : (
-              <button
-                onClick={handleNavigateToAppliedJobs}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6 hover:shadow-xl transition-all duration-200 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+              <QuickActionSkeleton />
+              <QuickActionSkeleton />
+            </>
+          ) : (
+            <>
+              {/* Profile Management */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
+                <button
+                  onClick={handleNavigateToProfile}
+                  className="w-full flex items-center gap-4 hover:bg-slate-50 transition-colors duration-200 rounded-xl p-2"
+                >
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <User className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-semibold text-slate-900">Profile Management</h3>
+                    <p className="text-sm text-slate-500">Edit your profile and work experience</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              {/* Applied Jobs */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
+                <button
+                  onClick={handleNavigateToAppliedJobs}
+                  className="w-full flex items-center gap-4 hover:bg-slate-50 transition-colors duration-200 rounded-xl p-2"
+                >
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                     <Briefcase className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1 text-left">
-                    <h4 className="font-semibold text-slate-900 mb-1">Applied Jobs</h4>
-                    <p className="text-sm text-slate-600">View your job applications</p>
+                    <h3 className="font-semibold text-slate-900">Applied Jobs</h3>
+                    <p className="text-sm text-slate-500">View your job applications and status</p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-            )}
+                  <ChevronRight className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
 
-            {/* Bookmarked Jobs */}
-            {isLoading ? (
-              <QuickActionSkeleton />
-            ) : (
-              <button
-                onClick={handleNavigateToBookmarks}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6 hover:shadow-xl transition-all duration-200 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+              {/* Bookmarks */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
+                <button
+                  onClick={handleNavigateToBookmarks}
+                  className="w-full flex items-center gap-4 hover:bg-slate-50 transition-colors duration-200 rounded-xl p-2"
+                >
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                     <Heart className="w-6 h-6 text-red-600" />
                   </div>
                   <div className="flex-1 text-left">
-                    <h4 className="font-semibold text-slate-900 mb-1">Bookmarked Jobs</h4>
-                    <p className="text-sm text-slate-600">Your saved job posts</p>
+                    <h3 className="font-semibold text-slate-900">Bookmarks</h3>
+                    <p className="text-sm text-slate-500">View your saved job posts</p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Management */}
-        <div className="space-y-4">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Profile Management</h3>
-
-          {isLoading ? (
-            <QuickActionSkeleton />
-          ) : (
-            <button
-              onClick={handleNavigateToProfile}
-              className="w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6 hover:shadow-xl transition-all duration-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <User className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <h4 className="font-semibold text-slate-900 mb-1">Profile Settings</h4>
-                  <p className="text-sm text-slate-600">
-                    Edit your skills, experience, and preferences
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                  <ChevronRight className="w-5 h-5 text-slate-400" />
+                </button>
               </div>
-            </button>
+            </>
           )}
         </div>
       </div>
 
-      {/* Image Upload Dialog */}
+      {/* Dialogs */}
       <ImageUploadDialog
         open={dialogStates.imageUpload}
         onClose={() => setDialogStates((prev) => ({ ...prev, imageUpload: false }))}
@@ -378,7 +278,6 @@ function SeekerMypage() {
         type="profile"
       />
 
-      {/* Profile Edit Dialog */}
       <ProfileEditDialog
         open={dialogStates.profileEdit}
         onClose={handleProfileEditClose}

@@ -7,6 +7,7 @@ export const API_URLS = {
     ROLE: "/api/users/role",
     CREATE: "/api/users",
     UPDATE: "/api/users",
+    UPDATE_PROFILE_IMAGE: "/api/users/image",
   },
 
   // 인증 관련
