@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { Briefcase, Calendar, Lightbulb, MapPin, Star, Globe, Plus, X } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import InfoSection from "@/components/common/InfoSection";
@@ -15,19 +15,8 @@ import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { DeleteExperienceDialog } from "@/components/seeker/DeleteExperienceDialog";
-import { useSeekerMypage } from "@/hooks/useSeekerMypage";
+import { useSeekerMypageProfile, DialogStates } from "@/hooks/useSeekerMypageProfile";
 import { useSeekerExperience } from "@/hooks/useSeekerExperience";
-import { applicantProfile } from "@/types/profile";
-import { API_URLS } from "@/constants/api";
-import {
-  toPrismaWorkType,
-  toPrismaJobType,
-  toPrismaLanguageLevel,
-  toPrismaAvailableDay,
-  toPrismaAvailableHour,
-  toPrismaLocation,
-  toPrismaWorkPeriod,
-} from "@/types/enumMapper";
 import {
   Select,
   SelectContent,
@@ -36,10 +25,6 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { getLocationDisplayName } from "@/constants/location";
-import { Skill } from "@/types/profile";
-import { apiPatchData } from "@/utils/client/API";
-import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
-import { useRouter } from "next/navigation";
 
 import {
   getWorkTypeLabel,
@@ -48,29 +33,6 @@ import {
   getLanguageLevelLabel,
   getJobTypeName,
 } from "@/utils/client/enumDisplayUtils";
-
-// Types
-interface DeleteConfirmDialogState {
-  isOpen: boolean;
-  experienceIndex: number | null;
-}
-
-interface DialogStates {
-  profile: boolean;
-  imageUpload: boolean;
-  skills: boolean;
-  preferredJobTypes: boolean;
-  deleteConfirm: DeleteConfirmDialogState;
-}
-
-// Constants
-const INITIAL_DIALOG_STATES: DialogStates = {
-  profile: false,
-  imageUpload: false,
-  skills: false,
-  preferredJobTypes: false,
-  deleteConfirm: { isOpen: false, experienceIndex: null },
-};
 
 // 스켈레톤 컴포넌트들
 const InfoSectionSkeleton = () => (
@@ -92,52 +54,6 @@ const InfoSectionSkeleton = () => (
   </div>
 );
 
-const SECTION_MAPPINGS = {
-  contact: (data: any) => ({
-    phone: data.phone,
-  }),
-  location: (data: any) => ({
-    location: toPrismaLocation(data.location),
-  }),
-  description: (data: any) => ({
-    description: data.description,
-  }),
-  skills: (data: any) => ({
-    profile_practical_skills: data.skillIds.map((i: number) => ({
-      practical_skill_id: i,
-    })),
-  }),
-  workType: (data: any) => ({
-    work_type: toPrismaWorkType(data.workType),
-  }),
-  jobTypes: (data: any) => ({
-    job_type1: toPrismaJobType(data.jobTypes[0]),
-    ...(data.jobTypes[1] && {
-      job_type2: toPrismaJobType(data.jobTypes[1]),
-    }),
-    ...(data.jobTypes[2] && {
-      job_type3: toPrismaJobType(data.jobTypes[2]),
-    }),
-  }),
-  availability: (data: any) => ({
-    available_day: toPrismaAvailableDay(data.availabilityDay),
-    available_hour: toPrismaAvailableHour(data.availabilityTime),
-  }),
-  languages: (data: any) => ({
-    language_level: toPrismaLanguageLevel(data.englishLevel),
-  }),
-  workExperience: (data: any) => ({
-    work_experiences: data.experiences.map((exp: any) => ({
-      company_name: exp.company,
-      job_type: toPrismaJobType(exp.jobType),
-      start_year: exp.startYear,
-      work_period: toPrismaWorkPeriod(exp.workedPeriod),
-      work_type: toPrismaWorkType(exp.workType),
-      description: exp.description,
-    })),
-  }),
-} as const;
-
 function SeekerProfilePage() {
   // Custom hooks
   const {
@@ -147,12 +63,32 @@ function SeekerProfilePage() {
     isEditing,
     availableSkills,
     availableLocations,
+    loadingStates,
     handleEdit: handleEditSection,
     handleCancel: handleCancelSection,
     handleTempInputChange: handleInputChange,
-    setApplicantProfile,
     setTempData,
-  } = useSeekerMypage();
+    newSkill,
+    selectedSkills,
+    selectedJobTypes,
+    dialogStates,
+    setNewSkill,
+    setDialogStates,
+    handleOptionsSave,
+    handleSkillsEdit,
+    handleSkillsConfirm,
+    handleSkillsCancel,
+    addSkill,
+    removeSkill,
+    handleJobTypesEdit,
+    handleJobTypesConfirm,
+    deleteExperience,
+    confirmDeleteExperience,
+    cancelDeleteExperience,
+    toggleAvailabilityDay,
+    toggleAvailabilityTime,
+    updateEnglishLevel,
+  } = useSeekerMypageProfile();
 
   const {
     experienceForm,
@@ -165,229 +101,18 @@ function SeekerProfilePage() {
     handleAddExperience: addExperience,
     handleEditExperience: editExperience,
     handleSaveExperience: saveExperience,
-    handleJobTypeSelect: selectJobType,
-    handleJobTypeConfirm: confirmJobType,
   } = useSeekerExperience();
-
-  // Local state
-  const [newSkill, setNewSkill] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
-  const [selectedJobTypes, setSelectedJobTypes] = useState<JobType[]>([]);
-  const [dialogStates, setDialogStates] = useState<DialogStates>(INITIAL_DIALOG_STATES);
-
-  // Loading states for API calls
-  const [loadingStates, setLoadingStates] = useState({
-    profileUpdate: false,
-    imageUpload: false,
-    skillsUpdate: false,
-    jobTypesUpdate: false,
-    experienceSave: false,
-  });
-
-  // API Functions
-  const updateProfileSection = useCallback(
-    async (section: string, payload: Partial<applicantProfile>, showToast: boolean = true) => {
-      try {
-        setLoadingStates((prev) => ({ ...prev, profileUpdate: true }));
-        console.log("🔍 updateProfileSection payload:", payload);
-        await apiPatchData(API_URLS.SEEKER.PROFILES, payload);
-
-        if (showToast) {
-          showSuccessToast(`${section} updated successfully`);
-        }
-        setApplicantProfile(tempData);
-        return true;
-      } catch (error) {
-        console.error(`Failed to save ${section}:`, error);
-        showErrorToast(`Failed to update ${section}: ${(error as Error).message}`);
-        return false;
-      } finally {
-        setLoadingStates((prev) => ({ ...prev, profileUpdate: false }));
-      }
-    },
-    [tempData, setApplicantProfile]
-  );
-
-  const handleOptionsSave = useCallback(
-    async (section: keyof typeof SECTION_MAPPINGS) => {
-      try {
-        const mapper = SECTION_MAPPINGS[section];
-        if (!mapper) {
-          showErrorToast(`Unknown section: ${section}`);
-          return;
-        }
-
-        const payload = mapper(tempData);
-        const success = await updateProfileSection(section, payload);
-
-        if (success) {
-          handleCancelSection(section);
-        }
-      } catch (error) {
-        console.error(`Error updating ${section}:`, error);
-        showErrorToast(`Failed to update ${section}`);
-      }
-    },
-    [tempData, updateProfileSection, handleCancelSection]
-  );
-
-  // Skills handlers
-  const handleSkillsEdit = useCallback(() => {
-    const currentSkills = applicantProfile.skillIds
-      .map((skillId) => availableSkills.find((skill) => skill.id === skillId))
-      .filter(Boolean) as Skill[];
-    setSelectedSkills(currentSkills);
-    setDialogStates((prev) => ({ ...prev, skills: true }));
-  }, [applicantProfile.skillIds, availableSkills]);
-
-  const handleSkillsConfirm = useCallback(
-    async (skills: Skill[]) => {
-      try {
-        setLoadingStates((prev) => ({ ...prev, skillsUpdate: true }));
-        const skillIds = skills.map((skill) => skill.id);
-        handleInputChange("skillIds", skillIds);
-        setDialogStates((prev) => ({ ...prev, skills: false }));
-
-        const payload = {
-          profile_practical_skills: skillIds.map((i: number) => ({
-            practical_skill_id: i,
-          })),
-        };
-
-        const success = await updateProfileSection("skills", payload, false);
-        if (success) {
-          setApplicantProfile({
-            ...applicantProfile,
-            skillIds: skillIds,
-          });
-          showSuccessToast("Skills updated successfully!");
-        }
-      } finally {
-        setLoadingStates((prev) => ({ ...prev, skillsUpdate: false }));
-      }
-    },
-    [handleInputChange, updateProfileSection, applicantProfile, setApplicantProfile]
-  );
-
-  const handleSkillsCancel = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, skills: false }));
-  }, []);
-
-  // Job types handlers
-  const handleJobTypesEdit = useCallback(() => {
-    const currentJobTypes = tempData.jobTypes.map((type: string) => type as JobType);
-    setSelectedJobTypes(currentJobTypes);
-    setDialogStates((prev) => ({ ...prev, preferredJobTypes: true }));
-  }, [tempData.jobTypes]);
-
-  const handleJobTypesConfirm = useCallback(
-    async (jobTypes: JobType[]) => {
-      try {
-        setLoadingStates((prev) => ({ ...prev, jobTypesUpdate: true }));
-        const jobTypeStrings = jobTypes.map((type) => type);
-        setTempData({ ...tempData, jobTypes: jobTypeStrings });
-        setDialogStates((prev) => ({ ...prev, preferredJobTypes: false }));
-
-        const payload = {
-          job_type1: jobTypeStrings[0] ? toPrismaJobType(jobTypeStrings[0]) : null,
-          job_type2: jobTypeStrings[1] ? toPrismaJobType(jobTypeStrings[1]) : null,
-          job_type3: jobTypeStrings[2] ? toPrismaJobType(jobTypeStrings[2]) : null,
-        };
-
-        try {
-          console.log("🔍 job types payload:", payload);
-          await apiPatchData(API_URLS.SEEKER.PROFILES, payload);
-
-          setApplicantProfile({
-            ...applicantProfile,
-            jobTypes: jobTypeStrings,
-          });
-          showSuccessToast("Job types updated successfully!");
-        } catch (error) {
-          console.error("Failed to save job types:", error);
-          showErrorToast(`Failed to update job types: ${(error as Error).message}`);
-        }
-      } finally {
-        setLoadingStates((prev) => ({ ...prev, jobTypesUpdate: false }));
-      }
-    },
-    [tempData, setTempData, setApplicantProfile, applicantProfile]
-  );
-
-  // Experience handlers
-  const deleteExperience = useCallback((index: number) => {
-    setDialogStates((prev) => ({
-      ...prev,
-      deleteConfirm: { isOpen: true, experienceIndex: index },
-    }));
-  }, []);
-
-  const confirmDeleteExperience = useCallback(() => {
-    const { experienceIndex } = dialogStates.deleteConfirm;
-    if (experienceIndex !== null) {
-      const experience = tempData.experiences[experienceIndex];
-      const updatedExperiences = tempData.experiences.filter((_, i) => i !== experienceIndex);
-      setTempData({ ...tempData, experiences: updatedExperiences });
-      showSuccessToast("Experience deleted successfully!");
-    }
-    setDialogStates((prev) => ({
-      ...prev,
-      deleteConfirm: { isOpen: false, experienceIndex: null },
-    }));
-  }, [dialogStates.deleteConfirm, tempData, setTempData]);
-
-  const cancelDeleteExperience = useCallback(() => {
-    setDialogStates((prev) => ({
-      ...prev,
-      deleteConfirm: { isOpen: false, experienceIndex: null },
-    }));
-  }, []);
-
-  // Utility handlers
-  const addSkill = useCallback(() => {
-    if (newSkill.trim()) {
-      const selectedSkill = availableSkills.find((skill) => skill.name_en === newSkill.trim());
-      if (selectedSkill) {
-        handleInputChange("skillIds", [...tempData.skillIds, selectedSkill.id]);
-        setNewSkill("");
-      }
-    }
-  }, [newSkill, availableSkills, handleInputChange, tempData.skillIds]);
-
-  const removeSkill = useCallback(
-    (index: number) => {
-      handleInputChange(
-        "skillIds",
-        tempData.skillIds.filter((_, i) => i !== index)
-      );
-    },
-    [handleInputChange, tempData.skillIds]
-  );
-
-  const toggleAvailabilityDay = useCallback(
-    (day: string) => {
-      handleInputChange("availabilityDay", day);
-    },
-    [handleInputChange]
-  );
-
-  const toggleAvailabilityTime = useCallback(
-    (time: string) => {
-      handleInputChange("availabilityTime", time);
-    },
-    [handleInputChange]
-  );
-
-  const updateEnglishLevel = useCallback(
-    (level: LanguageLevel) => {
-      handleInputChange("englishLevel", level);
-    },
-    [handleInputChange]
-  );
 
   if (isLoading || !applicantProfile || !tempData) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
+        {/* Loading Screen for API calls */}
+        {(loadingStates.profileUpdate ||
+          loadingStates.imageUpload ||
+          loadingStates.skillsUpdate ||
+          loadingStates.jobTypesUpdate ||
+          loadingStates.experienceSave) && <LoadingScreen overlay={true} opacity="light" />}
+
         <BackHeader title="Profile Settings" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
           <div className="space-y-4 sm:space-y-5">
@@ -403,15 +128,14 @@ function SeekerProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
+      {/* Header */}
+      <BackHeader title="Profile Settings" />
       {/* Loading Screen for API calls */}
       {(loadingStates.profileUpdate ||
         loadingStates.imageUpload ||
         loadingStates.skillsUpdate ||
         loadingStates.jobTypesUpdate ||
         loadingStates.experienceSave) && <LoadingScreen overlay={true} opacity="light" />}
-
-      {/* Header */}
-      <BackHeader title="Profile Settings" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
         {/* Profile Sections */}
@@ -815,7 +539,9 @@ function SeekerProfilePage() {
       <JobTypesDialog
         title="Select Preferred Job Types"
         open={dialogStates.preferredJobTypes}
-        onClose={() => setDialogStates((prev) => ({ ...prev, preferredJobTypes: false }))}
+        onClose={() =>
+          setDialogStates((prev: DialogStates) => ({ ...prev, preferredJobTypes: false }))
+        }
         selectedJobTypes={selectedJobTypes}
         onConfirm={handleJobTypesConfirm}
         maxSelected={3}
