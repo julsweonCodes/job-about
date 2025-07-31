@@ -1,7 +1,7 @@
 import "next/server";
 import { getUserPersonalityProfile } from "@/app/services/quiz-services";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
-import { getUserIdFromSession } from "@/utils/auth";
+import { getUserUuidFromSession } from "@/utils/auth";
 
 /**
  * GET: 현재 로그인한 사용자의 성향 프로필을 가져오는 API
@@ -12,21 +12,21 @@ export async function GET() {
   try {
     console.log("사용자 성향 프로필 조회 API 호출");
     
-    // 인증된 사용자 ID 가져오기
-    let userId: number;
+    // 인증된 사용자 UUID 가져오기
+    let userUuid: string;
     try {
-      userId = await getUserIdFromSession();
+      userUuid = await getUserUuidFromSession();
     } catch (error) {
       console.error("사용자 인증 실패:", error);
       return errorResponse("Unauthorized.", 401);
     }
 
-    console.log(`사용자 ${userId}의 성향 프로필 조회 시작`);
+    console.log(`사용자 ${userUuid}의 성향 프로필 조회 시작`);
     
-    const profile = await getUserPersonalityProfile(userId.toString());
+    const profile = await getUserPersonalityProfile(userUuid);
 
     if (!profile) {
-      console.log(`사용자의 성향 프로필이 설정되지 않음: userId=${userId}`);
+      console.log(`사용자의 성향 프로필이 설정되지 않음: userUuid=${userUuid}`);
       return successResponse(null, 200, "User has no personality profile set.");
     }
 

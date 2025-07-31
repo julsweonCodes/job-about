@@ -170,10 +170,16 @@ function QuizPage() {
 
           if (data.status === "success") {
             // 성공적으로 제출되면 결과 페이지로 이동
+            console.log("퀴즈 제출 성공, 결과 페이지로 이동 중...");
             if (typeof window !== "undefined") {
               sessionStorage.setItem("quizSubmitted", "true");
               sessionStorage.setItem("profileId", data.data.profileId);
+              console.log("세션 스토리지에 데이터 저장 완료:", {
+                quizSubmitted: "true",
+                profileId: data.data.profileId
+              });
             }
+            console.log("라우터로 결과 페이지 이동:", "/onboarding/seeker/quiz/result");
             router.push("/onboarding/seeker/quiz/result");
           } else {
             console.error("퀴즈 제출 실패:", data.message);
