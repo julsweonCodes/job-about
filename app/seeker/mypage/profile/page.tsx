@@ -68,18 +68,14 @@ function SeekerProfilePage() {
     handleCancel: handleCancelSection,
     handleTempInputChange: handleInputChange,
     setTempData,
-    newSkill,
     selectedSkills,
     selectedJobTypes,
     dialogStates,
-    setNewSkill,
     setDialogStates,
     handleOptionsSave,
     handleSkillsEdit,
     handleSkillsConfirm,
     handleSkillsCancel,
-    addSkill,
-    removeSkill,
     handleJobTypesEdit,
     handleJobTypesConfirm,
     deleteExperience,
@@ -88,6 +84,7 @@ function SeekerProfilePage() {
     toggleAvailabilityDay,
     toggleAvailabilityTime,
     updateEnglishLevel,
+    hasExperiencesChanged,
   } = useSeekerMypageProfile();
 
   const {
@@ -228,59 +225,23 @@ function SeekerProfilePage() {
             onSave={() => handleOptionsSave("skills")}
             onCancel={() => handleCancelSection("skills")}
           >
-            {!isEditing.skills ? (
-              <div className="flex flex-wrap gap-2">
-                {tempData.skillIds.length > 0 ? (
-                  tempData.skillIds.map((skillId, index) => {
-                    const skill = availableSkills.find((s) => s.id === skillId);
-                    return skill ? (
-                      <span
-                        key={`${skill.id}-${index}`}
-                        className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium"
-                      >
-                        {skill.name_en}
-                      </span>
-                    ) : null;
-                  })
-                ) : (
-                  <span className="text-slate-500 text-sm">No skills added</span>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    placeholder="Search skills..."
-                    className="flex-1"
-                    showClearButton={true}
-                  />
-                  <Button onClick={addSkill} size="sm">
-                    Add
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {tempData.skillIds.map((skillId, index) => {
-                    const skill = availableSkills.find((s) => s.id === skillId);
-                    return skill ? (
-                      <div
-                        key={`${skill.id}-${index}`}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium"
-                      >
-                        <span>{skill.name_en}</span>
-                        <button
-                          onClick={() => removeSkill(index)}
-                          className="text-yellow-600 hover:text-yellow-800"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {tempData.skillIds.length > 0 ? (
+                tempData.skillIds.map((skillId, index) => {
+                  const skill = availableSkills.find((s) => s.id === skillId);
+                  return skill ? (
+                    <span
+                      key={`${skill.id}-${index}`}
+                      className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium"
+                    >
+                      {skill.name_en}
+                    </span>
+                  ) : null;
+                })
+              ) : (
+                <span className="text-slate-500 text-sm">No skills added</span>
+              )}
+            </div>
           </InfoSection>
 
           {/* Work Type */}
@@ -328,33 +289,20 @@ function SeekerProfilePage() {
             onSave={() => handleOptionsSave("jobTypes")}
             onCancel={() => handleCancelSection("jobTypes")}
           >
-            {!isEditing.jobTypes ? (
-              <div className="flex flex-wrap gap-2">
-                {tempData.jobTypes.length > 0 ? (
-                  tempData.jobTypes.map((type, index) => (
-                    <span
-                      key={`${type}-${index}`}
-                      className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
-                    >
-                      {getJobTypeName(type)}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-slate-500 text-sm">No job types selected</span>
-                )}
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                {tempData.jobTypes.map((type, index) => (
+            <div className="flex flex-wrap gap-2">
+              {tempData.jobTypes.length > 0 ? (
+                tempData.jobTypes.map((type, index) => (
                   <span
                     key={`${type}-${index}`}
                     className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
                   >
                     {getJobTypeName(type)}
                   </span>
-                ))}
-              </div>
-            )}
+                ))
+              ) : (
+                <span className="text-slate-500 text-sm">No job types selected</span>
+              )}
+            </div>
           </InfoSection>
 
           {/* Availability */}
@@ -486,7 +434,12 @@ function SeekerProfilePage() {
               </button>
               <button
                 onClick={() => handleOptionsSave("workExperience")}
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30 touch-manipulation active:scale-[0.98]"
+                disabled={!hasExperiencesChanged()}
+                className={`w-full sm:w-auto font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 touch-manipulation active:scale-[0.98] ${
+                  hasExperiencesChanged()
+                    ? "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
               >
                 <span className="text-sm sm:text-base">Save Changes</span>
               </button>

@@ -108,7 +108,6 @@ interface UseSeekerMypageReturn {
   availableLocations: string[];
   loadingStates: LoadingStates;
   isEditing: EditingStates;
-  newSkill: string;
   selectedSkills: Skill[];
   selectedJobTypes: JobType[];
   dialogStates: {
@@ -143,13 +142,10 @@ interface UseSeekerMypageReturn {
   handleOptionsSave: (section: keyof typeof SECTION_MAPPINGS) => Promise<void>;
 
   // Skills Actions
-  setNewSkill: (skill: string) => void;
   setSelectedSkills: (skills: Skill[]) => void;
   handleSkillsEdit: () => void;
   handleSkillsConfirm: (skills: Skill[]) => Promise<void>;
   handleSkillsCancel: () => void;
-  addSkill: () => void;
-  removeSkill: (index: number) => void;
 
   // Job Types Actions
   setSelectedJobTypes: (jobTypes: JobType[]) => void;
@@ -166,6 +162,7 @@ interface UseSeekerMypageReturn {
   toggleAvailabilityTime: (time: string) => void;
   updateEnglishLevel: (level: LanguageLevel) => void;
   setDialogStates: (states: any) => void;
+  hasExperiencesChanged: () => boolean;
 }
 
 // Constants
@@ -278,7 +275,6 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
   const [isEditing, setIsEditingState] = useState<EditingStates>(INITIAL_EDITING_STATES);
 
   // Additional state for profile page
-  const [newSkill, setNewSkill] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [selectedJobTypes, setSelectedJobTypes] = useState<JobType[]>([]);
   const [dialogStates, setDialogStates] = useState({
@@ -288,6 +284,11 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     preferredJobTypes: false,
     deleteConfirm: { isOpen: false, experienceIndex: null as number | null },
   });
+
+  // Track original experiences for comparison
+  const [originalExperiences, setOriginalExperiences] = useState<ApplicantProfile["experiences"]>(
+    []
+  );
 
   // API Functions - fetchSkills와 fetchLocations 제거
   const fetchInitialData = useCallback(async () => {
@@ -418,6 +419,7 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
   useEffect(() => {
     if (applicantProfile) {
       setTempData(applicantProfile);
+      setOriginalExperiences(applicantProfile.experiences);
     }
   }, [applicantProfile]);
 
@@ -571,26 +573,6 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     setDialogStates((prev) => ({ ...prev, skills: false }));
   }, []);
 
-  const addSkill = useCallback(() => {
-    if (newSkill.trim()) {
-      const selectedSkill = availableSkills.find((skill) => skill.name_en === newSkill.trim());
-      if (selectedSkill) {
-        handleTempInputChange("skillIds", [...tempData.skillIds, selectedSkill.id]);
-        setNewSkill("");
-      }
-    }
-  }, [newSkill, availableSkills, handleTempInputChange, tempData.skillIds]);
-
-  const removeSkill = useCallback(
-    (index: number) => {
-      handleTempInputChange(
-        "skillIds",
-        tempData.skillIds.filter((_, i) => i !== index)
-      );
-    },
-    [handleTempInputChange, tempData.skillIds]
-  );
-
   // Job Types Actions
   const handleJobTypesEdit = useCallback(() => {
     const currentJobTypes = tempData.jobTypes.map((type: string) => type as JobType);
@@ -683,6 +665,27 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     [handleTempInputChange]
   );
 
+  // Check if experiences have changed
+  const hasExperiencesChanged = useCallback(() => {
+    if (originalExperiences.length !== tempData.experiences.length) {
+      return true;
+    }
+
+    return tempData.experiences.some((exp, index) => {
+      const original = originalExperiences[index];
+      if (!original) return true;
+
+      return (
+        exp.company !== original.company ||
+        exp.jobType !== original.jobType ||
+        exp.startYear !== original.startYear ||
+        exp.workedPeriod !== original.workedPeriod ||
+        exp.workType !== original.workType ||
+        exp.description !== original.description
+      );
+    });
+  }, [tempData.experiences, originalExperiences]);
+
   // Combined loading state
   const combinedIsLoading = isLoading || isCommonDataLoading;
 
@@ -698,7 +701,6 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     availableLocations: availableLocations.map(convertLocationKeyToValue),
     loadingStates,
     isEditing,
-    newSkill,
     selectedSkills,
     selectedJobTypes,
     dialogStates,
@@ -720,13 +722,10 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     handleOptionsSave,
 
     // Skills Actions
-    setNewSkill,
     setSelectedSkills,
     handleSkillsEdit,
     handleSkillsConfirm,
     handleSkillsCancel,
-    addSkill,
-    removeSkill,
 
     // Job Types Actions
     setSelectedJobTypes,
@@ -743,5 +742,6 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     toggleAvailabilityTime,
     updateEnglishLevel,
     setDialogStates,
+    hasExperiencesChanged,
   };
 };
