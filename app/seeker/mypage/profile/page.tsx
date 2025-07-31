@@ -81,9 +81,6 @@ function SeekerProfilePage() {
     deleteExperience,
     confirmDeleteExperience,
     cancelDeleteExperience,
-    toggleAvailabilityDay,
-    toggleAvailabilityTime,
-    updateEnglishLevel,
     hasExperiencesChanged,
   } = useSeekerMypageProfile();
 
@@ -335,7 +332,7 @@ function SeekerProfilePage() {
                     {AVAILABLE_DAY_OPTIONS.map((day) => (
                       <button
                         key={day.value}
-                        onClick={() => toggleAvailabilityDay(day.value)}
+                        onClick={() => handleInputChange("availabilityDay", day.value)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                           tempData.availabilityDay === day.value
                             ? "bg-orange-500 text-white"
@@ -355,7 +352,7 @@ function SeekerProfilePage() {
                     {AVAILABLE_HOUR_OPTIONS.map((hour) => (
                       <button
                         key={hour.value}
-                        onClick={() => toggleAvailabilityTime(hour.value)}
+                        onClick={() => handleInputChange("availabilityTime", hour.value)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                           tempData.availabilityTime === hour.value
                             ? "bg-orange-500 text-white"
@@ -391,7 +388,7 @@ function SeekerProfilePage() {
                 {Object.values(LanguageLevel).map((level) => (
                   <button
                     key={level}
-                    onClick={() => updateEnglishLevel(level)}
+                    onClick={() => handleInputChange("englishLevel", level)}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                       tempData.englishLevel === level
                         ? "bg-teal-500 text-white"

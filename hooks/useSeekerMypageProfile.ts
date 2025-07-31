@@ -158,9 +158,6 @@ interface UseSeekerMypageReturn {
   cancelDeleteExperience: () => void;
 
   // Utility Actions
-  toggleAvailabilityDay: (day: string) => void;
-  toggleAvailabilityTime: (time: string) => void;
-  updateEnglishLevel: (level: LanguageLevel) => void;
   setDialogStates: (states: any) => void;
   hasExperiencesChanged: () => boolean;
 }
@@ -311,6 +308,7 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
         setUserInfo(userData.user);
       }
 
+      // TODO 
       // Personality Data
       try {
         const personalityData = await apiGetData(API_URLS.QUIZ.MY_PROFILE);
@@ -643,28 +641,6 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     }));
   }, []);
 
-  // Utility Actions
-  const toggleAvailabilityDay = useCallback(
-    (day: string) => {
-      handleTempInputChange("availabilityDay", day);
-    },
-    [handleTempInputChange]
-  );
-
-  const toggleAvailabilityTime = useCallback(
-    (time: string) => {
-      handleTempInputChange("availabilityTime", time);
-    },
-    [handleTempInputChange]
-  );
-
-  const updateEnglishLevel = useCallback(
-    (level: LanguageLevel) => {
-      handleTempInputChange("englishLevel", level);
-    },
-    [handleTempInputChange]
-  );
-
   // Check if experiences have changed
   const hasExperiencesChanged = useCallback(() => {
     if (originalExperiences.length !== tempData.experiences.length) {
@@ -738,9 +714,6 @@ export const useSeekerMypageProfile = (): UseSeekerMypageReturn => {
     cancelDeleteExperience,
 
     // Utility Actions
-    toggleAvailabilityDay,
-    toggleAvailabilityTime,
-    updateEnglishLevel,
     setDialogStates,
     hasExperiencesChanged,
   };
