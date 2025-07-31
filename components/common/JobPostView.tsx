@@ -52,7 +52,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
       : [];
 
   const jobDetailItems = [
-  {
+    {
       icon: MapPin,
       label: "Location",
       value: jobData.businessLocInfo.location,
@@ -158,13 +158,15 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                   key={item.label}
                   className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-xl ${item.bgColor}`}>
+                  <div className="flex items-start space-x-4">
+                    <div className={`p-3 rounded-xl ${item.bgColor} flex-shrink-0`}>
                       <IconComponent className={`w-5 h-5 ${item.color}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-500 mb-1">{item.label}</p>
-                      <p className="text-base font-semibold text-gray-900 truncate">{item.value}</p>
+                      <p className="text-base font-semibold text-gray-900 break-words">
+                        {item.value}
+                      </p>
                     </div>
                   </div>
                 </div>
