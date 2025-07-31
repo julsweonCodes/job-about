@@ -85,12 +85,10 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
 
     // 조인 속성의 경우
     if (profile_practical_skills) {
-      updated = await prisma.$transaction([
+      const [, updatedProfile] = await prisma.$transaction([
         prisma.profile_practical_skills.deleteMany({
           where: { profile_id: profile.id },
-        }),
-
-        prisma.applicant_profiles.update({
+        }), prisma.applicant_profiles.update({
           where: { id: profile.id, deleted_at: null },
           data: {
             profile_practical_skills: {
@@ -110,8 +108,10 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
           },
         }),
       ]);
+
+      updated = updatedProfile;
     } else if (work_experiences) {
-      updated = await prisma.$transaction([
+      const [, updatedProfile] = await prisma.$transaction([
         prisma.work_experiences.deleteMany({
           where: { profile_id: profile.id },
         }),
@@ -141,6 +141,7 @@ export async function updateSeekerProfile(userId: number, body: updateApplicantP
           },
         }),
       ]);
+      updated = updatedProfile
     } else {
       // 비조인 속성인 경우
       const filtered = Object.fromEntries(

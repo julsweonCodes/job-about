@@ -364,7 +364,10 @@ export async function getbookmarkedJobPosts(userId: number, page: number, limit:
     include: {
       job_post: {
         include: {
-          business_loc: true
+          business_loc: true,
+          _count: {
+            select: { applications: true }
+          }
         }
       }
     }
@@ -393,6 +396,9 @@ export async function getAppliedJobPosts(userId: number, profileId: number, page
       job_post: {
         include: {
           business_loc: true
+          , _count: {
+            select: { applications: true }
+          }
         }
       }
     }
