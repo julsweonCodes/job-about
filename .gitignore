@@ -19,3 +19,6 @@
 *.pem
 
 .idea/
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
