@@ -7,63 +7,6 @@ import { STORAGE_URLS } from "@/constants/storage";
 // 인증 상태 타입 정의
 export type AuthState = "initializing" | "authenticated" | "unauthenticated" | "error";
 
-// 역할별 데이터 타입
-interface SeekerData {
-  // 구직자 관련 데이터 (마이 페이지)
-  applicantProfile?: {
-    job_type1: string;
-    job_type2?: string;
-    job_type3?: string;
-    work_type: string;
-    available_day: string;
-    available_hour: string;
-    location: string;
-    language_level: string;
-    description: string;
-    profile_practical_skills: Array<{ practical_skill_id: number }>;
-    work_experiences: Array<{
-      company_name: string;
-      job_type: string;
-      start_date: Date;
-      end_date: Date;
-      work_type: string;
-      description: string;
-    }>;
-  };
-  personalityProfileId?: number;
-  skills?: Array<{
-    id: number;
-    category_ko: string;
-    category_en: string;
-    name_ko: string;
-    name_en: string;
-  }>;
-  workStyles?: Array<{
-    id: number;
-    name_ko: string;
-    name_en: string;
-  }>;
-}
-
-interface EmployerData {
-  // 구인자 관련 데이터 (마이 페이지)
-  employerProfile?: {
-    name: string;
-    phone_number: string;
-    address: string;
-    operating_start: string;
-    operating_end: string;
-    description?: string;
-    logo_img: string;
-    img_url1?: string;
-    img_url2?: string;
-    img_url3?: string;
-    img_url4?: string;
-    img_url5?: string;
-    user_id: number;
-  };
-}
-
 interface AuthStoreState {
   // 인증 상태 관리
   authState: AuthState;
@@ -75,10 +18,6 @@ interface AuthStoreState {
   appUser: AppUser | null;
   profileStatus: ProfileStatus | null;
 
-  // 역할별 데이터
-  seekerData: SeekerData | null;
-  employerData: EmployerData | null;
-
   // 상태 관리 액션
   setAuthState: (state: AuthState) => void;
   setRetryCount: (count: number) => void;
@@ -88,12 +27,6 @@ interface AuthStoreState {
   setSupabaseUser: (user: SupabaseUser | null) => void;
   setAppUser: (appUser: AppUser | null) => void;
   setProfileStatus: (status: ProfileStatus | null) => void;
-
-  // 역할별 데이터 액션
-  setSeekerData: (data: SeekerData | null) => void;
-  setEmployerData: (data: EmployerData | null) => void;
-  clearSeekerData: () => void;
-  clearEmployerData: () => void;
 
   // 인증 액션
   login: (supabaseUser: SupabaseUser, appUser: AppUser, profileStatus: ProfileStatus) => void;
@@ -114,17 +47,10 @@ interface AuthStoreState {
   getUserEmail: () => string;
   getUserProfileImageUrl: () => string | null;
 
-  // 역할별 데이터 셀렉터
-  getRoleSpecificData: () => SeekerData | EmployerData | null;
-
   // 유틸리티 셀렉터
   hasError: () => boolean;
   isInitialized: () => boolean;
   canAccessRoleData: () => boolean;
-  getSeekerData: () => SeekerData | null;
-  getEmployerData: () => EmployerData | null;
-  isSeekerProfileComplete: () => boolean;
-  isEmployerProfileComplete: () => boolean;
 
   // 재시도 관련
   canRetry: () => boolean;
@@ -151,8 +77,6 @@ export const useAuthStore = create<AuthStoreState>()(
         supabaseUser: null,
         appUser: null,
         profileStatus: null,
-        seekerData: null,
-        employerData: null,
 
         // 상태 관리 액션
         setAuthState: (state) => set({ authState: state }),
@@ -164,12 +88,6 @@ export const useAuthStore = create<AuthStoreState>()(
         setAppUser: (appUser) => set({ appUser }),
         setProfileStatus: (status) => set({ profileStatus: status }),
 
-        // 역할별 데이터 액션
-        setSeekerData: (data) => set({ seekerData: data }),
-        setEmployerData: (data) => set({ employerData: data }),
-        clearSeekerData: () => set({ seekerData: null }),
-        clearEmployerData: () => set({ employerData: null }),
-
         // 인증 액션
         login: (supabaseUser, appUser, profileStatus) =>
           set({
@@ -179,8 +97,6 @@ export const useAuthStore = create<AuthStoreState>()(
             profileStatus,
             retryCount: 0,
             lastError: null,
-            seekerData: null,
-            employerData: null,
           }),
 
         logout: () =>
@@ -191,8 +107,6 @@ export const useAuthStore = create<AuthStoreState>()(
             profileStatus: null,
             retryCount: 0,
             lastError: null,
-            seekerData: null,
-            employerData: null,
           }),
 
         retryAuth: () => {
@@ -262,16 +176,6 @@ export const useAuthStore = create<AuthStoreState>()(
           return `${STORAGE_URLS.USER.PROFILE_IMG}${appUser.img_url}`;
         },
 
-        getRoleSpecificData: () => {
-          const { profileStatus, seekerData, employerData } = get();
-          if (profileStatus?.role === "APPLICANT") {
-            return seekerData;
-          } else if (profileStatus?.role === "EMPLOYER") {
-            return employerData;
-          }
-          return null;
-        },
-
         // 유틸리티 셀렉터
         hasError: () => {
           const { lastError } = get();
@@ -317,30 +221,6 @@ export const useAuthStore = create<AuthStoreState>()(
         canAccessRoleData: () => {
           const { authState, profileStatus } = get();
           return authState === "authenticated" && !!profileStatus?.hasRole;
-        },
-
-        getSeekerData: () => {
-          const { seekerData } = get();
-          return seekerData;
-        },
-
-        getEmployerData: () => {
-          const { employerData } = get();
-          return employerData;
-        },
-
-        isSeekerProfileComplete: () => {
-          const { profileStatus } = get();
-          return (
-            profileStatus?.role === "APPLICANT" &&
-            profileStatus?.hasPersonalityProfile &&
-            profileStatus?.hasApplicantProfile
-          );
-        },
-
-        isEmployerProfileComplete: () => {
-          const { profileStatus } = get();
-          return profileStatus?.role === "EMPLOYER" && profileStatus?.isProfileCompleted;
         },
 
         // 재시도 관련
