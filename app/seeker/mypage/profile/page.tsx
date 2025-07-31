@@ -538,11 +538,11 @@ function SeekerProfilePage() {
             {!isEditing.skills ? (
               <div className="flex flex-wrap gap-2">
                 {tempData.skillIds.length > 0 ? (
-                  tempData.skillIds.map((skillId) => {
+                  tempData.skillIds.map((skillId, index) => {
                     const skill = availableSkills.find((s) => s.id === skillId);
                     return skill ? (
                       <span
-                        key={skill.id}
+                        key={`${skill.id}-${index}`}
                         className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium"
                       >
                         {skill.name_en}
@@ -572,7 +572,7 @@ function SeekerProfilePage() {
                     const skill = availableSkills.find((s) => s.id === skillId);
                     return skill ? (
                       <div
-                        key={skill.id}
+                        key={`${skill.id}-${index}`}
                         className="flex items-center gap-2 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium"
                       >
                         <span>{skill.name_en}</span>
@@ -638,9 +638,9 @@ function SeekerProfilePage() {
             {!isEditing.jobTypes ? (
               <div className="flex flex-wrap gap-2">
                 {tempData.jobTypes.length > 0 ? (
-                  tempData.jobTypes.map((type) => (
+                  tempData.jobTypes.map((type, index) => (
                     <span
-                      key={type}
+                      key={`${type}-${index}`}
                       className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
                     >
                       {getJobTypeName(type)}
@@ -652,9 +652,9 @@ function SeekerProfilePage() {
               </div>
             ) : (
               <div className="flex gap-2">
-                {tempData.jobTypes.map((type) => (
+                {tempData.jobTypes.map((type, index) => (
                   <span
-                    key={type}
+                    key={`${type}-${index}`}
                     className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
                   >
                     {getJobTypeName(type)}
