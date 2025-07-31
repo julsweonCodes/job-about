@@ -126,13 +126,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     router.back();
   };
 
-  const isInitialLoading = loadingStates.jobDetails;
   const isActionLoading = isBookmarkLoading || loadingStates.apply;
-
-  // 로딩 상태일 때
-  if (isInitialLoading) {
-    return <LoadingScreen message="Loading job post..." />;
-  }
 
   // 메인 렌더링
   return (
@@ -143,26 +137,24 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
         leftIcon={<ArrowLeft className="w-5 h-5 text-gray-700" />}
         onClickLeft={handleBack}
         rightIcon={
-          isBookmarkLoading ? (
-            <div className="w-5 h-5 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
-          ) : isBookmarked ? (
-            <Bookmark fill="currentColor" className="w-5 h-5 text-purple-600" />
-          ) : (
-            <Bookmark className="w-5 h-5 text-gray-700" />
-          )
+          jobDetails ? (
+            isBookmarked ? (
+              <Bookmark fill="currentColor" className="w-5 h-5 text-purple-600" />
+            ) : (
+              <Bookmark className="w-5 h-5 text-gray-700" />
+            )
+          ) : null
         }
         onClickRight={debouncedToggleBookmark}
       />
 
       {/* Job Post Content */}
-      {jobDetails && (
-        <JobPostView
-          jobData={jobDetails}
-          mode="seeker"
-          showApplyButton={true}
-          onApply={handleApply}
-        />
-      )}
+      <JobPostView
+        jobData={jobDetails}
+        mode="seeker"
+        showApplyButton={true}
+        onApply={handleApply}
+      />
     </div>
   );
 };
