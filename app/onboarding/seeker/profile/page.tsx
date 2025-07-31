@@ -31,7 +31,7 @@ import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { FormSection } from "@/components/common/FormSection";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { useSeekerForm } from "@/hooks/useSeekerForm";
+import { useSeekerForm } from "@/hooks/seeker/useSeekerForm";
 import { useDialogState } from "@/hooks/useDialogState";
 import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";

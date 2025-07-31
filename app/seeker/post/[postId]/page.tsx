@@ -52,33 +52,22 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     }
   };
 
-  // 북마크 상태 확인 (API가 없으므로 로컬 상태로 관리)
-  const fetchBookmarkStatus = useCallback(async () => {
-    try {
-      // TODO: 북마크 상태 확인 API가 구현되면 여기서 호출
-      // const data = await apiGetData(API_URLS.SEEKER.BOOKMARK_STATUS(params.postId));
-      // setIsBookmarked(data.isBookmarked);
-
-      // 현재는 로컬 상태로 관리 (실제로는 서버에서 가져와야 함)
-      console.log("Bookmark status check - API not implemented yet");
-    } catch (error) {
-      console.error("Error fetching bookmark status:", error);
-      setBookmarkError("Failed to fetch bookmark status");
-    }
-  }, [params.postId]);
-
   useEffect(() => {
     if (params.postId) {
       initializeData();
-      fetchBookmarkStatus();
     }
-  }, [params.postId, fetchBookmarkStatus]);
+  }, [params.postId]);
 
   const fetchJobDetails = async () => {
     try {
       // 올바른 API 호출 - status 파라미터를 함수에 직접 전달
       const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
       setJobDetails(data);
+
+      // API 응답에서 isBookmarked 상태 설정
+      if (data && typeof data.isBookmarked === "boolean") {
+        setIsBookmarked(data.isBookmarked);
+      }
     } catch (error) {
       console.error("Error fetching job post:", error);
       // 에러 처리 - 404 페이지로 리다이렉트 또는 에러 표시
@@ -136,13 +125,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     router.back();
   };
 
-  const isInitialLoading = loadingStates.jobDetails;
   const isActionLoading = isBookmarkLoading || loadingStates.apply;
-
-  // 로딩 상태일 때
-  if (isInitialLoading) {
-    return <LoadingScreen message="Loading job post..." />;
-  }
 
   // 메인 렌더링
   return (
@@ -153,26 +136,24 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
         leftIcon={<ArrowLeft className="w-5 h-5 text-gray-700" />}
         onClickLeft={handleBack}
         rightIcon={
-          isBookmarkLoading ? (
-            <div className="w-5 h-5 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
-          ) : isBookmarked ? (
-            <Bookmark fill="currentColor" className="w-5 h-5 text-purple-600" />
-          ) : (
-            <Bookmark className="w-5 h-5 text-gray-700" />
-          )
+          jobDetails ? (
+            isBookmarked ? (
+              <Bookmark fill="currentColor" className="w-5 h-5 text-purple-600" />
+            ) : (
+              <Bookmark className="w-5 h-5 text-gray-700" />
+            )
+          ) : null
         }
         onClickRight={debouncedToggleBookmark}
       />
 
       {/* Job Post Content */}
-      {jobDetails && (
-        <JobPostView
-          jobData={jobDetails}
-          mode="seeker"
-          showApplyButton={true}
-          onApply={handleApply}
-        />
-      )}
+      <JobPostView
+        jobData={jobDetails}
+        mode="seeker"
+        showApplyButton={true}
+        onApply={handleApply}
+      />
     </div>
   );
 };

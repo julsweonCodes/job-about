@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { API_URLS } from "@/constants/api";
-import { showErrorToast } from "@/utils/client/toastUtils";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { apiGetData, apiPatchData } from "@/utils/client/API";
+import { useRouter } from "next/navigation";
 
 // Types
 export interface UserInfo {
@@ -18,21 +19,48 @@ export interface ApplicantProfileMain {
   personalityDesc: string;
 }
 
+export interface DialogStates {
+  imageUpload: boolean;
+  profileEdit: boolean;
+}
+
+export interface ProfileEditData {
+  name: string;
+  phone_number: string;
+}
+
 interface UseSeekerMypageMainReturn {
   // State
   userInfo: UserInfo | null;
   applicantProfile: ApplicantProfileMain;
   isLoading: boolean;
   imageUploadLoading: boolean;
+  dialogStates: DialogStates;
+  profileEditData: ProfileEditData;
 
   // Actions
   updateProfileImage: (file: File) => Promise<void>;
+  handleProfileImageChange: (file: File) => Promise<void>;
+  handleImageUploadDialog: () => void;
+  handleProfileEditDialog: () => void;
+  handleProfileEditClose: () => void;
+  handleProfileEditSave: () => Promise<void>;
+  handleProfileEditChange: (field: "name" | "phone_number", value: string) => void;
+  handleNavigateToProfile: () => void;
+  handleNavigateToAppliedJobs: () => void;
+  handleNavigateToBookmarks: () => void;
+  setDialogStates: React.Dispatch<React.SetStateAction<DialogStates>>;
 }
 
 // Constants
 const INITIAL_APPLICANT_PROFILE: ApplicantProfileMain = {
   personalityName: "",
   personalityDesc: "",
+};
+
+const INITIAL_DIALOG_STATES: DialogStates = {
+  imageUpload: false,
+  profileEdit: false,
 };
 
 const DUMMY_PERSONALITY_PROFILE: ApplicantProfileMain = {
@@ -42,7 +70,8 @@ const DUMMY_PERSONALITY_PROFILE: ApplicantProfileMain = {
 };
 
 export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
-  const { appUser } = useAuthStore();
+  const router = useRouter();
+  const { appUser, setAppUser } = useAuthStore();
 
   // State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -50,6 +79,11 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
     useState<ApplicantProfileMain>(INITIAL_APPLICANT_PROFILE);
   const [isLoading, setIsLoading] = useState(true);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [dialogStates, setDialogStates] = useState<DialogStates>(INITIAL_DIALOG_STATES);
+  const [profileEditData, setProfileEditData] = useState<ProfileEditData>({
+    name: appUser?.name || "",
+    phone_number: appUser?.phone_number || "",
+  });
 
   const setUserInfoFromAppUser = useCallback(() => {
     if (appUser) {
@@ -99,7 +133,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
       const formData = new FormData();
       formData.append("img", file);
 
-      const result = await apiPatchData(API_URLS.USER.UPDATE, formData);
+      const result = await apiPatchData(API_URLS.USER.UPDATE_PROFILE_IMAGE, formData);
 
       if (result && result.img_url !== undefined) {
         // Update user info with new image
@@ -123,6 +157,80 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
       setImageUploadLoading(false);
     }
   }, []);
+
+  // Profile image change handler
+  const handleProfileImageChange = useCallback(
+    async (file: File) => {
+      try {
+        await updateProfileImage(file);
+        showSuccessToast("Profile image updated!");
+      } catch (error) {
+        console.error("Error updating profile image:", error);
+        showErrorToast("Failed to update profile image");
+      }
+    },
+    [updateProfileImage]
+  );
+
+  // Dialog handlers
+  const handleImageUploadDialog = useCallback(() => {
+    setDialogStates((prev) => ({ ...prev, imageUpload: true }));
+  }, []);
+
+  const handleProfileEditDialog = useCallback(() => {
+    setProfileEditData({
+      name: appUser?.name || "",
+      phone_number: appUser?.phone_number || "",
+    });
+    setDialogStates((prev) => ({ ...prev, profileEdit: true }));
+  }, [appUser?.name, appUser?.phone_number]);
+
+  const handleProfileEditClose = useCallback(() => {
+    setDialogStates((prev) => ({ ...prev, profileEdit: false }));
+  }, []);
+
+  const handleProfileEditSave = useCallback(async () => {
+    try {
+      const response = await apiPatchData(API_URLS.USER.UPDATE, {
+        name: profileEditData.name,
+        phone_number: profileEditData.phone_number,
+      });
+
+      if (response) {
+        // 성공 시 페이지 데이터 업데이트
+        if (appUser) {
+          setAppUser({
+            ...appUser,
+            name: profileEditData.name,
+            phone_number: profileEditData.phone_number,
+          });
+        }
+
+        setDialogStates((prev) => ({ ...prev, profileEdit: false }));
+        showSuccessToast("Profile updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      showErrorToast("Failed to update profile");
+    }
+  }, [profileEditData, appUser, setAppUser]);
+
+  const handleProfileEditChange = useCallback((field: "name" | "phone_number", value: string) => {
+    setProfileEditData((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Navigation handlers
+  const handleNavigateToProfile = useCallback(() => {
+    router.push(PAGE_URLS.SEEKER.MYPAGE.PROFILE);
+  }, [router]);
+
+  const handleNavigateToAppliedJobs = useCallback(() => {
+    router.push(PAGE_URLS.SEEKER.MYPAGE.APPLIES);
+  }, [router]);
+
+  const handleNavigateToBookmarks = useCallback(() => {
+    router.push(PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS);
+  }, [router]);
 
   // Initialize data
   useEffect(() => {
@@ -150,6 +258,18 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
     applicantProfile,
     isLoading,
     imageUploadLoading,
+    dialogStates,
+    profileEditData,
     updateProfileImage,
+    handleProfileImageChange,
+    handleImageUploadDialog,
+    handleProfileEditDialog,
+    handleProfileEditClose,
+    handleProfileEditSave,
+    handleProfileEditChange,
+    handleNavigateToProfile,
+    handleNavigateToAppliedJobs,
+    handleNavigateToBookmarks,
+    setDialogStates,
   };
 };

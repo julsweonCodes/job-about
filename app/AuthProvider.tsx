@@ -4,11 +4,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useCommonDataStore } from "@/stores/useCommonDataStore";
 
 export default function AuthProvider() {
   const { authState, initializeAuth } = useAuth();
   const { profileStatus } = useAuthStore();
+  const { fetchCommonData } = useCommonDataStore();
   const router = useRouter();
+
+  // 앱 시작 시점에 enum 데이터 미리 로드
+  useEffect(() => {
+    fetchCommonData();
+  }, [fetchCommonData]);
 
   // 실제 존재하는 경로인지 체크하는 함수
   const isExistingRoute = (pathname: string) => {

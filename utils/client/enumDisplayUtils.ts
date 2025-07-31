@@ -4,6 +4,7 @@ import {
   AVAILABLE_DAY_OPTIONS,
   AVAILABLE_HOUR_OPTIONS,
   LANGUAGE_LEVEL_OPTIONS,
+  WORK_PERIOD_OPTIONS,
 } from "@/constants/options";
 
 /**
@@ -44,6 +45,11 @@ export const getLanguageLevelLabel = (value: string): string => {
 export const getJobTypeName = (value: string): string => {
   const config = getJobTypeConfig(value as JobType);
   return config?.name || value;
+};
+
+export const getWorkPeriodLabel = (value: string): string => {
+  const option = WORK_PERIOD_OPTIONS.find((opt) => opt.value === value);
+  return option?.label || value;
 };
 
 /**

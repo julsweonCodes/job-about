@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
-import { JobType } from "@/constants/jobTypes";
 import { Skill } from "@/types/profile";
-import { LanguageLevel, WorkType, AvailableDay, AvailableHour } from "@/constants/enums";
+import { JobType } from "@/constants/jobTypes";
+import {
+  LanguageLevel,
+  WorkType,
+  AvailableDay,
+  AvailableHour,
+  WorkPeriod,
+} from "@/constants/enums";
 import { Location } from "@/constants/location";
 import { convertLocationKeyToValue } from "@/constants/location";
-import { API_URLS } from "@/constants/api";
-import { apiGetData } from "@/utils/client/API";
-import { WorkPeriod } from "@/constants/enums";
+import { useCommonData } from "@/hooks/useCommonData";
 
 interface JobSeekerFormData {
   skills: Skill[];
@@ -51,6 +55,12 @@ interface UseSeekerFormReturn {
 }
 
 export const useSeekerForm = (): UseSeekerFormReturn => {
+  const {
+    skills: availableSkills,
+    locations: availableLocations,
+    isLoading: isCommonDataLoading,
+  } = useCommonData();
+
   // 폼 데이터 상태
   const [formData, setFormData] = useState<JobSeekerFormData>({
     skills: [],
@@ -68,63 +78,17 @@ export const useSeekerForm = (): UseSeekerFormReturn => {
   // 경험 데이터 상태
   const [workExperiences, setWorkExperiences] = useState<ExperienceForm[]>([]);
 
-  // API 데이터 상태
-  const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
-
-  // 로딩 상태
-  const [loadingStates, setLoadingStates] = useState({
-    skills: false,
-    cities: false,
-  });
+  const cities = availableLocations.map(convertLocationKeyToValue);
+  const loadingStates = {
+    skills: isCommonDataLoading,
+    cities: isCommonDataLoading,
+  };
 
   const isLoading = Object.values(loadingStates).some((state) => state);
 
-  // API 호출 함수들
-  const fetchSkills = async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const data = await apiGetData(API_URLS.UTILS);
-      setAvailableSkills(data.skills);
-    } catch (error) {
-      console.error("Error fetching skills:", error);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, skills: false }));
-    }
-  };
-
-  const fetchCities = async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, cities: true }));
-      const data = await apiGetData(API_URLS.ENUM.BY_NAME("Location"));
-      const citiesData = data?.values || [];
-      if (Array.isArray(citiesData)) {
-        const convertedCities = citiesData.map(convertLocationKeyToValue);
-        setCities(convertedCities);
-      } else {
-        setCities([]);
-      }
-    } catch (error) {
-      console.error("Error fetching cities:", error);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, cities: false }));
-    }
-  };
-
-  // 초기화
+  // 초기화 - API 호출 제거
   useEffect(() => {
-    const initializeData = async () => {
-      try {
-        setLoadingStates({ skills: true, cities: true });
-        await Promise.all([fetchSkills(), fetchCities()]);
-      } catch (error) {
-        console.error("Error initializing data:", error);
-      } finally {
-        setLoadingStates({ skills: false, cities: false });
-      }
-    };
-
-    initializeData();
+    // useCommonData에서 자동으로 로드되므로 별도 초기화 불필요
   }, []);
 
   // 액션 함수들

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { API_URLS } from "@/constants/api";
-import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { showErrorToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
-import { convertLocationKeyToValue } from "@/constants/location";
-import { apiGetData, apiPatchData } from "@/utils/client/API";
+import { applicantProfile, ApplicantProfileMapper } from "@/types/profile";
+import { apiGetData } from "@/utils/client/API";
+import { useCommonData } from "@/hooks/useCommonData";
 
 // Types
 export interface UserInfo {
@@ -53,63 +53,11 @@ export interface LoadingStates {
   profile: boolean;
 }
 
-export interface EditingStates {
-  basicInfo: boolean;
-  contact: boolean;
-  location: boolean;
-  description: boolean;
-  skills: boolean;
-  workType: boolean;
-  jobTypes: boolean;
-  availability: boolean;
-  languages: boolean;
-}
-
-interface UseSeekerMypageReturn {
-  // State
-  userInfo: UserInfo | null;
-  seekerProfile: applicantProfile | null;
-  applicantProfile: ApplicantProfile;
-  tempData: ApplicantProfile;
-  isInitialized: boolean;
-  isLoading: boolean;
-  availableSkills: Skill[];
-  availableLocations: string[];
-  loadingStates: LoadingStates;
-  isEditing: EditingStates;
-
-  // Actions
-  setUserInfo: (userInfo: UserInfo | null) => void;
-  setSeekerProfile: (profile: applicantProfile | null) => void;
-  setApplicantProfile: (profile: ApplicantProfile) => void;
-  setTempData: (data: ApplicantProfile) => void;
-  setIsEditing: (section: keyof EditingStates, value: boolean) => void;
-  handleEdit: (section: keyof EditingStates) => void;
-  handleCancel: (section: keyof EditingStates) => void;
-  handleTempInputChange: (field: keyof ApplicantProfile, value: any) => void;
-  updateUserProfile: () => Promise<void>;
-  updateProfileImageFile: (file: File) => Promise<void>;
-  fetchSkills: () => Promise<void>;
-  fetchLocations: () => Promise<void>;
-}
-
 // Constants
 const INITIAL_LOADING_STATES: LoadingStates = {
   skills: false,
   locations: false,
   profile: false,
-};
-
-const INITIAL_EDITING_STATES: EditingStates = {
-  basicInfo: false,
-  contact: false,
-  location: false,
-  description: false,
-  skills: false,
-  workType: false,
-  jobTypes: false,
-  availability: false,
-  languages: false,
 };
 
 const INITIAL_APPLICANT_PROFILE: ApplicantProfile = {
@@ -129,9 +77,25 @@ const INITIAL_APPLICANT_PROFILE: ApplicantProfile = {
   experiences: [],
 };
 
-export const useSeekerMypage = (): UseSeekerMypageReturn => {
+interface UseProfileDataReturn {
+  // State
+  userInfo: UserInfo | null;
+  seekerProfile: applicantProfile | null;
+  applicantProfile: ApplicantProfile;
+  isInitialized: boolean;
+  isLoading: boolean;
+  loadingStates: LoadingStates;
+
+  // Actions
+  setUserInfo: (userInfo: UserInfo | null) => void;
+  setSeekerProfile: (profile: applicantProfile | null) => void;
+  setApplicantProfile: (profile: ApplicantProfile) => void;
+}
+
+export const useSeekerProfileData = (): UseProfileDataReturn => {
   // Auth Store
-  const { supabaseUser: authUser, appUser, updateProfileImage } = useAuthStore();
+  const { supabaseUser: authUser, appUser } = useAuthStore();
+  const { isLoading: isCommonDataLoading } = useCommonData();
 
   // State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -139,48 +103,17 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const [seekerProfile, setSeekerProfile] = useState<applicantProfile | null>(null);
   const [applicantProfile, setApplicantProfile] =
     useState<ApplicantProfile>(INITIAL_APPLICANT_PROFILE);
-  const [tempData, setTempData] = useState<ApplicantProfile>(INITIAL_APPLICANT_PROFILE);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
-  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
   const [loadingStates, setLoadingStates] = useState<LoadingStates>(INITIAL_LOADING_STATES);
-  const [isEditing, setIsEditingState] = useState<EditingStates>(INITIAL_EDITING_STATES);
+
+  // Centralized error handler
+  const handleApiError = useCallback((error: Error, context: string) => {
+    console.error(`Error in ${context}:`, error);
+    showErrorToast(`Failed to ${context}`);
+  }, []);
 
   // API Functions
-  const fetchSkills = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const data = await apiGetData(API_URLS.UTILS);
-      setAvailableSkills(data.skills);
-    } catch (error) {
-      console.error("Error fetching skills:", error);
-      showErrorToast("Failed to load skills");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, skills: false }));
-    }
-  }, []);
-
-  const fetchLocations = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, locations: true }));
-      const data = await apiGetData(API_URLS.ENUM.BY_NAME("Location"));
-
-      const locationsData = data?.values || [];
-      if (Array.isArray(locationsData)) {
-        const convertedCities = locationsData.map(convertLocationKeyToValue);
-        setAvailableLocations(convertedCities);
-      } else {
-        setAvailableLocations([]);
-      }
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      showErrorToast("Failed to load locations");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, locations: false }));
-    }
-  }, []);
-
   const fetchInitialData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -219,6 +152,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           });
         }
       } catch (error) {
+        handleApiError(error as Error, "load personality data");
         // Fallback to dummy data
         setSeekerPersonality({
           id: 3,
@@ -235,20 +169,14 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
       const profileData = await apiGetData(API_URLS.SEEKER.PROFILES);
       setSeekerProfile(profileData);
     } catch (error) {
-      console.error("Error fetching initial data:", error);
-      showErrorToast("Failed to load profile data");
+      handleApiError(error as Error, "load profile data");
     } finally {
       setIsLoading(false);
       setLoadingStates((prev) => ({ ...prev, profile: false }));
     }
-  }, [authUser, appUser]);
+  }, [authUser, appUser, handleApiError]);
 
   // Effects
-  useEffect(() => {
-    fetchSkills();
-    fetchLocations();
-  }, [fetchSkills, fetchLocations]);
-
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
@@ -301,108 +229,29 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
           })),
         });
       } catch (error) {
-        console.error("Error parsing seeker profile:", error);
+        handleApiError(error as Error, "parse seeker profile");
       }
     }
 
     setApplicantProfile(profile);
-    setTempData(profile);
     setIsInitialized(true);
-  }, [userInfo, seekerPersonality, seekerProfile]);
+  }, [userInfo, seekerPersonality, seekerProfile, handleApiError]);
 
-  // Sync tempData with applicantProfile
-  useEffect(() => {
-    if (applicantProfile) {
-      setTempData(applicantProfile);
-    }
-  }, [applicantProfile]);
-
-  // Actions
-  const setIsEditing = useCallback((section: keyof EditingStates, value: boolean) => {
-    setIsEditingState((prev) => ({ ...prev, [section]: value }));
-  }, []);
-
-  const handleEdit = useCallback(
-    (section: keyof EditingStates) => {
-      setTempData(applicantProfile);
-      setIsEditing(section, true);
-    },
-    [applicantProfile, setIsEditing]
-  );
-
-  const handleCancel = useCallback(
-    (section: keyof EditingStates) => {
-      setTempData(applicantProfile);
-      setIsEditing(section, false);
-    },
-    [applicantProfile, setIsEditing]
-  );
-
-  const handleTempInputChange = useCallback((field: keyof ApplicantProfile, value: any) => {
-    setTempData((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const updateUserProfile = useCallback(async () => {
-    try {
-      const formData = new FormData();
-      formData.append("name", tempData.name);
-      formData.append("description", tempData.description);
-
-      await apiPatchData(API_URLS.USER.UPDATE, formData);
-      setApplicantProfile(tempData);
-      showSuccessToast("Profile updated successfully!");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showErrorToast("Failed to update profile");
-    }
-  }, [tempData]);
-
-  const updateProfileImageFile = useCallback(
-    async (file: File) => {
-      try {
-        const formData = new FormData();
-        formData.append("img", file);
-
-        const result = await apiPatchData(API_URLS.USER.UPDATE, formData);
-
-        if (result && result.img_url !== undefined) {
-          showSuccessToast("Profile image updated!");
-        } else {
-          showErrorToast("Failed to update profile image");
-        }
-      } catch (error) {
-        console.error("Error updating profile image:", error);
-        showErrorToast("Failed to update profile image");
-      }
-    },
-    [updateProfileImage]
-  );
+  // Combined loading state
+  const combinedIsLoading = isLoading || isCommonDataLoading;
 
   return {
     // State
     userInfo,
     seekerProfile,
     applicantProfile,
-    tempData,
     isInitialized,
-    isLoading,
-    availableSkills,
-    availableLocations,
+    isLoading: combinedIsLoading,
     loadingStates,
-    isEditing,
 
     // Actions
     setUserInfo,
     setSeekerProfile,
     setApplicantProfile,
-    setTempData,
-    setIsEditing,
-    handleEdit,
-    handleCancel,
-    handleTempInputChange,
-    updateUserProfile,
-    updateProfileImageFile,
-    fetchSkills,
-    fetchLocations,
   };
 };

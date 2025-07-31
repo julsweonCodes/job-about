@@ -119,14 +119,14 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
         {showSearchResults && (
           <div className="py-2 border-gray-100 max-h-[50vh] overflow-y-auto px-5 md:px-8">
             {searchResults.length > 0 ? (
-              searchResults.map((config) => {
+              searchResults.map((config, index) => {
                 const Icon = config.icon;
                 const isSelected = localSelected.includes(config.id);
                 const disabled = !isSelected && localSelected.length >= maxSelected;
 
                 return (
                   <button
-                    key={config.id}
+                    key={`${config.id}-${index}`}
                     onClick={() => handleSearchSelect(config.id)}
                     disabled={disabled}
                     className={`w-full text-left p-5 rounded-lg mb-2 transition-colors ${
@@ -163,13 +163,13 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
                     category}
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {jobTypes.map((config) => {
+                  {jobTypes.map((config, index) => {
                     const isSelected = localSelected.includes(config.id);
                     const disabled = !isSelected && localSelected.length >= maxSelected;
 
                     return (
                       <Chip
-                        key={config.id}
+                        key={`${config.id}-${index}`}
                         selected={isSelected}
                         onClick={() => toggleJobType(config.id)}
                         disabled={disabled}
@@ -189,10 +189,14 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
         {localSelected.length > 0 && (
           <div className="pt-3 md:pt-5 border-t border-gray-200 px-5 md:px-8">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {localSelected.map((jobType) => {
+              {localSelected.map((jobType, index) => {
                 const config = getJobTypeConfig(jobType);
                 return (
-                  <Chip key={jobType} selected={true} onClick={() => removeSelected(jobType)}>
+                  <Chip
+                    key={`${jobType}-${index}`}
+                    selected={true}
+                    onClick={() => removeSelected(jobType)}
+                  >
                     <span className="truncate">{config.name}</span>
                     <X className="w-3 h-3 ml-1" />
                   </Chip>

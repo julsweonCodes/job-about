@@ -1,38 +1,16 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
-import {
-  Briefcase,
-  Heart,
-  Calendar,
-  ChevronRight,
-  Camera,
-  Phone,
-  User,
-  Zap,
-  Pencil,
-} from "lucide-react";
+import React, { useMemo } from "react";
+import { Briefcase, Heart, Calendar, Camera, Phone, User, Zap, Pencil } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
-import { useSeekerMypageMain } from "@/hooks/useSeekerMypageMain";
-import { useRouter } from "next/navigation";
+import { useSeekerMypageMain } from "@/hooks/seeker/useSeekerMypageMain";
 import { STORAGE_URLS } from "@/constants/storage";
-import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
-import { apiPatch } from "@/utils/client/API";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { QuickActionCard } from "@/components/seeker/QuickActionCard";
+import { Button } from "@/components/ui/Button";
 import LoadingScreen from "@/components/common/LoadingScreen";
-
-interface DialogStates {
-  imageUpload: boolean;
-  profileEdit: boolean;
-}
-
-const INITIAL_DIALOG_STATES: DialogStates = {
-  imageUpload: false,
-  profileEdit: false,
-};
 
 // 스켈레톤 컴포넌트들
 const ProfileSkeleton = () => (
@@ -89,19 +67,27 @@ const QuickActionSkeleton = () => (
 );
 
 function SeekerMypage() {
-  const router = useRouter();
-  const { appUser, setAppUser } = useAuthStore();
+  const { appUser } = useAuthStore();
 
   // Custom hooks
-  const { userInfo, applicantProfile, isLoading, imageUploadLoading, updateProfileImage } =
-    useSeekerMypageMain();
-
-  // Local state
-  const [dialogStates, setDialogStates] = useState<DialogStates>(INITIAL_DIALOG_STATES);
-  const [profileEditData, setProfileEditData] = useState({
-    name: appUser?.name || "",
-    phone_number: appUser?.phone_number || "",
-  });
+  const {
+    userInfo,
+    applicantProfile,
+    isLoading,
+    imageUploadLoading,
+    dialogStates,
+    profileEditData,
+    handleProfileImageChange,
+    handleImageUploadDialog,
+    handleProfileEditDialog,
+    handleProfileEditClose,
+    handleProfileEditSave,
+    handleProfileEditChange,
+    handleNavigateToProfile,
+    handleNavigateToAppliedJobs,
+    handleNavigateToBookmarks,
+    setDialogStates,
+  } = useSeekerMypageMain();
 
   // Computed values
   const displayImage = useMemo(() => {
@@ -110,82 +96,6 @@ function SeekerMypage() {
     }
     return "/images/img-default-profile.png";
   }, [userInfo?.img_url]);
-
-  // API Functions
-  const handleProfileImageChange = useCallback(
-    async (file: File) => {
-      try {
-        await updateProfileImage(file);
-        showSuccessToast("Profile image updated!");
-      } catch (error) {
-        console.error("Error updating profile image:", error);
-        showErrorToast("Failed to update profile image");
-      }
-    },
-    [updateProfileImage]
-  );
-
-  // Event handlers
-  const handleImageUploadDialog = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, imageUpload: true }));
-  }, []);
-
-  const handleProfileEditDialog = useCallback(() => {
-    setProfileEditData({
-      name: appUser?.name || "",
-      phone_number: appUser?.phone_number || "",
-    });
-    setDialogStates((prev) => ({ ...prev, profileEdit: true }));
-  }, [appUser?.name, appUser?.phone_number]);
-
-  const handleProfileEditClose = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, profileEdit: false }));
-  }, []);
-
-  const handleProfileEditSave = useCallback(async () => {
-    try {
-      const formData = new FormData();
-      formData.append("name", profileEditData.name);
-      formData.append("phone_number", profileEditData.phone_number);
-
-      const response = await apiPatch(API_URLS.USER.UPDATE, formData);
-
-      if (response.status === 200) {
-        // 성공 시 페이지 데이터 업데이트
-        if (appUser) {
-          setAppUser({
-            ...appUser,
-            name: profileEditData.name,
-            phone_number: profileEditData.phone_number,
-          });
-        }
-
-        setDialogStates((prev) => ({ ...prev, profileEdit: false }));
-        showSuccessToast("Profile updated successfully!");
-      } else {
-        throw new Error("Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      showErrorToast("Failed to update profile");
-    }
-  }, [profileEditData, appUser]);
-
-  const handleProfileEditChange = useCallback((field: "name" | "phone_number", value: string) => {
-    setProfileEditData((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleNavigateToProfile = useCallback(() => {
-    router.push(PAGE_URLS.SEEKER.MYPAGE.PROFILE);
-  }, [router]);
-
-  const handleNavigateToAppliedJobs = useCallback(() => {
-    router.push(PAGE_URLS.SEEKER.MYPAGE.APPLIES);
-  }, [router]);
-
-  const handleNavigateToBookmarks = useCallback(() => {
-    router.push(PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS);
-  }, [router]);
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
@@ -216,7 +126,7 @@ function SeekerMypage() {
                       src={displayImage}
                       alt={appUser?.name || "Profile"}
                       fallbackSrc="/images/img-default-profile.png"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover "
                       skeletonClassName="bg-gray-200 animate-pulse rounded-2xl sm:rounded-3xl"
                     />
                   </div>
@@ -243,13 +153,7 @@ function SeekerMypage() {
                       <span>
                         Joined{" "}
                         {appUser?.created_at
-                          ? new Date(appUser.created_at)
-                              .toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "2-digit",
-                                day: "2-digit",
-                              })
-                              .replace(/(\d+)\/(\d+)\/(\d+)/, "$3. $1. $2")
+                          ? new Date(appUser.created_at).toLocaleDateString()
                           : "Unknown"}
                       </span>
                     </div>
@@ -287,6 +191,28 @@ function SeekerMypage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-8 border-t border-slate-100">
+                  <Button
+                    onClick={() => (window.location.href = "/seeker")}
+                    variant="gradient"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    See Recommended Jobs
+                  </Button>
+
+                  <Button
+                    onClick={() => (window.location.href = "/onboarding/seeker/quiz")}
+                    variant="secondary"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    Retake Quiz
+                  </Button>
+                </div>
               </div>
             </div>
           )
@@ -294,82 +220,49 @@ function SeekerMypage() {
 
         {/* Quick Actions */}
         <div className="space-y-4">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Quick Actions</h3>
-
-          <div className="grid grid-cols-1 gap-4">
-            {/* Applied Jobs */}
-            {isLoading ? (
-              <QuickActionSkeleton />
-            ) : (
-              <button
-                onClick={handleNavigateToAppliedJobs}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6 hover:shadow-xl transition-all duration-200 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <Briefcase className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h4 className="font-semibold text-slate-900 mb-1">Applied Jobs</h4>
-                    <p className="text-sm text-slate-600">View your job applications</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-            )}
-
-            {/* Bookmarked Jobs */}
-            {isLoading ? (
-              <QuickActionSkeleton />
-            ) : (
-              <button
-                onClick={handleNavigateToBookmarks}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6 hover:shadow-xl transition-all duration-200 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                    <Heart className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h4 className="font-semibold text-slate-900 mb-1">Bookmarked Jobs</h4>
-                    <p className="text-sm text-slate-600">Your saved job posts</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Management */}
-        <div className="space-y-4">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Profile Management</h3>
-
           {isLoading ? (
-            <QuickActionSkeleton />
+            <>
+              <QuickActionSkeleton />
+              <QuickActionSkeleton />
+              <QuickActionSkeleton />
+            </>
           ) : (
-            <button
-              onClick={handleNavigateToProfile}
-              className="w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6 hover:shadow-xl transition-all duration-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <User className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <h4 className="font-semibold text-slate-900 mb-1">Profile Settings</h4>
-                  <p className="text-sm text-slate-600">
-                    Edit your skills, experience, and preferences
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
-              </div>
-            </button>
+            <>
+              {/* Profile Management */}
+              <QuickActionCard
+                icon={User}
+                iconBgColor="bg-purple-100"
+                iconColor="text-purple-600"
+                title="Profile Management"
+                description="Edit your profile and work experience"
+                onClick={handleNavigateToProfile}
+              />
+
+              {/* Applied Jobs */}
+              <QuickActionCard
+                icon={Briefcase}
+                iconBgColor="bg-blue-100"
+                iconColor="text-blue-600"
+                title="Applied Jobs"
+                description="View your job applications and status"
+                onClick={handleNavigateToAppliedJobs}
+              />
+
+              {/* Bookmarks */}
+              <QuickActionCard
+                icon={Heart}
+                iconBgColor="bg-red-100"
+                iconColor="text-red-600"
+                title="Bookmarks"
+                description="View your saved job posts"
+                onClick={handleNavigateToBookmarks}
+              />
+            </>
           )}
         </div>
       </div>
 
-      {/* Image Upload Dialog */}
+      {/* Dialogs */}
       <ImageUploadDialog
         open={dialogStates.imageUpload}
         onClose={() => setDialogStates((prev) => ({ ...prev, imageUpload: false }))}
@@ -378,7 +271,6 @@ function SeekerMypage() {
         type="profile"
       />
 
-      {/* Profile Edit Dialog */}
       <ProfileEditDialog
         open={dialogStates.profileEdit}
         onClose={handleProfileEditClose}
