@@ -1,16 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
-import {
-  Briefcase,
-  Heart,
-  Calendar,
-  ChevronRight,
-  Camera,
-  Phone,
-  User,
-  Zap,
-  Pencil,
-} from "lucide-react";
+import { Briefcase, Heart, Calendar, Camera, Phone, User, Zap, Pencil } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import { useSeekerMypageMain } from "@/hooks/useSeekerMypageMain";
@@ -18,6 +8,8 @@ import { STORAGE_URLS } from "@/constants/storage";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
+import { QuickActionCard } from "@/components/seeker/QuickActionCard";
+import { Button } from "@/components/ui/Button";
 import LoadingScreen from "@/components/common/LoadingScreen";
 
 // 스켈레톤 컴포넌트들
@@ -134,7 +126,7 @@ function SeekerMypage() {
                       src={displayImage}
                       alt={appUser?.name || "Profile"}
                       fallbackSrc="/images/img-default-profile.png"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover "
                       skeletonClassName="bg-gray-200 animate-pulse rounded-2xl sm:rounded-3xl"
                     />
                   </div>
@@ -199,6 +191,28 @@ function SeekerMypage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-8 border-t border-slate-100">
+                  <Button
+                    onClick={() => (window.location.href = "/seeker")}
+                    variant="gradient"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    See Recommended Jobs
+                  </Button>
+
+                  <Button
+                    onClick={() => (window.location.href = "/onboarding/seeker/quiz")}
+                    variant="secondary"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    Retake Quiz
+                  </Button>
+                </div>
               </div>
             </div>
           )
@@ -215,55 +229,34 @@ function SeekerMypage() {
           ) : (
             <>
               {/* Profile Management */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-                <button
-                  onClick={handleNavigateToProfile}
-                  className="w-full flex items-center gap-4 hover:bg-slate-50 transition-colors duration-200 rounded-xl p-2"
-                >
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <User className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-semibold text-slate-900">Profile Management</h3>
-                    <p className="text-sm text-slate-500">Edit your profile and work experience</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
+              <QuickActionCard
+                icon={User}
+                iconBgColor="bg-purple-100"
+                iconColor="text-purple-600"
+                title="Profile Management"
+                description="Edit your profile and work experience"
+                onClick={handleNavigateToProfile}
+              />
 
               {/* Applied Jobs */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-                <button
-                  onClick={handleNavigateToAppliedJobs}
-                  className="w-full flex items-center gap-4 hover:bg-slate-50 transition-colors duration-200 rounded-xl p-2"
-                >
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Briefcase className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-semibold text-slate-900">Applied Jobs</h3>
-                    <p className="text-sm text-slate-500">View your job applications and status</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
+              <QuickActionCard
+                icon={Briefcase}
+                iconBgColor="bg-blue-100"
+                iconColor="text-blue-600"
+                title="Applied Jobs"
+                description="View your job applications and status"
+                onClick={handleNavigateToAppliedJobs}
+              />
 
               {/* Bookmarks */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-slate-200/50 border border-white/50 p-6">
-                <button
-                  onClick={handleNavigateToBookmarks}
-                  className="w-full flex items-center gap-4 hover:bg-slate-50 transition-colors duration-200 rounded-xl p-2"
-                >
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                    <Heart className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-semibold text-slate-900">Bookmarks</h3>
-                    <p className="text-sm text-slate-500">View your saved job posts</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
+              <QuickActionCard
+                icon={Heart}
+                iconBgColor="bg-red-100"
+                iconColor="text-red-600"
+                title="Bookmarks"
+                description="View your saved job posts"
+                onClick={handleNavigateToBookmarks}
+              />
             </>
           )}
         </div>
