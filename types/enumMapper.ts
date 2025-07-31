@@ -1,5 +1,12 @@
 import { $Enums } from "@prisma/client";
-import { WorkType, LanguageLevel, JobStatus, AvailableDay, AvailableHour } from "@/constants/enums";
+import {
+  WorkType,
+  LanguageLevel,
+  JobStatus,
+  AvailableDay,
+  AvailableHour,
+  WorkPeriod,
+} from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
 
@@ -12,6 +19,7 @@ export function toPrismaWorkType(value: WorkType): $Enums.WorkType {
   };
   return map[value];
 }
+
 export function toPrismaLanguageLevel(value: LanguageLevel): $Enums.LanguageLevel {
   const map: Record<LanguageLevel, $Enums.LanguageLevel> = {
     [LanguageLevel.BEGINNER]: "BEGINNER",
@@ -25,6 +33,22 @@ export function toPrismaJobStatus(value: JobStatus): $Enums.JobStatus {
     [JobStatus.DRAFT]: "DRAFT",
     [JobStatus.PUBLISHED]: "PUBLISHED",
     [JobStatus.CLOSED]: "CLOSED",
+  };
+  return map[value];
+}
+
+export function toPrismaWorkPeriod(value: WorkPeriod): $Enums.WorkPeriod {
+  const map: Record<WorkPeriod, $Enums.WorkPeriod> = {
+    [WorkPeriod.SHORT_TERM]: "SHORT_TERM",
+    [WorkPeriod.UNDER_3_MONTHS]: "UNDER_3_MONTHS",
+    [WorkPeriod.UNDER_6_MONTHS]: "UNDER_6_MONTHS",
+    [WorkPeriod.SIX_TO_TWELVE_MONTHS]: "SIX_TO_TWELVE_MONTHS",
+    [WorkPeriod.ONE_TO_TWO_YEARS]: "ONE_TO_TWO_YEARS",
+    [WorkPeriod.TWO_TO_THREE_YEARS]: "TWO_TO_THREE_YEARS",
+    [WorkPeriod.THREE_TO_FIVE_YEARS]: "THREE_TO_FIVE_YEARS",
+    [WorkPeriod.FIVE_TO_SEVEN_YEARS]: "FIVE_TO_SEVEN_YEARS",
+    [WorkPeriod.SEVEN_TO_TEN_YEARS]: "SEVEN_TO_TEN_YEARS",
+    [WorkPeriod.OVER_TEN_YEARS]: "OVER_TEN_YEARS",
   };
   return map[value];
 }
@@ -115,6 +139,22 @@ export function fromPrismaWorkType(value: string): WorkType {
     HYBRID: WorkType.HYBRID,
   };
   return map[value] || WorkType.REMOTE;
+}
+
+export function fromPrismaWorkPeriod(value: string): WorkPeriod {
+  const map: Record<string, WorkPeriod> = {
+    SHORT_TERM: WorkPeriod.SHORT_TERM,
+    UNDER_3_MONTHS: WorkPeriod.UNDER_3_MONTHS,
+    UNDER_6_MONTHS: WorkPeriod.UNDER_6_MONTHS,
+    SIX_TO_TWELVE_MONTHS: WorkPeriod.SIX_TO_TWELVE_MONTHS,
+    ONE_TO_TWO_YEARS: WorkPeriod.ONE_TO_TWO_YEARS,
+    TWO_TO_THREE_YEARS: WorkPeriod.TWO_TO_THREE_YEARS,
+    THREE_TO_FIVE_YEARS: WorkPeriod.THREE_TO_FIVE_YEARS,
+    FIVE_TO_SEVEN_YEARS: WorkPeriod.FIVE_TO_SEVEN_YEARS,
+    SEVEN_TO_TEN_YEARS: WorkPeriod.SEVEN_TO_TEN_YEARS,
+    OVER_TEN_YEARS: WorkPeriod.OVER_TEN_YEARS,
+  };
+  return map[value] || WorkPeriod.SHORT_TERM;
 }
 
 export function fromPrismaLanguageLevel(value: string): LanguageLevel {

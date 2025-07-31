@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { JobType } from "@/constants/jobTypes";
+import { WorkType, WorkPeriod } from "@/constants/enums";
 
 export interface ExperienceForm {
   company: string;
-  jobType: string;
+  jobType?: JobType;
   startYear: string;
-  workedPeriod: string;
+  workedPeriod?: WorkPeriod;
+  workType?: WorkType;
   description: string;
 }
 
-export const useExperienceManagement = () => {
+export const useSeekerExperience = () => {
   const [experienceForm, setExperienceForm] = useState<ExperienceForm>({
     company: "",
-    jobType: "",
+    jobType: undefined,
     startYear: "",
-    workedPeriod: "",
+    workedPeriod: undefined,
+    workType: undefined,
     description: "",
   });
 
@@ -25,9 +28,10 @@ export const useExperienceManagement = () => {
   const handleAddExperience = () => {
     setExperienceForm({
       company: "",
-      jobType: "",
+      jobType: undefined,
       startYear: "",
-      workedPeriod: "",
+      workedPeriod: undefined,
+      workType: undefined,
       description: "",
     });
     setEditingExperienceIndex(-1);
@@ -35,37 +39,48 @@ export const useExperienceManagement = () => {
   };
 
   const handleEditExperience = (index: number, experience: any) => {
-    setExperienceForm({
+    const formData = {
       company: experience.company || "",
       jobType: experience.jobType || "",
       startYear: experience.startYear || "",
       workedPeriod: experience.workedPeriod || "",
+      workType: experience.workType || "remote",
       description: experience.description || "",
-    });
+    };
+
+    setExperienceForm(formData);
     setEditingExperienceIndex(index);
     setShowExperienceDialog(true);
   };
 
-  const handleSaveExperience = (experiences: any[], callback: () => void) => {
+  const handleSaveExperience = (
+    experiences: any[],
+    callback: (updatedExperiences: any[]) => void
+  ) => {
     if (editingExperienceIndex >= 0) {
       // 편집 모드
       const updatedExperiences = [...experiences];
       updatedExperiences[editingExperienceIndex] = {
-        title: experienceForm.jobType,
         company: experienceForm.company,
-        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
+        jobType: experienceForm.jobType,
+        startYear: experienceForm.startYear,
+        workedPeriod: experienceForm.workedPeriod,
+        workType: experienceForm.workType,
         description: experienceForm.description,
       };
-      callback();
+      callback(updatedExperiences);
     } else {
       // 추가 모드
       const newExperience = {
-        title: experienceForm.jobType,
         company: experienceForm.company,
-        duration: `${experienceForm.startYear} - ${experienceForm.workedPeriod}`,
+        jobType: experienceForm.jobType,
+        startYear: experienceForm.startYear,
+        workedPeriod: experienceForm.workedPeriod,
+        workType: experienceForm.workType,
         description: experienceForm.description,
       };
-      callback();
+      const updatedExperiences = [...experiences, newExperience];
+      callback(updatedExperiences);
     }
     setShowExperienceDialog(false);
     setEditingExperienceIndex(-1);
@@ -75,9 +90,10 @@ export const useExperienceManagement = () => {
   const resetExperienceForm = () => {
     setExperienceForm({
       company: "",
-      jobType: "",
+      jobType: undefined,
       startYear: "",
-      workedPeriod: "",
+      workedPeriod: undefined,
+      workType: undefined,
       description: "",
     });
   };

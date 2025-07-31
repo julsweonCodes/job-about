@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabaseClient } from "@/utils/supabase/client";
 import { showErrorToast } from "@/utils/client/toastUtils";
+import { API_URLS } from "@/constants/api";
 
 export default function TestAuthPage() {
   const [session, setSession] = useState<any>(null);
@@ -52,7 +53,7 @@ export default function TestAuthPage() {
         <button
           onClick={async () => {
             try {
-              const response = await fetch("/api/users", {
+              const response = await fetch(API_URLS.USER.CREATE, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

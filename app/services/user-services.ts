@@ -51,7 +51,6 @@ export async function uploadUserImage(photo: File, userId: number): Promise<stri
 }
 
 export async function updateUser(updateUser: UpdateUser, userId: number) {
-  const { name, phone_number, description, img_url } = updateUser;
   const user = await prisma.users.findUnique({
     where: { id: userId },
   });
@@ -113,7 +112,7 @@ export async function getUserWithProfileStatus(userId: string) {
     if (user.role === "APPLICANT") {
       hasPersonalityProfile = !!user.personality_profile_id;
       const applicantProfile = await prisma.applicant_profiles.findFirst({
-        where: { user_id: user.id },
+        where: { user_id: user.id, deleted_at: null },
         select: { id: true },
       });
       hasApplicantProfile = !!applicantProfile;

@@ -1,5 +1,5 @@
 import { errorResponse, HttpError, successResponse } from "@/app/lib/server/commonResponse";
-import { updateUser, updateUserRole, uploadUserImage } from "@/app/services/user-services";
+import { updateUserRole } from "@/app/services/user-services";
 import { parseBigInt } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
 import { Role } from "@prisma/client";

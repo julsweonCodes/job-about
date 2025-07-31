@@ -13,17 +13,79 @@ import {
   UserCheck,
 } from "lucide-react";
 import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { supabaseClient } from "@/utils/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 function App() {
   const [activeTab, setActiveTab] = useState("seekers");
-  const { isLoggedIn } = useAuthStore();
-  const supabase = supabaseClient;
+  const [isClient, setIsClient] = useState(false);
+  const { authState, handleLogout, handleRetry, canRetry } = useAuth();
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    // 상태 초기화는 AuthProvider에서 자동 처리됨
+  // 클라이언트에서만 실행
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // 인증 상태에 따른 UI 렌더링
+  const renderAuthUI = () => {
+    if (!isClient) {
+      // 서버 렌더링 시 빈 div (hydration 일치)
+      return <div></div>;
+    }
+
+    switch (authState) {
+      case "initializing":
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin"></div>
+          </div>
+        );
+
+      case "error":
+        return (
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-red-600">Authentication Error Occurred</div>
+            {canRetry && (
+              <button
+                onClick={handleRetry}
+                className="text-sm text-purple-600 hover:text-purple-800 underline"
+              >
+                Retry
+              </button>
+            )}
+            <div className="min-w-[180px]">
+              <GoogleLoginButton />
+            </div>
+          </div>
+        );
+
+      case "unauthenticated":
+        return (
+          <div className="flex items-center gap-3">
+            <div className="min-w-[180px]">
+              <GoogleLoginButton />
+            </div>
+          </div>
+        );
+
+      case "authenticated":
+        return (
+          <div className="flex items-center gap-6">
+            <button
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm md:text-lg"
+            >
+              Log out
+            </button>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin"></div>
+          </div>
+        );
+    }
   };
 
   const seekerSteps = [
@@ -96,26 +158,7 @@ function App() {
               <span className="text-xl md:text-2xl font-bold text-gray-900">job:about</span>
             </div>
 
-            {!isLoggedIn ? (
-              // Logged-out view
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="min-w-[180px]">
-                    <GoogleLoginButton />
-                  </div>
-                </div>
-              </>
-            ) : (
-              // Logged-in view
-              <div className="flex items-center gap-6">
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm md:text-lg"
-                >
-                  Log out
-                </button>
-              </div>
-            )}
+            {renderAuthUI()}
           </div>
         </div>
       </header>

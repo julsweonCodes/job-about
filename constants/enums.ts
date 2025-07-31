@@ -35,7 +35,10 @@ export enum WorkPeriod {
   SIX_TO_TWELVE_MONTHS = "six_to_twelve_months",
   ONE_TO_TWO_YEARS = "one_to_two_years",
   TWO_TO_THREE_YEARS = "two_to_three_years",
-  OVER_THREE_YEARS = "over_three_years",
+  THREE_TO_FIVE_YEARS = "three_to_five_years",
+  FIVE_TO_SEVEN_YEARS = "five_to_seven_years",
+  SEVEN_TO_TEN_YEARS = "seven_to_ten_years",
+  OVER_TEN_YEARS = "over_ten_years",
 }
 
 export enum AvailableDay {
@@ -55,13 +58,3 @@ export const LANGUAGE_LEVELS = [
 ] as const;
 
 export const WORK_TYPES = [WorkType.REMOTE, WorkType.ON_SITE, WorkType.HYBRID] as const;
-
-export const AVAILABLE_DAYS = [
-  { value: AvailableDay.WEEKDAYS, label: "Weekdays" },
-  { value: AvailableDay.WEEKENDS, label: "Weekends" },
-] as const;
-
-export const AVAILABLE_HOURS = [
-  { value: AvailableHour.AM, label: "AM" },
-  { value: AvailableHour.PM, label: "PM" },
-] as const;

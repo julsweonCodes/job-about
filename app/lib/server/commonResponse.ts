@@ -1,6 +1,9 @@
 // utils/response.ts
 import { NextResponse } from 'next/server';
 
+export const SUCCESS_STATUS = "success";
+export const ERROR_STATUS = "error";
+
 export class HttpError extends Error {
     status: number;
 
@@ -12,7 +15,7 @@ export class HttpError extends Error {
 }
 
 export type ApiResponse<T> = {
-    status: 'success' | 'error';
+    status: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
     code: number;
     message: string;
     data?: T;
@@ -20,7 +23,7 @@ export type ApiResponse<T> = {
 
 export function successResponse<T>(data: T, code = 200, message = 'OK') {
     const body: ApiResponse<T> = {
-        status: 'success',
+        status: SUCCESS_STATUS,
         code,
         message,
         data,
@@ -30,7 +33,7 @@ export function successResponse<T>(data: T, code = 200, message = 'OK') {
 
 export function errorResponse(message: string, code = 500) {
     const body: ApiResponse<null> = {
-        status: 'error',
+        status: ERROR_STATUS,
         code,
         message,
     };

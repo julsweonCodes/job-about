@@ -27,7 +27,7 @@ import JobTypesDialog from "@/components/common/JobTypesDialog";
 import { useRouter } from "next/navigation";
 import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";
-import { workTypeOptions } from "@/constants/options";
+import { WORK_TYPE_OPTIONS } from "@/constants/options";
 import { FormSection } from "@/components/common/FormSection";
 import { JobType } from "@/constants/jobTypes";
 function JobPostCreatePage() {
@@ -231,7 +231,7 @@ function JobPostCreatePage() {
                   Work Type
                 </Typography>
                 <div className="grid grid-cols-3 gap-2">
-                  {workTypeOptions.map((option) => (
+                  {WORK_TYPE_OPTIONS.map((option) => (
                     <FullWidthChip
                       key={option.value}
                       selected={formData.selectedWorkType === option.value}

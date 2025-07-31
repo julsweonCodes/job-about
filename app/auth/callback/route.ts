@@ -64,9 +64,8 @@ export async function GET(request: NextRequest) {
 
           // 직접 서비스 함수 호출
           const createdUser = await createUser(userData);
-
           console.log("User created successfully:", createdUser);
-          return NextResponse.redirect(`${requestUrl.origin}${PAGE_URLS.ONBOARDING}`);
+          return NextResponse.redirect(`${requestUrl.origin}${PAGE_URLS.ONBOARDING.ROOT}`);
         } catch (error) {
           console.error("User creation error:", error);
           console.error("Error details:", {

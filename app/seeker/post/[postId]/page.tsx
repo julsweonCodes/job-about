@@ -1,79 +1,161 @@
 "use client";
-import React, { useState } from "react";
-import { Bookmark } from "lucide-react";
+import React, { useEffect, useState, useCallback } from "react";
+import { Bookmark, ArrowLeft } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
 import { JobPostData } from "@/types/jobPost";
-import { JobStatus } from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
-import { LanguageLevel } from "@/constants/enums";
+import { useRouter } from "next/navigation";
+import { apiGetData, apiPostData, apiDeleteData } from "@/utils/client/API";
+import { API_URLS } from "@/constants/api";
+import LoadingScreen from "@/components/common/LoadingScreen";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { useDebounce } from "@/hooks/useDebounce";
 
-// TODO: 데이터 받아오기
-const jobDetails: JobPostData = {
-  id: "1",
-  title: "Cashier",
-  jobType: JobType.ACCOUNTANT,
-  status: JobStatus.PUBLISHED,
-  businessLocInfo: {
-    bizLocId: "1",
-    name: "Fresh Market Grocery",
-    bizDescription:
-      "Café Luna is a locally-owned coffee shop that's been serving the Vancouver community for over 8 years. We pride ourselves on creating a warm, inclusive environment where both customers and staff feel at home. Our team is like a family, and we believe in supporting each other's growth and goals.",
-    logoImg:
-      "https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-    extraPhotos: [
-      "https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-      "https://images.pexels.com/photos/2292837/pexels-photo-2292837.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-      "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-      "https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-    ],
-    location: "123 Main St, Anytown",
-    tags: ["Family-friendly", "No experience required", "Quick hiring"],
-  },
-  deadline: "August 15",
-  schedule: "Flexible, 10–20 hrs/week",
-  requiredSkills: ["Cash handling", "Customer service", "Teamwork"] as any[],
-  requiredWorkStyles: ["Friendly", "Patient", "Team-oriented"] as any[],
-  languageLevel: LanguageLevel.INTERMEDIATE,
-  hourlyWage: "$15/hr",
-  jobDescription:
-    "Join our team as a friendly cashier! You'll handle transactions, assist customers, and keep the store tidy. No experience needed, just a positive attitude and willingness to learn. Perfect for students or those seeking a flexible schedule.",
-};
+interface Props {
+  params: { postId: string };
+}
 
-const JobDetailPage: React.FC = () => {
+const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
+  const router = useRouter();
+  const [jobDetails, setJobDetails] = useState<JobPostData | null>(null);
+  const [loadingStates, setLoadingStates] = useState({
+    jobDetails: false,
+    bookmark: false,
+    apply: false,
+  });
+
+  // 북마크 상태 관리
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const [bookmarkError, setBookmarkError] = useState<string | null>(null);
 
-  const handleApply = () => {
-    console.log("Apply for job");
+  const initializeData = async () => {
+    try {
+      // 로딩 시작
+      setLoadingStates({
+        jobDetails: true,
+        bookmark: false,
+        apply: false,
+      });
+
+      // 모든 API 호출을 병렬로 실행
+      await Promise.all([fetchJobDetails()]);
+    } catch (error) {
+      console.error("Error initializing job details:", error);
+    } finally {
+      // 로딩 완료
+      setLoadingStates({
+        jobDetails: false,
+        bookmark: false,
+        apply: false,
+      });
+    }
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    console.log("Bookmark toggled:", !isBookmarked);
+  useEffect(() => {
+    if (params.postId) {
+      initializeData();
+    }
+  }, [params.postId]);
+
+  const fetchJobDetails = async () => {
+    try {
+      // 올바른 API 호출 - status 파라미터를 함수에 직접 전달
+      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
+      setJobDetails(data);
+
+      // API 응답에서 isBookmarked 상태 설정
+      if (data && typeof data.isBookmarked === "boolean") {
+        setIsBookmarked(data.isBookmarked);
+      }
+    } catch (error) {
+      console.error("Error fetching job post:", error);
+      // 에러 처리 - 404 페이지로 리다이렉트 또는 에러 표시
+      router.push("/seeker");
+    }
   };
 
+  // 북마크 토글 함수
+  const toggleBookmark = useCallback(async () => {
+    try {
+      setIsBookmarkLoading(true);
+      setBookmarkError(null);
+
+      if (isBookmarked) {
+        // 북마크 제거
+        await apiDeleteData(API_URLS.JOB_POSTS.BOOKMARK(params.postId));
+        setIsBookmarked(false);
+        showSuccessToast("Bookmark removed");
+      } else {
+        // 북마크 추가
+        await apiPostData(API_URLS.JOB_POSTS.BOOKMARK(params.postId), {});
+        setIsBookmarked(true);
+        showSuccessToast("Bookmark added");
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      setBookmarkError((error as Error).message || "Failed to toggle bookmark");
+      showErrorToast((error as Error).message || "Failed to toggle bookmark");
+
+      // 에러 발생 시 상태 롤백
+      setIsBookmarked(!isBookmarked);
+    } finally {
+      setIsBookmarkLoading(false);
+    }
+  }, [isBookmarked, params.postId]);
+
+  // debounce된 북마크 함수 (300ms 지연)
+  const debouncedToggleBookmark = useDebounce(toggleBookmark, 300);
+
+  const handleApply = async () => {
+    try {
+      setLoadingStates((prev) => ({ ...prev, apply: true }));
+
+      await apiPostData(API_URLS.JOB_POSTS.APPLY(params.postId), {});
+      // 지원 성공 처리
+      showSuccessToast("Application submitted successfully!");
+    } catch (error) {
+      showErrorToast((error as Error).message || "Application failed. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, apply: false }));
+    }
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const isActionLoading = isBookmarkLoading || loadingStates.apply;
+
+  // 메인 렌더링
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
+      {isActionLoading && <LoadingScreen overlay={true} message="Processing..." opacity="light" />}
       {/* Header */}
       <PostHeader
+        leftIcon={<ArrowLeft className="w-5 h-5 text-gray-700" />}
+        onClickLeft={handleBack}
         rightIcon={
-          <Bookmark
-            className={`w-5 h-5 transition-colors ${
-              isBookmarked ? "text-purple-500 fill-purple-500" : "text-gray-700"
-            }`}
-          />
+          jobDetails ? (
+            isBookmarked ? (
+              <Bookmark fill="currentColor" className="w-5 h-5 text-purple-600" />
+            ) : (
+              <Bookmark className="w-5 h-5 text-gray-700" />
+            )
+          ) : null
         }
-        onClickRight={handleBookmark}
+        onClickRight={debouncedToggleBookmark}
       />
 
+      {/* Job Post Content */}
       <JobPostView
         jobData={jobDetails}
         mode="seeker"
-        onApply={handleApply}
         showApplyButton={true}
+        onApply={handleApply}
       />
     </div>
   );
 };
 
-export default JobDetailPage;
+export default SeekerJobDetailPage;

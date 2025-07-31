@@ -1,18 +1,23 @@
-import { supabaseClient } from '@/utils/supabase/client';
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { Database } from "@/types/database.types";
-import { capitalize, formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
-import {getUserIdFromSession} from "@/utils/auth";
-import { Prisma } from "@prisma/client";
+import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { getUserIdFromSession } from "@/utils/auth";
+import { Location, Role, WorkType } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
-import { toPrismaJobType, toPrismaWorkType, toPrismaLanguageLevel, toPrismaJobStatus } from "@/types/enumMapper";
+import {
+  toPrismaJobType,
+  toPrismaWorkType,
+  toPrismaLanguageLevel,
+  toPrismaJobStatus,
+} from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
+import { JobType, } from "@/constants/jobTypes";
+import { STORAGE_URLS } from '@/constants/storage';
+import { HttpError } from "../lib/server/commonResponse";
 
 // Create Job Post
- export async function createJobPost(payload: JobPostPayload) {
+export async function createJobPost(payload: JobPostPayload) {
   const userId = await getUserIdFromSession();
   const bizLocId = await getBusinessLocId(userId);
 
@@ -35,25 +40,31 @@ import { JobType } from "@/constants/jobTypes";
       description: true,
     },
   });
-  const resPracSkills = await deleteAndInsertPracticalSkills(Number(createdPost.id), payload.requiredSkills);
-  const recWorkStyles = await deleteAndInsertWorkStyles(Number(createdPost.id), payload.requiredWorkStyles);
+  const resPracSkills = await deleteAndInsertPracticalSkills(
+    Number(createdPost.id),
+    payload.requiredSkills
+  );
+  const recWorkStyles = await deleteAndInsertWorkStyles(
+    Number(createdPost.id),
+    payload.requiredWorkStyles
+  );
   console.log(createdPost, resPracSkills, recWorkStyles);
   return createdPost;
- }
+}
 
 // Edit Job Post
 export async function getBusinessLocId(userId: number) {
-   const bizLocId = await prisma.business_loc.findFirst({
-    where: { user_id: userId},
-    select: { id: true, name: true},
-   });
+  const bizLocId = await prisma.business_loc.findFirst({
+    where: { user_id: userId },
+    select: { id: true, name: true },
+  });
 
-   if (!bizLocId) {
+  if (!bizLocId) {
     throw new Error("BizLocId search fail");
-   }
+  }
   // console.log(Number(bizLocId.id), bizLocId.name);
 
-   return Number(bizLocId.id);
+  return Number(bizLocId.id);
 }
 
 // Get Job Post skills
@@ -67,10 +78,10 @@ export async function getJobPostPracSkills(jobPostId: number) {
           category_ko: true,
           category_en: true,
           name_ko: true,
-          name_en: true
-        }
-      }
-    }
+          name_en: true,
+        },
+      },
+    },
   });
 
   const skills: Skill[] = res
@@ -99,10 +110,10 @@ export async function getJobPostWorkStyles(jobPostId: number) {
         select: {
           id: true,
           name_ko: true,
-          name_en: true
-        }
-      }
-    }
+          name_en: true,
+        },
+      },
+    },
   });
 
   const workStyles: WorkStyle[] = res
@@ -123,13 +134,13 @@ export async function getJobPostWorkStyles(jobPostId: number) {
 
 // Delete Skills from Practical skills
 export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: Skill[]) {
-   return prisma.$transaction( async (tx) => {
+  return prisma.$transaction(async (tx) => {
     await tx.job_post_practical_skills.deleteMany({
-      where: { job_post_id: jobPostId }
+      where: { job_post_id: jobPostId },
     });
 
     if (skills.length > 0) {
-      const practicalSkillData = skills.map( (skill) => ({
+      const practicalSkillData = skills.map((skill) => ({
         job_post_id: jobPostId,
         practical_skill_id: skill.id,
       }));
@@ -146,13 +157,13 @@ export async function deleteAndInsertPracticalSkills(jobPostId: number, skills: 
 }
 
 export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: WorkStyle[]) {
-  return prisma.$transaction( async (tx) => {
+  return prisma.$transaction(async (tx) => {
     await tx.job_post_work_styles.deleteMany({
-      where: { job_post_id: jobPostId }
+      where: { job_post_id: jobPostId },
     });
 
     if (workStyles.length > 0) {
-      const workStyleData = workStyles.map( (ws) => ({
+      const workStyleData = workStyles.map((ws) => ({
         job_post_id: jobPostId,
         work_style_id: ws.id,
       }));
@@ -169,66 +180,87 @@ export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: W
 }
 
 // Get Job Post Preview/view
-export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus) {
-   const bizLocId = await prisma.job_posts.findFirst({
-     where: {
-       id: Number(jobPostId),
-       status: toPrismaJobStatus(jobPostStatus)
-     },
-     select: {
-       business_loc_id: true
-     }
-   });
+export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus, userId?: number) {
+  const bizLocId = await prisma.job_posts.findFirst({
+    where: {
+      id: Number(jobPostId),
+      status: toPrismaJobStatus(jobPostStatus),
+    },
+    select: {
+      business_loc_id: true,
+    },
+  });
 
-   if (!bizLocId) {
-     console.error("Business Location Id not found...");
-     return null;
-   }
+  if (!bizLocId) {
+    console.error("Business Location Id not found...");
+    return null;
+  }
 
-   const bizLocRes = await prisma.business_loc.findFirst({
-     where: {
-       id: Number(bizLocId.business_loc_id)}
-   });
+  const bizLocRes = await prisma.business_loc.findFirst({
+    where: {
+      id: Number(bizLocId.business_loc_id),
+    },
+  });
 
-   if (!bizLocRes) {
-     console.error("Business Location Info not found ");
-     return null;
-   }
+  if (!bizLocRes) {
+    console.error("Business Location Info not found ");
+    return null;
+  }
 
-   const jobPostRes = await prisma.job_posts.findFirst({
-     where: {
-       id: Number(jobPostId),
-       status: toPrismaJobStatus(jobPostStatus),
-     }
-   });
+  const jobPostRes = await prisma.job_posts.findFirst({
+    where: {
+      id: Number(jobPostId),
+      status: toPrismaJobStatus(jobPostStatus),
+    }, include: {
+      bookmarked_jobs: {
+        where: userId ? { user_id: userId } : { id: -1 },
+        select: { id: true },
+      },
+    }
+  });
 
-   if (!jobPostRes) {
-     console.log("Job Post not found");
-     return null;
-   }
+  //북마크 여부 확인을 위한 역할 체크
+  let user;
+  if (userId) {
+    user = await prisma.users.findUnique({
+      where: {
+        id: userId, deleted_at: null
+      }, select: {
+        role: true
+      }
+    })
+  }
 
-   const img_base_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/job-about/biz-loc-photo/`;
-   const extraImgs = [
-     bizLocRes.img_url1? img_base_url.concat(bizLocRes.img_url1): "",
-     bizLocRes.img_url2? img_base_url.concat(bizLocRes.img_url2): "",
-     bizLocRes.img_url3? img_base_url.concat(bizLocRes.img_url3): "",
-     bizLocRes.img_url4? img_base_url.concat(bizLocRes.img_url4): "",
-     bizLocRes.img_url5? img_base_url.concat(bizLocRes.img_url5): "",
-   ];
+  if (!jobPostRes) {
+    console.log("Job Post not found");
+    return null;
+  }
 
-  const bizLocInfo : BizLocInfo = {
+  const img_base_url = `${STORAGE_URLS.BIZ_LOC.PHOTO}`;
+  const extraImgs = [
+    bizLocRes.img_url1 ? img_base_url.concat(bizLocRes.img_url1) : "",
+    bizLocRes.img_url2 ? img_base_url.concat(bizLocRes.img_url2) : "",
+    bizLocRes.img_url3 ? img_base_url.concat(bizLocRes.img_url3) : "",
+    bizLocRes.img_url4 ? img_base_url.concat(bizLocRes.img_url4) : "",
+    bizLocRes.img_url5 ? img_base_url.concat(bizLocRes.img_url5) : "",
+  ];
+
+  const bizLocInfo: BizLocInfo = {
     bizDescription: bizLocRes.description,
     bizLocId: bizLocRes.id.toString(),
     location: bizLocRes.address,
     name: bizLocRes.name,
     logoImg: img_base_url.concat(bizLocRes.logo_url ?? ""),
     extraPhotos: extraImgs,
-    tags: []
-    }
-   ;
+    tags: [],
+  };
   const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
-  const jobPostData : JobPostData = {
+
+  const isBookmarked =
+    user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
+
+  const jobPostData: JobPostData = {
     businessLocInfo: bizLocInfo,
     deadline: formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline),
     jobDescription: jobPostRes.description,
@@ -241,7 +273,130 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     schedule: jobPostRes.work_schedule,
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
-  }
+    isBookmarked
+  };
   console.log(jobPostData);
   return jobPostData;
+}
+
+type GetJobPostsParams = {
+  workType?: WorkType;
+  location?: Location;
+  page: number;
+  limit: number;
+};
+
+// Get Job Post
+export async function getJobPosts(params: GetJobPostsParams) {
+  const { workType, location, page, limit } = params;
+
+  const skip = (page - 1) * limit;
+
+  const jobPosts = await prisma.job_posts.findMany({
+    where: {
+      deleted_at: null,
+      status: toPrismaJobStatus(JobStatus.PUBLISHED),
+      ...(workType && { work_type: workType }),
+      ...(location && { location: location }),
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+    skip,
+    take: limit,
+    include: {
+      business_loc: {
+        select: {
+          logo_url: true,
+        },
+      },
+      _count: {
+        select: { applications: true },
+      },
+    },
+  });
+
+  const jobPostsWithExtras = jobPosts.map(({ _count, ...rest }) => {
+    const createdAt = new Date(rest.created_at);
+    const now = new Date();
+    const diffInDays = Math.floor((+now - +createdAt) / (1000 * 60 * 60 * 24));
+
+    return {
+      ...rest,
+      daysAgo: diffInDays,
+      applicantCount: _count.applications,
+    };
+  });
+
+  return jobPostsWithExtras;
+}
+
+export async function getJobPostById(jobPostId: number) {
+  const jobPost = await prisma.job_posts.findUnique({
+    where: {
+      id: jobPostId,
+      deleted_at: null,
+    },
+    include: {
+      business_loc: true
+    }
+  });
+
+  return jobPost;
+}
+
+export async function getbookmarkedJobPosts(userId: number, page: number, limit: number) {
+  const user = await prisma.users.findUnique({
+    where: { id: userId }
+  });
+  if (!user) {
+    throw new HttpError("User not found", 404);
+  }
+
+  const skip = (page - 1) * limit;
+
+  const jobPosts = await prisma.bookmarked_jobs.findMany({
+    where: {
+      user_id: userId
+    },
+    skip,
+    take: limit,
+    include: {
+      job_post: {
+        include: {
+          business_loc: true
+        }
+      }
+    }
+  });
+
+  return jobPosts;
+}
+
+export async function getAppliedJobPosts(userId: number, profileId: number, page: number, limit: number) {
+  const user = await prisma.users.findUnique({
+    where: { id: userId }
+  });
+  if (!user) {
+    throw new HttpError("User not found", 404);
+  }
+
+  const skip = (page - 1) * limit;
+
+  const jobPosts = await prisma.applications.findMany({
+    where: {
+      profile_id: profileId
+    },
+    skip,
+    take: limit,
+    include: {
+      job_post: {
+        include: {
+          business_loc: true
+        }
+      }
+    }
+  });
+
+  return jobPosts;
 }
