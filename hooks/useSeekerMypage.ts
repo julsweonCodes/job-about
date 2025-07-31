@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { API_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { applicantProfile, ApplicantProfileMapper, Skill } from "@/types/profile";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { apiGetData, apiPatchData } from "@/utils/client/API";
+import { useCommonData } from "@/hooks/useCommonData";
 
 // Types
 export interface UserInfo {
@@ -89,8 +90,6 @@ interface UseSeekerMypageReturn {
   handleTempInputChange: (field: keyof ApplicantProfile, value: any) => void;
   updateUserProfile: () => Promise<void>;
   updateProfileImageFile: (file: File) => Promise<void>;
-  fetchSkills: () => Promise<void>;
-  fetchLocations: () => Promise<void>;
 }
 
 // Constants
@@ -132,6 +131,11 @@ const INITIAL_APPLICANT_PROFILE: ApplicantProfile = {
 export const useSeekerMypage = (): UseSeekerMypageReturn => {
   // Auth Store
   const { supabaseUser: authUser, appUser, updateProfileImage } = useAuthStore();
+  const {
+    skills: availableSkills,
+    locations: availableLocations,
+    isLoading: isCommonDataLoading,
+  } = useCommonData();
 
   // State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -142,45 +146,10 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
   const [tempData, setTempData] = useState<ApplicantProfile>(INITIAL_APPLICANT_PROFILE);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
-  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
   const [loadingStates, setLoadingStates] = useState<LoadingStates>(INITIAL_LOADING_STATES);
   const [isEditing, setIsEditingState] = useState<EditingStates>(INITIAL_EDITING_STATES);
 
-  // API Functions
-  const fetchSkills = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, skills: true }));
-      const data = await apiGetData(API_URLS.UTILS);
-      setAvailableSkills(data.skills);
-    } catch (error) {
-      console.error("Error fetching skills:", error);
-      showErrorToast("Failed to load skills");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, skills: false }));
-    }
-  }, []);
-
-  const fetchLocations = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, locations: true }));
-      const data = await apiGetData(API_URLS.ENUM.BY_NAME("Location"));
-
-      const locationsData = data?.values || [];
-      if (Array.isArray(locationsData)) {
-        const convertedCities = locationsData.map(convertLocationKeyToValue);
-        setAvailableLocations(convertedCities);
-      } else {
-        setAvailableLocations([]);
-      }
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      showErrorToast("Failed to load locations");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, locations: false }));
-    }
-  }, []);
-
+  // API Functions - fetchSkills와 fetchLocations 제거
   const fetchInitialData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -243,12 +212,7 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     }
   }, [authUser, appUser]);
 
-  // Effects
-  useEffect(() => {
-    fetchSkills();
-    fetchLocations();
-  }, [fetchSkills, fetchLocations]);
-
+  // Effects - fetchSkills와 fetchLocations 제거
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
@@ -378,6 +342,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     [updateProfileImage]
   );
 
+  // Combined loading state
+  const combinedIsLoading = isLoading || isCommonDataLoading;
+
   return {
     // State
     userInfo,
@@ -385,9 +352,9 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     applicantProfile,
     tempData,
     isInitialized,
-    isLoading,
+    isLoading: combinedIsLoading,
     availableSkills,
-    availableLocations,
+    availableLocations: availableLocations.map(convertLocationKeyToValue),
     loadingStates,
     isEditing,
 
@@ -402,7 +369,6 @@ export const useSeekerMypage = (): UseSeekerMypageReturn => {
     handleTempInputChange,
     updateUserProfile,
     updateProfileImageFile,
-    fetchSkills,
-    fetchLocations,
+    // fetchSkills와 fetchLocations 제거
   };
 };

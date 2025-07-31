@@ -335,11 +335,6 @@ function SeekerProfilePage() {
     }));
   }, []);
 
-  // Profile handlers
-  const handleProfileEdit = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, profile: true }));
-  }, []);
-
   const handleSaveExperiences = useCallback(async () => {
     try {
       setLoadingStates((prev) => ({ ...prev, experienceSave: true }));
@@ -365,14 +360,6 @@ function SeekerProfilePage() {
       setLoadingStates((prev) => ({ ...prev, experienceSave: false }));
     }
   }, [tempData.experiences, updateProfileSection]);
-
-  const handleImageUploadDialog = useCallback(() => {
-    setDialogStates((prev) => ({ ...prev, imageUpload: true }));
-  }, []);
-
-  const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
 
   // Utility handlers
   const addSkill = useCallback(() => {
