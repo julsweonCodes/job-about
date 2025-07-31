@@ -52,33 +52,23 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     }
   };
 
-  // 북마크 상태 확인 (API가 없으므로 로컬 상태로 관리)
-  const fetchBookmarkStatus = useCallback(async () => {
-    try {
-      // TODO: 북마크 상태 확인 API가 구현되면 여기서 호출
-      // const data = await apiGetData(API_URLS.SEEKER.BOOKMARK_STATUS(params.postId));
-      // setIsBookmarked(data.isBookmarked);
-
-      // 현재는 로컬 상태로 관리 (실제로는 서버에서 가져와야 함)
-      console.log("Bookmark status check - API not implemented yet");
-    } catch (error) {
-      console.error("Error fetching bookmark status:", error);
-      setBookmarkError("Failed to fetch bookmark status");
-    }
-  }, [params.postId]);
-
   useEffect(() => {
     if (params.postId) {
       initializeData();
-      fetchBookmarkStatus();
     }
-  }, [params.postId, fetchBookmarkStatus]);
+  }, [params.postId]);
 
   const fetchJobDetails = async () => {
     try {
       // 올바른 API 호출 - status 파라미터를 함수에 직접 전달
       const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
+      console.log("🔍 job details:", data);
       setJobDetails(data);
+
+      // API 응답에서 isBookmarked 상태 설정
+      if (data && typeof data.isBookmarked === "boolean") {
+        setIsBookmarked(data.isBookmarked);
+      }
     } catch (error) {
       console.error("Error fetching job post:", error);
       // 에러 처리 - 404 페이지로 리다이렉트 또는 에러 표시
