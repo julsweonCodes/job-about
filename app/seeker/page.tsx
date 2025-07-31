@@ -7,8 +7,8 @@ import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
 import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
-import { useLatestJobs } from "@/hooks/useSeekerLatestJobPosts";
-import { useRecommendedJobs } from "@/hooks/useSeekerRecommendedJobs";
+import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobPosts";
+import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import {
   JobPost as ApiJobPost,

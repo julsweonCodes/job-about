@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 import { Briefcase, Heart, Calendar, Camera, Phone, User, Zap, Pencil } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
-import { useSeekerMypageMain } from "@/hooks/useSeekerMypageMain";
+import { useSeekerMypageMain } from "@/hooks/seeker/useSeekerMypageMain";
 import { STORAGE_URLS } from "@/constants/storage";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { useAuthStore } from "@/stores/useAuthStore";

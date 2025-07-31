@@ -1,10 +1,8 @@
 "use client";
-import React, { useState } from "react";
-import { Briefcase, Calendar, Lightbulb, MapPin, Star, Globe, Plus, X } from "lucide-react";
+import React from "react";
+import { Briefcase, Calendar, Lightbulb, MapPin, Star, Globe, Plus } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import InfoSection from "@/components/common/InfoSection";
-import { Button } from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { LanguageLevel, WORK_TYPES } from "@/constants/enums";
 import { AVAILABLE_DAY_OPTIONS, AVAILABLE_HOUR_OPTIONS } from "@/constants/options";
@@ -15,8 +13,8 @@ import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { DeleteExperienceDialog } from "@/components/seeker/DeleteExperienceDialog";
-import { useSeekerMypageProfile, DialogStates } from "@/hooks/useSeekerMypageProfile";
-import { useSeekerExperience } from "@/hooks/useSeekerExperience";
+import { useSeekerMypageProfile, DialogStates } from "@/hooks/seeker/profile";
+import { useSeekerExperience } from "@/hooks/seeker/useSeekerExperience";
 import {
   Select,
   SelectContent,

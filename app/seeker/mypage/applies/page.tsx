@@ -5,7 +5,7 @@ import { Briefcase } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
 import { useRouter } from "next/navigation";
-import { useSeekerAppliedJobs } from "@/hooks/useSeekerAppliedJobs";
+import { useSeekerAppliedJobs } from "@/hooks/seeker/useSeekerAppliedJobs";
 import { convertToJobPostCard } from "@/utils/client/jobPostUtils";
 import { PAGE_URLS } from "@/constants/api";
 

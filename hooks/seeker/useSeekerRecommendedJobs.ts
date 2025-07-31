@@ -4,7 +4,7 @@ import { RecommendedJobPost, RecommendationResponse } from "@/types/job";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
-import { usePagination } from "./usePagination";
+import { usePagination } from "../usePagination";
 import { PaginationParams } from "@/types/hooks";
 
 interface UseRecommendedJobsParams {
