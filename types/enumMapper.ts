@@ -19,6 +19,7 @@ export function toPrismaWorkType(value: WorkType): $Enums.WorkType {
   };
   return map[value];
 }
+
 export function toPrismaLanguageLevel(value: LanguageLevel): $Enums.LanguageLevel {
   const map: Record<LanguageLevel, $Enums.LanguageLevel> = {
     [LanguageLevel.BEGINNER]: "BEGINNER",

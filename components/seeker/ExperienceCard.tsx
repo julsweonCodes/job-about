@@ -1,5 +1,7 @@
 import React from "react";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { getJobTypeName, getWorkPeriodLabel } from "@/utils/client/enumDisplayUtils";
 
 interface Experience {
   company: string;
@@ -24,31 +26,39 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
   onDelete,
 }) => {
   return (
-    <div className="p-4 bg-slate-50 rounded-lg relative group">
-      <div className="absolute top-2 right-2 flex gap-1">
-        <button
-          onClick={() => onEdit(index, experience)}
-          className="p-1 bg-white rounded-full shadow-sm hover:bg-slate-50 transition-colors duration-200"
-        >
-          <Edit3 size={14} className="text-slate-600" />
-        </button>
-        {onDelete && (
-          <button
-            onClick={() => onDelete(index)}
-            className="p-1 bg-white rounded-full shadow-sm hover:bg-red-50 transition-colors duration-200"
+    <div className="bg-white rounded-lg border border-slate-200 p-4 space-y-3">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <h4 className="font-semibold text-slate-900">{experience.company}</h4>
+          <p className="text-sm text-slate-600">{getJobTypeName(experience.jobType)}</p>
+          <p className="text-xs text-slate-500">
+            {experience.startYear} ~ {getWorkPeriodLabel(experience.workedPeriod)}
+          </p>
+          {experience.description && (
+            <p className="text-sm text-slate-700 mt-2">{experience.description}</p>
+          )}
+        </div>
+        <div className="flex gap-2 ml-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(index, experience)}
+            className="p-2 h-8 w-8"
           >
-            <Trash2 size={14} className="text-red-600" />
-          </button>
-        )}
+            <Edit className="h-4 w-4" />
+          </Button>
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(index)}
+              className="p-2 h-8 w-8 text-red-500 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
-      <h4 className="font-medium text-slate-900">{experience.company}</h4>
-      <p className="text-sm text-slate-600">{experience.jobType}</p>
-      <p className="text-xs text-slate-500">
-        {experience.startYear} ~ {experience.workedPeriod}
-      </p>
-      {experience.description && (
-        <p className="text-xs text-slate-500 mt-2">{experience.description}</p>
-      )}
     </div>
   );
 };

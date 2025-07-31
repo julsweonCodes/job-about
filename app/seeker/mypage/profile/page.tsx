@@ -26,6 +26,7 @@ import {
   toPrismaAvailableDay,
   toPrismaAvailableHour,
   toPrismaLocation,
+  toPrismaWorkPeriod,
 } from "@/types/enumMapper";
 import {
   Select,
@@ -125,11 +126,19 @@ const SECTION_MAPPINGS = {
   languages: (data: any) => ({
     language_level: toPrismaLanguageLevel(data.englishLevel),
   }),
+  workExperience: (data: any) => ({
+    work_experiences: data.experiences.map((exp: any) => ({
+      company_name: exp.company,
+      job_type: toPrismaJobType(exp.jobType),
+      start_year: exp.startYear,
+      work_period: toPrismaWorkPeriod(exp.workedPeriod),
+      work_type: toPrismaWorkType(exp.workType),
+      description: exp.description,
+    })),
+  }),
 } as const;
 
 function SeekerProfilePage() {
-  const router = useRouter();
-
   // Custom hooks
   const {
     applicantProfile,
@@ -141,7 +150,6 @@ function SeekerProfilePage() {
     handleEdit: handleEditSection,
     handleCancel: handleCancelSection,
     handleTempInputChange: handleInputChange,
-    updateUserProfile: updateProfile,
     setApplicantProfile,
     setTempData,
   } = useSeekerMypage();
@@ -334,32 +342,6 @@ function SeekerProfilePage() {
       deleteConfirm: { isOpen: false, experienceIndex: null },
     }));
   }, []);
-
-  const handleSaveExperiences = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, experienceSave: true }));
-      const payload = {
-        work_experiences: tempData.experiences.map((exp: any) => ({
-          company_name: exp.company,
-          job_type: exp.jobType,
-          start_year: exp.startYear,
-          work_period: exp.workedPeriod,
-          work_type: exp.workType,
-          description: exp.description,
-        })),
-      };
-
-      const success = await updateProfileSection("work_experiences", payload);
-      if (success) {
-        showSuccessToast("Work experiences saved successfully!");
-      }
-    } catch (error) {
-      console.error("Error saving work experiences:", error);
-      showErrorToast("Failed to save work experiences");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, experienceSave: false }));
-    }
-  }, [tempData.experiences, updateProfileSection]);
 
   // Utility handlers
   const addSkill = useCallback(() => {
@@ -779,7 +761,7 @@ function SeekerProfilePage() {
                 <span className="text-sm sm:text-base">Add Experience</span>
               </button>
               <button
-                onClick={handleSaveExperiences}
+                onClick={() => handleOptionsSave("workExperience")}
                 className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl shadow-purple-500/25 hover:shadow-purple-500/30 touch-manipulation active:scale-[0.98]"
               >
                 <span className="text-sm sm:text-base">Save Changes</span>

@@ -64,6 +64,7 @@ export interface EditingStates {
   jobTypes: boolean;
   availability: boolean;
   languages: boolean;
+  workExperience: boolean;
 }
 
 interface UseSeekerMypageReturn {
@@ -109,6 +110,7 @@ const INITIAL_EDITING_STATES: EditingStates = {
   jobTypes: false,
   availability: false,
   languages: false,
+  workExperience: false,
 };
 
 const INITIAL_APPLICANT_PROFILE: ApplicantProfile = {
