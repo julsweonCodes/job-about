@@ -112,8 +112,8 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
 
       if (profileData) {
         setApplicantProfile({
-          personalityName: profileData.name_ko || "",
-          personalityDesc: profileData.description_ko || "",
+          personalityName: profileData.name_en || "",
+          personalityDesc: profileData.description_en || "",
         });
       } else {
         // data가 null인 경우 더미 데이터 사용

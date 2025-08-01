@@ -11,6 +11,7 @@ import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
 import { QuickActionCard } from "@/components/seeker/QuickActionCard";
 import { Button } from "@/components/ui/Button";
 import LoadingScreen from "@/components/common/LoadingScreen";
+import { PAGE_URLS } from "@/constants/api";
 
 // 스켈레톤 컴포넌트들
 const ProfileSkeleton = () => (
@@ -195,7 +196,7 @@ function SeekerMypage() {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-8 border-t border-slate-100">
                   <Button
-                    onClick={() => (window.location.href = "/seeker")}
+                    onClick={() => (window.location.href = PAGE_URLS.SEEKER.ROOT)}
                     variant="gradient"
                     size="lg"
                     className="flex-1"
@@ -205,7 +206,7 @@ function SeekerMypage() {
                   </Button>
 
                   <Button
-                    onClick={() => (window.location.href = "/onboarding/seeker/quiz")}
+                    onClick={() => (window.location.href = PAGE_URLS.ONBOARDING.SEEKER.QUIZ)}
                     variant="secondary"
                     size="lg"
                     className="flex-1"
