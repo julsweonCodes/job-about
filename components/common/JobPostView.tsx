@@ -38,7 +38,6 @@ interface JobPostViewProps {
   onSelectVersion?: (v: "manual" | "struct1" | "struct2") => void;
 }
 
-
 // JobPostView Skeleton 컴포넌트
 const JobPostViewSkeleton: React.FC = () => (
   <div className="min-h-screen bg-gray-50 font-pretendard">
@@ -195,7 +194,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   jobDescriptions,
   selectedVersion,
   onSelectVersion,
-  }) => {
+}) => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   // 테스트용 더미 extraPhotos 데이터
 
@@ -295,7 +294,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
             <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
             {showEditButtons && onEdit && editableSections.includes("description") && (
               <button
-                onClick={() => onEdit("description", { description: jobData?.jobDescription })}
+                onClick={() => onEdit("description", jobDescriptions || {})}
                 className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
@@ -313,9 +312,9 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                 };
 
                 const valueMap: Record<"manual" | "struct1" | "struct2", string | undefined> = {
-                  manual: jobData?.jobDescription,
-                  struct1: geminiRes[0],
-                  struct2: geminiRes[1],
+                  manual: jobDescriptions?.manual || jobData?.jobDescription,
+                  struct1: jobDescriptions?.struct1 || geminiRes[0],
+                  struct2: jobDescriptions?.struct2 || geminiRes[1],
                 };
 
                 const isSelected = versionKey === selectedVersion;
