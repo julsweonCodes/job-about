@@ -7,6 +7,9 @@ import JobPostView from "@/components/common/JobPostView";
 import { JobPostData } from "@/types/jobPost";
 import { useSearchParams } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { useRouter } from "next/navigation";
 
 type DescriptionVersion = "manual" | "struct1" | "struct2";
 
@@ -15,6 +18,7 @@ interface Props {
 }
 
 const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
+  const router = useRouter();
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const useAI = searchParams.get("useAI") === "true";
@@ -23,6 +27,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const [loadingStates, setLoadingStates] = useState({
     jobPostPreview: false,
     geminiRes: false,
+    publish: false,
   });
   const [selectedVersion, setSelectedVersion] = useState<DescriptionVersion>("manual");
   const [newJobDesc, setNewJobDesc] = useState<string>();
@@ -44,6 +49,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       setLoadingStates({
         jobPostPreview: true,
         geminiRes: true,
+        publish: false,
       });
 
       // 모든 API 호출을 병렬로 실행
@@ -58,6 +64,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       setLoadingStates({
         jobPostPreview: false,
         geminiRes: false,
+        publish: false,
       });
     }
   };
@@ -82,6 +89,9 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   // 전체 로딩 상태 계산
   const isLoading = Object.values(loadingStates).some((state) => state);
+
+  // publish 로딩 상태
+  const isPublishing = loadingStates.publish;
   const fetchPreviewJobPost = async () => {
     try {
       const res = await fetch(`/api/employer/post/preview/${postId}`);
@@ -176,19 +186,32 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   };
 
   const handlePublish = async () => {
-    console.log("Publishing job post:", newJobDesc);
-    const res = await fetch("/api/employer/post/preview/[postId]", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ postId, newJobDesc }),
-    });
+    try {
+      console.log("Publishing job post:", newJobDesc);
 
-    if (!res.ok) {
-      console.error("error");
-      return;
+      // 로딩 시작
+      setLoadingStates((prev) => ({ ...prev, publish: true }));
+
+        const res = await fetch(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, newJobDesc }),
+      });
+
+      if (!res.ok) {
+        console.error("error");
+        showErrorToast("Publish failed");
+        return;
+      }
+      showSuccessToast("Job post published successfully");
+      router.push(PAGE_URLS.EMPLOYER.ROOT);
+    } catch (error) {
+      console.error("Publish error:", error);
+      showErrorToast(error as string);
+    } finally {
+      // 로딩 완료
+      setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-    const result = await res.json();
-    console.log(result);
   };
 
   // 로딩 중일 때 LoadingScreen 표시
@@ -215,6 +238,9 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
           jobDescriptions={tempEditData}
         />
       )}
+
+      {/* Publish 로딩 오버레이 */}
+      {isPublishing && <LoadingScreen overlay={true} opacity="light" message="Publishing..." />}
       <BaseDialog
         open={editingSection === "description"}
         onClose={() => {

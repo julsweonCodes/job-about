@@ -32,6 +32,7 @@ export const API_URLS = {
     POST: {
       CREATE: "/api/employer/post/create",
       DASHBOARD: "/api/employer/post/dashboard",
+      PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
     },
   },
 
