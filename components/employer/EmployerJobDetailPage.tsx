@@ -44,7 +44,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
   const handleOpen = () => {
     setIsOpen(true);
   };
-  const isLoading = Object.values(loadingStates).some((state) => state);
+  const isLoading = loadingStates.jobDetails;
   const fetchJobDetails = async () => {
     try {
       const res = await fetch(`/api/employer/post/${postId}`);
@@ -66,7 +66,11 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
         rightIcon={<EllipsisVertical className="w-5 h-5 text-gray-700" />}
         onClickRight={handleOpen}
       />
-      {jobDetails && <JobPostView jobData={jobDetails} mode="employer" />}
+
+      {/* Job Post Content */}
+      <JobPostView jobData={jobDetails || null} mode="employer" />
+
+      {/* Actions Dialog */}
       {jobDetails && (
         <JobPostActionsDialog
           open={isOpen}
