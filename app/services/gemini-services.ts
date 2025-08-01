@@ -21,9 +21,11 @@ export async function geminiTest(payload: JobPostPayload) {
   });
 
   const prompt = `
-  Based on the following business information and job description, write a **concise and conversational English summary** with two following structure. Make sure you don't leave out any information:
+  Based on the following business information and job description, write a **concise and conversational English summary** with two following structure. 
+  Make sure you don't leave out any information. Utilize given business information BUT do not repeat the information in the result:
+  ** key names should be struct1 and struct2.**
   
-  ##Structure 1
+  ##struct1
   [Main Responsibilities]
   - {responsibility 1}
   - {responsibility 2}
@@ -34,8 +36,8 @@ export async function geminiTest(payload: JobPostPayload) {
   - {qualification or benefit 2}
   ...
   
-  ##Structure 2
-  Write 'Structure 1' in full sentences.
+  ##struct2
+  Write 'struct1' in full sentences.
   
   Business Information: jobTitle: "${payload.jobTitle}", jobType: "${payload.selectedJobType}", workType: ${payload.selectedWorkType}",  
   requiredSkills: "${payload.requiredSkills}", requiredWorkStyles: "${payload.requiredWorkStyles}",
@@ -50,9 +52,9 @@ export async function geminiTest(payload: JobPostPayload) {
   const text = await response.text();
 
   try {
-    const parsed = JSON.parse(text);
-    console.log("parsed: ", parsed);
-    return parsed;
+    return text;
+    // const parsed = JSON.parse(text);
+    // return parsed;
   } catch (e) {
     console.error("Gemini response is not valid JSON:", text);
     throw e;

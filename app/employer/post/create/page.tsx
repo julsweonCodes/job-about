@@ -188,7 +188,7 @@ function JobPostCreatePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
       {isLoading && <LoadingScreen message="Generating job post..." />}
-      {geminiResState && <LoadingScreen message="Generating AI-powred job description..." />}
+      {geminiResState && <LoadingScreen message="Generating AI-powered job description..." />}
       {/* Header */}
       <PageProgressHeader
         title="Generate a Job Post with AI"
