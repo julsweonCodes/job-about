@@ -46,7 +46,7 @@ function JobPostCreatePage() {
     workStyles: false,
     workType: false,
   });
-
+  const [geminiResState, setGeminiResState] = useState(false);
   // 전체 로딩 상태 계산
   const isLoading = Object.values(loadingStates).some((state) => state);
 
@@ -137,6 +137,7 @@ function JobPostCreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGeminiResState(true);
     // 1. AI로 공고 생성 & DB 저장 (예시: /api/employer/job-post 호출)
     const res = await fetch("/api/employer/post/create", {
       method: "POST",
@@ -145,9 +146,11 @@ function JobPostCreatePage() {
     });
     if (!res.ok) {
       alert("공고 생성에 실패했습니다.");
+      setGeminiResState(false);
       return;
     }
     const result = await res.json();
+    setGeminiResState(false);
     console.log(result);
 
     // 2. 미리보기 페이지로 이동
@@ -185,7 +188,7 @@ function JobPostCreatePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
       {isLoading && <LoadingScreen message="Generating job post..." />}
-
+      {geminiResState && <LoadingScreen message="Generating AI-powred job description..." />}
       {/* Header */}
       <PageProgressHeader
         title="Generate a Job Post with AI"
