@@ -60,23 +60,24 @@ export function BottomSheet({
     if (open) {
       // 현재 스크롤 위치 저장
       const scrollY = window.scrollY;
+      const originalStyle = window.getComputedStyle(document.body);
+      const originalOverflow = originalStyle.overflow;
+      const originalPosition = originalStyle.position;
+      const originalTop = originalStyle.top;
+      const originalWidth = originalStyle.width;
+
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
 
       return () => {
-        // BottomSheet가 닫힐 때 다른 다이얼로그가 열려있는지 확인
-        setTimeout(() => {
-          const hasOpenDialogs = document.querySelectorAll('[data-dialog-open="true"]').length > 0;
-          if (!hasOpenDialogs) {
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        document.body.style.overflow = "";
+        // BottomSheet가 닫힐 때 스크롤 위치 복원
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.width = originalWidth;
+        document.body.style.overflow = originalOverflow;
         window.scrollTo(0, scrollY);
-          }
-        }, 0);
       };
     }
   }, [open]);
