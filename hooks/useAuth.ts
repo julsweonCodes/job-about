@@ -389,6 +389,9 @@ export function useAuth() {
 
       // 3. 서버 로그아웃 처리
       await signOutFromServer();
+
+      // 4. 페이지 새로고침
+      window.location.reload();
     } catch (error) {
       console.error("Logout failed:", error);
       setLastError("로그아웃 처리 중 오류가 발생했습니다.");
