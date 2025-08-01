@@ -3,7 +3,7 @@
 import React, { useMemo, useCallback } from "react";
 import { Bookmark } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
-import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
+import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { useRouter } from "next/navigation";
 import { useSeekerBookmarks } from "@/hooks/seeker/useSeekerBookmarks";
 import { convertToJobPostCard } from "@/utils/client/jobPostUtils";

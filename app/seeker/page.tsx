@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { MapPin, DollarSign, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
-import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
+import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobPosts";

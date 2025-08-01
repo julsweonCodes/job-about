@@ -110,7 +110,11 @@ export const PAGE_URLS = {
     POST: {
       CREATE: "/employer/post/create",
       DASHBOARD: "/employer/post/dashboard",
+      PREVIEW: (id: string) => `/employer/post/preview/${id}`,
+      DETAIL: (id: string) => `/employer/post/${id}`,
     },
+    APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
+    PENDING_UPDATES: "/employer/pending-updates",
   },
   AUTH: {
     CALLBACK: "/auth/callback",

@@ -91,9 +91,11 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApp
         </div>
       </div>
 
-      <p className="text-sm lg:text-base text-gray-700 mb-6 leading-relaxed lg:line-clamp-none line-clamp-2">
-        {job.description}
-      </p>
+      <div className="flex-1 mb-6 min-h-0">
+        <p className="text-sm lg:text-base text-gray-700 leading-relaxed line-clamp-3 overflow-hidden">
+          {job.description}
+        </p>
+      </div>
 
       {/* 지원자 통계 및 버튼 */}
       <div className="flex items-center justify-between mb-6">
@@ -108,7 +110,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, onView, onViewApp
         </div>
       </div>
 
-      <div className="flex space-x-3">
+      <div className="flex space-x-3 mt-auto">
         <Button variant="secondary" className="h-14" onClick={() => onView(job.id)}>
           View Details
         </Button>

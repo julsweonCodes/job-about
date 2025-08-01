@@ -3,7 +3,7 @@
 import React, { useMemo, useCallback } from "react";
 import { Briefcase } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
-import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JopPostCard";
+import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { useRouter } from "next/navigation";
 import { useSeekerAppliedJobs } from "@/hooks/seeker/useSeekerAppliedJobs";
 import { convertToJobPostCard } from "@/utils/client/jobPostUtils";
