@@ -149,14 +149,27 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   const handleEdit = (section: string, initialData?: any) => {
     if (section === "description") {
-      // 다이얼로그 편집용 데이터 초기화
-      const currentData = initialData || {
-        manual: jobPostData?.jobDescription || "",
-        struct1: geminiRes[0] || "",
-        struct2: geminiRes[1] || "",
-      };
+      // initialData가 있으면 해당 버전의 데이터만 업데이트하고, 없으면 전체 초기화
+      let currentData;
+      if (initialData && initialData.description) {
+        // 특정 버전에서 편집 버튼을 눌렀을 때
+        currentData = {
+          manual: jobPostData?.jobDescription || "",
+          struct1: geminiRes[0] || "",
+          struct2: geminiRes[1] || "",
+          [selectedVersion]: initialData.description, // 선택된 버전의 내용으로 업데이트
+        };
+      } else {
+        // 전체 초기화
+        currentData = {
+          manual: jobPostData?.jobDescription || "",
+          struct1: geminiRes[0] || "",
+          struct2: geminiRes[1] || "",
+        };
+      }
       console.log("handleEdit - initialData:", initialData);
       console.log("handleEdit - currentData:", currentData);
+      console.log("handleEdit - selectedVersion:", selectedVersion);
       setDialogEditData(currentData); // 다이얼로그 편집용 데이터 설정
     }
     setEditingSection(section);
@@ -192,7 +205,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       // 로딩 시작
       setLoadingStates((prev) => ({ ...prev, publish: true }));
 
-        const res = await fetch(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
+      const res = await fetch(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postId, newJobDesc }),
