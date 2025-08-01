@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { useAuthStore, AuthState } from "@/stores/useAuthStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { supabaseClient } from "@/utils/supabase/client";
 import { API_URLS } from "@/constants/api";
 import { SupabaseUserMapper } from "@/types/user";
@@ -381,12 +381,41 @@ export function useAuth() {
   // 로그아웃 처리
   const handleLogout = useCallback(async () => {
     try {
+      // 1. 타이머 정리
+      clearSessionTimers();
+
+      // 2. 로컬 상태 초기화
+      logout();
+
+      // 3. 서버 로그아웃 처리
+      await signOutFromServer();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setLastError("로그아웃 처리 중 오류가 발생했습니다.");
+    }
+  }, [logout, setLastError]);
+
+  // 세션 타이머 정리
+  const clearSessionTimers = useCallback(() => {
+    if (sessionRefreshRef.current) {
+      clearTimeout(sessionRefreshRef.current);
+      sessionRefreshRef.current = null;
+    }
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+  }, []);
+
+  // 서버 로그아웃 처리
+  const signOutFromServer = useCallback(async () => {
+    try {
       await supabaseClient.auth.signOut();
     } catch (error) {
-      console.error("Logout error:", error);
-      setLastError("Logout failed");
+      console.warn("Server logout failed, but continuing with local cleanup:", error);
+      // 서버 로그아웃 실패해도 로컬 정리는 계속 진행
     }
-  }, [setLastError]);
+  }, []);
 
   // 재시도 처리
   const handleRetry = useCallback(() => {

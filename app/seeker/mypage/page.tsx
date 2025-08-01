@@ -11,6 +11,8 @@ import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
 import { QuickActionCard } from "@/components/seeker/QuickActionCard";
 import { Button } from "@/components/ui/Button";
 import LoadingScreen from "@/components/common/LoadingScreen";
+import { PAGE_URLS } from "@/constants/api";
+import { useRouter } from "next/navigation";
 
 // 스켈레톤 컴포넌트들
 const ProfileSkeleton = () => (
@@ -68,7 +70,7 @@ const QuickActionSkeleton = () => (
 
 function SeekerMypage() {
   const { appUser } = useAuthStore();
-
+  const router = useRouter();
   // Custom hooks
   const {
     userInfo,
@@ -120,14 +122,14 @@ function SeekerMypage() {
             <div className="p-6 sm:p-8">
               <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-6">
                 <div className="relative flex-shrink-0">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl overflow-hidden">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2  sm:border-[3px] border-gray-200 hover:border-purple-300 transition-colors duration-200">
                     <ImageWithSkeleton
                       key={displayImage}
                       src={displayImage}
                       alt={appUser?.name || "Profile"}
                       fallbackSrc="/images/img-default-profile.png"
-                      className="w-full h-full object-cover "
-                      skeletonClassName="bg-gray-200 animate-pulse rounded-2xl sm:rounded-3xl"
+                      className="w-full h-full object-cover"
+                      skeletonClassName="bg-gray-200 animate-pulse rounded-full"
                     />
                   </div>
                   <button
@@ -195,7 +197,7 @@ function SeekerMypage() {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-8 border-t border-slate-100">
                   <Button
-                    onClick={() => (window.location.href = "/seeker")}
+                    onClick={() => router.push(PAGE_URLS.SEEKER.ROOT)}
                     variant="gradient"
                     size="lg"
                     className="flex-1"
@@ -205,7 +207,7 @@ function SeekerMypage() {
                   </Button>
 
                   <Button
-                    onClick={() => (window.location.href = "/onboarding/seeker/quiz")}
+                    onClick={() => router.push(PAGE_URLS.ONBOARDING.SEEKER.QUIZ)}
                     variant="secondary"
                     size="lg"
                     className="flex-1"

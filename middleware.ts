@@ -53,6 +53,36 @@ function getOnboardingRedirect(
   return null;
 }
 
+// 역할 기반 라우팅 제한 함수
+function getRoleBasedRedirect(
+  profileStatus: {
+    hasRole: boolean;
+    isProfileCompleted: boolean;
+    role: string | null;
+  },
+  req: NextRequest
+) {
+  const { role } = profileStatus;
+  const currentPath = req.nextUrl.pathname;
+
+  // 역할이 없는 경우는 온보딩에서 처리하므로 여기서는 무시
+  if (!role) return null;
+
+  // EMPLOYER 계정이 SEEKER 페이지에 접근하려는 경우
+  if (role === "EMPLOYER" && currentPath.startsWith("/seeker")) {
+    console.log("EMPLOYER accessing SEEKER page, redirecting to employer");
+    return NextResponse.redirect(new URL(PAGE_URLS.EMPLOYER.ROOT, req.url));
+  }
+
+  // APPLICANT 계정이 EMPLOYER 페이지에 접근하려는 경우
+  if (role === "APPLICANT" && currentPath.startsWith("/employer")) {
+    console.log("APPLICANT accessing EMPLOYER page, redirecting to seeker");
+    return NextResponse.redirect(new URL(PAGE_URLS.SEEKER.ROOT, req.url));
+  }
+
+  return null;
+}
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
@@ -241,8 +271,14 @@ export async function middleware(req: NextRequest) {
         // 그 외 페이지 접근 시
         console.log("[middleware] not onboarding page, path:", req.nextUrl.pathname);
         console.log("[middleware] profileStatus:", JSON.stringify(parseBigInt(profileStatus)));
+
+        // 온보딩 리다이렉트 체크
         const onboardingRedirect = getOnboardingRedirect(profileStatus, req);
         if (onboardingRedirect) return onboardingRedirect;
+
+        // 역할 기반 라우팅 제한
+        const roleBasedRedirect = getRoleBasedRedirect(profileStatus, req);
+        if (roleBasedRedirect) return roleBasedRedirect;
       } catch (error) {
         console.error("Error fetching user:", error);
         return NextResponse.redirect(new URL(PAGE_URLS.HOME, req.url));
