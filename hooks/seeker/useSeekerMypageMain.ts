@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useSeekerStore, useSeekerWorkStyle } from "@/stores/useSeekerStore";
 import { apiGetData, apiPatchData } from "@/utils/client/API";
 import { useRouter } from "next/navigation";
 
@@ -72,6 +73,12 @@ const DUMMY_PERSONALITY_PROFILE: ApplicantProfileMain = {
 export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
   const router = useRouter();
   const { appUser, setAppUser } = useAuthStore();
+  const {
+    workStyle,
+    isLoading: workStyleLoading,
+    setWorkStyle,
+    setLoading: setWorkStyleLoading,
+  } = useSeekerWorkStyle();
 
   // State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -101,7 +108,17 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
   const fetchPersonalityProfile = useCallback(async () => {
     if (!appUser?.id) return;
 
+    // Store에 이미 데이터가 있으면 API 호출하지 않음
+    if (workStyle) {
+      setApplicantProfile({
+        personalityName: workStyle.name_en || "",
+        personalityDesc: workStyle.description_en || "",
+      });
+      return;
+    }
+
     try {
+      setWorkStyleLoading(true);
       const profileData = await apiGetData<{
         id: number;
         name_ko: string;
@@ -111,6 +128,9 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
       } | null>(API_URLS.QUIZ.MY_PROFILE);
 
       if (profileData) {
+        // Store에 데이터 저장
+        setWorkStyle(profileData);
+
         setApplicantProfile({
           personalityName: profileData.name_en || "",
           personalityDesc: profileData.description_en || "",
@@ -123,8 +143,10 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
       console.error("Error fetching personality profile:", error);
       // 에러 발생 시에도 더미 데이터 사용
       setApplicantProfile(DUMMY_PERSONALITY_PROFILE);
+    } finally {
+      setWorkStyleLoading(false);
     }
-  }, [appUser?.id]);
+  }, [appUser?.id, workStyle, setWorkStyle, setWorkStyleLoading]);
 
   // Update profile image
   const updateProfileImage = useCallback(async (file: File) => {
@@ -239,7 +261,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
       try {
         // userInfo는 동기적으로 설정
         setUserInfoFromAppUser();
-        // personality profile만 비동기로 가져오기
+        // personality profile만 비동기로 가져오기 (store에 없을 때만)
         await fetchPersonalityProfile();
       } catch (error) {
         console.error("Error initializing data:", error);
@@ -256,7 +278,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
   return {
     userInfo,
     applicantProfile,
-    isLoading,
+    isLoading: isLoading || workStyleLoading,
     imageUploadLoading,
     dialogStates,
     profileEditData,
