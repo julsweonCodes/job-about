@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { useAuthStore, AuthState } from "@/stores/useAuthStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { supabaseClient } from "@/utils/supabase/client";
 import { API_URLS } from "@/constants/api";
 import { SupabaseUserMapper } from "@/types/user";

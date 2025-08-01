@@ -11,8 +11,6 @@ import { Simulate } from "react-dom/test-utils";
 import { Dashboard, JobPost } from "@/types/employer";
 import error = Simulate.error;
 
-
-
 const mockJobPosts: JobPost[] = [
   {
     id: "1",
@@ -97,7 +95,6 @@ export default function EmployerDashboard() {
   // 전체 로딩 상태 계산
   const isLoading = Object.values(loadingStates).some((state) => state);
 
-
   const fetchDash = async () => {
     try {
       const res = await fetch("/api/employer/dashboard");
@@ -122,7 +119,8 @@ export default function EmployerDashboard() {
         console.error("Failed to fetch active job posts in dashboard page", data.error);
       }
     } catch (e) {
-      console.error("Error fetching data:", error);}
+      console.error("Error fetching data:", error);
+    }
   };
 
   const initializeData = async () => {
@@ -136,7 +134,7 @@ export default function EmployerDashboard() {
       // 모든 API 호출을 병렬로 실행
       await Promise.all([
         fetchDash(),
-        fetchJobPostList()
+        fetchJobPostList(),
         // 추가 API 호출들을 여기에 추가
       ]);
     } catch (error) {
@@ -167,7 +165,7 @@ export default function EmployerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       {/* Header */}
-      <ProfileHeader onClickProfile={() => router.push("/employer/mypage")} />
+      <ProfileHeader />
       <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 relative">
         {/* Page Title */}
         <div className="pt-6 lg:pt-8 pb-6 lg:pb-8">
@@ -194,12 +192,12 @@ export default function EmployerDashboard() {
         {/* Stats */}
         {dashboard && (
           <div className="mb-10">
-          <StatsCard
-            activeJobs={dashboard.activeJobPostsCnt}
-            activeApplicants={dashboard.allAppsCnt}
-            statusUpdateNeeded={dashboard.needsUpdateCnt}
-          />
-        </div>
+            <StatsCard
+              activeJobs={dashboard.activeJobPostsCnt}
+              activeApplicants={dashboard.allAppsCnt}
+              statusUpdateNeeded={dashboard.needsUpdateCnt}
+            />
+          </div>
         )}
 
         {/* Job Posts Section */}
@@ -207,18 +205,18 @@ export default function EmployerDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
           </div>
-          { jobPostList && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-            {jobPostList.map((job) => (
-              <JobPostCard
-                key={job.id}
-                job={job}
-                onView={handleViewJob}
-                onViewApplicants={handleViewApplicants}
-              />
-            ))}
-          </div>
-            )}
+          {jobPostList && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+              {jobPostList.map((job) => (
+                <JobPostCard
+                  key={job.id}
+                  job={job}
+                  onView={handleViewJob}
+                  onViewApplicants={handleViewApplicants}
+                />
+              ))}
+            </div>
+          )}
         </div>
         {/* Bottom Safe Area */}
         <div className="h-8 lg:h-12"></div>
