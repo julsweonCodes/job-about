@@ -5,6 +5,8 @@ import { geminiTest } from "@/app/services/gemini-services";
 import { JobPostPayload} from "@/types/employer";
 import { getSession } from "@/utils/withSession";
 import { successResponse } from "@/app/lib/server/commonResponse";
+import { setCache, getCache } from "@/utils/cache";
+import { setupFsCheck } from "next/dist/server/lib/router-utils/filesystem";
 
 // create job post
 
@@ -14,15 +16,14 @@ export async function POST (request: NextRequest) {
   let geminiRes: any = null;
   try {
     const createPostRes = await createJobPost(body);
-    const session = await getSession();
-    console.log(createPostRes);
     if (body.useAI) {
       geminiRes = await geminiTest(body);
-      session.geminiRes = geminiRes;
+      setCache(`gemini:${createPostRes.id}`, geminiRes.summary);
     }
-    session.jobDescTxt = createPostRes.description;
-    await session.save();
-    console.log("session: ", session);
+    setCache(`desc:${createPostRes.id}`, createPostRes.description);
+
+    console.log("cache- GEMINI: ", getCache(`gemini:${createPostRes.id}`) );
+    console.log("cache- DESCRIPTION ", getCache(`desc:${createPostRes.id}`) );
     return successResponse(
       {
         id: Number(createPostRes.id),

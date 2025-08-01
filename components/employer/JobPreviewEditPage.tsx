@@ -11,52 +11,20 @@ import { JobType } from "@/constants/jobTypes";
 import { useSearchParams } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
 
-interface Props { 
-  geminiRes: any;
-  description: string;
+interface Props {
   postId: string;
 }
 
-const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description, postId }) => {
+const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const useAI = searchParams.get("useAI") === "true";
   const [jobPostData, setJobPostData] = useState<JobPostData>();
-  /*
-  {
-    id: "1",
-    title: "Cashier",
-    jobType: JobType.ACCOUNTANT,
-    status: JobStatus.PUBLISHED,
-    business: {
-      id: "1",
-      name: "Fresh Market Grocery",
-      description:
-        "Café Luna is a locally-owned coffee shop that's been serving the Vancouver community for over 8 years. We pride ourselves on creating a warm, inclusive environment where both customers and staff feel at home. Our team is like a family, and we believe in supporting each other's growth and goals.",
-      photos: [
-        "https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-        "https://images.pexels.com/photos/1005638/pexels-photo-1005638.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-        "https://images.pexels.com/photos/2292837/pexels-photo-2292837.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-        "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-        "https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=2",
-      ],
-      location: "123 Main St, Anytown",
-      tags: ["Family-friendly", "No experience required", "Quick hiring"],
-    },
-    deadline: "August 15",
-    schedule: "Flexible, 10–20 hrs/week",
-    requiredSkills: ["Cash handling", "Customer service", "Teamwork"],
-    requiredPersonality: ["Friendly", "Patient", "Team-oriented"],
-    languageLevel: LanguageLevel.INTERMEDIATE,
-    hourlyWage: "$15/hr",
-    description,
-  }
-
-   */
-
+  const [geminiRes, setGeminiRes] = useState<string>();
   const [tempEditData, setTempEditData] = useState<any>({});
   const [loadingStates, setLoadingStates] = useState({
     jobPostPreview: false,
+    geminiRes: false,
   });
 
   const initializeData = async () => {
@@ -64,6 +32,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description, postId })
       // 로딩 시작
       setLoadingStates({
         jobPostPreview: true,
+        geminiRes: true,
       });
 
       // 모든 API 호출을 병렬로 실행
@@ -76,7 +45,8 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description, postId })
     } finally {
       // 로딩 완료
       setLoadingStates({
-        jobPostPreview: false
+        jobPostPreview: false,
+        geminiRes: false
       });
     }
   };
@@ -92,7 +62,10 @@ const JobPreviewEditPage: React.FC<Props> = ({ geminiRes, description, postId })
       const res = await fetch(`/api/employer/post/preview/${postId}`);
       const data = await res.json();
       if (res.ok) {
-        setJobPostData(data.data);
+        setJobPostData(data.data.postData);
+        setGeminiRes(data.data.geminiRes);
+        console.log("PREVIEW PAGE: ", jobPostData);
+        console.log(geminiRes);
       } else {
         console.log("Failed to fetch DRAFT job post");
       }
