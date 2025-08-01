@@ -293,18 +293,6 @@ function JobPostCreatePage() {
                   }
                   onClick={() => setCalendarOpen(true)}
                 />
-                {/* 날짜 선택 다이얼로그 */}
-                <DatePickerDialog
-                  open={calendarOpen}
-                  onClose={() => setCalendarOpen(false)}
-                  value={tempDeadline}
-                  onChange={(date) => {
-                    handleInputChange("deadline", date ?? undefined);
-                    setTempDeadline(date);
-                  }}
-                  confirmLabel="Select"
-                  required
-                />
               </div>
 
               {/* Work Schedule */}
@@ -349,16 +337,6 @@ function JobPostCreatePage() {
                     .join(", ")}
                   onClick={() => setSkillsDialogOpen(true)}
                 />
-                <RequiredSkillsDialog
-                  open={skillsDialogOpen}
-                  onClose={() => setSkillsDialogOpen(false)}
-                  selectedSkills={formData.requiredSkills}
-                  onConfirm={(skills) => {
-                    handleInputChange("requiredSkills", skills);
-                    setSkillsDialogOpen(false);
-                  }}
-                  skills={skills}
-                />
               </div>
 
               {/* Required Work Style */}
@@ -376,16 +354,6 @@ function JobPostCreatePage() {
                     )
                     .join(", ")}
                   onClick={() => setPersonalityDialogOpen(true)}
-                />
-                <PreferredPersonalityDialog
-                  open={personalityDialogOpen}
-                  onClose={() => setPersonalityDialogOpen(false)}
-                  selectedTraits={formData.requiredWorkStyles}
-                  onConfirm={(workStyles) => {
-                    handleInputChange("requiredWorkStyles", workStyles);
-                    setPersonalityDialogOpen(false);
-                  }}
-                  workStyles={workStyles}
                 />
               </div>
 
@@ -521,6 +489,40 @@ function JobPostCreatePage() {
             setJobTypesDialogOpen(false);
           }}
           maxSelected={1}
+        />
+        {/* 날짜 선택 다이얼로그 */}
+        <DatePickerDialog
+          open={calendarOpen}
+          onClose={() => setCalendarOpen(false)}
+          value={tempDeadline}
+          onChange={(date) => {
+            handleInputChange("deadline", date ?? undefined);
+            setTempDeadline(date);
+          }}
+          confirmLabel="Select"
+          required
+        />
+        {/* Required Skills Dialog */}
+        <RequiredSkillsDialog
+          open={skillsDialogOpen}
+          onClose={() => setSkillsDialogOpen(false)}
+          selectedSkills={formData.requiredSkills}
+          onConfirm={(skills) => {
+            handleInputChange("requiredSkills", skills);
+            setSkillsDialogOpen(false);
+          }}
+          skills={skills}
+        />
+        {/* Preferred Personality Dialog */}
+        <PreferredPersonalityDialog
+          open={personalityDialogOpen}
+          onClose={() => setPersonalityDialogOpen(false)}
+          selectedTraits={formData.requiredWorkStyles}
+          onConfirm={(workStyles) => {
+            handleInputChange("requiredWorkStyles", workStyles);
+            setPersonalityDialogOpen(false);
+          }}
+          workStyles={workStyles}
         />
       </div>
     </div>
