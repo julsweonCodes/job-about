@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { StatsCard } from "./components/StatsCard";
-import { JobPostCard } from "./components/JobPostCard";
+import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
+import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { Plus } from "lucide-react";
@@ -120,7 +120,11 @@ export default function EmployerDashboard() {
         )}
 
         {/* Stats */}
-        {dashboard && (
+        {loadingStates.dashboard ? (
+          <div className="mb-10">
+            <StatsCardSkeleton />
+          </div>
+        ) : dashboard ? (
           <div className="mb-10">
             <StatsCard
               activeJobs={dashboard.activeJobPostsCnt}
@@ -128,23 +132,33 @@ export default function EmployerDashboard() {
               statusUpdateNeeded={dashboard.needsUpdateCnt}
             />
           </div>
-        )}
+        ) : null}
 
         {/* Job Posts Section */}
         <div className="space-y-6 lg:space-y-8 pb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
           </div>
-          {jobPostList && (
+          {loadingStates.jobPostList ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <JobPostCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : jobPostList && jobPostList.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
               {jobPostList.map((job) => (
-              <JobPostCard
+                <JobPostCard
                   key={job.id}
                   job={job}
                   onView={handleViewJob}
                   onViewApplicants={handleViewApplicants}
                 />
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No active job posts found.</p>
             </div>
           )}
         </div>

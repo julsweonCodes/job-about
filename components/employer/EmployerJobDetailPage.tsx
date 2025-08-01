@@ -4,8 +4,6 @@ import { EllipsisVertical } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
 import { JobPostActionsDialog } from "@/components/employer/JobPostActionsDialog";
-import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
 import { JobPostData } from "@/types/jobPost";
 interface Props {
   postId: string;
@@ -34,7 +32,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
     } finally {
       // 로딩 완료
       setLoadingStates({
-        jobDetails: false
+        jobDetails: false,
       });
     }
   };
@@ -47,7 +45,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
     setIsOpen(true);
   };
   const isLoading = Object.values(loadingStates).some((state) => state);
-  const fetchJobDetails = async() => {
+  const fetchJobDetails = async () => {
     try {
       const res = await fetch(`/api/employer/post/${postId}`);
       const data = await res.json();
@@ -80,6 +78,6 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
       )}
     </div>
   );
-  };
+};
 
-  export default EmployerJobDetailPage;
+export default EmployerJobDetailPage;
