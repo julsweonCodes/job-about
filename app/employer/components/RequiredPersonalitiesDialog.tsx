@@ -33,7 +33,7 @@ const PreferredPersonalityDialog: React.FC<{
   };
 
   return (
-    <Dialog open={open} onClose={onClose} type="bottomSheet" size={"xl"}>
+    <Dialog open={open} onClose={onClose} type="bottomSheet" size={"md"}>
       <div className="flex flex-col items-start w-full max-w-2xl">
         <h2 className="mb-2 text-left text-[18px] sm:text-[24px] font-bold">
           Select Preferred Personality
@@ -62,7 +62,7 @@ const PreferredPersonalityDialog: React.FC<{
           })}
         </div>
 
-        <div className="flex gap-3 w-full">
+        <div className="flex gap-3 w-full pt-4">
           <Button
             variant="default"
             size="lg"
