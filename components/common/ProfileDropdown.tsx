@@ -5,7 +5,9 @@ interface ProfileDropdownProps {
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onProfileClick: () => void;
+  onHomeClick: () => void;
   onLogoutClick: () => void;
+  userRole: "employer" | "seeker";
 }
 
 export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
@@ -13,7 +15,9 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   onMouseEnter,
   onMouseLeave,
   onProfileClick,
+  onHomeClick,
   onLogoutClick,
+  userRole,
 }) => {
   if (!isVisible) return null;
 
@@ -35,6 +39,11 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
+      <button onClick={onHomeClick} className={getItemClasses()}>
+        <span className="font-medium">
+          {userRole === "employer" ? "Employer Home" : "Seeker Home"}
+        </span>
+      </button>
       <button onClick={onProfileClick} className={getItemClasses()}>
         <span className="font-medium">MyPage</span>
       </button>

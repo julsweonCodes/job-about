@@ -38,6 +38,12 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
     return "/seeker/mypage"; // 기본값
   }, [isEmployer, isApplicant]);
 
+  const homePath = useMemo(() => {
+    if (isEmployer()) return "/employer";
+    if (isApplicant()) return "/seeker";
+    return "/seeker"; // 기본값
+  }, [isEmployer, isApplicant]);
+
   // 이벤트 핸들러들
   const handleLogoClick = useCallback(() => {
     router.replace("/");
@@ -74,6 +80,11 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
     handleProfileClick();
     setShowDropdown(false);
   }, [handleProfileClick]);
+
+  const handleHomeAction = useCallback(() => {
+    router.push(homePath);
+    setShowDropdown(false);
+  }, [router, homePath]);
 
   const handleLogoutAction = useCallback(() => {
     handleLogout();
@@ -132,7 +143,9 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onProfileClick={handleProfileAction}
+            onHomeClick={handleHomeAction}
             onLogoutClick={handleLogoutAction}
+            isEmployer={isEmployer}
           />
         ) : null;
 
@@ -197,7 +210,9 @@ const AuthenticatedUserUI: React.FC<{
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onProfileClick: () => void;
+  onHomeClick: () => void;
   onLogoutClick: () => void;
+  isEmployer: () => boolean;
 }> = ({
   displayImage,
   dropdownRef,
@@ -206,7 +221,9 @@ const AuthenticatedUserUI: React.FC<{
   onMouseEnter,
   onMouseLeave,
   onProfileClick,
+  onHomeClick,
   onLogoutClick,
+  isEmployer,
 }) => (
   <div className="flex items-center gap-6">
     <div ref={dropdownRef} className="relative">
@@ -230,6 +247,8 @@ const AuthenticatedUserUI: React.FC<{
         onMouseLeave={onMouseLeave}
         onProfileClick={onProfileClick}
         onLogoutClick={onLogoutClick}
+        onHomeClick={onHomeClick}
+        userRole={isEmployer() ? "employer" : "seeker"}
       />
     </div>
   </div>
