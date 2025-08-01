@@ -122,14 +122,14 @@ function SeekerMypage() {
             <div className="p-6 sm:p-8">
               <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-6">
                 <div className="relative flex-shrink-0">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl overflow-hidden">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2  sm:border-[3px] border-gray-200 hover:border-purple-300 transition-colors duration-200">
                     <ImageWithSkeleton
                       key={displayImage}
                       src={displayImage}
                       alt={appUser?.name || "Profile"}
                       fallbackSrc="/images/img-default-profile.png"
-                      className="w-full h-full object-cover "
-                      skeletonClassName="bg-gray-200 animate-pulse rounded-2xl sm:rounded-3xl"
+                      className="w-full h-full object-cover"
+                      skeletonClassName="bg-gray-200 animate-pulse rounded-full"
                     />
                   </div>
                   <button
