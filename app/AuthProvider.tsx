@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { PAGE_URLS } from "@/constants/api";
+import { STATIC_ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCommonDataStore } from "@/stores/useCommonDataStore";
@@ -19,26 +20,7 @@ export default function AuthProvider() {
 
   // 실제 존재하는 경로인지 체크하는 함수
   const isExistingRoute = (pathname: string) => {
-    const staticRoutes = [
-      PAGE_URLS.HOME,
-      PAGE_URLS.ONBOARDING.ROOT,
-      PAGE_URLS.ONBOARDING.SEEKER.ROOT,
-      PAGE_URLS.ONBOARDING.SEEKER.PROFILE,
-      PAGE_URLS.ONBOARDING.SEEKER.QUIZ,
-      PAGE_URLS.ONBOARDING.EMPLOYER.ROOT,
-      PAGE_URLS.ONBOARDING.EMPLOYER.PROFILE,
-      PAGE_URLS.SEEKER.ROOT,
-      PAGE_URLS.SEEKER.MYPAGE.ROOT,
-      PAGE_URLS.SEEKER.MYPAGE.PROFILE,
-      PAGE_URLS.SEEKER.MYPAGE.APPLIES,
-      PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS,
-      PAGE_URLS.EMPLOYER.ROOT,
-      PAGE_URLS.EMPLOYER.MYPAGE,
-      PAGE_URLS.EMPLOYER.POST.CREATE,
-      PAGE_URLS.EMPLOYER.POST.DASHBOARD,
-      PAGE_URLS.AUTH.CALLBACK,
-      PAGE_URLS.AUTH.ERROR,
-    ] as const;
+    const staticRoutes = STATIC_ROUTES;
 
     // Static routes 체크
     if (staticRoutes.includes(pathname as any)) {

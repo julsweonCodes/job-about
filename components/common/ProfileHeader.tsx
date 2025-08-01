@@ -6,6 +6,7 @@ import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { ProfileDropdown } from "./ProfileDropdown";
+import { PAGE_URLS } from "@/constants/api";
 
 interface HeaderProps {
   showProfileImage?: boolean;
@@ -33,10 +34,22 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
   const displayImage = getUserProfileImageUrl() || DEFAULT_PROFILE_IMAGE;
 
   const mypagePath = useMemo(() => {
-    if (isEmployer()) return "/employer/mypage";
-    if (isApplicant()) return "/seeker/mypage";
-    return "/seeker/mypage"; // 기본값
-  }, [isEmployer, isApplicant]);
+    // 인증 상태가 아직 초기화되지 않았으면 기본값 사용하지 않음
+    if (authState === "initializing") return null;
+
+    if (isEmployer()) return PAGE_URLS.EMPLOYER.MYPAGE;
+    if (isApplicant()) return PAGE_URLS.SEEKER.MYPAGE.ROOT;
+    return null; // 기본값 제거
+  }, [isEmployer, isApplicant, authState]);
+
+  const homePath = useMemo(() => {
+    // 인증 상태가 아직 초기화되지 않았으면 기본값 사용하지 않음
+    if (authState === "initializing") return null;
+
+    if (isEmployer()) return PAGE_URLS.EMPLOYER.ROOT;
+    if (isApplicant()) return PAGE_URLS.SEEKER.ROOT;
+    return null; // 기본값 제거
+  }, [isEmployer, isApplicant, authState]);
 
   // 이벤트 핸들러들
   const handleLogoClick = useCallback(() => {
@@ -44,7 +57,9 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
   }, [router]);
 
   const handleProfileClick = useCallback(() => {
-    router.push(mypagePath);
+    if (mypagePath) {
+      router.push(mypagePath);
+    }
   }, [router, mypagePath]);
 
   const handleDropdownToggle = useCallback(() => {
@@ -74,6 +89,13 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
     handleProfileClick();
     setShowDropdown(false);
   }, [handleProfileClick]);
+
+  const handleHomeAction = useCallback(() => {
+    if (homePath) {
+      router.push(homePath);
+    }
+    setShowDropdown(false);
+  }, [router, homePath]);
 
   const handleLogoutAction = useCallback(() => {
     handleLogout();
@@ -132,7 +154,9 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onProfileClick={handleProfileAction}
+            onHomeClick={handleHomeAction}
             onLogoutClick={handleLogoutAction}
+            isEmployer={isEmployer}
           />
         ) : null;
 
@@ -197,7 +221,9 @@ const AuthenticatedUserUI: React.FC<{
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onProfileClick: () => void;
+  onHomeClick: () => void;
   onLogoutClick: () => void;
+  isEmployer: () => boolean;
 }> = ({
   displayImage,
   dropdownRef,
@@ -206,7 +232,9 @@ const AuthenticatedUserUI: React.FC<{
   onMouseEnter,
   onMouseLeave,
   onProfileClick,
+  onHomeClick,
   onLogoutClick,
+  isEmployer,
 }) => (
   <div className="flex items-center gap-6">
     <div ref={dropdownRef} className="relative">
@@ -230,6 +258,8 @@ const AuthenticatedUserUI: React.FC<{
         onMouseLeave={onMouseLeave}
         onProfileClick={onProfileClick}
         onLogoutClick={onLogoutClick}
+        onHomeClick={onHomeClick}
+        userRole={isEmployer() ? "employer" : "seeker"}
       />
     </div>
   </div>
