@@ -75,6 +75,8 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   useEffect(() => {
     if (tempEditData[selectedVersion]) {
+      console.log(tempEditData[selectedVersion]);
+      console.log(selectedVersion);
       setNewJobDesc(tempEditData[selectedVersion]);
     }
   }, [selectedVersion, tempEditData]);
@@ -167,8 +169,20 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     }
   };
 
-  const handlePublish = () => {
-    console.log("Publishing job post:", jobPostData);
+  const handlePublish = async () => {
+    console.log("Publishing job post:", newJobDesc);
+    const res = await fetch("/api/employer/post/preview/[postId]", {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({postId, newJobDesc}),
+    });
+
+    if (!res.ok) {
+      console.error("error");
+      return;
+    }
+    const result = await res.json();
+    console.log(result);
   };
 
   // 로딩 중일 때 LoadingScreen 표시
