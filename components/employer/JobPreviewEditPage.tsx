@@ -11,6 +11,9 @@ import { JobType } from "@/constants/jobTypes";
 import { useSearchParams } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { getCache } from "@/utils/cache";
+import { geminiTest } from "@/app/services/gemini-services";
+
+type DescriptionVersion = "manual" | "struct1" | "struct2";
 
 interface Props {
   postId: string;
@@ -22,12 +25,17 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const useAI = searchParams.get("useAI") === "true";
   const [jobPostData, setJobPostData] = useState<JobPostData>();
   const [geminiRes, setGeminiRes] = useState<string[]>([]);
-  const [tempEditData, setTempEditData] = useState<any>({});
   const [loadingStates, setLoadingStates] = useState({
     jobPostPreview: false,
     geminiRes: false,
   });
-
+  const [selectedVersion, setSelectedVersion] = useState<DescriptionVersion>("manual");
+  const [newJobDesc, setNewJobDesc] = useState<string>();
+  const [tempEditData, setTempEditData] = useState<Record<DescriptionVersion, string>>({
+    manual: jobPostData?.jobDescription || "",
+    struct1: geminiRes[0] || "",
+    struct2: geminiRes[1] || "",
+  });
   const initializeData = async () => {
     try {
       // 로딩 시작
@@ -58,7 +66,18 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   useEffect(() => {
     console.log("Updated geminiRes:", geminiRes);
+    setTempEditData({
+      manual: jobPostData?.jobDescription || "",
+      struct1: geminiRes[0] || "",
+      struct2: geminiRes[1] || "",
+    });
   }, [geminiRes]);
+
+  useEffect(() => {
+    if (tempEditData[selectedVersion]) {
+      setNewJobDesc(tempEditData[selectedVersion]);
+    }
+  }, [selectedVersion, tempEditData]);
 
   // 전체 로딩 상태 계산
   const isLoading = Object.values(loadingStates).some((state) => state);
@@ -68,9 +87,20 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       const data = await res.json();
       if (res.ok) {
         setJobPostData(data.data.postData);
-        console.log("step1: ", data.data.geminiRes);
-        // const gemTmp = JSON.parse(data.data.geminiRes);
-
+        setNewJobDesc(data.data.postData.jobDescription);
+        /*
+        const rawGemini = data.data.geminiRes;
+        if (rawGemini) {
+          const gemTmp = JSON.parse(rawGemini);
+          const struct1Combined = [
+            "[Main Responsibilities]",
+            ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
+            "[Preferred Qualifications and Benefits]",
+            ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? [])
+          ].join("\n");
+          const struct2 = gemTmp.struct2 ?? "";
+          setGeminiRes([struct1Combined, struct2]);
+        }*/
         const gemTxt =
           "{\n" +
           '  "struct1": {\n' +
@@ -110,10 +140,31 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     setEditingSection(section);
   };
 
+  /*
   const handleSave = (section: string, data: any) => {
     setJobPostData((prev: any) => ({ ...prev, ...data }));
     setEditingSection(null);
     setTempEditData({});
+  };
+  */
+  const handleSave = (section: string, data: Record<DescriptionVersion, string>) => {
+    if (section === "description") {
+      const selectedDescription = data[selectedVersion] ?? "";
+      console.log(selectedVersion);
+
+      setJobPostData((prev: any) => ({
+        ...prev,
+        jobDescriptions: {
+          ...prev.jobDescriptions,
+          ...data, // 선택된 것만 수정한 전체 구조
+        },
+        jobDescription: data[selectedVersion], // 저장용 (간단 미리보기용)
+      }));
+
+      setNewJobDesc(selectedDescription);
+      setTempEditData(data);
+      setEditingSection(null);
+    }
   };
 
   const handlePublish = () => {
@@ -137,33 +188,88 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         showEditButtons = {useAI}
         showPublishButton
         editableSections={["description"]}
+        useAI={useAI}
+        geminiRes={geminiRes}
+        selectedVersion={selectedVersion}
+        onSelectVersion={setSelectedVersion}
+        jobDescriptions={tempEditData}
       /> )}
       <BaseDialog
-        type="bottomSheet"
         open={editingSection === "description"}
-        onClose={() => setEditingSection(null)}
+        onClose={() => {
+          setEditingSection(null);
+          setTempEditData({
+            manual: jobPostData?.jobDescription || "",
+            struct1: geminiRes[0] || "",
+            struct2: geminiRes[1] || "",
+          });
+
+        }}
         title="Edit Job Description"
         actions={
-          <Button onClick={() => handleSave("description", tempEditData)} size="lg">
-            Save
-          </Button>
+          <div className="flex justify-end w-full">
+            <button
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              onClick={() => handleSave("description",
+                { ...tempEditData,
+                  [selectedVersion]: tempEditData[selectedVersion],
+                })}
+            >
+              Save
+            </button>
+          </div>
         }
+        size = "xl"
       >
-        <div className="flex flex-col gap-1 sm:gap-2">
-          <span className="text-sm md:text-base text-gray-500">
-            You can edit the job description here
-          </span>
+        {useAI ? (
+          (() => {
+            const labelMap = {
+              manual: "Manual Description",
+              struct1: "AI Structure 1",
+              struct2: "AI Structure 2",
+            };
+
+            const valueMap: Record<"manual" | "struct1" | "struct2", string | undefined> = {
+              manual: tempEditData.manual ?? jobPostData?.jobDescription,
+              struct1: tempEditData.struct1 ?? geminiRes[0],
+              struct2: tempEditData.struct2 ?? geminiRes[1],
+            };
+
+            return (
+              <div className="p-3 border border-purple-500 bg-purple-50 rounded-xl">
+                <p className="text-sm text-gray-500 font-medium mb-2">
+                  {labelMap[selectedVersion]}
+                </p>
+                <TextArea
+                  rows={6}
+                  value={valueMap[selectedVersion]}
+                  onChange={(e) =>
+                    setTempEditData((prev) => ({
+                      ...prev,
+                      [selectedVersion]: e.target.value,
+                    }))
+                  }
+                  className="w-full pt-2 pb-1 scrollbar-none"
+                />
+              </div>
+            );
+          })()
+        ) : (
           <TextArea
             rows={6}
-            value={tempEditData.description || jobPostData?.jobDescription}
+            value={tempEditData.manual}
             onChange={(e) =>
-              setTempEditData((prev: any) => ({ ...prev, description: e.target.value }))
+              setTempEditData((prev) => ({
+                ...prev,
+                manual: e.target.value,
+              }))
             }
             className="w-full pt-3 pb-1 scrollbar-none"
             placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
           />
-        </div>
+        )}
       </BaseDialog>
+
     </div>
   );
 };
