@@ -52,6 +52,25 @@ export async function createJobPost(payload: JobPostPayload) {
   return createdPost;
 }
 
+export async function updateJobDesc(userId: number, postId: string, jobDesc: string) {
+  const bizLocId = await getBusinessLocId(userId);
+  console.log(Number(postId), bizLocId, userId);
+  console.log(jobDesc);
+  const res = await prisma.job_posts.update({
+    where: {
+      id: Number(postId),
+      business_loc_id: bizLocId,
+      user_id: userId,
+    },
+    data: {
+      description: JSON.stringify(jobDesc),
+      status: "PUBLISHED",
+    }
+  });
+  console.log(res);
+  return res.id.toString();
+}
+
 // Edit Job Post
 export async function getBusinessLocId(userId: number) {
   const bizLocId = await prisma.business_loc.findFirst({
@@ -263,7 +282,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const jobPostData: JobPostData = {
     businessLocInfo: bizLocInfo,
     deadline: formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline),
-    jobDescription: jobPostRes.description,
+    jobDescription: JSON.parse(jobPostRes.description),
     hourlyWage: jobPostRes.wage,
     id: jobPostRes.id.toString(),
     jobType: JobType[jobPostRes.job_type],

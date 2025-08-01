@@ -18,12 +18,9 @@ export async function POST (request: NextRequest) {
     const createPostRes = await createJobPost(body);
     if (body.useAI) {
       geminiRes = await geminiTest(body);
-      setCache(`gemini:${createPostRes.id}`, geminiRes.summary);
+      setCache(`gemini:${createPostRes.id}`, geminiRes);
     }
     setCache(`desc:${createPostRes.id}`, createPostRes.description);
-
-    console.log("cache- GEMINI: ", getCache(`gemini:${createPostRes.id}`) );
-    console.log("cache- DESCRIPTION ", getCache(`desc:${createPostRes.id}`) );
     return successResponse(
       {
         id: Number(createPostRes.id),

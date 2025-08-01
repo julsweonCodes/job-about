@@ -27,7 +27,17 @@ interface JobPostViewProps {
   showPublishButton?: boolean;
   showSaveButton?: boolean;
   editableSections?: string[];
+  useAI?: boolean;
+  geminiRes?: string[];
+  jobDescriptions?: {
+    manual: string;
+    struct1: string;
+    struct2: string;
+  };
+  selectedVersion?: "manual" | "struct1" | "struct2";
+  onSelectVersion?: (v: "manual" | "struct1" | "struct2") => void;
 }
+
 
 // JobPostView Skeleton 컴포넌트
 const JobPostViewSkeleton: React.FC = () => (
@@ -180,9 +190,13 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   showPublishButton = false,
   showSaveButton = false,
   editableSections = ["header", "description", "business"],
-}) => {
+  useAI,
+  geminiRes,
+  jobDescriptions,
+  selectedVersion,
+  onSelectVersion,
+  }) => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
-
   // 테스트용 더미 extraPhotos 데이터
 
   // 실제 extraPhotos가 없으면 더미 데이터 사용
@@ -289,7 +303,43 @@ const JobPostView: React.FC<JobPostViewProps> = ({
             )}
           </div>
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-            <p className="text-gray-700 leading-relaxed text-base">{jobData?.jobDescription}</p>
+            {/*<p className="text-gray-700 leading-relaxed text-base">{jobData?.jobDescription}</p>*/}
+            {mode === "preview" && useAI && geminiRes?.length === 2 ? (
+              (["manual", "struct1", "struct2"] as const).map((versionKey) => {
+                const labelMap = {
+                  manual: "Manual Description",
+                  struct1: "AI Structure 1",
+                  struct2: "AI Structure 2",
+                };
+
+                const valueMap: Record<"manual" | "struct1" | "struct2", string | undefined> = {
+                  manual: jobData?.jobDescription,
+                  struct1: geminiRes[0],
+                  struct2: geminiRes[1],
+                };
+
+                const isSelected = versionKey === selectedVersion;
+
+                return (
+                  <div
+                    key={versionKey}
+                    onClick={() => onSelectVersion?.(versionKey)}
+                    className={`p-4 border rounded-xl transition-all ${
+                      isSelected ? "border-purple-500 bg-purple-50" : "border-gray-200"
+                    }`}
+                  >
+                    <p className="text-sm text-gray-500 font-medium mb-2">{labelMap[versionKey]}</p>
+                    <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
+                      {valueMap[versionKey]}
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
+                {jobData?.jobDescription}
+              </p>
+            )}
           </div>
         </div>
 
