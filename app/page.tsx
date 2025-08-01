@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Users,
   Briefcase,
@@ -12,81 +12,11 @@ import {
   Settings,
   UserCheck,
 } from "lucide-react";
-import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
-import { useAuth } from "@/hooks/useAuth";
+
+import { ProfileHeader } from "@/components/common/ProfileHeader";
 
 function App() {
   const [activeTab, setActiveTab] = useState("seekers");
-  const [isClient, setIsClient] = useState(false);
-  const { authState, handleLogout, handleRetry, canRetry } = useAuth();
-
-  // 클라이언트에서만 실행
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // 인증 상태에 따른 UI 렌더링
-  const renderAuthUI = () => {
-    if (!isClient) {
-      // 서버 렌더링 시 빈 div (hydration 일치)
-      return <div></div>;
-    }
-
-    switch (authState) {
-      case "initializing":
-        return (
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin"></div>
-          </div>
-        );
-
-      case "error":
-        return (
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-red-600">Authentication Error Occurred</div>
-            {canRetry && (
-              <button
-                onClick={handleRetry}
-                className="text-sm text-purple-600 hover:text-purple-800 underline"
-              >
-                Retry
-              </button>
-            )}
-            <div className="min-w-[180px]">
-              <GoogleLoginButton />
-            </div>
-          </div>
-        );
-
-      case "unauthenticated":
-        return (
-          <div className="flex items-center gap-3">
-            <div className="min-w-[180px]">
-              <GoogleLoginButton />
-            </div>
-          </div>
-        );
-
-      case "authenticated":
-        return (
-          <div className="flex items-center gap-6">
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm md:text-lg"
-            >
-              Log out
-            </button>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin"></div>
-          </div>
-        );
-    }
-  };
 
   const seekerSteps = [
     {
@@ -151,17 +81,7 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-gray-200 z-50 ">
-        <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between  h-16 lg:h-20">
-            <div className="flex items-center gap-2">
-              <span className="text-xl md:text-2xl font-bold text-gray-900">job:about</span>
-            </div>
-
-            {renderAuthUI()}
-          </div>
-        </div>
-      </header>
+      <ProfileHeader />
 
       <main>
         {/* Hero Section */}
