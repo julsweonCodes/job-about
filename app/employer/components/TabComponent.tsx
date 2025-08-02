@@ -10,9 +10,38 @@ interface TabComponentProps {
   tabs: Tab[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  isLoading?: boolean;
 }
 
-export const TabComponent: React.FC<TabComponentProps> = ({ tabs, activeTab, onTabChange }) => {
+// TabComponent 스켈레톤 컴포넌트
+export const TabComponentSkeleton: React.FC = () => {
+  return (
+    <div className="flex space-x-3">
+      {Array.from({ length: 2 }).map((_, index) => (
+        <div
+          key={index}
+          className="relative px-4 sm:px-6 py-2 sm:py-4 font-medium text-sm rounded-xl bg-gray-200 animate-pulse"
+        >
+          <div className="flex items-center space-x-2">
+            <div className="h-4 w-20 bg-gray-300 rounded animate-pulse"></div>
+            <div className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full bg-gray-300 w-6 h-5 animate-pulse"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export const TabComponent: React.FC<TabComponentProps> = ({
+  tabs,
+  activeTab,
+  onTabChange,
+  isLoading = false,
+}) => {
+  if (isLoading) {
+    return <TabComponentSkeleton />;
+  }
+
   return (
     <div className="flex space-x-3">
       {tabs.map((tab) => (

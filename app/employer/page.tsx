@@ -241,6 +241,7 @@ export default function EmployerDashboard() {
             ]}
             activeTab={activeTab}
             onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+            isLoading={loadingStates.activeJobPostList || loadingStates.draftJobPostList}
           />
 
           {/* Active Jobs Tab */}
