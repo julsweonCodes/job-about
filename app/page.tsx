@@ -707,37 +707,26 @@ function App() {
         open={showLoginDialog}
         onClose={() => setShowLoginDialog(false)}
         title=""
-        size="md"
-        className="max-w-md"
-        type="bottomSheet"
+        size="sm"
       >
         <div className="relative">
-          {/* 배경 그라데이션 */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-3xl"></div>
-
           {/* 컨텐츠 */}
-          <div className="relative z-10 p-8 flex flex-col items-center">
-            {/* 헤더 */}
-            <div className="text-center mb-8">
-              {/* 로고/아이콘 */}
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <Users className="text-white" size={32} />
-              </div>
+          <div className="relative py-6 pb-2 sm:p-6 sm:pb-6 z-10 text-center">
+            {/* 제목 */}
+            <h3 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-5">
+              Welcome to <span className="text-text-accent1">job:about</span>
+            </h3>
 
-              {/* 제목 */}
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900  tracking-tight">
-                Welcome to job:about
-              </h3>
-            </div>
+            {/* 설명 */}
+            <p className="text-sm sm:text-lg text-gray-500 mb-4 sm:mb-6 leading-relaxed">
+              Join our AI-powered
+              <br /> job matching platform
+            </p>
 
             {/* 구글 로그인 버튼 */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center">
               <GoogleLoginButton size="lg" />
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-sm mx-auto text-center">
-              Join our AI-powered job matching platform and discover opportunities that fit your
-              skills and personality
-            </p>
           </div>
         </div>
       </BaseDialog>

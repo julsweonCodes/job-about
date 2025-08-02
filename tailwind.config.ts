@@ -29,6 +29,7 @@ const config: Config = {
           tertiary: "#868E96",
           disabled: "#ADB5BD",
           inverse: "#FFFFFF",
+          accent1: "#7A73F1",
         },
         border: {
           secondary: "#DEE0E3",
