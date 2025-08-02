@@ -142,7 +142,7 @@ const JobDescription: React.FC<{
   <div className="mb-8">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
-      {mode === "edit" && showEditButtons && onEdit && editableSections.includes("description") && (
+      {showEditButtons && onEdit && editableSections.includes("description") &&  (
         <button
           onClick={() => onEdit("description", jobDescriptions || {})}
           className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"

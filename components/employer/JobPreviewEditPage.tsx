@@ -10,6 +10,8 @@ import LoadingScreen from "@/components/common/LoadingScreen";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
+import { apiPatchData } from "@/utils/client/API";
+import { SUCCESS_STATUS } from "@/app/lib/server/commonResponse";
 
 type DescriptionVersion = "manual" | "struct1" | "struct2";
 
@@ -230,28 +232,25 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       // 로딩 시작
       setLoadingStates((prev) => ({ ...prev, publish: true }));
 
-      const res = await fetch(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId, newJobDesc }),
+      // apiPatchData 사용 - 성공 시에만 data 반환, 실패 시 자동으로 에러 throw
+      const result = await apiPatchData(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
+        postId,
+        newJobDesc,
       });
-      const data = await res.json();
 
-      if (!res.ok || data?.data.status !== "draft") {
-        handlePageError("Failed to publish job post");
-        return;
-      }
+      console.log("Publish response:", result);
 
+      // apiPatchData는 성공 시에만 data를 반환하므로, 여기서는 성공 처리만 하면 됨
       showSuccessToast("Job post published successfully");
-      router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+      router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
     } catch (error) {
       console.error("Publish error:", error);
-      showErrorToast(error as string);
+      showErrorToast(error instanceof Error ? error.message : "Failed to publish job post");
     } finally {
       // 로딩 완료
       setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-  }, [postId, newJobDesc, handlePageError, router]);
+  }, [postId, newJobDesc, router]);
 
   // 로딩 중일 때 LoadingScreen 표시
   if (isLoading) {
