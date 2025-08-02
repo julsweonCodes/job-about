@@ -27,7 +27,11 @@ export const StatsCardSkeleton: React.FC = () => {
   );
 };
 
-export const StatsCard: React.FC<StatsCardProps> = ({ activeJobs, activeApplicants }) => {
+export const StatsCard: React.FC<StatsCardProps> = ({
+  activeJobs,
+  activeApplicants,
+  statusUpdateNeeded,
+}) => {
   const stats = [
     {
       label: "Active Jobs",

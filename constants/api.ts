@@ -29,9 +29,12 @@ export const API_URLS = {
   // 구인자 관련
   EMPLOYER: {
     PROFILE: "/api/employer/profile",
+    DASHBOARD: {
+      ROOT: "/api/employer/dashboard",
+      JOBPOSTS: "/api/employer/dashboard/jobposts",
+    },
     POST: {
       CREATE: "/api/employer/post/create",
-      DASHBOARD: "/api/employer/post/dashboard",
       PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
     },
   },

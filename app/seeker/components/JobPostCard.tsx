@@ -115,7 +115,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           <img
             src={getImageSrc()}
             alt={job.title}
-            className="w-full h-full object-cover rounded-xl"
+            className="w-full h-full object-cover rounded-xl border-2 border-gray-200"
             onError={handleImageError}
           />
         </div>
