@@ -96,15 +96,12 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     try {
       const res = await fetch(`/api/employer/post/preview/${postId}`);
       const data = await res.json();
-      if (!res.ok || data?.data.status !== "DRAFT") {
+
+      if (!res.ok || data?.data.postData.status !== "draft") {
         console.error("error");
         showErrorToast("This page is no longer accessible.");
         router.push(`/employer/post/${postId}`);
-      } else {
-        showSuccessToast("Job post published successfully");
-        router.push(`/employer/post/${postId}`);
       }
-
       if (res.ok) {
         setJobPostData(data.data.postData);
         // 초기 로드 시에는 manual description을 기본값으로 설정
@@ -224,7 +221,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       });
       const data = await res.json();
 
-      if (!res.ok || data?.data.status !== "DRAFT") {
+      if (!res.ok || data?.data.status !== "draft") {
         console.error("error");
         showErrorToast("This page is no longer accessible.");
         router.push(`/employer/post/${postId}`);
