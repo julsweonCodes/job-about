@@ -18,12 +18,16 @@ import {
   getAllLocationsWithDisplayNames,
   getLocationDisplayName, Location,
 } from "@/constants/location";
+import { toPrismaLocation } from "@/types/enumMapper";
+import { router } from "next/client";
+import { PAGE_URLS } from "@/constants/api";
+import { useRouter } from "next/navigation";
 
 interface EmployerFormData {
   businessName: string;
   phoneNumber: string;
   address: string;
-  selectedLocation: (Location | null);
+  location: (Location | null);
   startTime: string;
   endTime: string;
   description: string;
@@ -95,11 +99,12 @@ function JobConditionsSection({ children }: { children: React.ReactNode }) {
 }
 
 export default function EmployerProfilePage() {
+  const router = useRouter();
   const [profileFormData, setProfileFormData] = useState<EmployerFormData>({
     businessName: "",
     phoneNumber: "",
     address: "",
-    selectedLocation: null as Location | null,
+    location: null as Location | null,
     startTime: "",
     endTime: "",
     description: "",
@@ -165,7 +170,7 @@ export default function EmployerProfilePage() {
       { check: () => !!profileFormData.businessName, name: "businessName" },
       { check: () => validatePhone(profileFormData.phoneNumber) === "", name: "phoneNumber" },
       { check: () => !!profileFormData.address, name: "address" },
-      { check: () => !!profileFormData.selectedLocation, name: "selectedLocation" },
+      { check: () => !!profileFormData.location, name: "selectedLocation" },
       {
         check: () => !!(profileFormData.startTime && profileFormData.endTime),
         name: "operatingHours",
@@ -186,7 +191,7 @@ export default function EmployerProfilePage() {
     const formFields = {
       name: profileFormData.businessName,
       phone_number: profileFormData.phoneNumber,
-      selectedLocation: profileFormData.selectedLocation,
+      location: profileFormData.location,
       address: profileFormData.address,
       operating_start: profileFormData.startTime,
       operating_end: profileFormData.endTime,
@@ -208,19 +213,19 @@ export default function EmployerProfilePage() {
         formData.append("photos", file);
       }
     });
-    console.log(profileFormData);
-    console.log(typeof profileFormData.selectedLocation);
-    // const res = await fetch("/api/employer/profile", {
-    //   method: "POST",
-    //   body: formData,
-    // });
-    //
-    // const result = await res.json();
-    // if (res.ok) {
-    //   alert("Profile saved successfully!");
-    // } else {
-    //   alert(result.error || "Error saving profile");
-    // }
+
+    const res = await fetch("/api/employer/profile", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      alert("Profile saved successfully!");
+      router.push(PAGE_URLS.EMPLOYER.ROOT);
+    } else {
+      alert(result.error || "Error saving profile");
+    }
   };
 
   return (
@@ -299,8 +304,8 @@ export default function EmployerProfilePage() {
                     Location <span className="text-red-500">*</span>
                   </Typography>
                     <Select
-                      value={profileFormData.selectedLocation || ""}
-                      onValueChange={(value) => handleInputChange("selectedLocation", value)}
+                      value={profileFormData.location || ""}
+                      onValueChange={(value) => handleInputChange("location", value)}
                     >
                       <SelectTrigger className="w-full px-4 py-4 rounded-2xl border border-gray-200/80 bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 outline-none text-gray-900 font-medium shadow-sm hover:shadow-md hover:border-gray-300 appearance-none">
                         <SelectValue placeholder="Select preferred city" />
@@ -310,7 +315,7 @@ export default function EmployerProfilePage() {
                           cities.map((city) => {
                             const displayName = getLocationDisplayName(city.value);
                             return (
-                              <SelectItem key={city.value} value={city.value} selectedValue={profileFormData.selectedLocation || ""}>
+                              <SelectItem key={city.value} value={city.value} selectedValue={profileFormData.location || ""}>
                                 {displayName}
                               </SelectItem>
                             );

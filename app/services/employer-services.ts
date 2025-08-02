@@ -4,6 +4,7 @@ import { EmployerProfilePayload, JobPost } from "@/types/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
+import { toPrismaLocation } from "@/types/enumMapper";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -63,6 +64,7 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
     ...payload,
     description: payload.description ?? "",
     user_id: Number(payload.user_id),
+    location: toPrismaLocation(payload.location),
   };
   console.log(safePayload);
   const { data, error } = await supabaseClient.from("business_loc").insert([safePayload]);
