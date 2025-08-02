@@ -1,92 +1,86 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { EllipsisVertical } from "lucide-react";
-import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
-import { JobPostActionsDialog } from "@/components/employer/JobPostActionsDialog";
+import PostHeader from "@/components/common/PostHeader";
 import { JobPostData } from "@/types/jobPost";
+import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { EllipsisVertical } from "lucide-react";
+
 interface Props {
   postId: string;
 }
 
 const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [jobDetails, setJobDetails] = useState<JobPostData>();
+  const [jobDetails, setJobDetails] = useState<JobPostData | null>(null);
+  const [showActionsDropdown, setShowActionsDropdown] = useState(false);
   const [loadingStates, setLoadingStates] = useState({
     jobDetails: false,
   });
-  const initializeData = async () => {
-    try {
-      // 로딩 시작
-      setLoadingStates({
-        jobDetails: true,
-      });
 
-      // 모든 API 호출을 병렬로 실행
-      await Promise.all([
-        fetchJobDetails(),
-        // 추가 API 호출들을 여기에 추가
-      ]);
-    } catch (error) {
-      console.error("Error initializing dashboard:", error);
-    } finally {
-      // 로딩 완료
-      setLoadingStates({
-        jobDetails: false,
-      });
-    }
-  };
-
-  useEffect(() => {
-    initializeData();
-  }, []);
-
-  const handleOpen = () => {
-    setIsOpen(true);
+  const handleDropdownToggle = () => {
+    setShowActionsDropdown(!showActionsDropdown);
   };
 
   const handleEdit = () => {
     router.push(PAGE_URLS.EMPLOYER.POST.EDIT(postId));
   };
+
+  const handleStatusChange = (newStatus: JobStatus) => {
+    // TODO: API call to update job post status
+    console.log("Status changed to:", newStatus);
+    setShowActionsDropdown(false);
+  };
+
+  const dropdownItems = [
+    {
+      label: "Edit Job Post",
+      onClick: handleEdit,
+    },
+    {
+      label: jobDetails?.status === JobStatus.PUBLISHED ? "Close Job Post" : "Open Job Post",
+      color: jobDetails?.status === JobStatus.PUBLISHED ? "text-red-600" : "text-green-600",
+      onClick: () => {
+        const newStatus =
+          jobDetails?.status === JobStatus.PUBLISHED ? JobStatus.CLOSED : JobStatus.PUBLISHED;
+        handleStatusChange(newStatus);
+      },
+    },
+  ];
+
   const isLoading = loadingStates.jobDetails;
   const fetchJobDetails = async () => {
+    setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
     try {
-      const res = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId));
-      const data = await res.json();
-      if (res.ok) {
-        setJobDetails(data.data);
-      } else {
-        console.log("Failed to fetch PUBLISHED job post");
+      const response = await fetch(`${API_URLS.JOB_POSTS.DETAIL(postId, "published")}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch job details");
       }
-    } catch (e) {
-      console.log("Error fetching PUBLISHED job post", e);
+      const data = await response.json();
+      setJobDetails(data.data);
+    } catch (error) {
+      console.error("Error fetching job details:", error);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
     }
   };
 
+  useEffect(() => {
+    fetchJobDetails();
+  }, [postId]);
+
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
-      {/* Header */}
       <PostHeader
+        showDropdown={showActionsDropdown}
+        dropdownItems={dropdownItems}
+        onDropdownToggle={handleDropdownToggle}
         rightIcon={<EllipsisVertical className="w-5 h-5 text-gray-700" />}
-        onClickRight={handleOpen}
       />
 
-      {/* Job Post Content */}
-      <JobPostView jobData={jobDetails || null} mode="employer" />
-
-      {/* Actions Dialog */}
-      {jobDetails && (
-        <JobPostActionsDialog
-          open={isOpen}
-          onClose={() => setIsOpen(false)}
-          jobPost={jobDetails}
-          onStatusChange={() => {}}
-          onEdit={handleEdit}
-        />
-      )}
+      {jobDetails && <JobPostView jobData={jobDetails} mode="employer" showEditButtons={false} />}
     </div>
   );
 };
