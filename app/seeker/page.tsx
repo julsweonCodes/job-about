@@ -65,6 +65,7 @@ function SeekerPage() {
       logoImage: apiJob.business_loc?.logo_url
         ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc?.logo_url}`
         : undefined, // Changed from coverImage
+      requiredSkills: apiJob.requiredSkills, // required skills 추가
     };
   };
 
@@ -79,9 +80,12 @@ function SeekerPage() {
       dateRange: "Recently", // 추천 공고는 최신순이므로
       businessName: recommendedJob.company.name,
       description: recommendedJob.description,
-      applicants: 0, // 추천 API에서 제공되지 않음
+      applicants: recommendedJob.applicantCount,
       views: 0,
-      logoImage: undefined, // 추천 API에서 제공되지 않음
+      logoImage: recommendedJob.company.logoUrl
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${recommendedJob.company.logoUrl}`
+        : undefined,
+      requiredSkills: recommendedJob.requiredSkills, // required skills 추가
     };
   };
 

@@ -341,13 +341,26 @@ export async function getJobPosts(params: GetJobPostsParams) {
           logo_url: true,
         },
       },
+      job_practical_skills: {
+        include: {
+          practical_skill: {
+            select: {
+              id: true,
+              name_ko: true,
+              name_en: true,
+              category_ko: true,
+              category_en: true,
+            },
+          },
+        },
+      },
       _count: {
         select: { applications: true },
       },
     },
   });
 
-  const jobPostsWithExtras = jobPosts.map(({ _count, ...rest }) => {
+  const jobPostsWithExtras = jobPosts.map(({ _count, job_practical_skills, ...rest }) => {
     const createdAt = new Date(rest.created_at);
     const now = new Date();
     const diffInDays = Math.floor((+now - +createdAt) / (1000 * 60 * 60 * 24));
@@ -356,6 +369,13 @@ export async function getJobPosts(params: GetJobPostsParams) {
       ...rest,
       daysAgo: diffInDays,
       applicantCount: _count.applications,
+      requiredSkills: job_practical_skills.map((jps) => ({
+        id: Number(jps.practical_skill.id),
+        name_ko: jps.practical_skill.name_ko,
+        name_en: jps.practical_skill.name_en,
+        category_ko: jps.practical_skill.category_ko,
+        category_en: jps.practical_skill.category_en,
+      })),
     };
   });
 
