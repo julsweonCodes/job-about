@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { MapPin, DollarSign, Briefcase } from "lucide-react";
+import { MapPin, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -16,6 +16,7 @@ import {
   RecommendedJobPost,
 } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
+import { PAGE_URLS } from "@/constants/api";
 
 function SeekerPage() {
   const router = useRouter();
@@ -41,15 +42,14 @@ function SeekerPage() {
     loading: recommendedLoading,
     error: recommendedError,
     hasMore: recommendedHasMore,
-    loadMore: loadMoreRecommended,
     refresh: refreshRecommended,
     isInitialized: recommendedInitialized,
   } = useRecommendedJobs({
-    limit: 6,
+    limit: 4,
     autoFetch: true,
   });
 
-  // API 데이터를 JobPostCard 타입으로 변환
+  // Latest Jobs 데이터를 JobPostCard 타입으로 변환
   const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
     return {
       id: apiJob.id,
@@ -107,11 +107,6 @@ function SeekerPage() {
           }
         }
 
-        // Salary filter
-        if (filters.salary !== "all" && job.wage !== filters.salary) {
-          return false;
-        }
-
         // Search query filter
         if (
           filters.searchQuery &&
@@ -143,11 +138,6 @@ function SeekerPage() {
           }
         }
 
-        // Salary filter
-        if (filters.salary !== "all" && job.wage !== filters.salary) {
-          return false;
-        }
-
         // Search query filter
         if (
           filters.searchQuery &&
@@ -162,13 +152,7 @@ function SeekerPage() {
   }, [recommendedJobs, filters]);
 
   const handleViewJob = (id: string) => {
-    router.push(`/seeker/post/${id}`);
-  };
-
-  const handleLoadMoreRecommended = () => {
-    if (!recommendedLoading && recommendedHasMore) {
-      loadMoreRecommended();
-    }
+    router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
   };
 
   const handleLoadMoreLatest = () => {
@@ -216,14 +200,6 @@ function SeekerPage() {
                 options: ["all"],
               }}
             />
-            <FilterDropdown
-              filter={{
-                id: "salary",
-                label: "Salary",
-                icon: <DollarSign className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "15.00", "18.00", "20.00", "100.00"],
-              }}
-            />
           </div>
         </div>
 
@@ -253,13 +229,12 @@ function SeekerPage() {
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Recommended for You</h2>
-              {!showRecommendedSkeleton && recommendedJobs.length > 0 && (
+              {!showRecommendedSkeleton && recommendedJobs.length > 0 && recommendedHasMore && (
                 <button
-                  onClick={handleLoadMoreRecommended}
-                  disabled={recommendedLoading || !recommendedHasMore}
-                  className="text-sm text-purple-600 hover:text-purple-800 disabled:opacity-50"
+                  onClick={() => router.push("/seeker/recommendations")}
+                  className="text-sm text-purple-600 hover:text-purple-800"
                 >
-                  {recommendedLoading ? "Loading..." : recommendedHasMore ? "Show More" : "No More"}
+                  Show More
                 </button>
               )}
             </div>
@@ -276,17 +251,6 @@ function SeekerPage() {
                     <JobPostCard key={job.id} job={job} onView={handleViewJob} isRecommended />
                   ))}
                 </div>
-                {recommendedHasMore && (
-                  <div className="text-center pt-6">
-                    <button
-                      onClick={handleLoadMoreRecommended}
-                      disabled={recommendedLoading}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {recommendedLoading ? "Loading..." : "Load More Recommended"}
-                    </button>
-                  </div>
-                )}
               </>
             )}
           </section>
