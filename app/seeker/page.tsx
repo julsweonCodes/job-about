@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { MapPin, DollarSign, Briefcase } from "lucide-react";
+import { MapPin, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -16,6 +16,7 @@ import {
   RecommendedJobPost,
 } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
+import { PAGE_URLS } from "@/constants/api";
 
 function SeekerPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ function SeekerPage() {
     autoFetch: true,
   });
 
-  // API 데이터를 JobPostCard 타입으로 변환
+  // Latest Jobs 데이터를 JobPostCard 타입으로 변환
   const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
     return {
       id: apiJob.id,
@@ -107,11 +108,6 @@ function SeekerPage() {
           }
         }
 
-        // Salary filter
-        if (filters.salary !== "all" && job.wage !== filters.salary) {
-          return false;
-        }
-
         // Search query filter
         if (
           filters.searchQuery &&
@@ -143,11 +139,6 @@ function SeekerPage() {
           }
         }
 
-        // Salary filter
-        if (filters.salary !== "all" && job.wage !== filters.salary) {
-          return false;
-        }
-
         // Search query filter
         if (
           filters.searchQuery &&
@@ -162,7 +153,7 @@ function SeekerPage() {
   }, [recommendedJobs, filters]);
 
   const handleViewJob = (id: string) => {
-    router.push(`/seeker/post/${id}`);
+    router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
   };
 
   const handleLoadMoreRecommended = () => {
@@ -214,14 +205,6 @@ function SeekerPage() {
                 label: "Location",
                 icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
                 options: ["all"],
-              }}
-            />
-            <FilterDropdown
-              filter={{
-                id: "salary",
-                label: "Salary",
-                icon: <DollarSign className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "15.00", "18.00", "20.00", "100.00"],
               }}
             />
           </div>

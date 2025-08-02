@@ -189,25 +189,24 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            minHeight: "70px",
           }}
         >
           {job.description}
         </p>
-        
+
         {/* Required Skills - 모든 job에서 표시 */}
         {job.requiredSkills && job.requiredSkills.length > 0 && (
           <div className="mt-3">
-            <Typography as="p" variant="bodySm" className="text-gray-600 mb-2">
-              Required Skills:
-            </Typography>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-2">
               {job.requiredSkills.map((skill) => (
-                <Chip 
-                  key={skill.id} 
-                  size="sm" 
-                  className={isRecommended 
-                    ? "bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs"
-                    : "bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs"
+                <Chip
+                  key={skill.id}
+                  size="sm"
+                  className={
+                    isRecommended
+                      ? "bg-purple-50 text-purple-700 hover:bg-purple-100 text-sm font-medium"
+                      : "bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm font-medium"
                   }
                 >
                   {skill.name_en}
