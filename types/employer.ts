@@ -7,6 +7,7 @@ export interface EmployerProfilePayload {
   name: string;
   phone_number: string;
   address: string;
+  location: Location;
   operating_start: string; // "08:00"
   operating_end: string; // "17:00"
   description?: string;
