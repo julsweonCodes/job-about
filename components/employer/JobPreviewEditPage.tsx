@@ -3,15 +3,13 @@ import React, { useEffect, useState } from "react";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
-import { Button } from "@/components/ui/Button";
 import JobPostView from "@/components/common/JobPostView";
 import { JobPostData } from "@/types/jobPost";
-import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType } from "@/constants/jobTypes";
 import { useSearchParams } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
-import { getCache } from "@/utils/cache";
-import { geminiTest } from "@/app/services/gemini-services";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { useRouter } from "next/navigation";
 
 type DescriptionVersion = "manual" | "struct1" | "struct2";
 
@@ -20,6 +18,7 @@ interface Props {
 }
 
 const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
+  const router = useRouter();
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const useAI = searchParams.get("useAI") === "true";
@@ -28,6 +27,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const [loadingStates, setLoadingStates] = useState({
     jobPostPreview: false,
     geminiRes: false,
+    publish: false,
   });
   const [selectedVersion, setSelectedVersion] = useState<DescriptionVersion>("manual");
   const [newJobDesc, setNewJobDesc] = useState<string>();
@@ -36,17 +36,25 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     struct1: geminiRes[0] || "",
     struct2: geminiRes[1] || "",
   });
+
+  // 다이얼로그에서 편집할 때 사용할 임시 상태
+  const [dialogEditData, setDialogEditData] = useState<Record<DescriptionVersion, string>>({
+    manual: "",
+    struct1: "",
+    struct2: "",
+  });
   const initializeData = async () => {
     try {
       // 로딩 시작
       setLoadingStates({
         jobPostPreview: true,
         geminiRes: true,
+        publish: false,
       });
 
       // 모든 API 호출을 병렬로 실행
       await Promise.all([
-        fetchPreviewJobPost()
+        fetchPreviewJobPost(),
         // 추가 API 호출들을 여기에 추가
       ]);
     } catch (error) {
@@ -55,7 +63,8 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       // 로딩 완료
       setLoadingStates({
         jobPostPreview: false,
-        geminiRes: false
+        geminiRes: false,
+        publish: false,
       });
     }
   };
@@ -66,29 +75,30 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   useEffect(() => {
     console.log("Updated geminiRes:", geminiRes);
-    setTempEditData({
+    const newTempEditData = {
       manual: jobPostData?.jobDescription || "",
       struct1: geminiRes[0] || "",
       struct2: geminiRes[1] || "",
-    });
+    };
+    console.log("Setting tempEditData from geminiRes:", newTempEditData);
+    setTempEditData(newTempEditData);
   }, [geminiRes]);
 
-  useEffect(() => {
-    if (tempEditData[selectedVersion]) {
-      console.log(tempEditData[selectedVersion]);
-      console.log(selectedVersion);
-      setNewJobDesc(tempEditData[selectedVersion]);
-    }
-  }, [selectedVersion, tempEditData]);
+  // selectedVersion이 변경되어도 newJobDesc는 자동으로 업데이트하지 않음
+  // newJobDesc는 오직 저장할 때만 업데이트됨
 
   // 전체 로딩 상태 계산
   const isLoading = Object.values(loadingStates).some((state) => state);
-  const fetchPreviewJobPost = async() => {
+
+  // publish 로딩 상태
+  const isPublishing = loadingStates.publish;
+  const fetchPreviewJobPost = async () => {
     try {
       const res = await fetch(`/api/employer/post/preview/${postId}`);
       const data = await res.json();
       if (res.ok) {
         setJobPostData(data.data.postData);
+        // 초기 로드 시에는 manual description을 기본값으로 설정
         setNewJobDesc(data.data.postData.jobDescription);
         /*
         const rawGemini = data.data.geminiRes;
@@ -125,7 +135,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
           "[Main Responsibilities]",
           ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
           "[Preferred Qualifications and Benefits]",
-          ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? [])
+          ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? []),
         ].join("\n");
         const struct2 = gemTmp.struct2 ?? "";
         setGeminiRes([struct1Combined, struct2]);
@@ -138,51 +148,83 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   };
 
   const handleEdit = (section: string, initialData?: any) => {
-    setTempEditData(initialData || {});
+    if (section === "description") {
+      // initialData가 있으면 해당 버전의 데이터만 업데이트하고, 없으면 전체 초기화
+      let currentData;
+      if (initialData && initialData.description) {
+        // 특정 버전에서 편집 버튼을 눌렀을 때
+        currentData = {
+          manual: jobPostData?.jobDescription || "",
+          struct1: geminiRes[0] || "",
+          struct2: geminiRes[1] || "",
+          [selectedVersion]: initialData.description, // 선택된 버전의 내용으로 업데이트
+        };
+      } else {
+        // 전체 초기화
+        currentData = {
+          manual: jobPostData?.jobDescription || "",
+          struct1: geminiRes[0] || "",
+          struct2: geminiRes[1] || "",
+        };
+      }
+      console.log("handleEdit - initialData:", initialData);
+      console.log("handleEdit - currentData:", currentData);
+      console.log("handleEdit - selectedVersion:", selectedVersion);
+      setDialogEditData(currentData); // 다이얼로그 편집용 데이터 설정
+    }
     setEditingSection(section);
   };
 
-  /*
-  const handleSave = (section: string, data: any) => {
-    setJobPostData((prev: any) => ({ ...prev, ...data }));
-    setEditingSection(null);
-    setTempEditData({});
-  };
-  */
   const handleSave = (section: string, data: Record<DescriptionVersion, string>) => {
     if (section === "description") {
       const selectedDescription = data[selectedVersion] ?? "";
-      console.log(selectedVersion);
+      console.log("Saving version:", selectedVersion, "with data:", selectedDescription);
 
+      // Save 버튼을 눌렀을 때만 실제 데이터 업데이트
       setJobPostData((prev: any) => ({
         ...prev,
         jobDescriptions: {
           ...prev.jobDescriptions,
-          ...data, // 선택된 것만 수정한 전체 구조
+          ...data,
         },
-        jobDescription: data[selectedVersion], // 저장용 (간단 미리보기용)
+        jobDescription: selectedDescription, // 선택된 버전의 내용을 메인 설명으로 설정
       }));
 
+      // newJobDesc도 선택된 버전의 내용으로 업데이트
       setNewJobDesc(selectedDescription);
-      setTempEditData(data);
+      setTempEditData(data); // tempEditData도 업데이트
+      setDialogEditData(data); // dialogEditData도 동기화
       setEditingSection(null);
     }
   };
 
   const handlePublish = async () => {
-    console.log("Publishing job post:", newJobDesc);
-    const res = await fetch("/api/employer/post/preview/[postId]", {
-      method: "PATCH",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({postId, newJobDesc}),
-    });
+    try {
+      console.log("Publishing job post:", newJobDesc);
 
-    if (!res.ok) {
-      console.error("error");
-      return;
+      // 로딩 시작
+      setLoadingStates((prev) => ({ ...prev, publish: true }));
+
+      const res = await fetch(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, newJobDesc }),
+      });
+
+      if (!res.ok) {
+        console.error("error");
+        showErrorToast("Publish failed");
+        return;
+      }
+      showSuccessToast("Job post published successfully");
+      router.push(PAGE_URLS.EMPLOYER.ROOT);
+    } catch (error) {
+      console.error("Publish error:", error);
+      showErrorToast(error as string);
+    } finally {
+      // 로딩 완료
+      setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-    const result = await res.json();
-    console.log(result);
   };
 
   // 로딩 중일 때 LoadingScreen 표시
@@ -195,45 +237,46 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       <PostHeader previewMode />
       {jobPostData && (
         <JobPostView
-        jobData={jobPostData}
-        mode="preview"
-        onEdit={handleEdit}
-        onPublish={handlePublish}
-        showEditButtons = {useAI}
-        showPublishButton
-        editableSections={["description"]}
-        useAI={useAI}
-        geminiRes={geminiRes}
-        selectedVersion={selectedVersion}
-        onSelectVersion={setSelectedVersion}
-        jobDescriptions={tempEditData}
-      /> )}
+          jobData={jobPostData}
+          mode="preview"
+          onEdit={handleEdit}
+          onPublish={handlePublish}
+          showEditButtons={useAI}
+          showPublishButton
+          editableSections={["description"]}
+          useAI={useAI}
+          geminiRes={geminiRes}
+          selectedVersion={selectedVersion}
+          onSelectVersion={setSelectedVersion}
+          jobDescriptions={tempEditData}
+        />
+      )}
+
+      {/* Publish 로딩 오버레이 */}
+      {isPublishing && <LoadingScreen overlay={true} opacity="light" message="Publishing..." />}
       <BaseDialog
         open={editingSection === "description"}
         onClose={() => {
           setEditingSection(null);
-          setTempEditData({
+          // 다이얼로그 닫을 때 편집 내용 취소 (원래 상태로 복원)
+          setDialogEditData({
             manual: jobPostData?.jobDescription || "",
             struct1: geminiRes[0] || "",
             struct2: geminiRes[1] || "",
           });
-
         }}
         title="Edit Job Description"
         actions={
           <div className="flex justify-end w-full">
             <button
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              onClick={() => handleSave("description",
-                { ...tempEditData,
-                  [selectedVersion]: tempEditData[selectedVersion],
-                })}
+              onClick={() => handleSave("description", dialogEditData)}
             >
               Save
             </button>
           </div>
         }
-        size = "xl"
+        size="xl"
       >
         {useAI ? (
           (() => {
@@ -244,9 +287,9 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
             };
 
             const valueMap: Record<"manual" | "struct1" | "struct2", string | undefined> = {
-              manual: tempEditData.manual ?? jobPostData?.jobDescription,
-              struct1: tempEditData.struct1 ?? geminiRes[0],
-              struct2: tempEditData.struct2 ?? geminiRes[1],
+              manual: dialogEditData.manual ?? jobPostData?.jobDescription,
+              struct1: dialogEditData.struct1 ?? geminiRes[0],
+              struct2: dialogEditData.struct2 ?? geminiRes[1],
             };
 
             return (
@@ -256,13 +299,19 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
                 </p>
                 <TextArea
                   rows={6}
-                  value={valueMap[selectedVersion]}
-                  onChange={(e) =>
-                    setTempEditData((prev) => ({
-                      ...prev,
-                      [selectedVersion]: e.target.value,
-                    }))
-                  }
+                  value={valueMap[selectedVersion] || ""}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    console.log(`Updating ${selectedVersion} in dialog:`, newValue);
+                    setDialogEditData((prev) => {
+                      const updated = {
+                        ...prev,
+                        [selectedVersion]: newValue,
+                      };
+                      console.log("Updated dialogEditData:", updated);
+                      return updated;
+                    });
+                  }}
                   className="w-full pt-2 pb-1 scrollbar-none"
                 />
               </div>
@@ -271,19 +320,20 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         ) : (
           <TextArea
             rows={6}
-            value={tempEditData.manual}
-            onChange={(e) =>
-              setTempEditData((prev) => ({
+            value={dialogEditData.manual || ""}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              console.log("Updating manual in dialog:", newValue);
+              setDialogEditData((prev) => ({
                 ...prev,
-                manual: e.target.value,
-              }))
-            }
+                manual: newValue,
+              }));
+            }}
             className="w-full pt-3 pb-1 scrollbar-none"
             placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
           />
         )}
       </BaseDialog>
-
     </div>
   );
 };

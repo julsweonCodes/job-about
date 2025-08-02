@@ -38,7 +38,6 @@ interface JobPostViewProps {
   onSelectVersion?: (v: "manual" | "struct1" | "struct2") => void;
 }
 
-
 // JobPostView Skeleton 컴포넌트
 const JobPostViewSkeleton: React.FC = () => (
   <div className="min-h-screen bg-gray-50 font-pretendard">
@@ -195,7 +194,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   jobDescriptions,
   selectedVersion,
   onSelectVersion,
-  }) => {
+}) => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   // 테스트용 더미 extraPhotos 데이터
 
@@ -293,16 +292,16 @@ const JobPostView: React.FC<JobPostViewProps> = ({
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
-            {showEditButtons && onEdit && editableSections.includes("description") && (
+            {/* {showEditButtons && onEdit && editableSections.includes("description") && (
               <button
-                onClick={() => onEdit("description", { description: jobData?.jobDescription })}
+                onClick={() => onEdit("description", jobDescriptions || {})}
                 className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
               </button>
-            )}
+            )} */}
           </div>
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
             {/*<p className="text-gray-700 leading-relaxed text-base">{jobData?.jobDescription}</p>*/}
             {mode === "preview" && useAI && geminiRes?.length === 2 ? (
               (["manual", "struct1", "struct2"] as const).map((versionKey) => {
@@ -313,9 +312,9 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                 };
 
                 const valueMap: Record<"manual" | "struct1" | "struct2", string | undefined> = {
-                  manual: jobData?.jobDescription,
-                  struct1: geminiRes[0],
-                  struct2: geminiRes[1],
+                  manual: jobDescriptions?.manual || jobData?.jobDescription,
+                  struct1: jobDescriptions?.struct1 || geminiRes[0],
+                  struct2: jobDescriptions?.struct2 || geminiRes[1],
                 };
 
                 const isSelected = versionKey === selectedVersion;
@@ -323,15 +322,30 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                 return (
                   <div
                     key={versionKey}
-                    onClick={() => onSelectVersion?.(versionKey)}
                     className={`p-4 border rounded-xl transition-all ${
                       isSelected ? "border-purple-500 bg-purple-50" : "border-gray-200"
                     }`}
                   >
-                    <p className="text-sm text-gray-500 font-medium mb-2">{labelMap[versionKey]}</p>
-                    <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
-                      {valueMap[versionKey]}
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-500 font-medium">{labelMap[versionKey]}</p>
+                      {showEditButtons && onEdit && editableSections.includes("description") && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // 버블링 방지
+                            onSelectVersion?.(versionKey); // 해당 버전 선택
+                            onEdit("description", { description: valueMap[versionKey] });
+                          }}
+                          className="p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <div onClick={() => onSelectVersion?.(versionKey)} className="cursor-pointer">
+                      <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
+                        {valueMap[versionKey]}
+                      </p>
+                    </div>
                   </div>
                 );
               })

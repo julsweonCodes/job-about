@@ -29,8 +29,12 @@ export default function AuthProvider() {
 
     // Dynamic routes 패턴 매칭
     const dynamicRoutePatterns = [
+      // Seeker routes
       /^\/seeker\/post\/[\w-]+$/, // /seeker/post/[id]
-      /^\/employer\/post\/[\w-]+\/edit$/, // /employer/post/[id]/edit
+
+      // Employer routes
+      /^\/employer\/post\/[\w-]+$/, // /employer/post/[id]
+      /^\/employer\/post\/preview\/[\w-]+$/, // /employer/post/preview/[id]
       /^\/employer\/post\/[\w-]+\/applicants$/, // /employer/post/[id]/applicants
       /^\/employer\/post\/[\w-]+\/applicants\/[\w-]+$/, // /employer/post/[id]/applicants/[applicationId]
     ];

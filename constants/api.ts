@@ -32,6 +32,7 @@ export const API_URLS = {
     POST: {
       CREATE: "/api/employer/post/create",
       DASHBOARD: "/api/employer/post/dashboard",
+      PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
     },
   },
 
@@ -109,7 +110,11 @@ export const PAGE_URLS = {
     POST: {
       CREATE: "/employer/post/create",
       DASHBOARD: "/employer/post/dashboard",
+      PREVIEW: (id: string) => `/employer/post/preview/${id}`,
+      DETAIL: (id: string) => `/employer/post/${id}`,
     },
+    APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
+    PENDING_UPDATES: "/employer/pending-updates",
   },
   AUTH: {
     CALLBACK: "/auth/callback",

@@ -12,8 +12,8 @@ import {
 } from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
-import { JobType, } from "@/constants/jobTypes";
-import { STORAGE_URLS } from '@/constants/storage';
+import { JobType } from "@/constants/jobTypes";
+import { STORAGE_URLS } from "@/constants/storage";
 import { HttpError } from "../lib/server/commonResponse";
 
 // Create Job Post
@@ -65,7 +65,7 @@ export async function updateJobDesc(userId: number, postId: string, jobDesc: str
     data: {
       description: JSON.stringify(jobDesc),
       status: "PUBLISHED",
-    }
+    },
   });
   console.log(res);
   return res.id.toString();
@@ -230,12 +230,13 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     where: {
       id: Number(jobPostId),
       status: toPrismaJobStatus(jobPostStatus),
-    }, include: {
+    },
+    include: {
       bookmarked_jobs: {
         where: userId ? { user_id: userId } : { id: -1 },
         select: { id: true },
       },
-    }
+    },
   });
 
   //북마크 여부 확인을 위한 역할 체크
@@ -243,11 +244,13 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   if (userId) {
     user = await prisma.users.findUnique({
       where: {
-        id: userId, deleted_at: null
-      }, select: {
-        role: true
-      }
-    })
+        id: userId,
+        deleted_at: null,
+      },
+      select: {
+        role: true,
+      },
+    });
   }
 
   if (!jobPostRes) {
@@ -276,13 +279,22 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
 
-  const isBookmarked =
-    user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
+  const isBookmarked = user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
+
+  // 안전한 JSON 파싱을 위한 헬퍼 함수
+  const safeJsonParse = (str: string) => {
+    try {
+      return JSON.parse(str);
+    } catch (error) {
+      console.warn("Failed to parse description as JSON, using as string:", str);
+      return str; // 문자열 그대로 반환
+    }
+  };
 
   const jobPostData: JobPostData = {
     businessLocInfo: bizLocInfo,
     deadline: formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline),
-    jobDescription: JSON.parse(jobPostRes.description),
+    jobDescription: safeJsonParse(jobPostRes.description),
     hourlyWage: jobPostRes.wage,
     id: jobPostRes.id.toString(),
     jobType: JobType[jobPostRes.job_type],
@@ -292,7 +304,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     schedule: jobPostRes.work_schedule,
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
-    isBookmarked
+    isBookmarked,
   };
   console.log(jobPostData);
   return jobPostData;
@@ -357,8 +369,8 @@ export async function getJobPostById(jobPostId: number) {
       deleted_at: null,
     },
     include: {
-      business_loc: true
-    }
+      business_loc: true,
+    },
   });
 
   return jobPost;
@@ -366,7 +378,7 @@ export async function getJobPostById(jobPostId: number) {
 
 export async function getbookmarkedJobPosts(userId: number, page: number, limit: number) {
   const user = await prisma.users.findUnique({
-    where: { id: userId }
+    where: { id: userId },
   });
   if (!user) {
     throw new HttpError("User not found", 404);
@@ -376,7 +388,7 @@ export async function getbookmarkedJobPosts(userId: number, page: number, limit:
 
   const jobPosts = await prisma.bookmarked_jobs.findMany({
     where: {
-      user_id: userId
+      user_id: userId,
     },
     skip,
     take: limit,
@@ -385,19 +397,24 @@ export async function getbookmarkedJobPosts(userId: number, page: number, limit:
         include: {
           business_loc: true,
           _count: {
-            select: { applications: true }
-          }
-        }
-      }
-    }
+            select: { applications: true },
+          },
+        },
+      },
+    },
   });
 
   return jobPosts;
 }
 
-export async function getAppliedJobPosts(userId: number, profileId: number, page: number, limit: number) {
+export async function getAppliedJobPosts(
+  userId: number,
+  profileId: number,
+  page: number,
+  limit: number
+) {
   const user = await prisma.users.findUnique({
-    where: { id: userId }
+    where: { id: userId },
   });
   if (!user) {
     throw new HttpError("User not found", 404);
@@ -407,20 +424,20 @@ export async function getAppliedJobPosts(userId: number, profileId: number, page
 
   const jobPosts = await prisma.applications.findMany({
     where: {
-      profile_id: profileId
+      profile_id: profileId,
     },
     skip,
     take: limit,
     include: {
       job_post: {
         include: {
-          business_loc: true
-          , _count: {
-            select: { applications: true }
-          }
-        }
-      }
-    }
+          business_loc: true,
+          _count: {
+            select: { applications: true },
+          },
+        },
+      },
+    },
   });
 
   return jobPosts;

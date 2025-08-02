@@ -1,85 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { StatsCard } from "./components/StatsCard";
-import { JobPostCard } from "./components/JobPostCard";
+import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
+import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
-import { WorkType } from "@/constants/enums";
 import { Plus } from "lucide-react";
 import { Simulate } from "react-dom/test-utils";
 import { Dashboard, JobPost } from "@/types/employer";
 import error = Simulate.error;
-
-const mockJobPosts: JobPost[] = [
-  {
-    id: "1",
-    title: "Senior Product Designer",
-    type: "ON_SITE",
-    wage: "$85,000 - $110,000",
-    location: "San Francisco, CA",
-    strt_date: "2025-01-01",
-    deadline_date: "2025-12-31",
-    businessName: "TechFlow Solutions",
-    description:
-      "Join our design team to create innovative user experiences for our flagship product. We're looking for someone passionate about user-centered design and modern design systems.",
-    applicants: 18,
-    views: 127,
-    needsUpdate: true,
-    coverImage:
-      "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: "2",
-    title: "Marketing Specialist",
-    type: "ON_SITE",
-    wage: "$35 - $45/hour",
-    location: "Remote",
-    strt_date: "2025-01-01",
-    deadline_date: "2025-12-31",
-    businessName: "TechFlow Solutions",
-    description:
-      "Drive marketing campaigns and content strategy for our growing startup. Perfect opportunity for someone looking to make a real impact in a fast-paced environment.",
-    applicants: 12,
-    views: 89,
-    needsUpdate: false,
-    coverImage:
-      "https://images.pexels.com/photos/3184302/pexels-photo-3184302.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: "3",
-    title: "Frontend Developer",
-    type: "ON_SITE",
-    wage: "$75,000 - $95,000",
-    location: "Austin, TX",
-    strt_date: "2025-01-01",
-    deadline_date: "2025-12-31",
-    businessName: "TechFlow Solutions",
-    description:
-      "Build responsive web applications using modern JavaScript frameworks. Join our engineering team and help shape the future of our platform.",
-    applicants: 24,
-    views: 203,
-    needsUpdate: true,
-    coverImage: "",
-  },
-  {
-    id: "4",
-    title: "UX Researcher",
-    type: "REMOTE",
-    wage: "$70,000 - $90,000",
-    location: "Seattle, WA",
-    strt_date: "2025-01-01",
-    deadline_date: "2025-12-31",
-    businessName: "TechFlow Solutions",
-    description:
-      "Conduct user research and usability testing to inform product decisions. Help us understand our users better and improve their experience.",
-    applicants: 8,
-    views: 156,
-    needsUpdate: false,
-    coverImage:
-      "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-];
+import { PAGE_URLS } from "@/constants/api";
 
 export default function EmployerDashboard() {
   const router = useRouter();
@@ -154,12 +84,12 @@ export default function EmployerDashboard() {
 
   const handleViewJob = (id: string) => {
     // 상세 페이지 이동 등 구현
-    router.push(`/employer/post/${id}`);
+    router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(id));
   };
 
   const handleViewApplicants = (id: string) => {
     // 지원자 목록 페이지 이동 등 구현
-    router.push(`/employer/post/${id}/applicants`);
+    router.push(PAGE_URLS.EMPLOYER.APPLICANTS(id));
   };
 
   return (
@@ -183,14 +113,18 @@ export default function EmployerDashboard() {
             <AlertBanner
               message={`${dashboard?.needsUpdateCnt} job posts need status updates`}
               onClick={() => {
-                router.push("/employer/pending-updates");
+                router.push(PAGE_URLS.EMPLOYER.PENDING_UPDATES);
               }}
             />
           </div>
         )}
 
         {/* Stats */}
-        {dashboard && (
+        {loadingStates.dashboard ? (
+          <div className="mb-10">
+            <StatsCardSkeleton />
+          </div>
+        ) : dashboard ? (
           <div className="mb-10">
             <StatsCard
               activeJobs={dashboard.activeJobPostsCnt}
@@ -198,14 +132,20 @@ export default function EmployerDashboard() {
               statusUpdateNeeded={dashboard.needsUpdateCnt}
             />
           </div>
-        )}
+        ) : null}
 
         {/* Job Posts Section */}
         <div className="space-y-6 lg:space-y-8 pb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
           </div>
-          {jobPostList && (
+          {loadingStates.jobPostList ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <JobPostCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : jobPostList && jobPostList.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
               {jobPostList.map((job) => (
                 <JobPostCard
@@ -216,6 +156,10 @@ export default function EmployerDashboard() {
                 />
               ))}
             </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No active job posts found.</p>
+            </div>
           )}
         </div>
         {/* Bottom Safe Area */}
@@ -225,7 +169,7 @@ export default function EmployerDashboard() {
       <button
         className="fixed bottom-6 z-50 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 flex items-center justify-center p-3 md:p-4"
         style={{ right: "max(calc((100vw - 1536px) / 2 + 1.5rem), 1.5rem)" }}
-        onClick={() => router.push("/employer/post/create")}
+        onClick={() => router.push(PAGE_URLS.EMPLOYER.POST.CREATE)}
         aria-label="Create Job Post"
       >
         <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
