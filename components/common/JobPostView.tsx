@@ -16,16 +16,18 @@ import { JobPostData } from "@/types/jobPost";
 
 interface JobPostViewProps {
   jobData: JobPostData | null;
-  mode?: "employer" | "seeker" | "preview";
+  mode?: "employer" | "seeker" | "preview" | "edit";
   onEdit?: (section: string, data: any) => void;
   onApply?: () => void;
   onBookmark?: () => void;
   onPublish?: () => void;
+  onSaveEdit?: () => void;
   isBookmarked?: boolean;
   showEditButtons?: boolean;
   showApplyButton?: boolean;
   showPublishButton?: boolean;
   showSaveButton?: boolean;
+  showSaveEditButton?: boolean;
   editableSections?: string[];
   useAI?: boolean;
   geminiRes?: string[];
@@ -184,10 +186,12 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   onEdit,
   onApply,
   onPublish,
+  onSaveEdit,
   showEditButtons = false,
   showApplyButton = false,
   showPublishButton = false,
   showSaveButton = false,
+  showSaveEditButton = false,
   editableSections = ["header", "description", "business"],
   useAI,
   geminiRes,
@@ -208,7 +212,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
     {
       icon: MapPin,
       label: "Location",
-      value: jobData?.businessLocInfo.location,
+      value: jobData?.businessLocInfo?.address,
       color: "text-red-500",
       bgColor: "bg-red-50",
     },
@@ -252,7 +256,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
       <div className="max-w-6xl mx-auto px-5 lg:px-6">
         {/* Job Header */}
         <div className="py-6 lg:py-8">
-          <div className="flex items-start space-x-4">
+          <div className="flex flex-row items-center space-x-4">
             <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
               <img
                 src={jobData?.businessLocInfo.logoImg}
@@ -261,28 +265,31 @@ const JobPostView: React.FC<JobPostViewProps> = ({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between ">
                 <div className="flex-1">
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
                     {jobData?.title}
                   </h1>
-                  <p className="text-lg lg:text-xl text-gray-600 mb-3">
+                  <p className="text-lg lg:text-xl text-gray-600">
                     {jobData?.businessLocInfo.name}
                   </p>
                 </div>
-                {showEditButtons && onEdit && editableSections.includes("header") && (
-                  <button
-                    onClick={() =>
-                      onEdit("header", {
-                        title: jobData?.title,
-                        business: jobData?.businessLocInfo,
-                      })
-                    }
-                    className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                )}
+                {mode === "edit" &&
+                  showEditButtons &&
+                  onEdit &&
+                  editableSections.includes("header") && (
+                    <button
+                      onClick={() =>
+                        onEdit("header", {
+                          title: jobData?.title,
+                          business: jobData?.businessLocInfo,
+                        })
+                      }
+                      className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  )}
               </div>
             </div>
           </div>
@@ -292,14 +299,17 @@ const JobPostView: React.FC<JobPostViewProps> = ({
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
-            {/* {showEditButtons && onEdit && editableSections.includes("description") && (
-              <button
-                onClick={() => onEdit("description", jobDescriptions || {})}
-                className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            )} */}
+            {showEditButtons &&
+              onEdit &&
+              editableSections.includes("description") &&
+              !geminiRes && (
+                <button
+                  onClick={() => onEdit("description", jobDescriptions || {})}
+                  className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+              )}
           </div>
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
             {/*<p className="text-gray-700 leading-relaxed text-base">{jobData?.jobDescription}</p>*/}
@@ -377,7 +387,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-500 mb-1">{item.label}</p>
                       <p className="text-base font-semibold text-gray-900 break-words">
-                        {item.value}
+                        {item?.value?.toString() || ""}
                       </p>
                     </div>
                   </div>
@@ -592,8 +602,39 @@ const JobPostView: React.FC<JobPostViewProps> = ({
           </div>
         </>
       )}
+
+      {showSaveEditButton && onSaveEdit && (
+        <>
+          {/* Save Edit Button - Mobile Sticky */}
+          <div className="lg:hidden px-4 py-6 bg-white border-t border-gray-100 sticky bottom-0 z-10">
+            <button
+              onClick={onSaveEdit}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Save Changes
+            </button>
+            <p className="text-center text-sm text-gray-500 mt-3">
+              Your changes will be saved immediately
+            </p>
+          </div>
+
+          {/* Save Edit Button - Desktop */}
+          <div className="hidden lg:block max-w-6xl mx-auto px-6 pb-12">
+            <button
+              onClick={onSaveEdit}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 rounded-3xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Save Changes
+            </button>
+            <p className="text-center text-base text-gray-500 mt-4">
+              Your changes will be saved immediately
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
+export { JobPostViewSkeleton };
 export default JobPostView;

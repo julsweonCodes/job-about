@@ -1,15 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { EllipsisVertical } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
 import { JobPostActionsDialog } from "@/components/employer/JobPostActionsDialog";
 import { JobPostData } from "@/types/jobPost";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 interface Props {
   postId: string;
 }
 
 const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [jobDetails, setJobDetails] = useState<JobPostData>();
   const [loadingStates, setLoadingStates] = useState({
@@ -44,10 +47,14 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
   const handleOpen = () => {
     setIsOpen(true);
   };
+
+  const handleEdit = () => {
+    router.push(PAGE_URLS.EMPLOYER.POST.EDIT(postId));
+  };
   const isLoading = loadingStates.jobDetails;
   const fetchJobDetails = async () => {
     try {
-      const res = await fetch(`/api/employer/post/${postId}`);
+      const res = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId));
       const data = await res.json();
       if (res.ok) {
         setJobDetails(data.data);
@@ -77,7 +84,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
           onClose={() => setIsOpen(false)}
           jobPost={jobDetails}
           onStatusChange={() => {}}
-          onEdit={() => {}}
+          onEdit={handleEdit}
         />
       )}
     </div>
