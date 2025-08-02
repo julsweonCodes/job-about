@@ -11,6 +11,7 @@ import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
 import { apiPatchData } from "@/utils/client/API";
+import { Button } from "../ui/Button";
 
 // Types
 type DescriptionVersion = "manual" | "struct1" | "struct2";
@@ -281,17 +282,14 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         title={getDialogTitle(editingVersion)}
+        size="lg"
         actions={
-          <div className="flex justify-end w-full">
-            <button
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-              onClick={handleSave}
-            >
+          <>
+            <Button onClick={handleSave} size="lg">
               Save
-            </button>
-          </div>
+            </Button>
+          </>
         }
-        size="xl"
       >
         <TextArea
           rows={6}

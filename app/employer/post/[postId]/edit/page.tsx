@@ -181,6 +181,7 @@ const JobPostEditPage: React.FC = () => {
             open={editingSection === "description"}
             onClose={() => setEditingSection(null)}
             title="Edit Job Description"
+            size="lg"
             actions={
               <>
                 <Button

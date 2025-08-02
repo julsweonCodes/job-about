@@ -144,7 +144,12 @@ const JobDescription: React.FC<{
       <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
       {showEditButtons && onEdit && editableSections.includes("description") && !useAI && (
         <button
-          onClick={() => onEdit("description", jobDescriptions || {})}
+          onClick={() =>
+            onEdit("description", {
+              description: jobDescriptions?.manual || jobData.jobDescription,
+              selectedVersion: "manual",
+            })
+          }
           className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
         >
           <Edit3 className="w-4 h-4" />
@@ -208,7 +213,7 @@ const JobDescription: React.FC<{
         })
       ) : (
         <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
-          {jobData.jobDescription}
+          {jobDescriptions?.manual || jobData.jobDescription}
         </p>
       )}
     </div>
