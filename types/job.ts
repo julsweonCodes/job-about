@@ -50,6 +50,7 @@ export interface RecommendedJobPost {
   company: {
     name: string;
     address: string;
+    logoUrl?: string;
   };
   employer: {
     name: string;
@@ -66,6 +67,7 @@ export interface RecommendedJobPost {
     category_ko: string;
     category_en: string;
   }>;
+  applicantCount: number;
   matchScore: number;
   compatibility: {
     level: string;

@@ -101,6 +101,7 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
             address: true,
+            logo_url: true,
           },
         },
         job_work_styles: {
@@ -131,6 +132,9 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
           },
+        },
+        _count: {
+          select: { applications: true },
         },
       },
       take: limit * 3, // 필터링을 고려해 더 많이 가져옴
@@ -178,6 +182,7 @@ export async function GET(req: NextRequest) {
         company: {
           name: jobPost.business_loc.name,
           address: jobPost.business_loc.address,
+          logoUrl: jobPost.business_loc.logo_url,
         },
         employer: {
           name: jobPost.user.name,
@@ -194,6 +199,7 @@ export async function GET(req: NextRequest) {
           category_ko: jps.practical_skill.category_ko,
           category_en: jps.practical_skill.category_en,
         })),
+        applicantCount: jobPost._count.applications,
         matchScore,
         compatibility: {
           level: compatibility.level,
