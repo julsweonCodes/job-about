@@ -96,11 +96,20 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     try {
       const res = await fetch(`/api/employer/post/preview/${postId}`);
       const data = await res.json();
+      if (!res.ok || data?.data.status !== "DRAFT") {
+        console.error("error");
+        showErrorToast("This page is no longer accessible.");
+        router.push(`/employer/post/${postId}`);
+      } else {
+        showSuccessToast("Job post published successfully");
+        router.push(`/employer/post/${postId}`);
+      }
+
       if (res.ok) {
         setJobPostData(data.data.postData);
         // 초기 로드 시에는 manual description을 기본값으로 설정
         setNewJobDesc(data.data.postData.jobDescription);
-        /*
+
         const rawGemini = data.data.geminiRes;
         if (rawGemini) {
           const gemTmp = JSON.parse(rawGemini);
@@ -112,7 +121,8 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
           ].join("\n");
           const struct2 = gemTmp.struct2 ?? "";
           setGeminiRes([struct1Combined, struct2]);
-        }*/
+        }
+        /*
         const gemTxt =
           "{\n" +
           '  "struct1": {\n' +
@@ -139,6 +149,8 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         ].join("\n");
         const struct2 = gemTmp.struct2 ?? "";
         setGeminiRes([struct1Combined, struct2]);
+
+         */
       } else {
         console.log("Failed to fetch DRAFT job post");
       }
@@ -210,14 +222,16 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postId, newJobDesc }),
       });
+      const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || data?.data.status !== "DRAFT") {
         console.error("error");
-        showErrorToast("Publish failed");
-        return;
+        showErrorToast("This page is no longer accessible.");
+        router.push(`/employer/post/${postId}`);
+      } else {
+        showSuccessToast("Job post published successfully");
+        router.push(`/employer/post/${postId}`);
       }
-      showSuccessToast("Job post published successfully");
-      router.push(PAGE_URLS.EMPLOYER.ROOT);
     } catch (error) {
       console.error("Publish error:", error);
       showErrorToast(error as string);
