@@ -29,10 +29,10 @@ export function Modal({
       <div
         className={cn(
           "bg-white rounded-2xl shadow-xl p-8 w-full relative transition-all duration-300 transform scale-100 animate-modalIn",
-          size === "sm" && "max-w-sm",
-          size === "md" && "max-w-md",
-          size === "lg" && "max-w-lg",
-          size === "xl" && "max-w-2xl",
+          size === "sm" && "mx-8 sm:mx-5 md:mx-10 lg:mx-20 xl:mx-30 max-w-sm",
+          size === "md" && "mx-8 sm:mx-6 md:mx-12 lg:mx-24 xl:mx-30 max-w-md",
+          size === "lg" && "mx-8 sm:mx-4 md:mx-8 lg:mx-16 xl:mx-20 max-w-lg",
+          size === "xl" && "mx-8 sm:mx-2 md:mx-4 lg:mx-8 xl:mx-10 max-w-2xl",
           className
         )}
         onClick={(e) => e.stopPropagation()}
