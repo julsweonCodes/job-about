@@ -232,7 +232,7 @@ function JobSeekerProfile() {
 
           {/* Skills Section */}
           <FormSection
-            icon={<User />}
+            icon={<User className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Skills"
             description="Add your key skills and competencies"
             iconColor="blue"
@@ -254,7 +254,7 @@ function JobSeekerProfile() {
 
           {/* Job Preferences Section */}
           <FormSection
-            icon={<Briefcase />}
+            icon={<Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Job Preferences"
             description="Define your work preferences and job types"
             iconColor="green"
@@ -319,7 +319,7 @@ function JobSeekerProfile() {
 
           {/* Availability Section */}
           <FormSection
-            icon={<Clock />}
+            icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Availability"
             description="When are you available to work?"
             iconColor="orange"
@@ -387,7 +387,7 @@ function JobSeekerProfile() {
 
           {/* Location Section */}
           <FormSection
-            icon={<MapPin />}
+            icon={<MapPin className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Location"
             description="Select your preferred work location"
             iconColor="purple"
@@ -422,7 +422,7 @@ function JobSeekerProfile() {
 
           {/* Experiences Section */}
           <FormSection
-            icon={<Briefcase />}
+            icon={<Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Experiences (Optional)"
             description="Add your previous work experiences"
             iconColor="indigo"
@@ -456,7 +456,7 @@ function JobSeekerProfile() {
 
           {/* Language Proficiency Section */}
           <FormSection
-            icon={<Languages />}
+            icon={<Languages className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Language Proficiency"
             description="Select your language skill level"
             iconColor="teal"
@@ -482,7 +482,7 @@ function JobSeekerProfile() {
 
           {/* Self Introduction Section */}
           <FormSection
-            icon={<FileText />}
+            icon={<FileText className="w-5 h-5 sm:w-6 sm:h-6" />}
             title="Self Introduction"
             description="Tell employers about yourself and your experience"
             iconColor="pink"
