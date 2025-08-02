@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import JobPostView from "@/components/common/JobPostView";
-import { API_URLS } from "@/constants/api";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -15,6 +15,7 @@ const JobPostEditPage: React.FC = () => {
   const [tempEditData, setTempEditData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   // Job data state
   const [jobData, setJobData] = useState<any>(null);
@@ -76,26 +77,23 @@ const JobPostEditPage: React.FC = () => {
     }
   };
 
+  // api call to server
   const handleSaveEdit = async () => {
-    setIsSaving(true);
-    try {
-      // 여기에 전체 저장 로직 구현
-      console.log("Saving all changes:", tempEditData);
-      // API 호출 등 저장 로직
-      // 예: await updateJobPost(postId, tempEditData);
-    } catch (error) {
-      console.error("Error saving edit:", error);
-    } finally {
-      setIsSaving(false);
-    }
+    console.log("handleSaveEdit", jobData);
   };
 
   const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel? Unsaved changes will be lost.")) {
-      const pathSegments = window.location.pathname.split("/");
-      const postId = pathSegments[pathSegments.length - 2];
-      router.push(`/employer/post/${postId}`);
-    }
+    setShowCancelDialog(true);
+  };
+
+  const handleConfirmCancel = () => {
+    const pathSegments = window.location.pathname.split("/");
+    const postId = pathSegments[pathSegments.length - 2];
+    router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+  };
+
+  const handleCloseCancelDialog = () => {
+    setShowCancelDialog(false);
   };
 
   return (
@@ -111,6 +109,38 @@ const JobPostEditPage: React.FC = () => {
         onSaveEdit={handleSaveEdit}
         showSaveEditButton={true}
       />
+
+      {/* Cancel Confirmation Dialog */}
+      <BaseDialog
+        open={showCancelDialog}
+        onClose={handleCloseCancelDialog}
+        title="Cancel Editing"
+        type="bottomSheet"
+        size="sm"
+        actions={
+          <div className="flex gap-3 w-full">
+            <Button
+              onClick={handleCloseCancelDialog}
+              variant="secondary"
+              size="lg"
+              className="w-full"
+            >
+              Continue
+            </Button>
+            <Button onClick={handleConfirmCancel} variant="red" size="lg" className="w-full">
+              Cancel
+            </Button>
+          </div>
+        }
+      >
+        <div className="text-center py-6">
+          <p className="text-sm text-gray-600 leading-relaxed text-sm sm:text-base">
+            Are you sure you want to cancel editing?<br /> All{" "}
+            <span className="font-semibold text-gray-900">unsaved changes</span> will be lost and
+            cannot be recovered.
+          </p>
+        </div>
+      </BaseDialog>
 
       {/* Edit Modals - Only show when jobData is available */}
       {jobData && (
