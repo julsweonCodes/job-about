@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
 import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
@@ -7,117 +7,22 @@ import { AlertBanner } from "./components/AlertBanner";
 import { TabComponent } from "./components/TabComponent";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { Plus } from "lucide-react";
-import { Dashboard, JobPost } from "@/types/employer";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { useEmployerDashboard } from "@/hooks/employer/useEmployerDashboard";
+import { PAGE_URLS } from "@/constants/api";
 
 type TabType = "active" | "drafts";
 
 export default function EmployerDashboard() {
   const router = useRouter();
-  const [showAlert, setShowAlert] = useState(true);
-  const [dashboard, setDashboard] = useState<Dashboard>();
-  const [activeJobPostList, setActiveJobPostList] = useState<JobPost[]>([]);
-  const [draftJobPostList, setDraftJobPostList] = useState<JobPost[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>("active");
 
-  // 각 API 호출의 개별 상태
-  const [loadingStates, setLoadingStates] = useState({
-    dashboard: true,
-    activeJobPostList: true,
-    draftJobPostList: true,
-  });
-
-  const fetchDashboard = async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, dashboard: true }));
-      const res = await fetch(API_URLS.EMPLOYER.DASHBOARD.ROOT);
-      const data = await res.json();
-      if (res.ok) {
-        setDashboard(data.data);
-      } else {
-        console.error("Failed to fetch employer dashboard", data.error);
-        setDashboard(undefined);
-      }
-    } catch (e) {
-      console.error("Error fetching dashboard:", e);
-      setDashboard(undefined);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, dashboard: false }));
-    }
-  };
-
-  const fetchActiveJobPostList = async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, activeJobPostList: true }));
-      const res = await fetch(API_URLS.EMPLOYER.DASHBOARD.JOBPOSTS);
-      const data = await res.json();
-      if (res.ok) {
-        setActiveJobPostList(data.data || []);
-      } else {
-        console.error("Failed to fetch active job posts in dashboard page", data.error);
-        setActiveJobPostList([]);
-      }
-    } catch (e) {
-      console.error("Error fetching active job posts:", e);
-      setActiveJobPostList([]);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, activeJobPostList: false }));
-    }
-  };
-
-  // TODO: draft API 엔드포인트가 구현되면 수정 필요
-  const fetchDraftJobPostList = async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, draftJobPostList: true }));
-      // 임시로 active와 동일한 API 사용 (draft API가 구현되면 변경)
-      const res = await fetch(API_URLS.EMPLOYER.DASHBOARD.JOBPOSTS);
-      const data = await res.json();
-      if (res.ok) {
-        // 임시로 빈 배열 설정 (draft 데이터가 없으므로)
-        setDraftJobPostList([]);
-      } else {
-        console.error("Failed to fetch draft job posts in dashboard page", data.error);
-        setDraftJobPostList([]);
-      }
-    } catch (e) {
-      console.error("Error fetching draft job posts:", e);
-      setDraftJobPostList([]);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, draftJobPostList: false }));
-    }
-  };
-
-  const initializeData = async () => {
-    try {
-      // 초기 로딩 상태 설정
-      setLoadingStates({
-        dashboard: true,
-        activeJobPostList: true,
-        draftJobPostList: true,
-      });
-
-      // 각 API 호출을 개별적으로 실행하여 하나가 실패해도 다른 것들이 영향을 받지 않도록 함
-      await Promise.allSettled([
-        fetchDashboard(),
-        fetchActiveJobPostList(),
-        fetchDraftJobPostList(),
-      ]);
-    } catch (error) {
-      console.error("Error initializing dashboard:", error);
-    }
-  };
-
-  useEffect(() => {
-    initializeData();
-  }, []);
+  const { dashboard, activeJobPostList, draftJobPostList, loadingStates } = useEmployerDashboard();
 
   const handleViewJob = (id: string) => {
-    // 상세 페이지 이동 등 구현
     router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(id));
   };
 
   const handleViewApplicants = (id: string) => {
-    // 지원자 목록 페이지 이동 등 구현
     router.push(PAGE_URLS.EMPLOYER.APPLICANTS(id));
   };
 
@@ -193,7 +98,7 @@ export default function EmployerDashboard() {
         </div>
 
         {/* Alert Banner */}
-        {showAlert && dashboard && dashboard.needsUpdateCnt > 0 && (
+        {dashboard && dashboard.needsUpdateCnt > 0 && (
           <div className="mb-8">
             <AlertBanner
               message={`${dashboard.needsUpdateCnt} job posts need status updates`}
