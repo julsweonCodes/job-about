@@ -347,23 +347,44 @@ const EmployerInfo: React.FC<{ jobData: JobPostData }> = ({ jobData }) => (
       <h2 className="text-xl font-bold text-gray-900">About the Employer</h2>
     </div>
     <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-6 border border-indigo-100">
-      <div className="mb-6">
-        <p className="text-gray-700 leading-relaxed text-base">
+      {/* Company Description */}
+      <div className="mb-4 sm:mb-8">
+        <div className="flex items-center space-x-2 mb-4">
+          <Building2 className="w-5 h-5 text-indigo-500" />
+          <h3 className="font-semibold text-gray-800 text-lg">Company Description</h3>
+        </div>
+        <p className="text-gray-700 leading-relaxed text-base bg-white/60 rounded-2xl p-4 border border-indigo-100">
           {jobData.businessLocInfo.bizDescription}
         </p>
       </div>
 
-      <div>
-        <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
-          <Building2 className="w-5 h-5 text-indigo-500 mr-2" />
-          Location
-        </h3>
-        {jobData.businessLocInfo.address}
-        <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
-          <Building2 className="w-5 h-5 text-indigo-500 mr-2" />
-          Working Hours
-        </h3>
-        {jobData.businessLocInfo.workingHours}
+      {/* Company Details Grid */}
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        {/* Location */}
+        <div className="bg-white/60 rounded-2xl p-5 border border-indigo-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="p-2 bg-indigo-100 rounded-xl">
+              <MapPin className="w-5 h-5 text-indigo-600" />
+            </div>
+            <h4 className="font-semibold text-gray-800">Location</h4>
+          </div>
+          <p className="text-gray-700 text-base leading-relaxed">
+            {jobData.businessLocInfo.address}
+          </p>
+        </div>
+
+        {/* Working Hours */}
+        <div className="bg-white/60 rounded-2xl p-5 border border-indigo-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="p-2 bg-purple-100 rounded-xl">
+              <Clock className="w-5 h-5 text-purple-600" />
+            </div>
+            <h4 className="font-semibold text-gray-800">Working Hours</h4>
+          </div>
+          <p className="text-gray-700 text-base leading-relaxed">
+            {jobData.businessLocInfo.workingHours}
+          </p>
+        </div>
       </div>
     </div>
   </div>
