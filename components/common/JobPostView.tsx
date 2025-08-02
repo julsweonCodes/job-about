@@ -27,7 +27,6 @@ interface JobPostViewProps {
   showEditButtons?: boolean;
   showApplyButton?: boolean;
   showPublishButton?: boolean;
-  showSaveButton?: boolean;
   showSaveEditButton?: boolean;
   editableSections?: string[];
   useAI?: boolean;
@@ -611,7 +610,6 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   showEditButtons = false,
   showApplyButton = false,
   showPublishButton = false,
-  showSaveButton = false,
   showSaveEditButton = false,
   editableSections = ["header", "description", "business"],
   useAI,
