@@ -196,6 +196,7 @@ export type Database = {
           img_url3: string | null
           img_url4: string | null
           img_url5: string | null
+          location: Database["public"]["Enums"]["Location"]
           logo_url: string | null
           name: string
           operating_end: string
@@ -215,6 +216,7 @@ export type Database = {
           img_url3?: string | null
           img_url4?: string | null
           img_url5?: string | null
+          location: Database["public"]["Enums"]["Location"]
           logo_url?: string | null
           name: string
           operating_end: string
@@ -234,6 +236,7 @@ export type Database = {
           img_url3?: string | null
           img_url4?: string | null
           img_url5?: string | null
+          location?: Database["public"]["Enums"]["Location"]
           logo_url?: string | null
           name?: string
           operating_end?: string
@@ -569,6 +572,7 @@ export type Database = {
           content_en: string
           content_ko: string
           created_at: string
+          emoji: string | null
           id: number
           label: Database["public"]["Enums"]["QuizLabel"]
           question_id: number
@@ -577,6 +581,7 @@ export type Database = {
           content_en: string
           content_ko: string
           created_at?: string
+          emoji?: string | null
           id?: number
           label: Database["public"]["Enums"]["QuizLabel"]
           question_id: number
@@ -585,6 +590,7 @@ export type Database = {
           content_en?: string
           content_ko?: string
           created_at?: string
+          emoji?: string | null
           id?: number
           label?: Database["public"]["Enums"]["QuizLabel"]
           question_id?: number
@@ -606,6 +612,7 @@ export type Database = {
           created_at: string
           dimension_id: number
           id: number
+          img_url: string | null
           question_code: string
           quiz_set_id: string
         }
@@ -615,6 +622,7 @@ export type Database = {
           created_at?: string
           dimension_id: number
           id?: number
+          img_url?: string | null
           question_code: string
           quiz_set_id: string
         }
@@ -624,6 +632,7 @@ export type Database = {
           created_at?: string
           dimension_id?: number
           id?: number
+          img_url?: string | null
           question_code?: string
           quiz_set_id?: string
         }
@@ -677,7 +686,6 @@ export type Database = {
         Row: {
           created_at: string
           deleted_at: string | null
-          description: string | null
           email: string
           id: number
           img_url: string | null
@@ -691,7 +699,6 @@ export type Database = {
         Insert: {
           created_at?: string
           deleted_at?: string | null
-          description?: string | null
           email: string
           id?: number
           img_url?: string | null
@@ -705,7 +712,6 @@ export type Database = {
         Update: {
           created_at?: string
           deleted_at?: string | null
-          description?: string | null
           email?: string
           id?: number
           img_url?: string | null
@@ -732,12 +738,12 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
-          end_date: string | null
           id: number
           job_type: Database["public"]["Enums"]["JobType"]
           profile_id: number
-          start_date: string
+          start_year: string
           updated_at: string
+          work_period: Database["public"]["Enums"]["WorkPeriod"]
           work_type: Database["public"]["Enums"]["WorkType"]
         }
         Insert: {
@@ -745,12 +751,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description: string
-          end_date?: string | null
           id?: number
           job_type: Database["public"]["Enums"]["JobType"]
           profile_id: number
-          start_date: string
+          start_year: string
           updated_at: string
+          work_period: Database["public"]["Enums"]["WorkPeriod"]
           work_type: Database["public"]["Enums"]["WorkType"]
         }
         Update: {
@@ -758,12 +764,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
-          end_date?: string | null
           id?: number
           job_type?: Database["public"]["Enums"]["JobType"]
           profile_id?: number
-          start_date?: string
+          start_year?: string
           updated_at?: string
+          work_period?: Database["public"]["Enums"]["WorkPeriod"]
           work_type?: Database["public"]["Enums"]["WorkType"]
         }
         Relationships: [
@@ -871,6 +877,17 @@ export type Database = {
         | "NEWHAMBURG"
       QuizLabel: "A" | "B"
       Role: "APPLICANT" | "EMPLOYER"
+      WorkPeriod:
+        | "SHORT_TERM"
+        | "UNDER_3_MONTHS"
+        | "UNDER_6_MONTHS"
+        | "SIX_TO_TWELVE_MONTHS"
+        | "ONE_TO_TWO_YEARS"
+        | "TWO_TO_THREE_YEARS"
+        | "THREE_TO_FIVE_YEARS"
+        | "FIVE_TO_SEVEN_YEARS"
+        | "SEVEN_TO_TEN_YEARS"
+        | "OVER_TEN_YEARS"
       WorkType: "REMOTE" | "ON_SITE" | "HYBRID"
     }
     CompositeTypes: {
@@ -1065,6 +1082,18 @@ export const Constants = {
       ],
       QuizLabel: ["A", "B"],
       Role: ["APPLICANT", "EMPLOYER"],
+      WorkPeriod: [
+        "SHORT_TERM",
+        "UNDER_3_MONTHS",
+        "UNDER_6_MONTHS",
+        "SIX_TO_TWELVE_MONTHS",
+        "ONE_TO_TWO_YEARS",
+        "TWO_TO_THREE_YEARS",
+        "THREE_TO_FIVE_YEARS",
+        "FIVE_TO_SEVEN_YEARS",
+        "SEVEN_TO_TEN_YEARS",
+        "OVER_TEN_YEARS",
+      ],
       WorkType: ["REMOTE", "ON_SITE", "HYBRID"],
     },
   },

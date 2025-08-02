@@ -24,6 +24,7 @@ export interface BizLocInfo {
   bizDescription: string;
   logoImg: string;
   extraPhotos: string[];
-  location: string;
-  tags?: string[];
+  location: Location;
+  address: string;
+  workingHours: string;
 }

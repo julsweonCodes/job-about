@@ -489,20 +489,14 @@ const JobPostView: React.FC<JobPostViewProps> = ({
             <div>
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
                 <Building2 className="w-5 h-5 text-indigo-500 mr-2" />
-                What Makes Us Special
+                Location
               </h3>
-              <div className="flex flex-wrap gap-3">
-                {jobData?.businessLocInfo?.tags?.map((tag) => {
-                  return (
-                    <div
-                      key={tag}
-                      className="flex items-center space-x-2 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full border border-indigo-200 shadow-sm"
-                    >
-                      <span className="text-sm font-medium text-indigo-800">{tag}</span>
-                    </div>
-                  );
-                })}
-              </div>
+              {jobData.businessLocInfo.address}
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                <Building2 className="w-5 h-5 text-indigo-500 mr-2" />
+                Working Hours
+              </h3>
+              {jobData.businessLocInfo.workingHours}
             </div>
           </div>
         </div>
