@@ -11,11 +11,23 @@ import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import ProgressHeader from "@/components/common/ProgressHeader";
 import { deleteSingleEmployerImage } from "@/app/services/employer-services";
 import { Chip } from "@/components/ui/Chip";
+import { FormSection } from "@/components/common/FormSection";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
+import {
+  convertLocationKeyToValue,
+  getAllLocationsWithDisplayNames,
+  getLocationDisplayName, Location,
+} from "@/constants/location";
+import { toPrismaLocation } from "@/types/enumMapper";
+import { router } from "next/client";
+import { PAGE_URLS } from "@/constants/api";
+import { useRouter } from "next/navigation";
 
 interface EmployerFormData {
   businessName: string;
   phoneNumber: string;
   address: string;
+  location: (Location | null);
   startTime: string;
   endTime: string;
   description: string;
@@ -23,6 +35,12 @@ interface EmployerFormData {
   logoImgs: (File | string)[];
   photos: (File | string)[];
 }
+
+type LocationOption = {
+  value: Location; // enum type
+  label: string;
+};
+
 
 function EmployerProfileHeader() {
   return (
@@ -81,10 +99,12 @@ function JobConditionsSection({ children }: { children: React.ReactNode }) {
 }
 
 export default function EmployerProfilePage() {
+  const router = useRouter();
   const [profileFormData, setProfileFormData] = useState<EmployerFormData>({
     businessName: "",
     phoneNumber: "",
     address: "",
+    location: null as Location | null,
     startTime: "",
     endTime: "",
     description: "",
@@ -92,9 +112,17 @@ export default function EmployerProfilePage() {
     logoImgs: [],
     photos: [],
   });
+  // get locations
+  const getCities= ():LocationOption[] => {
+    return getAllLocationsWithDisplayNames().map((item) => ({
+      value: item.value as Location, // casting string → enum
+      label: item.label,
+    }));
+  }
 
   const [photos, setPhotos] = useState<(File | string)[]>([]);
   const [logoImg, setLogoImg] = useState<(File | string)[]>([]);
+  const [cities, setCities] = useState<LocationOption[]>(getCities());
 
   const handleInputChange = (field: keyof EmployerFormData, value: any) => {
     setProfileFormData((prev) => ({
@@ -118,6 +146,7 @@ export default function EmployerProfilePage() {
     businessName: false,
     phoneNumber: false,
     address: false,
+    location: false,
     startTime: false,
     endTime: false,
     description: false,
@@ -141,6 +170,7 @@ export default function EmployerProfilePage() {
       { check: () => !!profileFormData.businessName, name: "businessName" },
       { check: () => validatePhone(profileFormData.phoneNumber) === "", name: "phoneNumber" },
       { check: () => !!profileFormData.address, name: "address" },
+      { check: () => !!profileFormData.location, name: "selectedLocation" },
       {
         check: () => !!(profileFormData.startTime && profileFormData.endTime),
         name: "operatingHours",
@@ -161,6 +191,7 @@ export default function EmployerProfilePage() {
     const formFields = {
       name: profileFormData.businessName,
       phone_number: profileFormData.phoneNumber,
+      location: profileFormData.location,
       address: profileFormData.address,
       operating_start: profileFormData.startTime,
       operating_end: profileFormData.endTime,
@@ -182,7 +213,7 @@ export default function EmployerProfilePage() {
         formData.append("photos", file);
       }
     });
-    
+
     const res = await fetch("/api/employer/profile", {
       method: "POST",
       body: formData,
@@ -191,6 +222,7 @@ export default function EmployerProfilePage() {
     const result = await res.json();
     if (res.ok) {
       alert("Profile saved successfully!");
+      router.push(PAGE_URLS.EMPLOYER.ROOT);
     } else {
       alert(result.error || "Error saving profile");
     }
@@ -262,6 +294,39 @@ export default function EmployerProfilePage() {
                         : ""
                     }
                   />
+                </div>
+                <div className="group">
+                  <Typography
+                    as="label"
+                    variant="bodySm"
+                    className="block font-semibold text-gray-800 mb-3"
+                  >
+                    Location <span className="text-red-500">*</span>
+                  </Typography>
+                    <Select
+                      value={profileFormData.location || ""}
+                      onValueChange={(value) => handleInputChange("location", value)}
+                    >
+                      <SelectTrigger className="w-full px-4 py-4 rounded-2xl border border-gray-200/80 bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 outline-none text-gray-900 font-medium shadow-sm hover:shadow-md hover:border-gray-300 appearance-none">
+                        <SelectValue placeholder="Select preferred city" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.isArray(cities) && cities.length > 0 ? (
+                          cities.map((city) => {
+                            const displayName = getLocationDisplayName(city.value);
+                            return (
+                              <SelectItem key={city.value} value={city.value} selectedValue={profileFormData.location || ""}>
+                                {displayName}
+                              </SelectItem>
+                            );
+                          })
+                        ) : (
+                          <SelectItem value="" disabled>
+                            No cities available
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Operating Hours */}
@@ -353,7 +418,7 @@ export default function EmployerProfilePage() {
                   />
                 </div>
 
-                {/* Optional Tags */}
+                {/* Optional Tags
                 <div>
                   <Typography variant="bodySm" as="label" className="block mb-3">
                     Optional Tags
@@ -379,7 +444,8 @@ export default function EmployerProfilePage() {
                       </Chip>
                     ))}
                   </div>
-                </div>
+                  </div>
+                </div>*/}
               </div>
             </JobConditionsSection>
           </div>
