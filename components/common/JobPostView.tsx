@@ -142,7 +142,7 @@ const JobDescription: React.FC<{
   <div className="mb-8">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
-      {showEditButtons && onEdit && editableSections.includes("description") &&  (
+      {showEditButtons && onEdit && editableSections.includes("description") && !useAI && (
         <button
           onClick={() => onEdit("description", jobDescriptions || {})}
           className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
@@ -181,8 +181,16 @@ const JobDescription: React.FC<{
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      // 현재 버전의 데이터를 정확히 전달
+                      const currentVersionData = valueMap[versionKey];
+
+                      // 편집 버튼 클릭 시 해당 버전 선택
                       onSelectVersion?.(versionKey);
-                      onEdit("description", { description: valueMap[versionKey] });
+
+                      onEdit("description", {
+                        description: currentVersionData,
+                        selectedVersion: versionKey,
+                      });
                     }}
                     className="p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
                   >

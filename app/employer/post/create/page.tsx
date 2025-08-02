@@ -155,9 +155,9 @@ function JobPostCreatePage() {
 
     // 2. 미리보기 페이지로 이동
     if (formData.useAI) {
-      router.push(`/employer/post/preview/${result.data.id}?useAI=true`);
+      router.replace(`/employer/post/preview/${result.data.id}?useAI=true`);
     } else {
-      router.push(`/employer/post/preview/${result.data.id}?useAI=false`);
+      router.replace(`/employer/post/preview/${result.data.id}?useAI=false`);
     }
   };
 

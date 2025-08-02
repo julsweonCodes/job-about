@@ -89,7 +89,7 @@ const JobPostEditPage: React.FC = () => {
   const handleConfirmCancel = () => {
     const pathSegments = window.location.pathname.split("/");
     const postId = pathSegments[pathSegments.length - 2];
-    router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+    router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
   };
 
   const handleCloseCancelDialog = () => {
