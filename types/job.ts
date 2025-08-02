@@ -29,6 +29,13 @@ export interface JobPost {
     logo_url?: string;
     name?: string;
   };
+  requiredSkills?: Array<{
+    id: number;
+    name_ko: string;
+    name_en: string;
+    category_ko: string;
+    category_en: string;
+  }>;
 }
 
 // 추천 API 응답 타입
@@ -51,6 +58,13 @@ export interface RecommendedJobPost {
     id: number;
     name_ko: string;
     name_en: string;
+  }>;
+  requiredSkills: Array<{
+    id: number;
+    name_ko: string;
+    name_en: string;
+    category_ko: string;
+    category_en: string;
   }>;
   matchScore: number;
   compatibility: {
@@ -91,6 +105,13 @@ export interface JobPostCard {
   applicants: number;
   views: number;
   logoImage?: string;
+  requiredSkills?: Array<{
+    id: number;
+    name_ko: string;
+    name_en: string;
+    category_ko: string;
+    category_en: string;
+  }>;
 }
 
 export interface WorkExperience {

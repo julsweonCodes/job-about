@@ -18,6 +18,13 @@ export interface JobPost {
   views: number;
   logoImage?: string;
   pending?: number; // Added for pending applications
+  requiredSkills?: Array<{
+    id: number;
+    name_ko: string;
+    name_en: string;
+    category_ko: string;
+    category_en: string;
+  }>;
 }
 
 interface JobPostCardProps {
@@ -175,7 +182,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
       {/* Description - 유연한 높이 설정 */}
       <div className="flex-1 mb-6 min-h-0">
         <p
-          className="text-sm lg:text-base text-gray-700 leading-relaxed"
+          className="text-sm lg:text-base text-gray-700 leading-relaxed mb-3"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: 3,
@@ -186,6 +193,29 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
         >
           {job.description}
         </p>
+        
+        {/* Required Skills - 모든 job에서 표시 */}
+        {job.requiredSkills && job.requiredSkills.length > 0 && (
+          <div className="mt-3">
+            <Typography as="p" variant="bodySm" className="text-gray-600 mb-2">
+              Required Skills:
+            </Typography>
+            <div className="flex flex-wrap gap-1">
+              {job.requiredSkills.map((skill) => (
+                <Chip 
+                  key={skill.id} 
+                  size="sm" 
+                  className={isRecommended 
+                    ? "bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs"
+                    : "bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs"
+                  }
+                >
+                  {skill.name_en}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 지원자 통계 및 버튼 */}

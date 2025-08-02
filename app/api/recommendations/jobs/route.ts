@@ -114,6 +114,19 @@ export async function GET(req: NextRequest) {
             },
           },
         },
+        job_practical_skills: {
+          include: {
+            practical_skill: {
+              select: {
+                id: true,
+                name_ko: true,
+                name_en: true,
+                category_ko: true,
+                category_en: true,
+              },
+            },
+          },
+        },
         user: {
           select: {
             name: true,
@@ -174,6 +187,13 @@ export async function GET(req: NextRequest) {
           name_ko: jws.work_style.name_ko,
           name_en: jws.work_style.name_en,
         })),
+        requiredSkills: jobPost.job_practical_skills.map((jps) => ({
+          id: Number(jps.practical_skill.id),
+          name_ko: jps.practical_skill.name_ko,
+          name_en: jps.practical_skill.name_en,
+          category_ko: jps.practical_skill.category_ko,
+          category_en: jps.practical_skill.category_en,
+        })),
         matchScore,
         compatibility: {
           level: compatibility.level,
@@ -194,6 +214,11 @@ export async function GET(req: NextRequest) {
     console.log(
       `추천 완료: ${filteredRecommendations.length}개 공고 추천 (최고 점수: ${filteredRecommendations[0]?.matchScore || 0})`
     );
+    
+    // Required skills 정보 로그 출력
+    filteredRecommendations.forEach((job, index) => {
+      console.log(`Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map(s => s.name_ko).join(', ')}`);
+    });
 
     return successResponse(
       parseBigInt({
