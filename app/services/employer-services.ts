@@ -116,10 +116,7 @@ export async function getStatusUpdateCnt(userId: number, bizLocId: number): Prom
       business_loc_id: bizLocId,
       user_id: userId,
       status: "PUBLISHED",
-      OR: [
-        { deadline: currDateStr },
-        { deadline: tomorrowDateStr }
-      ],
+      OR: [{ deadline: currDateStr }, { deadline: tomorrowDateStr }],
     },
     select: {
       id: true,
@@ -174,20 +171,25 @@ export async function getAllApplicationsCnt(userId: number, bizLocId: number): P
 
 export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> {
   const bizLocInfo = await getEmployerBizLoc(userId);
-  if (!bizLocInfo) return [];
+  if (!bizLocInfo) {
+    console.log("No business location found for user:", userId);
+    return [];
+  }
+
   const currDate = new Date();
   const tomorrow = new Date(currDate);
   tomorrow.setDate(currDate.getDate() + 1);
   const tomorrowDateStr = formatDateYYYYMMDD(tomorrow);
   const currDateStr = formatDateYYYYMMDD(currDate);
+
   const activeJobPosts = await prisma.job_posts.findMany({
     where: {
       business_loc_id: bizLocInfo.id,
       user_id: userId,
       status: "PUBLISHED",
       deadline: {
-        gte: currDateStr
-      }
+        gte: currDateStr,
+      },
     },
     include: {
       _count: {
@@ -197,6 +199,7 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
       },
     },
   });
+
   // console.log("bizLocInfo: ", bizLocInfo);
   const img_base_url = `${STORAGE_URLS.BIZ_LOC.PHOTO}`;
   const activeJobPostList: JobPost[] = activeJobPosts.map((post) => ({

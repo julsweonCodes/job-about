@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { PaginationParams, PaginationState } from "@/types/hooks";
 
 interface UsePaginationOptions<T> {
@@ -41,8 +41,17 @@ export function usePagination<T>({
     hasMore: true,
   });
 
+  // 진행 중인 요청을 추적하는 ref
+  const currentRequestRef = useRef<Promise<any> | null>(null);
+
   const fetchPage = useCallback(
     async (page: number) => {
+      // 이미 진행 중인 요청이 있다면 중복 호출 방지
+      if (currentRequestRef.current) {
+        console.warn("Request already in progress, skipping duplicate call");
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -52,7 +61,14 @@ export function usePagination<T>({
           limit: initialLimit,
         };
 
-        const result = await fetchFunction(params);
+        // 새로운 요청을 시작하고 ref에 저장
+        const requestPromise = fetchFunction(params);
+        currentRequestRef.current = requestPromise;
+
+        const result = await requestPromise;
+
+        // 요청이 완료되면 ref를 null로 설정
+        currentRequestRef.current = null;
 
         const totalPages = Math.ceil(result.totalCount / initialLimit);
 
@@ -70,6 +86,8 @@ export function usePagination<T>({
           hasMore: result.hasMore,
         });
       } catch (err) {
+        // 요청이 실패해도 ref를 null로 설정
+        currentRequestRef.current = null;
         setError(err instanceof Error ? err.message : "An error occurred");
         if (page === 1) {
           setData(null);
@@ -104,9 +122,55 @@ export function usePagination<T>({
 
   useEffect(() => {
     if (autoFetch) {
-      fetchPage(initialPage);
+      // fetchPage를 직접 호출하지 않고 내부 로직을 직접 실행
+      const executeFetch = async () => {
+        // 이미 진행 중인 요청이 있다면 중복 호출 방지
+        if (currentRequestRef.current) {
+          console.warn("Request already in progress, skipping duplicate call");
+          return;
+        }
+
+        try {
+          setLoading(true);
+          setError(null);
+
+          const params: PaginationParams = {
+            page: initialPage,
+            limit: initialLimit,
+          };
+
+          // 새로운 요청을 시작하고 ref에 저장
+          const requestPromise = fetchFunction(params);
+          currentRequestRef.current = requestPromise;
+
+          const result = await requestPromise;
+
+          // 요청이 완료되면 ref를 null로 설정
+          currentRequestRef.current = null;
+
+          const totalPages = Math.ceil(result.totalCount / initialLimit);
+
+          setData(result.data);
+          setPagination({
+            currentPage: initialPage,
+            totalPages,
+            totalCount: result.totalCount,
+            hasMore: result.hasMore,
+          });
+        } catch (err) {
+          // 요청이 실패해도 ref를 null로 설정
+          currentRequestRef.current = null;
+          setError(err instanceof Error ? err.message : "An error occurred");
+          setData(null);
+        } finally {
+          setLoading(false);
+          setIsInitialized(true);
+        }
+      };
+
+      executeFetch();
     }
-  }, [autoFetch, fetchPage, initialPage]);
+  }, [autoFetch, fetchFunction, initialPage, initialLimit]); // fetchPage 제거
 
   return {
     data: data, // null 상태 그대로 반환

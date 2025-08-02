@@ -1,95 +1,91 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
 import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
+import { TabComponent } from "./components/TabComponent";
 import { ProfileHeader } from "../../components/common/ProfileHeader";
 import { Plus } from "lucide-react";
-import { Simulate } from "react-dom/test-utils";
-import { Dashboard, JobPost } from "@/types/employer";
-import error = Simulate.error;
+import { useEmployerDashboard } from "@/hooks/employer/useEmployerDashboard";
 import { PAGE_URLS } from "@/constants/api";
+
+type TabType = "active" | "drafts";
+
+// Empty State 컴포넌트를 컴포넌트 외부로 이동
+const EmptyState = ({
+  type,
+  title,
+  description,
+  buttonText,
+  onCreateClick,
+}: {
+  type: "active" | "draft";
+  title: string;
+  description: string;
+  buttonText: string;
+  onCreateClick: () => void;
+}) => (
+  <div className="text-center py-16 px-4">
+    <div className="max-w-md mx-auto">
+      {/* 아이콘 */}
+      <div className="mb-6">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
+          <svg
+            className="w-10 h-10 text-purple-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* 텍스트 */}
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+      <p className="text-gray-500 text-sm mb-8 leading-relaxed">{description}</p>
+
+      {/* 버튼 */}
+      <button
+        onClick={onCreateClick}
+        className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          />
+        </svg>
+        <span>{buttonText}</span>
+      </button>
+    </div>
+  </div>
+);
 
 export default function EmployerDashboard() {
   const router = useRouter();
-  const [showAlert, setShowAlert] = useState(true);
-  const [dashboard, setDashboard] = useState<Dashboard>();
-  const [jobPostList, setJobPostList] = useState<JobPost[]>([]);
-  // 각 API 호출의 개별 상태
-  const [loadingStates, setLoadingStates] = useState({
-    dashboard: false,
-    jobPostList: false,
-  });
+  const [activeTab, setActiveTab] = useState<TabType>("active");
 
-  // 전체 로딩 상태 계산
-  const isLoading = Object.values(loadingStates).some((state) => state);
-
-  const fetchDash = async () => {
-    try {
-      const res = await fetch("/api/employer/dashboard");
-      const data = await res.json();
-      if (res.ok) {
-        setDashboard(data.data);
-      } else {
-        console.error("Failed to fetch employer dashboard", data.error);
-      }
-    } catch (e) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
-  const fetchJobPostList = async () => {
-    try {
-      const res = await fetch("/api/employer/dashboard/jobposts");
-      const data = await res.json();
-      if (res.ok) {
-        setJobPostList(data.data);
-      } else {
-        console.error("Failed to fetch active job posts in dashboard page", data.error);
-      }
-    } catch (e) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
-  const initializeData = async () => {
-    try {
-      // 로딩 시작
-      setLoadingStates({
-        dashboard: true,
-        jobPostList: true,
-      });
-
-      // 모든 API 호출을 병렬로 실행
-      await Promise.all([
-        fetchDash(),
-        fetchJobPostList(),
-        // 추가 API 호출들을 여기에 추가
-      ]);
-    } catch (error) {
-      console.error("Error initializing dashboard:", error);
-    } finally {
-      // 로딩 완료
-      setLoadingStates({
-        dashboard: false,
-        jobPostList: false,
-      });
-    }
-  };
-
-  useEffect(() => {
-    initializeData();
-  }, []);
+  const { dashboard, activeJobPostList, draftJobPostList, loadingStates } = useEmployerDashboard();
 
   const handleViewJob = (id: string) => {
-    // 상세 페이지 이동 등 구현
     router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(id));
   };
 
   const handleViewApplicants = (id: string) => {
-    // 지원자 목록 페이지 이동 등 구현
     router.push(PAGE_URLS.EMPLOYER.APPLICANTS(id));
+  };
+
+  const handleCreateJobPost = () => {
+    router.push(PAGE_URLS.EMPLOYER.POST.CREATE);
   };
 
   return (
@@ -108,10 +104,10 @@ export default function EmployerDashboard() {
         </div>
 
         {/* Alert Banner */}
-        {showAlert && (
+        {dashboard && dashboard.needsUpdateCnt > 0 && (
           <div className="mb-8">
             <AlertBanner
-              message={`${dashboard?.needsUpdateCnt} job posts need status updates`}
+              message={`${dashboard.needsUpdateCnt} job posts need status updates`}
               onClick={() => {
                 router.push(PAGE_URLS.EMPLOYER.PENDING_UPDATES);
               }}
@@ -137,29 +133,91 @@ export default function EmployerDashboard() {
         {/* Job Posts Section */}
         <div className="space-y-6 lg:space-y-8 pb-12">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Active Job Posts</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Your Job Posts</h2>
           </div>
-          {loadingStates.jobPostList ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <JobPostCardSkeleton key={index} />
-              ))}
-            </div>
-          ) : jobPostList && jobPostList.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-              {jobPostList.map((job) => (
-                <JobPostCard
-                  key={job.id}
-                  job={job}
-                  onView={handleViewJob}
-                  onViewApplicants={handleViewApplicants}
+
+          {/* Tabs */}
+          <TabComponent
+            tabs={[
+              {
+                id: "active",
+                label: "Active Jobs",
+                count: activeJobPostList.length,
+              },
+              {
+                id: "drafts",
+                label: "Drafts",
+                count: draftJobPostList.length,
+              },
+            ]}
+            activeTab={activeTab}
+            onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+            isLoading={loadingStates.activeJobPostList || loadingStates.draftJobPostList}
+          />
+
+          {/* Active Jobs Tab */}
+          {activeTab === "active" && (
+            <>
+              {loadingStates.activeJobPostList ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <JobPostCardSkeleton key={index} />
+                  ))}
+                </div>
+              ) : activeJobPostList && activeJobPostList.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+                  {activeJobPostList.map((job) => (
+                    <JobPostCard
+                      key={job.id}
+                      job={job}
+                      onView={handleViewJob}
+                      onViewApplicants={handleViewApplicants}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  type="active"
+                  title="No active job posts"
+                  description="Create your first job post to start finding great talent."
+                  buttonText="Create your job post"
+                  onCreateClick={handleCreateJobPost}
                 />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No active job posts found.</p>
-            </div>
+              )}
+            </>
+          )}
+
+          {/* Drafts Tab */}
+          {activeTab === "drafts" && (
+            <>
+              {loadingStates.draftJobPostList ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <JobPostCardSkeleton key={index} />
+                  ))}
+                </div>
+              ) : draftJobPostList && draftJobPostList.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+                  {draftJobPostList.map((job) => (
+                    <JobPostCard
+                      key={job.id}
+                      job={job}
+                      onView={handleViewJob}
+                      onViewApplicants={handleViewApplicants}
+                      isDraft={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  type="draft"
+                  title="No draft job posts"
+                  description="Create your job post to find the right talent."
+                  buttonText="Create your job post"
+                  onCreateClick={handleCreateJobPost}
+                />
+              )}
+            </>
           )}
         </div>
         {/* Bottom Safe Area */}
