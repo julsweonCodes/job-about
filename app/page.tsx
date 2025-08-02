@@ -582,9 +582,8 @@ function App() {
                 <div className="text-center">
                   <div className="h-16 bg-gray-200 rounded-lg mb-6 max-w-4xl mx-auto"></div>
                   <div className="h-8 bg-gray-200 rounded mb-12 max-w-2xl mx-auto"></div>
-                  <div className="flex justify-center gap-4">
-                    <div className="h-12 bg-gray-200 rounded-xl w-48"></div>
-                    <div className="h-12 bg-gray-200 rounded-xl w-48"></div>
+                  <div className="flex justify-center gap-4 flex-col md:flex-row items-center">
+                    <div className="h-12 sm:h-16 bg-gray-200 rounded-xl w-48 sm:w-64"></div>
                   </div>
                 </div>
               </div>
