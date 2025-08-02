@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
@@ -43,7 +43,78 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     struct1: "",
     struct2: "",
   });
-  const initializeData = async () => {
+
+  // 중복 호출 방지를 위한 ref
+  const isInitializing = useRef(false);
+
+  // 페이지 내부 함수들
+  const handlePageError = useCallback(
+    (errorMessage: string) => {
+      console.error(`Error: ${errorMessage}`);
+      showErrorToast(`This page is no longer accessible.`);
+      router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+    },
+    [postId]
+  );
+
+  const processGeminiResponse = useCallback((rawGemini: string) => {
+    try {
+      const gemTmp = JSON.parse(rawGemini);
+      const struct1Combined = [
+        "[Main Responsibilities]",
+        ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
+        "[Preferred Qualifications and Benefits]",
+        ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? []),
+      ].join("\n");
+      const struct2 = gemTmp.struct2 ?? "";
+      return [struct1Combined, struct2];
+    } catch (error) {
+      console.error("Error processing Gemini response:", error);
+      return ["", ""];
+    }
+  }, []);
+
+  const fetchPreviewJobPost = useCallback(async () => {
+    // 이미 초기화 중이면 중복 호출 방지
+    if (isInitializing.current) {
+      console.log("Already initializing, skipping duplicate call");
+      return;
+    }
+
+    isInitializing.current = true;
+
+    try {
+      const res = await fetch(`${API_URLS.EMPLOYER.POST.PUBLISH(postId)}`);
+      const data = await res.json();
+
+      if (!res.ok || data?.data.postData.status !== "draft") {
+        handlePageError("Invalid job post status");
+        return;
+      }
+
+      setJobPostData(data.data.postData);
+      // 초기 로드 시에는 manual description을 기본값으로 설정
+      setNewJobDesc(data.data.postData.jobDescription);
+
+      const rawGemini = data.data.geminiRes;
+      if (rawGemini) {
+        const processedGemini = processGeminiResponse(rawGemini);
+        setGeminiRes(processedGemini);
+      }
+    } catch (e) {
+      handlePageError("Failed to fetch job post");
+    } finally {
+      isInitializing.current = false;
+    }
+  }, [postId, handlePageError, processGeminiResponse]);
+
+  const initializeData = useCallback(async () => {
+    // 이미 초기화 중이면 중복 호출 방지
+    if (isInitializing.current) {
+      console.log("Already initializing, skipping duplicate call");
+      return;
+    }
+
     try {
       // 로딩 시작
       setLoadingStates({
@@ -67,11 +138,13 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         publish: false,
       });
     }
-  };
+  }, [fetchPreviewJobPost]);
 
   useEffect(() => {
-    initializeData();
-  }, []);
+    if (postId) {
+      initializeData();
+    }
+  }, [postId, initializeData]);
 
   useEffect(() => {
     console.log("Updated geminiRes:", geminiRes);
@@ -82,7 +155,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     };
     console.log("Setting tempEditData from geminiRes:", newTempEditData);
     setTempEditData(newTempEditData);
-  }, [geminiRes]);
+  }, [geminiRes, jobPostData?.jobDescription]);
 
   // selectedVersion이 변경되어도 newJobDesc는 자동으로 업데이트하지 않음
   // newJobDesc는 오직 저장할 때만 업데이트됨
@@ -92,122 +165,65 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   // publish 로딩 상태
   const isPublishing = loadingStates.publish;
-  const fetchPreviewJobPost = async () => {
-    try {
-      const res = await fetch(`/api/employer/post/preview/${postId}`);
-      const data = await res.json();
 
-      if (!res.ok || data?.data.postData.status !== "draft") {
-        console.error("error");
-        showErrorToast("This page is no longer accessible.");
-        router.push(`/employer/post/${postId}`);
-      }
-      if (res.ok) {
-        setJobPostData(data.data.postData);
-        // 초기 로드 시에는 manual description을 기본값으로 설정
-        setNewJobDesc(data.data.postData.jobDescription);
-
-        const rawGemini = data.data.geminiRes;
-        if (rawGemini) {
-          const gemTmp = JSON.parse(rawGemini);
-          const struct1Combined = [
-            "[Main Responsibilities]",
-            ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
-            "[Preferred Qualifications and Benefits]",
-            ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? [])
-          ].join("\n");
-          const struct2 = gemTmp.struct2 ?? "";
-          setGeminiRes([struct1Combined, struct2]);
+  const handleEdit = useCallback(
+    (section: string, initialData?: any) => {
+      if (section === "description") {
+        // initialData가 있으면 해당 버전의 데이터만 업데이트하고, 없으면 전체 초기화
+        let currentData;
+        if (initialData && initialData.description) {
+          // 특정 버전에서 편집 버튼을 눌렀을 때
+          currentData = {
+            manual: jobPostData?.jobDescription || "",
+            struct1: geminiRes[0] || "",
+            struct2: geminiRes[1] || "",
+            [selectedVersion]: initialData.description, // 선택된 버전의 내용으로 업데이트
+          };
+        } else {
+          // 전체 초기화
+          currentData = {
+            manual: jobPostData?.jobDescription || "",
+            struct1: geminiRes[0] || "",
+            struct2: geminiRes[1] || "",
+          };
         }
-        /*
-        const gemTxt =
-          "{\n" +
-          '  "struct1": {\n' +
-          '    "Main Responsibilities": [\n' +
-          '      "Performing general cleaning duties.",\n' +
-          '      "Maintaining a consistent and stable work approach, not easily affected by daily ups and downs."\n' +
-          "    ],\n" +
-          '    "Preferred Qualifications and Benefits": [\n' +
-          '      "Ability to work on-site.",\n' +
-          '      "Intermediate English language proficiency.",\n' +
-          '      "Wage details are not specified."\n' +
-          "    ]\n" +
-          "  },\n" +
-          '  "struct2": "For this cleaning position, main responsibilities include performing general cleaning duties and maintaining a consistent and stable work approach, without being easily affected by daily ups and downs. Preferred qualifications involve the ability to work on-site and intermediate English language proficiency. Please note that specific wage details are not specified for this role."\n' +
-          "}\n";
-        const gemTmp = JSON.parse(gemTxt);
-        // const gemTmp = getCache(`gemini:${postId}`)
-        console.log(gemTmp);
-        const struct1Combined = [
-          "[Main Responsibilities]",
-          ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
-          "[Preferred Qualifications and Benefits]",
-          ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? []),
-        ].join("\n");
-        const struct2 = gemTmp.struct2 ?? "";
-        setGeminiRes([struct1Combined, struct2]);
-
-         */
-      } else {
-        console.log("Failed to fetch DRAFT job post");
+        console.log("handleEdit - initialData:", initialData);
+        console.log("handleEdit - currentData:", currentData);
+        console.log("handleEdit - selectedVersion:", selectedVersion);
+        setDialogEditData(currentData); // 다이얼로그 편집용 데이터 설정
       }
-    } catch (e) {
-      console.log("Error fetching DRAFT job post", e);
-    }
-  };
+      setEditingSection(section);
+    },
+    [jobPostData?.jobDescription, geminiRes, selectedVersion]
+  );
 
-  const handleEdit = (section: string, initialData?: any) => {
-    if (section === "description") {
-      // initialData가 있으면 해당 버전의 데이터만 업데이트하고, 없으면 전체 초기화
-      let currentData;
-      if (initialData && initialData.description) {
-        // 특정 버전에서 편집 버튼을 눌렀을 때
-        currentData = {
-          manual: jobPostData?.jobDescription || "",
-          struct1: geminiRes[0] || "",
-          struct2: geminiRes[1] || "",
-          [selectedVersion]: initialData.description, // 선택된 버전의 내용으로 업데이트
-        };
-      } else {
-        // 전체 초기화
-        currentData = {
-          manual: jobPostData?.jobDescription || "",
-          struct1: geminiRes[0] || "",
-          struct2: geminiRes[1] || "",
-        };
+  const handleSave = useCallback(
+    (section: string, data: Record<DescriptionVersion, string>) => {
+      if (section === "description") {
+        const selectedDescription = data[selectedVersion] ?? "";
+        console.log("Saving version:", selectedVersion, "with data:", selectedDescription);
+
+        // Save 버튼을 눌렀을 때만 실제 데이터 업데이트
+        setJobPostData((prev: any) => ({
+          ...prev,
+          jobDescriptions: {
+            ...prev.jobDescriptions,
+            ...data,
+          },
+          jobDescription: selectedDescription, // 선택된 버전의 내용을 메인 설명으로 설정
+        }));
+
+        // newJobDesc도 선택된 버전의 내용으로 업데이트
+        setNewJobDesc(selectedDescription);
+        setTempEditData(data); // tempEditData도 업데이트
+        setDialogEditData(data); // dialogEditData도 동기화
+        setEditingSection(null);
       }
-      console.log("handleEdit - initialData:", initialData);
-      console.log("handleEdit - currentData:", currentData);
-      console.log("handleEdit - selectedVersion:", selectedVersion);
-      setDialogEditData(currentData); // 다이얼로그 편집용 데이터 설정
-    }
-    setEditingSection(section);
-  };
+    },
+    [selectedVersion]
+  );
 
-  const handleSave = (section: string, data: Record<DescriptionVersion, string>) => {
-    if (section === "description") {
-      const selectedDescription = data[selectedVersion] ?? "";
-      console.log("Saving version:", selectedVersion, "with data:", selectedDescription);
-
-      // Save 버튼을 눌렀을 때만 실제 데이터 업데이트
-      setJobPostData((prev: any) => ({
-        ...prev,
-        jobDescriptions: {
-          ...prev.jobDescriptions,
-          ...data,
-        },
-        jobDescription: selectedDescription, // 선택된 버전의 내용을 메인 설명으로 설정
-      }));
-
-      // newJobDesc도 선택된 버전의 내용으로 업데이트
-      setNewJobDesc(selectedDescription);
-      setTempEditData(data); // tempEditData도 업데이트
-      setDialogEditData(data); // dialogEditData도 동기화
-      setEditingSection(null);
-    }
-  };
-
-  const handlePublish = async () => {
+  const handlePublish = useCallback(async () => {
     try {
       console.log("Publishing job post:", newJobDesc);
 
@@ -222,13 +238,12 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       const data = await res.json();
 
       if (!res.ok || data?.data.status !== "draft") {
-        console.error("error");
-        showErrorToast("This page is no longer accessible.");
-        router.push(`/employer/post/${postId}`);
-      } else {
-        showSuccessToast("Job post published successfully");
-        router.push(`/employer/post/${postId}`);
+        handlePageError("Failed to publish job post");
+        return;
       }
+
+      showSuccessToast("Job post published successfully");
+      router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
     } catch (error) {
       console.error("Publish error:", error);
       showErrorToast(error as string);
@@ -236,7 +251,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       // 로딩 완료
       setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-  };
+  }, [postId, newJobDesc, handlePageError, router]);
 
   // 로딩 중일 때 LoadingScreen 표시
   if (isLoading) {
