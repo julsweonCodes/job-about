@@ -77,11 +77,17 @@ export class API {
     url: string,
     method: HttpMethod = HTTP_METHODS.GET,
     data?: any,
-    customHeaders?: Record<string, string>
+    customHeaders?: Record<string, string>,
+    signal?: AbortSignal
   ): Promise<ApiResponse<T>> {
-    const fullUrl = this.baseURL + url;
-    const headers = { ...this.defaultHeaders, ...customHeaders };
     const startTime = Date.now();
+    const fullUrl = url.startsWith("http") ? url : `${this.baseURL}${url}`;
+
+    const headers = {
+      "Content-Type": "application/json",
+      ...this.defaultHeaders,
+      ...customHeaders,
+    };
 
     const config: RequestInit = {
       method,
@@ -91,7 +97,8 @@ export class API {
     if (data && method !== HTTP_METHODS.GET) {
       if (data instanceof FormData) {
         // FormData인 경우 Content-Type 헤더를 제거하고 body를 그대로 사용
-        delete headers["Content-Type"];
+        const { "Content-Type": _, ...formDataHeaders } = headers;
+        config.headers = formDataHeaders;
         config.body = data;
       } else {
         config.body = JSON.stringify(data);
@@ -101,6 +108,12 @@ export class API {
     // 타임아웃 설정
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    // 외부에서 전달된 signal과 내부 controller signal을 결합
+    if (signal) {
+      signal.addEventListener("abort", () => controller.abort());
+    }
+
     config.signal = controller.signal;
 
     try {
@@ -140,13 +153,14 @@ export class API {
     method: HttpMethod = HTTP_METHODS.GET,
     data?: any,
     customHeaders?: Record<string, string>,
-    maxRetries = 3
+    maxRetries = 3,
+    signal?: AbortSignal
   ): Promise<ApiResponse<T>> {
     let lastError: Error;
 
     for (let i = 0; i < maxRetries; i++) {
       try {
-        return await this.request<T>(url, method, data, customHeaders);
+        return await this.request<T>(url, method, data, customHeaders, signal);
       } catch (error) {
         lastError = error as Error;
 
@@ -181,10 +195,11 @@ export class API {
   async get<T = any>(
     url: string,
     params?: QueryParams,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
+    signal?: AbortSignal
   ): Promise<ApiResponse<T>> {
     const urlWithParams = buildUrlWithParams(url, params);
-    return this.requestWithRetry<T>(urlWithParams, HTTP_METHODS.GET, undefined, headers);
+    return this.requestWithRetry<T>(urlWithParams, HTTP_METHODS.GET, undefined, headers, 3, signal);
   }
 
   /**
@@ -262,6 +277,7 @@ export const api = new API({
     typeof window !== "undefined"
       ? window.location.origin
       : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  timeout: 30000, // 30초로 증가
 });
 
 // 편의 함수들 (기존 호환성 유지)
@@ -287,9 +303,10 @@ export const apiDelete = <T = any>(url: string, headers?: Record<string, string>
 export const apiGetData = <T = any>(
   url: string,
   params?: QueryParams,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
+  signal?: AbortSignal
 ) =>
-  api.get<ServerResponse<T>>(url, params, headers).then((response) => {
+  api.get<ServerResponse<T>>(url, params, headers, signal).then((response) => {
     if (response.data.status === SUCCESS_STATUS) {
       return response.data.data;
     }
