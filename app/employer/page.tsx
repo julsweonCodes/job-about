@@ -12,6 +12,64 @@ import { PAGE_URLS } from "@/constants/api";
 
 type TabType = "active" | "drafts";
 
+// Empty State 컴포넌트를 컴포넌트 외부로 이동
+const EmptyState = ({
+  type,
+  title,
+  description,
+  buttonText,
+  onCreateClick,
+}: {
+  type: "active" | "draft";
+  title: string;
+  description: string;
+  buttonText: string;
+  onCreateClick: () => void;
+}) => (
+  <div className="text-center py-16 px-4">
+    <div className="max-w-md mx-auto">
+      {/* 아이콘 */}
+      <div className="mb-6">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
+          <svg
+            className="w-10 h-10 text-purple-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* 텍스트 */}
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+      <p className="text-gray-500 text-sm mb-8 leading-relaxed">{description}</p>
+
+      {/* 버튼 */}
+      <button
+        onClick={onCreateClick}
+        className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          />
+        </svg>
+        <span>{buttonText}</span>
+      </button>
+    </div>
+  </div>
+);
+
 export default function EmployerDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("active");
@@ -26,61 +84,9 @@ export default function EmployerDashboard() {
     router.push(PAGE_URLS.EMPLOYER.APPLICANTS(id));
   };
 
-  // Empty State 컴포넌트
-  const EmptyState = ({
-    type,
-    title,
-    description,
-    buttonText,
-  }: {
-    type: "active" | "draft";
-    title: string;
-    description: string;
-    buttonText: string;
-  }) => (
-    <div className="text-center py-16 px-4">
-      <div className="max-w-md mx-auto">
-        {/* 아이콘 */}
-        <div className="mb-6">
-          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
-            <svg
-              className="w-10 h-10 text-purple-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* 텍스트 */}
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
-        <p className="text-gray-500 text-sm mb-8 leading-relaxed">{description}</p>
-
-        {/* 버튼 */}
-        <button
-          onClick={() => router.push(PAGE_URLS.EMPLOYER.POST.CREATE)}
-          className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
-          <span>{buttonText}</span>
-        </button>
-      </div>
-    </div>
-  );
+  const handleCreateJobPost = () => {
+    router.push(PAGE_URLS.EMPLOYER.POST.CREATE);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
@@ -175,6 +181,7 @@ export default function EmployerDashboard() {
                   title="No active job posts"
                   description="Create your first job post to start finding great talent."
                   buttonText="Create your job post"
+                  onCreateClick={handleCreateJobPost}
                 />
               )}
             </>
@@ -207,6 +214,7 @@ export default function EmployerDashboard() {
                   title="No draft job posts"
                   description="Create your job post to find the right talent."
                   buttonText="Create your job post"
+                  onCreateClick={handleCreateJobPost}
                 />
               )}
             </>
