@@ -270,11 +270,12 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const bizLocInfo: BizLocInfo = {
     bizDescription: bizLocRes.description,
     bizLocId: bizLocRes.id.toString(),
-    location: bizLocRes.address,
+    address: bizLocRes.address,
+    location: bizLocRes.location,
     name: bizLocRes.name,
     logoImg: img_base_url.concat(bizLocRes.logo_url ?? ""),
     extraPhotos: extraImgs,
-    tags: [],
+    workingHours: bizLocRes.operating_start.concat(' - ', bizLocRes.operating_end),
   };
   const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));

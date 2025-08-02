@@ -52,10 +52,10 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
       if (res.ok) {
         setJobDetails(data.data);
       } else {
-        console.log("Failed to fetch DRAFT job post");
+        console.log("Failed to fetch PUBLISHED job post");
       }
     } catch (e) {
-      console.log("Error fetching DRAFT job post", e);
+      console.log("Error fetching PUBLISHED job post", e);
     }
   };
 
