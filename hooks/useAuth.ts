@@ -447,6 +447,9 @@ export function useAuth() {
     hasError: hasError(),
     canRetry: canRetry(),
 
+    // 사용자 데이터
+    appUser: useAuthStore.getState().appUser,
+
     // 액션
     initializeAuth,
     handleLogout,
