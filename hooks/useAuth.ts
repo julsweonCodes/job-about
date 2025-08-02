@@ -449,6 +449,7 @@ export function useAuth() {
 
     // 사용자 데이터
     appUser: useAuthStore.getState().appUser,
+    profileStatus: useAuthStore.getState().profileStatus,
 
     // 액션
     initializeAuth,

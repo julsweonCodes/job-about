@@ -208,8 +208,8 @@ const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 const LoadingSpinner: React.FC = () => (
-  <div className="flex items-center gap-3">
-    <div className="w-4 h-4 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin" />
+  <div className="flex items-center w-10 h-10">
+    <div className="w-8 h-8 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin" />
   </div>
 );
 

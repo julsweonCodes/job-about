@@ -16,6 +16,9 @@ import {
 
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/stores/useAuthStore";
+import BaseDialog from "@/components/common/BaseDialog";
+import GoogleLoginButton from "@/components/buttons/GoogleLoginButton";
 import { PAGE_URLS } from "@/constants/api";
 
 // 상수 정의
@@ -129,10 +132,11 @@ const getCTAButton = (userRole?: UserRole): CTAButton => {
 };
 
 // 컴포넌트들
-const HeroSection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> = ({
-  isAuthenticated,
-  userRole,
-}) => {
+const HeroSection: React.FC<{
+  isAuthenticated: boolean;
+  userRole?: UserRole;
+  onShowLoginDialog: () => void;
+}> = ({ isAuthenticated, userRole, onShowLoginDialog }) => {
   const router = useRouter();
   const heroContent = useMemo(
     () => getHeroContent(isAuthenticated, userRole),
@@ -149,10 +153,13 @@ const HeroSection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> =
         router.push(PAGE_URLS.EMPLOYER.ROOT);
       }
     } else {
-      // TODO
-      // 비인증 사용자는 기본적으로 seeker 페이지로 이동
-      router.push(PAGE_URLS.SEEKER.ROOT);
+      // 비인증 사용자는 로그인 다이얼로그 표시
+      onShowLoginDialog();
     }
+  };
+
+  const handleUnauthenticatedClick = () => {
+    onShowLoginDialog();
   };
 
   return (
@@ -184,7 +191,7 @@ const HeroSection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> =
             {!isAuthenticated ? (
               <>
                 <button
-                  onClick={() => router.push("/seeker")}
+                  onClick={handleUnauthenticatedClick}
                   className="group w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                 >
                   <Users size={20} />
@@ -196,7 +203,7 @@ const HeroSection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> =
                 </button>
 
                 <button
-                  onClick={() => router.push("/employer")}
+                  onClick={handleUnauthenticatedClick}
                   className="group w-full sm:w-auto bg-white text-purple-600 border-2 border-purple-200 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                 >
                   <Briefcase size={20} />
@@ -252,7 +259,7 @@ const HowItWorksSection: React.FC<{
                 <button
                   key={tab}
                   onClick={() => onTabChange(tab)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 w-[200px] ${
+                  className={`flex items-center gap-3  px-6 py-3 rounded-lg font-semibold transition-all duration-300 w-[200px] ${
                     activeTab === tab
                       ? "bg-white text-purple-600 shadow-md"
                       : "text-gray-600 hover:text-gray-900"
@@ -386,10 +393,11 @@ const FeaturesSection: React.FC = () => (
   </section>
 );
 
-const CTASection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> = ({
-  isAuthenticated,
-  userRole,
-}) => {
+const CTASection: React.FC<{
+  isAuthenticated: boolean;
+  userRole?: UserRole;
+  onShowLoginDialog: () => void;
+}> = ({ isAuthenticated, userRole, onShowLoginDialog }) => {
   const router = useRouter();
   const ctaButton = useMemo(() => getCTAButton(userRole), [userRole]);
   const Icon = ctaButton.icon;
@@ -397,14 +405,18 @@ const CTASection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> = 
   const handleCTAClick = () => {
     if (isAuthenticated) {
       if (userRole === "applicant") {
-        router.push("/seeker");
+        router.push(PAGE_URLS.SEEKER.ROOT);
       } else {
-        router.push("/employer");
+        router.push(PAGE_URLS.EMPLOYER.ROOT);
       }
     } else {
-      // 비인증 사용자는 기본적으로 seeker 페이지로 이동
-      router.push("/seeker");
+      // 비인증 사용자는 로그인 다이얼로그 표시
+      onShowLoginDialog();
     }
+  };
+
+  const handleUnauthenticatedClick = () => {
+    onShowLoginDialog();
   };
 
   return (
@@ -432,7 +444,7 @@ const CTASection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> = 
                   Find part-time opportunities that match your skills, schedule, and career goals
                 </p>
                 <button
-                  onClick={() => router.push("/seeker")}
+                  onClick={handleUnauthenticatedClick}
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Get Matched Now
@@ -448,7 +460,7 @@ const CTASection: React.FC<{ isAuthenticated: boolean; userRole?: UserRole }> = 
                   Connect with pre-screened candidates who are the right fit for your team
                 </p>
                 <button
-                  onClick={() => router.push(PAGE_URLS.EMPLOYER.ROOT)}
+                  onClick={handleUnauthenticatedClick}
                   className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Post Your Job
@@ -527,38 +539,209 @@ const Footer: React.FC = () => (
 
 // 메인 컴포넌트
 function App() {
-  const { isAuthenticated, appUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
-    if (isAuthenticated && appUser?.role === "employer") {
-      return "employers";
-    }
-    return "seekers";
-  });
+  const { isAuthenticated, appUser, isLoading } = useAuth();
+  const { isEmployer, isApplicant } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<TabType>("seekers");
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
-  // 인증 상태가 변경될 때 activeTab 업데이트
+  // 인증 상태와 사용자 데이터가 변경될 때 activeTab 업데이트
   useEffect(() => {
-    if (isAuthenticated && appUser?.role === "employer") {
+    const employerResult = isEmployer();
+    const applicantResult = isApplicant();
+
+    // 로딩 중이거나 데이터가 아직 없는 경우 기본값 유지
+    if (isLoading || !appUser) {
+      return;
+    }
+
+    if (isAuthenticated && employerResult) {
       setActiveTab("employers");
-    } else if (isAuthenticated && appUser?.role === "applicant") {
+    } else if (isAuthenticated && applicantResult) {
+      setActiveTab("seekers");
+    } else if (!isAuthenticated) {
+      setActiveTab("seekers");
+    } else {
       setActiveTab("seekers");
     }
-  }, [isAuthenticated, appUser?.role]);
+  }, [isAuthenticated, appUser, isLoading, isEmployer, isApplicant]);
+
+  const handleShowLoginDialog = () => {
+    setShowLoginDialog(true);
+  };
+
+  // 로딩 중일 때 스켈레톤 UI 표시
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <ProfileHeader />
+        <main>
+          <div className="animate-pulse">
+            {/* Hero Section Skeleton */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-indigo-50 pt-24 pb-20 lg:pt-40 lg:pb-28">
+              <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+                <div className="text-center">
+                  <div className="h-16 bg-gray-200 rounded-lg mb-6 max-w-4xl mx-auto"></div>
+                  <div className="h-8 bg-gray-200 rounded mb-12 max-w-2xl mx-auto"></div>
+                  <div className="flex justify-center gap-4">
+                    <div className="h-12 bg-gray-200 rounded-xl w-48"></div>
+                    <div className="h-12 bg-gray-200 rounded-xl w-48"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* How It Works Section Skeleton */}
+            <section className="py-20 bg-white">
+              <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+                <div className="text-center mb-16">
+                  <div className="h-8 bg-gray-200 rounded mb-4 max-w-xs mx-auto"></div>
+                  <div className="h-6 bg-gray-200 rounded max-w-2xl mx-auto"></div>
+                </div>
+
+                {/* Tab Skeleton */}
+                <div className="flex justify-center mb-12">
+                  <div className="bg-gray-100 rounded-xl p-2">
+                    <div className="h-12 bg-gray-200 rounded-lg w-48"></div>
+                  </div>
+                </div>
+
+                {/* Steps Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {[1, 2, 3].map((index) => (
+                    <div key={index} className="bg-gray-50 rounded-2xl p-8">
+                      <div className="w-16 h-16 bg-gray-200 rounded-2xl mb-6"></div>
+                      <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Features Section Skeleton */}
+            <section className="py-20 bg-gray-50">
+              <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+                <div className="text-center mb-16">
+                  <div className="h-8 bg-gray-200 rounded mb-4 max-w-xs mx-auto"></div>
+                  <div className="h-6 bg-gray-200 rounded max-w-2xl mx-auto"></div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                  {[1, 2, 3].map((index) => (
+                    <div key={index} className="text-center">
+                      <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-6"></div>
+                      <div className="h-6 bg-gray-200 rounded mb-4 max-w-xs mx-auto"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* CTA Section Skeleton */}
+            <section className="py-20 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+              <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+                <div className="text-center mb-16">
+                  <div className="h-8 bg-gray-200 rounded mb-4 max-w-xs mx-auto"></div>
+                  <div className="h-6 bg-gray-200 rounded max-w-2xl mx-auto"></div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                  <div className="bg-white rounded-2xl p-8 shadow-xl border border-purple-100">
+                    <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-6"></div>
+                    <div className="h-6 bg-gray-200 rounded mb-4 max-w-xs mx-auto"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-6"></div>
+                    <div className="h-12 bg-gray-200 rounded-xl"></div>
+                  </div>
+                  <div className="bg-white rounded-2xl p-8 shadow-xl border border-purple-100">
+                    <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-6"></div>
+                    <div className="h-6 bg-gray-200 rounded mb-4 max-w-xs mx-auto"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-6"></div>
+                    <div className="h-12 bg-gray-200 rounded-xl"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // userRole 계산 - 간단한 방식으로 변경
+  const userRole = (() => {
+    if (isEmployer()) return "employer";
+    if (isApplicant()) return "applicant";
+    return undefined;
+  })();
 
   return (
     <div className="min-h-screen bg-white">
       <ProfileHeader />
       <main>
-        <HeroSection isAuthenticated={isAuthenticated} userRole={appUser?.role || undefined} />
+        <HeroSection
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          onShowLoginDialog={handleShowLoginDialog}
+        />
         <HowItWorksSection
           isAuthenticated={isAuthenticated}
-          userRole={appUser?.role || undefined}
+          userRole={userRole}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
         <FeaturesSection />
-        <CTASection isAuthenticated={isAuthenticated} userRole={appUser?.role || undefined} />
+        <CTASection
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          onShowLoginDialog={handleShowLoginDialog}
+        />
       </main>
       <Footer />
+
+      {/* 공통 로그인 다이얼로그 */}
+      <BaseDialog
+        open={showLoginDialog}
+        onClose={() => setShowLoginDialog(false)}
+        title=""
+        size="md"
+        className="max-w-md"
+        type="bottomSheet"
+      >
+        <div className="relative">
+          {/* 배경 그라데이션 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-3xl"></div>
+
+          {/* 컨텐츠 */}
+          <div className="relative z-10 p-8 flex flex-col items-center">
+            {/* 헤더 */}
+            <div className="text-center mb-8">
+              {/* 로고/아이콘 */}
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <Users className="text-white" size={32} />
+              </div>
+
+              {/* 제목 */}
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900  tracking-tight">
+                Welcome to job:about
+              </h3>
+            </div>
+
+            {/* 구글 로그인 버튼 */}
+            <div className="flex justify-center mb-4">
+              <GoogleLoginButton size="lg" />
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-sm mx-auto text-center">
+              Join our AI-powered job matching platform and discover opportunities that fit your
+              skills and personality
+            </p>
+          </div>
+        </div>
+      </BaseDialog>
     </div>
   );
 }

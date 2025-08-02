@@ -3,7 +3,12 @@ import React from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { supabaseClient } from "@/utils/supabase/client";
 
-export default function GoogleLoginButton() {
+interface GoogleLoginButtonProps {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
+export default function GoogleLoginButton({ size = "md", className = "" }: GoogleLoginButtonProps) {
   const { setAuthState, setLastError } = useAuthStore();
 
   const handleGoogleLogin = async () => {
@@ -35,16 +40,28 @@ export default function GoogleLoginButton() {
     }
   };
 
+  // size에 따른 이미지 크기 설정
+  const getImageSize = () => {
+    switch (size) {
+      case "sm":
+        return "w-[120px] md:w-[150px]";
+      case "lg":
+        return "w-[200px] md:w-[250px]";
+      default: // md
+        return "w-[150px] md:w-[220px]";
+    }
+  };
+
   return (
     <button
       onClick={handleGoogleLogin}
-      className="w-full flex items-center justify-center p-0 bg-transparent border-none shadow-none hover:opacity-90 transition-opacity duration-200 rounded-none"
+      className={`w-full flex items-center justify-center p-0 bg-transparent border-none shadow-none hover:opacity-90 transition-opacity duration-200 rounded-none ${className}`}
       style={{ minHeight: 0, minWidth: 0 }}
     >
       <img
         src="/images/img-google-login-button.png"
         alt="Sign in with Google"
-        className="w-[150px] md:w-[220px] h-auto"
+        className={`${getImageSize()} h-auto`}
         style={{ display: "block" }}
       />
     </button>
