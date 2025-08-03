@@ -22,20 +22,6 @@ function SeekerPage() {
   const router = useRouter();
   const { filters } = useFilterStore();
 
-  // 최신 공고 (전체 최신 공고)
-  const {
-    latestJobs,
-    loading: latestLoading,
-    error: latestError,
-    hasMore: latestHasMore,
-    loadMore: loadMoreLatest,
-    refresh: refreshLatest,
-    isInitialized: latestInitialized,
-  } = useLatestJobs({
-    limit: 6,
-    autoFetch: true,
-  });
-
   // 추천 공고 (AI 맞춤 추천)
   const {
     recommendedJobs,
@@ -49,25 +35,18 @@ function SeekerPage() {
     autoFetch: true,
   });
 
-  // Latest Jobs 데이터를 JobPostCard 타입으로 변환
-  const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
-    return {
-      id: apiJob.id,
-      title: apiJob.title,
-      type: apiJob.work_type as WorkType,
-      wage: apiJob.wage,
-      location: "Location not specified", // API에서 location 필드가 없음
-      dateRange: apiJob.daysAgo ? `${apiJob.daysAgo} days ago` : "Recently",
-      businessName: "Company", // Placeholder, as business info might be limited in API response
-      description: apiJob.description,
-      applicants: apiJob.applicantCount || 0,
-      views: 0, // Placeholder
-      logoImage: apiJob.business_loc?.logo_url
-        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc?.logo_url}`
-        : undefined, // Changed from coverImage
-      requiredSkills: apiJob.requiredSkills, // required skills 추가
-    };
-  };
+  // 최신 공고 (전체 최신 공고)
+  const {
+    latestJobs,
+    loading: latestLoading,
+    error: latestError,
+    hasMore: latestHasMore,
+    refresh: refreshLatest,
+    isInitialized: latestInitialized,
+  } = useLatestJobs({
+    limit: 6,
+    autoFetch: true,
+  });
 
   // 추천 공고를 JobPostCard 타입으로 변환
   const convertRecommendedToJobPostCard = (recommendedJob: RecommendedJobPost): JobPostCardType => {
@@ -86,6 +65,26 @@ function SeekerPage() {
         ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${recommendedJob.company.logoUrl}`
         : undefined,
       requiredSkills: recommendedJob.requiredSkills, // required skills 추가
+    };
+  };
+
+  // Latest Jobs 데이터를 JobPostCard 타입으로 변환
+  const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
+    return {
+      id: apiJob.id,
+      title: apiJob.title,
+      type: apiJob.work_type as WorkType,
+      wage: apiJob.wage,
+      location: "Location not specified", // API에서 location 필드가 없음
+      dateRange: apiJob.daysAgo ? `${apiJob.daysAgo} days ago` : "Recently",
+      businessName: "Company", // Placeholder, as business info might be limited in API response
+      description: apiJob.description,
+      applicants: apiJob.applicantCount || 0,
+      views: 0, // Placeholder
+      logoImage: apiJob.business_loc?.logo_url
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc?.logo_url}`
+        : undefined, // Changed from coverImage
+      requiredSkills: apiJob.requiredSkills, // required skills 추가
     };
   };
 
@@ -153,12 +152,6 @@ function SeekerPage() {
 
   const handleViewJob = (id: string) => {
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
-  };
-
-  const handleLoadMoreLatest = () => {
-    if (!latestLoading && latestHasMore) {
-      loadMoreLatest();
-    }
   };
 
   const hasError = recommendedError || latestError;
@@ -265,7 +258,7 @@ function SeekerPage() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Latest Opportunities</h2>
-            {!showLatestSkeleton && latestJobs.length > 0 && (
+            {!showLatestSkeleton && latestJobs.length > 0 && latestHasMore && (
               <button
                 onClick={() => router.push(PAGE_URLS.SEEKER.LATEST)}
                 className="text-sm text-purple-600 hover:text-purple-800 transition-colors"

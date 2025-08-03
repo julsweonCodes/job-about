@@ -17,6 +17,7 @@ import {
 } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
+import BackHeader from "@/components/common/BackHeader";
 
 function RecommendedJobsPage() {
   const router = useRouter();
@@ -128,14 +129,16 @@ function RecommendedJobsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ProfileHeader />
+      <BackHeader title="Recommended for You" />
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Recommended for You</h1>
-          <p className="text-base lg:text-lg text-gray-600">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
             AI-powered job recommendations based on your profile
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Discover jobs tailored to your skills and preferences
           </p>
         </div>
 

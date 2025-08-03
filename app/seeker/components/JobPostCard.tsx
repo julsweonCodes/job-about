@@ -166,6 +166,22 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           <span className="mr-2">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
               <path
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                stroke="#9CA3AF"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <Typography as="span" variant="bodySm" className="text-gray-700 font-medium">
+            {job.businessName}
+          </Typography>
+        </div>
+        <div className="flex items-center text-sm text-gray-700">
+          <span className="mr-2">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path
                 d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"
                 stroke="#9CA3AF"
                 strokeWidth="1.5"

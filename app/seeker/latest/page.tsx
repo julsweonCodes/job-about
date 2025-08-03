@@ -13,6 +13,7 @@ import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPost as ApiJobPost, JobPostCard as JobPostCardType } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
+import BackHeader from "@/components/common/BackHeader";
 
 function LatestJobsPage() {
   const router = useRouter();
@@ -160,7 +161,7 @@ function LatestJobsPage() {
   if (latestError) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <ProfileHeader />
+        <BackHeader title="Latest Opportunities" />
         <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
@@ -186,16 +187,16 @@ function LatestJobsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ProfileHeader />
+      <BackHeader title="Latest Opportunities" />
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-            Latest Opportunities
+            Discover the newest job opportunities
           </h1>
           <p className="text-base lg:text-lg text-gray-600">
-            Discover the newest job opportunities
+            Check out the newest job opportunities
           </p>
         </div>
 

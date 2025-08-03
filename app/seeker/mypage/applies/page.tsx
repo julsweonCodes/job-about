@@ -18,7 +18,7 @@ function SeekerAppliedPage() {
   const router = useRouter();
 
   const { appliedJobs, loading, error, hasMore, loadMore, refresh } = useSeekerAppliedJobs({
-    limit: 20,
+    limit: 10,
     autoFetch: true,
   });
 
