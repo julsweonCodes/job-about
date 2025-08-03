@@ -13,7 +13,7 @@ import {
   Edit3,
 } from "lucide-react";
 import { JobPostData } from "@/types/jobPost";
-import { formatDescriptionForPreLine } from "@/utils/client/textUtils";
+import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/textUtils";
 
 // Types
 interface JobPostViewProps {
@@ -368,7 +368,7 @@ const EmployerInfo: React.FC<{ jobData: JobPostData }> = ({ jobData }) => (
           <h3 className="font-semibold text-gray-800 text-lg">Company Description</h3>
         </div>
         <p className="text-gray-700 leading-relaxed text-base bg-white/60 rounded-2xl p-4 border border-indigo-100">
-          {jobData.businessLocInfo.bizDescription}
+          {formatDescription(jobData.businessLocInfo.bizDescription)}
         </p>
       </div>
 

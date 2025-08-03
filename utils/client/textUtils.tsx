@@ -6,7 +6,10 @@ import React from "react";
 export const formatDescription = (text: string): React.ReactNode => {
   if (!text) return "";
 
-  return text.split("\\n").map((line, index, array) => (
+  // API에서 오는 실제 줄바꿈 문자(\n)와 문자열(\n) 모두 처리
+  const lines = text.replace(/\\n/g, "\n").split("\n");
+
+  return lines.map((line, index, array) => (
     <span key={index}>
       {line}
       {index < array.length - 1 && <br />}
@@ -19,7 +22,8 @@ export const formatDescription = (text: string): React.ReactNode => {
  */
 export const formatDescriptionForPreLine = (text: string): string => {
   if (!text) return "";
-  return text.split("\\n").join("\n");
+  // API에서 오는 실제 줄바꿈 문자(\n)와 문자열(\n) 모두 처리
+  return text.replace(/\\n/g, "\n");
 };
 
 /**
