@@ -17,9 +17,13 @@ interface FilterDropdownProps {
 const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" }) => {
   const { filters, setFilter } = useFilterStore();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  const selectedValue = filters[filter.id as keyof typeof filters] || "all";
+  // 클라이언트 사이드에서만 마운트
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSelect = (value: string) => {
     setFilter(filter.id as keyof typeof filters, value);
@@ -42,6 +46,21 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
+
+  // 서버에서는 아무것도 렌더링하지 않음
+  if (!isMounted) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg">
+          <div className="w-4 h-4 md:w-5 md:h-5 bg-gray-200 rounded animate-pulse" />
+          <span className="text-sm font-medium text-gray-700">{filter.label}</span>
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  const selectedValue = filters[filter.id as keyof typeof filters] || "all";
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>

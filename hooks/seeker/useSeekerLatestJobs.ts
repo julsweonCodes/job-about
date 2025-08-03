@@ -1,134 +1,108 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { JobPostData, JobPostMapper, ApiLatestJobPost } from "@/types/jobPost";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { apiGetData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
+import { toPrismaWorkType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
-import { Location } from "@/constants/location";
-import { useSeekerPagination } from "./useSeekerPagination";
-import { useFilterStore } from "@/stores/useFilterStore";
 
-interface UseLatestJobsParams {
-  workType?: WorkType;
-  location?: Location;
-  page?: number;
-  limit?: number;
-  autoFetch?: boolean;
-}
+// 필터를 Prisma 타입으로 변환
+const convertFiltersToPrisma = (filters: { workType: string; location: string }) => {
+  const convertedFilters: any = {};
 
-interface UseLatestJobsReturn {
-  latestJobs: JobPostData[];
-  loading: boolean;
-  error: string | null;
-  hasMore: boolean;
-  totalCount: number;
-  isInitialized: boolean;
-  currentPage: number;
-  fetchLatestJobs: (params?: Partial<UseLatestJobsParams>) => Promise<void>;
-  loadMore: () => Promise<void>;
-  refresh: () => Promise<void>;
-  setPage: (page: number) => void;
-}
+  // workType 변환
+  if (filters.workType && filters.workType !== "all") {
+    try {
+      convertedFilters.work_type = toPrismaWorkType(filters.workType as WorkType);
+    } catch (error) {
+      console.error("Invalid workType filter:", filters.workType);
+    }
+  }
 
-export function useLatestJobs({
-  workType,
-  location,
-  page = 1,
-  limit = 10,
-}: UseLatestJobsParams = {}): UseLatestJobsReturn {
-  const { filters } = useFilterStore();
-  const isInitialLoadRef = useRef(false);
+  // location 변환 (location은 그대로 사용)
+  if (filters.location && filters.location !== "all") {
+    convertedFilters.location = filters.location;
+  }
 
-  // 필터 스토어의 workType 문자열을 WorkType enum으로 변환
-  const getWorkTypeFromFilter = useCallback((filterWorkType: string): WorkType | undefined => {
-    if (filterWorkType === "all") return undefined;
+  return convertedFilters;
+};
 
-    const workTypeMap: Record<string, WorkType> = {
-      Remote: WorkType.REMOTE,
-      "On-Site": WorkType.ON_SITE,
-      Hybrid: WorkType.HYBRID,
-    };
+// API 함수
+const fetchLatestJobs = async (filters = { workType: "all", location: "all" }) => {
+  // 필터를 Prisma 타입으로 변환
+  const prismaFilters = convertFiltersToPrisma(filters);
 
-    return workTypeMap[filterWorkType];
-  }, []);
+  try {
+    const response = await apiGetData(API_URLS.JOB_POSTS.ROOT, {
+      page: 1,
+      limit: 10,
+      ...prismaFilters,
+    });
+    if (Array.isArray(response)) {
+      return response;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    throw error;
+  }
+};
 
-  // 필터에서 workType 가져오기
-  const filterWorkType = getWorkTypeFromFilter(filters.workType);
-
-  // JobPostData 변환 함수
-  const transformJobPost = useCallback((data: ApiLatestJobPost): JobPostData => {
-    return JobPostMapper.fromLatestJobPost(data);
-  }, []);
-
-  // 현재 적용된 필터 계산 (메모이제이션)
-  const currentFilters = useMemo(() => {
-    return {
-      workType: filterWorkType || workType,
-      location: filters.location !== "all" ? (filters.location as Location) : location,
-    };
-  }, [filterWorkType, workType, filters.location, location]);
-
-  // 안정적인 필터 값 (문자열로 변환하여 비교)
-  const stableWorkType = currentFilters.workType || "all";
-  const stableLocation = currentFilters.location || "all";
-
+// React Query Hook (단순 버전)
+export const useLatestJobs = (filters = { workType: "all", location: "all" }) => {
   const {
-    data: latestJobs,
-    loading,
+    data: jobs,
+    isLoading,
     error,
-    hasMore,
-    totalCount,
-    isInitialized,
-    currentPage,
-    fetchData: fetchLatestJobs,
-    loadMore,
-    refresh,
-    setPage,
-  } = useSeekerPagination<JobPostData>({
-    apiUrl: API_URLS.JOB_POSTS.ROOT,
-    workType: currentFilters.workType, // 현재 필터 적용
-    location: currentFilters.location,
-    page,
-    limit,
-    autoFetch: false, // 수동으로 첫 페이지 로드
-    transformData: transformJobPost,
+  } = useQuery({
+    queryKey: ["latest-jobs", filters],
+    queryFn: () => fetchLatestJobs(filters),
+    staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 안함
   });
 
-  // 초기 로딩 및 필터 변경 시 데이터 리셋
-  useEffect(() => {
-    // 이미 로딩 중이면 무시
-    if (isInitialLoadRef.current) {
-      return;
-    }
-
-    isInitialLoadRef.current = true;
-
-    const loadData = async () => {
-      try {
-        await fetchLatestJobs({
-          page: 1,
-          workType: currentFilters.workType,
-          location: currentFilters.location,
-        });
-      } catch (error) {
-        console.error("Failed to load data:", error);
-      } finally {
-        isInitialLoadRef.current = false;
-      }
-    };
-
-    loadData();
-  }, [stableWorkType, stableLocation]);
-
   return {
-    latestJobs,
-    loading,
+    jobs: jobs || [],
+    isLoading,
     error,
-    hasMore,
-    totalCount,
-    isInitialized,
-    currentPage,
-    fetchLatestJobs,
-    loadMore,
-    refresh,
-    setPage,
+    hasMore: false,
+    loadMore: () => {},
+    isLoadMoreLoading: false,
   };
-}
+};
+
+// 무한 스크롤용 Hook (별도로 제공)
+export const useLatestJobsInfinite = (filters = { workType: "all", location: "all" }) => {
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["latest-jobs-infinite", filters],
+      queryFn: ({ pageParam }) => {
+        // 필터를 Prisma 타입으로 변환
+        const prismaFilters = convertFiltersToPrisma(filters);
+
+        return apiGetData(API_URLS.JOB_POSTS.ROOT, {
+          page: pageParam,
+          limit: 10,
+          ...prismaFilters,
+        }).then((res) => ({
+          jobs: res || [], // res is already the data array
+          currentPage: pageParam,
+          hasMore: res?.length === 10,
+          totalCount: res.totalCount || 0, // totalCount might be missing if res is just the array
+        }));
+      },
+      getNextPageParam: (lastPage, allPages) =>
+        lastPage.hasMore ? allPages.length + 1 : undefined,
+      initialPageParam: 1,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+    });
+  const jobs = data?.pages.flatMap((page) => page.jobs) || [];
+  return {
+    jobs,
+    isLoading,
+    error,
+    hasMore: hasNextPage,
+    loadMore: fetchNextPage,
+    isLoadMoreLoading: isFetchingNextPage,
+  };
+};

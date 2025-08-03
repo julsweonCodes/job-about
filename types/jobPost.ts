@@ -3,6 +3,8 @@ import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
 import { Skill, WorkStyle } from "@/types/profile";
 import { fromPrismaWorkType } from "@/types/enumMapper";
+import { JobPostCard as JobPostCardType } from "@/types/job";
+import { STORAGE_URLS } from "@/constants/storage";
 
 export interface JobPostData {
   id: string;
@@ -445,5 +447,49 @@ export class JobPostMapper {
 
   static fromRecommendedJobPostArray(responses: ApiRecommendedJobPost[]): JobPostData[] {
     return responses.map((jobPost) => this.fromRecommendedJobPost(jobPost));
+  }
+
+  /**
+   * JobPostData를 JobPostCard 타입으로 변환
+   */
+  static convertJobPostDataToCard(jobPost: JobPostData): JobPostCardType {
+    return {
+      id: jobPost.id,
+      title: jobPost.title,
+      workType: jobPost.workType || ("on-site" as WorkType),
+      wage: jobPost.hourlyWage,
+      location: jobPost.businessLocInfo.address || "Location not specified",
+      dateRange: "Recently", // 기본값
+      businessName: jobPost.businessLocInfo.name,
+      description: jobPost.jobDescription,
+      applicants: jobPost.applicantCount || 0,
+      views: 0, // 기본값
+      logoImage: jobPost.businessLocInfo.logoImg
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${jobPost.businessLocInfo.logoImg}`
+        : undefined,
+      requiredSkills: jobPost.requiredSkills,
+    };
+  }
+
+  /**
+   * RecommendedJobPost를 JobPostCard 타입으로 변환
+   */
+  static convertRecommendedToJobPostCard(recommendedJob: ApiRecommendedJobPost): JobPostCardType {
+    return {
+      id: recommendedJob.id.toString(),
+      title: recommendedJob.title,
+      workType: recommendedJob.jobType as WorkType,
+      wage: recommendedJob.wage,
+      location: recommendedJob.company.address,
+      dateRange: "Recently", // 추천 공고는 최신순이므로
+      businessName: recommendedJob.company.name,
+      description: recommendedJob.description,
+      applicants: recommendedJob.applicantCount,
+      views: 0,
+      logoImage: recommendedJob.company.logoUrl
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${recommendedJob.company.logoUrl}`
+        : undefined,
+      requiredSkills: recommendedJob.requiredSkills, // required skills 추가
+    };
   }
 }

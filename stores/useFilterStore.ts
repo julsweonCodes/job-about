@@ -25,42 +25,34 @@ const defaultFilters: JobFilters = {
   searchQuery: "",
 };
 
-export const useFilterStore = create<FilterState>()(
-  persist(
-    (set, get) => ({
+export const useFilterStore = create<FilterState>()((set, get) => ({
+  filters: defaultFilters,
+
+  setFilter: (key, value) =>
+    set((state) => ({
+      filters: { ...state.filters, [key]: value },
+    })),
+
+  setFilters: (newFilters) =>
+    set((state) => ({
+      filters: { ...state.filters, ...newFilters },
+    })),
+
+  resetFilters: () =>
+    set({
       filters: defaultFilters,
-
-      setFilter: (key, value) =>
-        set((state) => ({
-          filters: { ...state.filters, [key]: value },
-        })),
-
-      setFilters: (newFilters) =>
-        set((state) => ({
-          filters: { ...state.filters, ...newFilters },
-        })),
-
-      resetFilters: () =>
-        set({
-          filters: defaultFilters,
-        }),
-
-      getActiveFilters: () => {
-        const { filters } = get();
-        const activeFilters: Partial<JobFilters> = {};
-
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== "all" && value !== "") {
-            activeFilters[key as keyof JobFilters] = value;
-          }
-        });
-
-        return activeFilters;
-      },
     }),
-    {
-      name: "job-filters",
-      partialize: (state) => ({ filters: state.filters }),
-    }
-  )
-);
+
+  getActiveFilters: () => {
+    const { filters } = get();
+    const activeFilters: Partial<JobFilters> = {};
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== "all" && value !== "") {
+        activeFilters[key as keyof JobFilters] = value;
+      }
+    });
+
+    return activeFilters;
+  },
+}));

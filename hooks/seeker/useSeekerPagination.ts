@@ -109,7 +109,17 @@ export function useSeekerPagination<T>({
   );
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    console.log("📡 loadMore called:", {
+      loading,
+      hasMore,
+      currentPage,
+      nextPage: currentPage + 1,
+    });
+
+    if (loading || !hasMore) {
+      console.log("❌ loadMore skipped:", { loading, hasMore });
+      return;
+    }
 
     const nextPage = currentPage + 1;
 
@@ -131,30 +141,55 @@ export function useSeekerPagination<T>({
         queryParams.location = location;
       }
 
+      console.log("📡 API call params:", queryParams);
       const response = await apiGetData<any[]>(apiUrl, queryParams);
+      console.log("📡 API response:", {
+        hasResponse: !!response,
+        isArray: Array.isArray(response),
+        responseLength: response?.length,
+      });
 
       if (response && Array.isArray(response)) {
         const newData = transformData ? response.map(transformData) : response;
+        console.log("🔄 Transformed data:", {
+          originalLength: response.length,
+          transformedLength: newData.length,
+        });
 
         // 기존 데이터에 새로운 데이터 추가 (중복 제거)
         setData((prev) => {
           const existingIds = new Set(prev.map((item: any) => item.id));
           const uniqueNewData = newData.filter((item: any) => !existingIds.has(item.id));
+          console.log("➕ Adding unique data:", {
+            newDataLength: newData.length,
+            uniqueNewDataLength: uniqueNewData.length,
+            existingDataLength: prev.length,
+            finalDataLength: prev.length + uniqueNewData.length,
+          });
           return [...prev, ...uniqueNewData];
         });
 
         // hasMore는 현재 페이지의 데이터가 limit보다 적으면 false
-        setHasMore(newData.length >= limit);
+        const newHasMore = newData.length >= limit;
+        console.log("📊 Updated hasMore:", {
+          newDataLength: newData.length,
+          limit,
+          newHasMore,
+        });
+        setHasMore(newHasMore);
         setCurrentPage(nextPage);
       } else {
+        console.log("❌ API response invalid");
         setError("Failed to fetch data");
       }
     } catch (err) {
+      console.error("❌ loadMore error:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
+      console.log("🔄 loadMore completed");
     }
-  }, [loading, hasMore, currentPage, limit, apiUrl, transformData]);
+  }, [loading, hasMore, currentPage, limit, apiUrl, workType, location, transformData]);
 
   const refresh = useCallback(async () => {
     setCurrentPage(1);
