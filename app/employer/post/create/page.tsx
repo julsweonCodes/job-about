@@ -30,6 +30,8 @@ import { capitalize } from "@/lib/utils";
 import { WORK_TYPE_OPTIONS } from "@/constants/options";
 import { FormSection } from "@/components/common/FormSection";
 import { JobType } from "@/constants/jobTypes";
+import { API_URLS } from "@/constants/api";
+import { showErrorToast } from "@/utils/client/toastUtils";
 function JobPostCreatePage() {
   const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -139,13 +141,13 @@ function JobPostCreatePage() {
     e.preventDefault();
     setGeminiResState(true);
     // 1. AI로 공고 생성 & DB 저장 (예시: /api/employer/job-post 호출)
-    const res = await fetch("/api/employer/post/create", {
+    const res = await fetch(API_URLS.EMPLOYER.POST.CREATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
     if (!res.ok) {
-      alert("공고 생성에 실패했습니다.");
+      showErrorToast("Failed to create job post.");
       setGeminiResState(false);
       return;
     }
