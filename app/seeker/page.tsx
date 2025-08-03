@@ -37,15 +37,15 @@ function SeekerPage() {
     autoFetch: true,
   });
 
+  // 필터 상태 관리
+  const { filters: currentFilters } = useFilterStore();
+
   // 최신 공고 (전체 최신 공고)
   const {
     jobs: latestJobs,
     isLoading: latestLoading,
     error: latestError,
-  } = useLatestJobs({
-    workType: "all",
-    location: "all",
-  });
+  } = useLatestJobs(currentFilters);
 
   // 추천 공고를 JobPostCard 타입으로 변환
   const filteredRecommendedJobs = useMemo(() => {
@@ -114,7 +114,7 @@ function SeekerPage() {
   // 스켈레톤 표시 조건 수정
   const showRecommendedSkeleton =
     !recommendedInitialized || (recommendedLoading && recommendedJobs.length === 0);
-  const showLatestSkeleton = latestLoading || !Array.isArray(latestJobs) || latestJobs.length === 0;
+  const showLatestSkeleton = latestLoading || !Array.isArray(latestJobs);
 
   // 서버와 클라이언트에서 동일한 구조 렌더링, 내용만 숨기기
   if (!isMounted) {
@@ -171,7 +171,7 @@ function SeekerPage() {
                 id: "workType",
                 label: "Work Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "Remote", "On-Site", "Hybrid"],
+                options: ["all", "on-site", "remote", "hybrid"],
               }}
             />
             <FilterDropdown
@@ -179,7 +179,7 @@ function SeekerPage() {
                 id: "location",
                 label: "Location",
                 icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all"],
+                options: ["all", "Vancouver", "Toronto", "Montreal", "Calgary"],
               }}
             />
           </div>
@@ -289,7 +289,7 @@ function SeekerPage() {
                 ))}
               </div>
 
-              {!latestLoading && !showLatestSkeleton && filteredLatestJobs.length === 0 && (
+              {!latestLoading && filteredLatestJobs.length === 0 && (
                 <EmptyState
                   icon={Briefcase}
                   title="No jobs found"
@@ -298,7 +298,6 @@ function SeekerPage() {
                     label: "Clear All Filters",
                     onClick: () => {
                       useFilterStore.getState().resetFilters();
-                      window.location.reload();
                     },
                   }}
                   secondaryAction={{
