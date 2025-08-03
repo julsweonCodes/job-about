@@ -13,6 +13,7 @@ import {
   Edit3,
 } from "lucide-react";
 import { JobPostData } from "@/types/jobPost";
+import { formatDescriptionForPreLine } from "@/utils/client/textUtils";
 
 // Types
 interface JobPostViewProps {
@@ -213,7 +214,7 @@ const JobDescription: React.FC<{
         })
       ) : (
         <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
-          {jobDescriptions?.manual || jobData.jobDescription}
+          {formatDescriptionForPreLine(jobDescriptions?.manual || jobData.jobDescription)}
         </p>
       )}
     </div>
