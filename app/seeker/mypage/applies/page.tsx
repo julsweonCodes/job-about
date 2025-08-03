@@ -82,8 +82,12 @@ function SeekerAppliedPage() {
               {filteredAppliedJobs.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {filteredAppliedJobs.map((job) => (
-                      <JobPostCard key={job.id} job={job} onView={() => handleViewJob(job.id)} />
+                    {filteredAppliedJobs.map((job, index) => (
+                      <JobPostCard
+                        key={`applied-${job.id}-${index}`}
+                        job={job}
+                        onView={() => handleViewJob(job.id)}
+                      />
                     ))}
                   </div>
                   {hasMore && (

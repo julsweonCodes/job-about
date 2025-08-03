@@ -200,9 +200,9 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
         {job.requiredSkills && job.requiredSkills.length > 0 && (
           <div className="mt-3">
             <div className="flex flex-wrap gap-2">
-              {job.requiredSkills.map((skill) => (
+              {job.requiredSkills.map((skill, index) => (
                 <Chip
-                  key={skill.id}
+                  key={`${job.id}-skill-${skill.id}-${index}`}
                   size="sm"
                   className={
                     isRecommended

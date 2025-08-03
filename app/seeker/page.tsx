@@ -7,7 +7,7 @@ import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
-import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobPosts";
+import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import {
@@ -32,7 +32,7 @@ function SeekerPage() {
     refresh: refreshLatest,
     isInitialized: latestInitialized,
   } = useLatestJobs({
-    limit: 20,
+    limit: 6,
     autoFetch: true,
   });
 
@@ -247,8 +247,13 @@ function SeekerPage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                  {filteredRecommendedJobs.map((job) => (
-                    <JobPostCard key={job.id} job={job} onView={handleViewJob} isRecommended />
+                  {filteredRecommendedJobs.map((job, index) => (
+                    <JobPostCard
+                      key={`recommended-${job.id}-${index}`}
+                      job={job}
+                      onView={handleViewJob}
+                      isRecommended
+                    />
                   ))}
                 </div>
               </>
@@ -262,11 +267,10 @@ function SeekerPage() {
             <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Latest Opportunities</h2>
             {!showLatestSkeleton && latestJobs.length > 0 && (
               <button
-                onClick={handleLoadMoreLatest}
-                disabled={latestLoading || !latestHasMore}
-                className="text-sm text-purple-600 hover:text-purple-800 disabled:opacity-50"
+                onClick={() => router.push(PAGE_URLS.SEEKER.LATEST)}
+                className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
               >
-                {latestLoading ? "Loading..." : latestHasMore ? "Show More" : "No More"}
+                Show More
               </button>
             )}
           </div>
@@ -279,21 +283,15 @@ function SeekerPage() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                {filteredLatestJobs.map((job) => (
-                  <JobPostCard key={job.id} job={job} onView={handleViewJob} />
+                {filteredLatestJobs.map((job, index) => (
+                  <JobPostCard
+                    key={`home-latest-${job.id}-${index}`}
+                    job={job}
+                    onView={handleViewJob}
+                  />
                 ))}
               </div>
-              {latestHasMore && (
-                <div className="text-center pt-8">
-                  <button
-                    onClick={handleLoadMoreLatest}
-                    disabled={latestLoading}
-                    className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {latestLoading ? "Loading..." : "Load More"}
-                  </button>
-                </div>
-              )}
+
               {!latestLoading && filteredLatestJobs.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">No jobs found matching your criteria.</p>

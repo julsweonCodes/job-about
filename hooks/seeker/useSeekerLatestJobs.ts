@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
-import { apiGetData } from "@/utils/client/API";
+import { useCallback } from "react";
 import { JobPost } from "@/types/job";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
+import { useSeekerPagination } from "./useSeekerPagination";
 
 interface UseLatestJobsParams {
   workType?: WorkType;
@@ -20,9 +20,11 @@ interface UseLatestJobsReturn {
   hasMore: boolean;
   totalCount: number;
   isInitialized: boolean;
+  currentPage: number;
   fetchLatestJobs: (params?: Partial<UseLatestJobsParams>) => Promise<void>;
   loadMore: () => Promise<void>;
   refresh: () => Promise<void>;
+  setPage: (page: number) => void;
 }
 
 export function useLatestJobs({
@@ -32,88 +34,58 @@ export function useLatestJobs({
   limit = 10,
   autoFetch = true,
 }: UseLatestJobsParams = {}): UseLatestJobsReturn {
-  const [latestJobs, setLatestJobs] = useState<JobPost[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(page);
-  const [isInitialized, setIsInitialized] = useState(false);
+  // JobPost 데이터 변환 함수
+  const transformJobPost = useCallback((data: any): JobPost => {
+    return {
+      id: data.id,
+      business_loc_id: data.business_loc_id,
+      user_id: data.user_id,
+      title: data.title,
+      job_type: data.job_type,
+      deadline: data.deadline,
+      work_schedule: data.work_schedule,
+      job_fit_type_id_1: data.job_fit_type_id_1,
+      job_fit_type_id_2: data.job_fit_type_id_2,
+      job_fit_type_id_3: data.job_fit_type_id_3,
+      skill_id_1: data.skill_id_1,
+      skill_id_2: data.skill_id_2,
+      skill_id_3: data.skill_id_3,
+      wage: data.wage,
+      location: data.location,
+      description: data.description,
+      status: data.status,
+      work_type: data.work_type,
+      language_level: data.language_level,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      daysAgo: data.daysAgo,
+      applicantCount: data.applicantCount,
+      business_loc: data.business_loc,
+      requiredSkills: data.requiredSkills,
+    };
+  }, []);
 
-  const fetchLatestJobs = useCallback(
-    async (params?: Partial<UseLatestJobsParams>) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const queryParams: Record<string, any> = {};
-
-        if (params?.workType || workType) {
-          queryParams.work_type = params?.workType || workType;
-        }
-
-        if (params?.location || location) {
-          queryParams.location = params?.location || location;
-        }
-
-        if (params?.page || currentPage) {
-          queryParams.page = params?.page || currentPage;
-        }
-
-        if (params?.limit || limit) {
-          queryParams.limit = params?.limit || limit;
-        }
-
-        const data = await apiGetData<JobPost[]>(API_URLS.JOB_POSTS.ROOT, queryParams);
-
-        if (data && Array.isArray(data)) {
-          const newLatestJobs = data;
-
-          if (params?.page === 1 || currentPage === 1) {
-            // 첫 페이지면 전체 교체
-            setLatestJobs(newLatestJobs);
-          } else {
-            // 추가 페이지면 기존에 추가
-            setLatestJobs((prev) => [...prev, ...newLatestJobs]);
-          }
-
-          setHasMore(newLatestJobs.length === (params?.limit || limit));
-          setTotalCount(newLatestJobs.length || 0);
-        } else {
-          setError("Failed to fetch latest jobs");
-          setLatestJobs([]);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-        setLatestJobs([]);
-      } finally {
-        setLoading(false);
-        setIsInitialized(true);
-      }
-    },
-    [workType, location, currentPage, limit]
-  );
-
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
-
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    await fetchLatestJobs({ page: nextPage });
-  }, [loading, hasMore, currentPage, fetchLatestJobs]);
-
-  const refresh = useCallback(async () => {
-    setCurrentPage(1);
-    setLatestJobs([]);
-    setHasMore(true);
-    await fetchLatestJobs({ page: 1 });
-  }, [fetchLatestJobs]);
-
-  useEffect(() => {
-    if (autoFetch) {
-      fetchLatestJobs();
-    }
-  }, [autoFetch, fetchLatestJobs]);
+  const {
+    data: latestJobs,
+    loading,
+    error,
+    hasMore,
+    totalCount,
+    isInitialized,
+    currentPage,
+    fetchData: fetchLatestJobs,
+    loadMore,
+    refresh,
+    setPage,
+  } = useSeekerPagination<JobPost>({
+    apiUrl: API_URLS.JOB_POSTS.ROOT,
+    workType,
+    location,
+    page,
+    limit,
+    autoFetch,
+    transformData: transformJobPost,
+  });
 
   return {
     latestJobs,
@@ -122,8 +94,10 @@ export function useLatestJobs({
     hasMore,
     totalCount,
     isInitialized,
+    currentPage,
     fetchLatestJobs,
     loadMore,
     refresh,
+    setPage,
   };
 }

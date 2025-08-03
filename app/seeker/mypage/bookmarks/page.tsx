@@ -100,8 +100,12 @@ function SeekerBookmarksPage() {
               {filteredBookmarkedJobs.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {filteredBookmarkedJobs.map((job) => (
-                      <JobPostCard key={job.id} job={job} onView={() => handleViewJob(job.id)} />
+                    {filteredBookmarkedJobs.map((job, index) => (
+                      <JobPostCard
+                        key={`bookmarked-${job.id}-${index}`}
+                        job={job}
+                        onView={() => handleViewJob(job.id)}
+                      />
                     ))}
                   </div>
                   {hasMore && (

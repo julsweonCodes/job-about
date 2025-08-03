@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback, useEffect, useRef } from "react";
 import { MapPin, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
+import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { WorkType } from "@/constants/enums";
@@ -179,27 +180,18 @@ function RecommendedJobsPage() {
             ? // 초기 로딩 스켈레톤
               [...Array(6)].map((_, i) => <JobPostCardSkeleton key={i} />)
             : // 실제 데이터
-              filteredRecommendedJobs.map((job) => (
-                <JobPostCard key={job.id} job={job} onView={handleViewJob} isRecommended />
+              filteredRecommendedJobs.map((job, index) => (
+                <JobPostCard
+                  key={`recommendations-${job.id}-${index}`}
+                  job={job}
+                  onView={handleViewJob}
+                  isRecommended
+                />
               ))}
         </div>
 
         {/* 무한 스크롤 로딩 인디케이터 */}
-        {recommendedLoading && recommendedJobs.length > 0 && (
-          <div className="mt-8 flex justify-center">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-purple-600 rounded-full animate-bounce"></div>
-              <div
-                className="w-4 h-4 bg-purple-600 rounded-full animate-bounce"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="w-4 h-4 bg-purple-600 rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
-            </div>
-          </div>
-        )}
+        {recommendedLoading && recommendedJobs.length > 0 && <InfiniteScrollLoader />}
 
         {/* 무한 스크롤 트리거 요소 */}
         <div ref={loadingRef} className="h-10" />
