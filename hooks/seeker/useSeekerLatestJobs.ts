@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { JobPostData, JobPostMapper, ApiLatestJobPost } from "@/types/jobPost";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
@@ -33,9 +33,9 @@ export function useLatestJobs({
   location,
   page = 1,
   limit = 10,
-  autoFetch = true,
 }: UseLatestJobsParams = {}): UseLatestJobsReturn {
   const { filters } = useFilterStore();
+  const isInitialLoadRef = useRef(false);
 
   // 필터 스토어의 workType 문자열을 WorkType enum으로 변환
   const getWorkTypeFromFilter = useCallback((filterWorkType: string): WorkType | undefined => {
@@ -66,6 +66,10 @@ export function useLatestJobs({
     };
   }, [filterWorkType, workType, filters.location, location]);
 
+  // 안정적인 필터 값 (문자열로 변환하여 비교)
+  const stableWorkType = currentFilters.workType || "all";
+  const stableLocation = currentFilters.location || "all";
+
   const {
     data: latestJobs,
     loading,
@@ -88,27 +92,31 @@ export function useLatestJobs({
     transformData: transformJobPost,
   });
 
-  // 필터 변경 시에만 데이터 리셋
+  // 초기 로딩 및 필터 변경 시 데이터 리셋
   useEffect(() => {
-    if (isInitialized) {
-      fetchLatestJobs({
-        page: 1,
-        workType: currentFilters.workType,
-        location: currentFilters.location,
-      });
+    // 이미 로딩 중이면 무시
+    if (isInitialLoadRef.current) {
+      return;
     }
-  }, [currentFilters.workType, currentFilters.location, isInitialized]);
 
-  // 초기 로딩
-  useEffect(() => {
-    if (!isInitialized) {
-      fetchLatestJobs({
-        page: 1,
-        workType: currentFilters.workType,
-        location: currentFilters.location,
-      });
-    }
-  }, [currentFilters.workType, currentFilters.location, isInitialized]);
+    isInitialLoadRef.current = true;
+
+    const loadData = async () => {
+      try {
+        await fetchLatestJobs({
+          page: 1,
+          workType: currentFilters.workType,
+          location: currentFilters.location,
+        });
+      } catch (error) {
+        console.error("Failed to load data:", error);
+      } finally {
+        isInitialLoadRef.current = false;
+      }
+    };
+
+    loadData();
+  }, [stableWorkType, stableLocation]);
 
   return {
     latestJobs,

@@ -105,7 +105,7 @@ export function useSeekerPagination<T>({
         setIsInitialized(true);
       }
     },
-    [apiUrl, workType, location, currentPage, limit, transformData]
+    [apiUrl, currentPage, limit, transformData]
   );
 
   const loadMore = useCallback(async () => {
