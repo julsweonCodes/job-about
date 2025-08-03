@@ -4,6 +4,7 @@ import { WorkType } from "@/constants/enums";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
+import { formatDescription } from "@/utils/client/textUtils";
 
 export interface JobPost {
   id: string;
@@ -192,7 +193,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
             minHeight: "70px",
           }}
         >
-          {job.description}
+          {formatDescription(job.description)}
         </p>
 
         {/* Required Skills - 모든 job에서 표시 */}
@@ -205,8 +206,8 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
                   size="sm"
                   className={
                     isRecommended
-                      ? "bg-purple-50 text-purple-700 hover:bg-purple-100 text-sm font-medium"
-                      : "bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm font-medium"
+                      ? "bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs"
+                      : "bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs"
                   }
                 >
                   {skill.name_en}

@@ -1,258 +1,267 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
-import JobPostView from "@/components/common/JobPostView";
+import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
 import { JobPostData } from "@/types/jobPost";
 import { useSearchParams } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
+import { apiPatchData } from "@/utils/client/API";
+import { Button } from "../ui/Button";
 
+// Types
 type DescriptionVersion = "manual" | "struct1" | "struct2";
 
 interface Props {
   postId: string;
 }
 
+interface LoadingStates {
+  jobDetails: boolean;
+  publish: boolean;
+}
+
+interface TempEditData {
+  manual: string;
+  struct1: string;
+  struct2: string;
+}
+
+interface EditDialogData {
+  selectedVersion: DescriptionVersion;
+  description: string;
+}
+
+// Constants
+const DESCRIPTION_LABELS: Record<DescriptionVersion, string> = {
+  manual: "Manual Description",
+  struct1: "AI Structure 1",
+  struct2: "AI Structure 2",
+};
+
 const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const router = useRouter();
-  const [editingSection, setEditingSection] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const useAI = searchParams.get("useAI") === "true";
+
+  // Core state
   const [jobPostData, setJobPostData] = useState<JobPostData>();
   const [geminiRes, setGeminiRes] = useState<string[]>([]);
-  const [loadingStates, setLoadingStates] = useState({
-    jobPostPreview: false,
-    geminiRes: false,
-    publish: false,
-  });
   const [selectedVersion, setSelectedVersion] = useState<DescriptionVersion>("manual");
   const [newJobDesc, setNewJobDesc] = useState<string>();
-  const [tempEditData, setTempEditData] = useState<Record<DescriptionVersion, string>>({
-    manual: jobPostData?.jobDescription || "",
-    struct1: geminiRes[0] || "",
-    struct2: geminiRes[1] || "",
+
+  // Loading states
+  const [loadingStates, setLoadingStates] = useState<LoadingStates>({
+    jobDetails: true,
+    publish: false,
   });
 
-  // 다이얼로그에서 편집할 때 사용할 임시 상태
-  const [dialogEditData, setDialogEditData] = useState<Record<DescriptionVersion, string>>({
+  // Edit dialog state
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingVersion, setEditingVersion] = useState<DescriptionVersion>("manual");
+  const [dialogContent, setDialogContent] = useState("");
+
+  // Temp edit data - stores edited versions of descriptions
+  const [tempEditData, setTempEditData] = useState<TempEditData>({
     manual: "",
     struct1: "",
     struct2: "",
   });
-  const initializeData = async () => {
+
+  // Initialization flag to prevent duplicate calls
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Utility functions
+  const handlePageError = useCallback(
+    (errorMessage: string) => {
+      console.error(`JobPreviewEditPage Error: ${errorMessage}`);
+      showErrorToast("This page is no longer accessible.");
+      router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+    },
+    [postId, router]
+  );
+
+  const processGeminiResponse = useCallback((rawGemini: string): string[] => {
     try {
-      // 로딩 시작
-      setLoadingStates({
-        jobPostPreview: true,
-        geminiRes: true,
-        publish: false,
-      });
+      const gemTmp = JSON.parse(rawGemini);
 
-      // 모든 API 호출을 병렬로 실행
-      await Promise.all([
-        fetchPreviewJobPost(),
-        // 추가 API 호출들을 여기에 추가
-      ]);
+      const struct1Combined = [
+        "[Main Responsibilities]",
+        ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
+        "[Preferred Qualifications and Benefits]",
+        ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? []),
+      ].join("\n");
+
+      const struct2 = gemTmp.struct2 ?? "";
+
+      return [struct1Combined, struct2];
     } catch (error) {
-      console.error("Error initializing dashboard:", error);
-    } finally {
-      // 로딩 완료
-      setLoadingStates({
-        jobPostPreview: false,
-        geminiRes: false,
-        publish: false,
-      });
+      console.error("Error processing Gemini response:", error);
+      return ["", ""];
     }
-  };
-
-  useEffect(() => {
-    initializeData();
   }, []);
 
-  useEffect(() => {
-    console.log("Updated geminiRes:", geminiRes);
-    const newTempEditData = {
-      manual: jobPostData?.jobDescription || "",
-      struct1: geminiRes[0] || "",
-      struct2: geminiRes[1] || "",
+  const initializeTempEditData = useCallback((jobData: JobPostData, gemini: string[]) => {
+    const newTempEditData: TempEditData = {
+      manual: jobData.jobDescription || "",
+      struct1: gemini[0] || "",
+      struct2: gemini[1] || "",
     };
-    console.log("Setting tempEditData from geminiRes:", newTempEditData);
     setTempEditData(newTempEditData);
-  }, [geminiRes]);
+  }, []);
 
-  // selectedVersion이 변경되어도 newJobDesc는 자동으로 업데이트하지 않음
-  // newJobDesc는 오직 저장할 때만 업데이트됨
+  // Data fetching
+  const fetchPreviewJobPost = useCallback(async () => {
+    if (isInitialized) return;
 
-  // 전체 로딩 상태 계산
-  const isLoading = Object.values(loadingStates).some((state) => state);
-
-  // publish 로딩 상태
-  const isPublishing = loadingStates.publish;
-  const fetchPreviewJobPost = async () => {
     try {
-      const res = await fetch(`/api/employer/post/preview/${postId}`);
+      const res = await fetch(`${API_URLS.EMPLOYER.POST.PUBLISH(postId)}`);
       const data = await res.json();
 
-      if (!res.ok || data?.data.postData.status !== "draft") {
-        console.error("error");
-        showErrorToast("This page is no longer accessible.");
-        router.push(`/employer/post/${postId}`);
+      if (!res.ok) {
+        handlePageError("Failed to fetch job post");
+        return;
       }
-      if (res.ok) {
-        setJobPostData(data.data.postData);
-        // 초기 로드 시에는 manual description을 기본값으로 설정
-        setNewJobDesc(data.data.postData.jobDescription);
+
+      if (data?.status === "success" && data?.code === 200) {
+        // Handle string response (e.g., "44")
+        if (typeof data.data === "string") {
+          console.log("Job post ID received:", data.data);
+          // TODO: Fetch actual job post data when API returns string ID
+          return;
+        }
+
+        // Handle object response
+        if (data?.data?.postData?.status !== "draft") {
+          handlePageError("Invalid job post status");
+          return;
+        }
+
+        const postData = data.data.postData;
+        setJobPostData(postData);
+        setNewJobDesc(postData.jobDescription);
 
         const rawGemini = data.data.geminiRes;
         if (rawGemini) {
-          const gemTmp = JSON.parse(rawGemini);
-          const struct1Combined = [
-            "[Main Responsibilities]",
-            ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
-            "[Preferred Qualifications and Benefits]",
-            ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? [])
-          ].join("\n");
-          const struct2 = gemTmp.struct2 ?? "";
-          setGeminiRes([struct1Combined, struct2]);
+          const processedGemini = processGeminiResponse(rawGemini);
+          setGeminiRes(processedGemini);
         }
-        /*
-        const gemTxt =
-          "{\n" +
-          '  "struct1": {\n' +
-          '    "Main Responsibilities": [\n' +
-          '      "Performing general cleaning duties.",\n' +
-          '      "Maintaining a consistent and stable work approach, not easily affected by daily ups and downs."\n' +
-          "    ],\n" +
-          '    "Preferred Qualifications and Benefits": [\n' +
-          '      "Ability to work on-site.",\n' +
-          '      "Intermediate English language proficiency.",\n' +
-          '      "Wage details are not specified."\n' +
-          "    ]\n" +
-          "  },\n" +
-          '  "struct2": "For this cleaning position, main responsibilities include performing general cleaning duties and maintaining a consistent and stable work approach, without being easily affected by daily ups and downs. Preferred qualifications involve the ability to work on-site and intermediate English language proficiency. Please note that specific wage details are not specified for this role."\n' +
-          "}\n";
-        const gemTmp = JSON.parse(gemTxt);
-        // const gemTmp = getCache(`gemini:${postId}`)
-        console.log(gemTmp);
-        const struct1Combined = [
-          "[Main Responsibilities]",
-          ...(gemTmp.struct1?.["Main Responsibilities"] ?? []),
-          "[Preferred Qualifications and Benefits]",
-          ...(gemTmp.struct1?.["Preferred Qualifications and Benefits"] ?? []),
-        ].join("\n");
-        const struct2 = gemTmp.struct2 ?? "";
-        setGeminiRes([struct1Combined, struct2]);
-
-         */
       } else {
-        console.log("Failed to fetch DRAFT job post");
-      }
-    } catch (e) {
-      console.log("Error fetching DRAFT job post", e);
-    }
-  };
-
-  const handleEdit = (section: string, initialData?: any) => {
-    if (section === "description") {
-      // initialData가 있으면 해당 버전의 데이터만 업데이트하고, 없으면 전체 초기화
-      let currentData;
-      if (initialData && initialData.description) {
-        // 특정 버전에서 편집 버튼을 눌렀을 때
-        currentData = {
-          manual: jobPostData?.jobDescription || "",
-          struct1: geminiRes[0] || "",
-          struct2: geminiRes[1] || "",
-          [selectedVersion]: initialData.description, // 선택된 버전의 내용으로 업데이트
-        };
-      } else {
-        // 전체 초기화
-        currentData = {
-          manual: jobPostData?.jobDescription || "",
-          struct1: geminiRes[0] || "",
-          struct2: geminiRes[1] || "",
-        };
-      }
-      console.log("handleEdit - initialData:", initialData);
-      console.log("handleEdit - currentData:", currentData);
-      console.log("handleEdit - selectedVersion:", selectedVersion);
-      setDialogEditData(currentData); // 다이얼로그 편집용 데이터 설정
-    }
-    setEditingSection(section);
-  };
-
-  const handleSave = (section: string, data: Record<DescriptionVersion, string>) => {
-    if (section === "description") {
-      const selectedDescription = data[selectedVersion] ?? "";
-      console.log("Saving version:", selectedVersion, "with data:", selectedDescription);
-
-      // Save 버튼을 눌렀을 때만 실제 데이터 업데이트
-      setJobPostData((prev: any) => ({
-        ...prev,
-        jobDescriptions: {
-          ...prev.jobDescriptions,
-          ...data,
-        },
-        jobDescription: selectedDescription, // 선택된 버전의 내용을 메인 설명으로 설정
-      }));
-
-      // newJobDesc도 선택된 버전의 내용으로 업데이트
-      setNewJobDesc(selectedDescription);
-      setTempEditData(data); // tempEditData도 업데이트
-      setDialogEditData(data); // dialogEditData도 동기화
-      setEditingSection(null);
-    }
-  };
-
-  const handlePublish = async () => {
-    try {
-      console.log("Publishing job post:", newJobDesc);
-
-      // 로딩 시작
-      setLoadingStates((prev) => ({ ...prev, publish: true }));
-
-      const res = await fetch(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId, newJobDesc }),
-      });
-      const data = await res.json();
-
-      if (!res.ok || data?.data.status !== "draft") {
-        console.error("error");
-        showErrorToast("This page is no longer accessible.");
-        router.push(`/employer/post/${postId}`);
-      } else {
-        showSuccessToast("Job post published successfully");
-        router.push(`/employer/post/${postId}`);
+        handlePageError("Invalid API response");
       }
     } catch (error) {
-      console.error("Publish error:", error);
-      showErrorToast(error as string);
+      handlePageError("Failed to fetch job post");
     } finally {
-      // 로딩 완료
+      setIsInitialized(true);
+    }
+  }, [postId, handlePageError, processGeminiResponse, isInitialized]);
+
+  const initializeData = useCallback(async () => {
+    if (isInitialized) return;
+
+    try {
+      setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
+      await fetchPreviewJobPost();
+    } catch (error) {
+      console.error("Error initializing data:", error);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
+    }
+  }, [fetchPreviewJobPost, isInitialized]);
+
+  // Initialize tempEditData when data is available
+  useEffect(() => {
+    if (jobPostData && geminiRes && !isInitialized) {
+      initializeTempEditData(jobPostData, geminiRes);
+    }
+  }, [jobPostData, geminiRes, isInitialized, initializeTempEditData]);
+
+  // Initialize data on mount
+  useEffect(() => {
+    if (postId) {
+      initializeData();
+    }
+  }, [postId, initializeData]);
+
+  // Edit handlers
+  const handleEdit = useCallback((section: string, data: EditDialogData) => {
+    if (section === "description") {
+      const { selectedVersion: version, description: content } = data;
+
+      setEditingVersion(version);
+      setDialogContent(content);
+      setIsDialogOpen(true);
+    }
+  }, []);
+
+  const handleSave = useCallback(() => {
+    // Update tempEditData with edited content
+    setTempEditData((prev) => ({
+      ...prev,
+      [editingVersion]: dialogContent,
+    }));
+
+    // Update newJobDesc with selected version content
+    const updatedTempData = {
+      ...tempEditData,
+      [editingVersion]: dialogContent,
+    };
+
+    if (selectedVersion) {
+      setNewJobDesc(updatedTempData[selectedVersion]);
+    }
+
+    setIsDialogOpen(false);
+  }, [editingVersion, dialogContent, tempEditData, selectedVersion]);
+
+  const handlePublish = useCallback(async () => {
+    try {
+      setLoadingStates((prev) => ({ ...prev, publish: true }));
+
+      await apiPatchData(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
+        postId,
+        newJobDesc,
+      });
+
+      showSuccessToast("Job post published successfully");
+      router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+    } catch (error) {
+      console.error("Publish error:", error);
+      showErrorToast(error instanceof Error ? error.message : "Failed to publish job post");
+    } finally {
       setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-  };
+  }, [postId, newJobDesc, router]);
 
-  // 로딩 중일 때 LoadingScreen 표시
-  if (isLoading) {
-    return <LoadingScreen />;
+  const getDialogTitle = useCallback((version: DescriptionVersion): string => {
+    return `Edit ${DESCRIPTION_LABELS[version]}`;
+  }, []);
+
+  // Loading state
+  if (loadingStates.jobDetails) {
+    return (
+      <div className="min-h-screen bg-gray-50 font-pretendard">
+        <PostHeader previewMode />
+        <JobPostViewSkeleton />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
       <PostHeader previewMode />
+
       {jobPostData && (
         <JobPostView
           jobData={jobPostData}
           mode="preview"
           onEdit={handleEdit}
           onPublish={handlePublish}
-          showEditButtons={useAI}
+          showEditButtons={true}
           showPublishButton
           editableSections={["description"]}
           useAI={useAI}
@@ -263,87 +272,32 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         />
       )}
 
-      {/* Publish 로딩 오버레이 */}
-      {isPublishing && <LoadingScreen overlay={true} opacity="light" message="Publishing..." />}
+      {/* Publish loading overlay */}
+      {loadingStates.publish && (
+        <LoadingScreen overlay={true} opacity="light" message="Publishing..." />
+      )}
+
+      {/* Edit dialog */}
       <BaseDialog
-        open={editingSection === "description"}
-        onClose={() => {
-          setEditingSection(null);
-          // 다이얼로그 닫을 때 편집 내용 취소 (원래 상태로 복원)
-          setDialogEditData({
-            manual: jobPostData?.jobDescription || "",
-            struct1: geminiRes[0] || "",
-            struct2: geminiRes[1] || "",
-          });
-        }}
-        title="Edit Job Description"
+        open={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        title={getDialogTitle(editingVersion)}
+        size="lg"
         actions={
-          <div className="flex justify-end w-full">
-            <button
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              onClick={() => handleSave("description", dialogEditData)}
-            >
+          <>
+            <Button onClick={handleSave} size="lg">
               Save
-            </button>
-          </div>
+            </Button>
+          </>
         }
-        size="xl"
       >
-        {useAI ? (
-          (() => {
-            const labelMap = {
-              manual: "Manual Description",
-              struct1: "AI Structure 1",
-              struct2: "AI Structure 2",
-            };
-
-            const valueMap: Record<"manual" | "struct1" | "struct2", string | undefined> = {
-              manual: dialogEditData.manual ?? jobPostData?.jobDescription,
-              struct1: dialogEditData.struct1 ?? geminiRes[0],
-              struct2: dialogEditData.struct2 ?? geminiRes[1],
-            };
-
-            return (
-              <div className="p-3 border border-purple-500 bg-purple-50 rounded-xl">
-                <p className="text-sm text-gray-500 font-medium mb-2">
-                  {labelMap[selectedVersion]}
-                </p>
-                <TextArea
-                  rows={6}
-                  value={valueMap[selectedVersion] || ""}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    console.log(`Updating ${selectedVersion} in dialog:`, newValue);
-                    setDialogEditData((prev) => {
-                      const updated = {
-                        ...prev,
-                        [selectedVersion]: newValue,
-                      };
-                      console.log("Updated dialogEditData:", updated);
-                      return updated;
-                    });
-                  }}
-                  className="w-full pt-2 pb-1 scrollbar-none"
-                />
-              </div>
-            );
-          })()
-        ) : (
-          <TextArea
-            rows={6}
-            value={dialogEditData.manual || ""}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              console.log("Updating manual in dialog:", newValue);
-              setDialogEditData((prev) => ({
-                ...prev,
-                manual: newValue,
-              }));
-            }}
-            className="w-full pt-3 pb-1 scrollbar-none"
-            placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
-          />
-        )}
+        <TextArea
+          rows={6}
+          value={dialogContent}
+          onChange={(e) => setDialogContent(e.target.value)}
+          className="w-full pt-3 pb-1 scrollbar-none"
+          placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
+        />
       </BaseDialog>
     </div>
   );

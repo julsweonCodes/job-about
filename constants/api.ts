@@ -36,6 +36,7 @@ export const API_URLS = {
     POST: {
       CREATE: "/api/employer/post/create",
       PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
+      DETAIL: (id: string) => `/api/employer/post/${id}`,
     },
   },
 
@@ -115,6 +116,7 @@ export const PAGE_URLS = {
       DASHBOARD: "/employer/post/dashboard",
       PREVIEW: (id: string) => `/employer/post/preview/${id}`,
       DETAIL: (id: string) => `/employer/post/${id}`,
+      EDIT: (id: string) => `/employer/post/${id}/edit`,
     },
     APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
     PENDING_UPDATES: "/employer/pending-updates",

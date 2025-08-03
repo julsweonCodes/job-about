@@ -5,6 +5,7 @@ import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import { JobPost } from "@/types/employer";
 import { $Enums } from "@prisma/client";
+import { formatDescription } from "@/utils/client/textUtils";
 
 interface JobPostCardProps {
   job: JobPost;
@@ -170,7 +171,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
             textOverflow: "ellipsis",
           }}
         >
-          {job.description}
+          {formatDescription(job.description)}
         </p>
       </div>
 

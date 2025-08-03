@@ -30,6 +30,7 @@ export default function Input({
   const validateInput = (val: string): boolean => {
     if (type === "phone") {
       const digits = val.replace(/[^0-9]/g, "");
+      // 캐나다 전화번호: 10자리 (지역번호 3자리 + 7자리) 또는 11자리 (+1 포함)
       return digits.length === 10 || digits.length === 11;
     }
     if (required) {
@@ -46,7 +47,7 @@ export default function Input({
     }
   }, [value, type, required, onValidationChange]);
 
-  // phone formatting for US/Canada format: (555) 123-4567
+  // phone formatting for Canada format: (555) 123-4567
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
     if (type === "phone") {
@@ -54,7 +55,9 @@ export default function Input({
       if (val.length === 0) val = "";
       else if (val.length <= 3) val = `(${val}`;
       else if (val.length <= 6) val = `(${val.slice(0, 3)}) ${val.slice(3)}`;
-      else val = `(${val.slice(0, 3)}) ${val.slice(3, 6)}-${val.slice(6, 10)}`;
+      else if (val.length <= 10)
+        val = `(${val.slice(0, 3)}) ${val.slice(3, 6)}-${val.slice(6, 10)}`;
+      else val = `+1 (${val.slice(1, 4)}) ${val.slice(4, 7)}-${val.slice(7, 11)}`;
     }
     if (onChange) onChange({ ...e, target: { ...e.target, value: val } });
   };
