@@ -2,7 +2,6 @@
 
 import React, { useMemo, useCallback, useEffect, useRef } from "react";
 import { MapPin, Briefcase } from "lucide-react";
-import { ProfileHeader } from "@/components/common/ProfileHeader";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -10,7 +9,8 @@ import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPost as ApiJobPost, JobPostCard as JobPostCardType } from "@/types/job";
+import { JobPostCard as JobPostCardType } from "@/types/job";
+import { JobPostData } from "@/types/jobPost";
 import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
@@ -36,23 +36,23 @@ function LatestJobsPage() {
     autoFetch: true,
   });
 
-  // Latest Jobs 데이터를 JobPostCard 타입으로 변환
-  const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
+  // JobPostData를 JobPostCard 타입으로 변환
+  const convertJobPostDataToCard = (jobPost: JobPostData): JobPostCardType => {
     return {
-      id: apiJob.id,
-      title: apiJob.title,
-      type: apiJob.work_type as WorkType,
-      wage: apiJob.wage,
-      location: apiJob.location || "Location not specified",
-      dateRange: apiJob.daysAgo ? `${apiJob.daysAgo} days ago` : "Recently",
-      businessName: apiJob.business_loc?.name || "Company",
-      description: apiJob.description,
-      applicants: apiJob.applicantCount || 0,
+      id: jobPost.id,
+      title: jobPost.title,
+      workType: jobPost.workType || ("on-site" as WorkType),
+      wage: jobPost.hourlyWage,
+      location: jobPost.businessLocInfo.address || "Location not specified",
+      dateRange: "Recently", // 기본값
+      businessName: jobPost.businessLocInfo.name,
+      description: jobPost.jobDescription,
+      applicants: jobPost.applicantCount || 0,
       views: 0,
-      logoImage: apiJob.business_loc?.logo_url
-        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc?.logo_url}`
+      logoImage: jobPost.businessLocInfo.logoImg
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${jobPost.businessLocInfo.logoImg}`
         : undefined,
-      requiredSkills: apiJob.requiredSkills,
+      requiredSkills: jobPost.requiredSkills,
     };
   };
 
@@ -62,14 +62,14 @@ function LatestJobsPage() {
 
     return latestJobs
       .filter((job) => {
-        // Job Type filter
-        if (filters.jobType !== "all") {
-          const jobTypeMap: Record<string, string> = {
-            Remote: "REMOTE",
-            OnSite: "ON_SITE",
-            Hybrid: "HYBRID",
+        // Work Type filter
+        if (filters.workType !== "all") {
+          const workTypeMap: Record<string, WorkType> = {
+            Remote: WorkType.REMOTE,
+            OnSite: WorkType.ON_SITE,
+            Hybrid: WorkType.HYBRID,
           };
-          if (job.work_type !== jobTypeMap[filters.jobType]) {
+          if (job.workType !== workTypeMap[filters.workType]) {
             return false;
           }
         }
@@ -84,7 +84,7 @@ function LatestJobsPage() {
 
         return true;
       })
-      .map(convertToJobPostCard);
+      .map(convertJobPostDataToCard);
   }, [latestJobs, filters]);
 
   // 무한 스크롤 콜백 - 실무에서 중요한 부분
@@ -205,8 +205,8 @@ function LatestJobsPage() {
           <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown
               filter={{
-                id: "jobType",
-                label: "Job Type",
+                id: "workType",
+                label: "Work Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
                 options: ["all", "Remote", "OnSite", "Hybrid"],
               }}

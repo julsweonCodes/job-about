@@ -2,7 +2,6 @@
 
 import React, { useMemo, useCallback, useEffect, useRef } from "react";
 import { MapPin, Briefcase } from "lucide-react";
-import { ProfileHeader } from "@/components/common/ProfileHeader";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -10,11 +9,7 @@ import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import {
-  JobPost as ApiJobPost,
-  JobPostCard as JobPostCardType,
-  RecommendedJobPost,
-} from "@/types/job";
+import { JobPostCard as JobPostCardType, RecommendedJobPost } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
@@ -44,7 +39,7 @@ function RecommendedJobsPage() {
     return {
       id: recommendedJob.id.toString(),
       title: recommendedJob.title,
-      type: recommendedJob.jobType as WorkType,
+      workType: recommendedJob.jobType as WorkType,
       wage: recommendedJob.wage,
       location: recommendedJob.company.address,
       dateRange: "Recently", // 추천 공고는 최신순이므로
@@ -65,14 +60,20 @@ function RecommendedJobsPage() {
 
     return recommendedJobs
       .filter((job) => {
-        // Job Type filter
-        if (filters.jobType !== "all") {
-          const jobTypeMap: Record<string, string> = {
-            Remote: "REMOTE",
-            OnSite: "ON_SITE",
-            Hybrid: "HYBRID",
+        // Work Type filter
+        if (filters.workType !== "all") {
+          const workTypeMap: Record<string, WorkType> = {
+            Remote: WorkType.REMOTE,
+            OnSite: WorkType.ON_SITE,
+            Hybrid: WorkType.HYBRID,
           };
-          if (job.jobType !== jobTypeMap[filters.jobType]) {
+          // RecommendedJobPost에는 workType이 없으므로 jobType으로 비교
+          const jobTypeToWorkType: Record<string, WorkType> = {
+            REMOTE: WorkType.REMOTE,
+            ON_SITE: WorkType.ON_SITE,
+            HYBRID: WorkType.HYBRID,
+          };
+          if (jobTypeToWorkType[job.jobType] !== workTypeMap[filters.workType]) {
             return false;
           }
         }
@@ -147,8 +148,8 @@ function RecommendedJobsPage() {
           <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown
               filter={{
-                id: "jobType",
-                label: "Job Type",
+                id: "workType",
+                label: "Work Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
                 options: ["all", "Remote", "OnSite", "Hybrid"],
               }}

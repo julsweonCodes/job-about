@@ -30,7 +30,7 @@ export const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
   return {
     id: apiJob.id,
     title: apiJob.title,
-    type: apiJob.work_type as WorkType,
+    workType: apiJob.work_type as WorkType,
     wage: apiJob.wage,
     location: location,
     dateRange: dateRange,

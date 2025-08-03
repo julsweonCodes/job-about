@@ -6,8 +6,11 @@ import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { useRouter } from "next/navigation";
 import { useSeekerAppliedJobs } from "@/hooks/seeker/useSeekerAppliedJobs";
-import { convertToJobPostCard } from "@/utils/client/jobPostUtils";
+import { JobPostData } from "@/types/jobPost";
+import { WorkType } from "@/constants/enums";
+import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
+import { JobPostCard as JobPostCardType } from "@/types/job";
 
 // 상수 분리
 const DEFAULT_VALUES = {
@@ -22,9 +25,29 @@ function SeekerAppliedPage() {
     autoFetch: true,
   });
 
+  // JobPostData를 JobPostCard 타입으로 변환
+  const convertJobPostDataToCard = (jobPost: JobPostData): JobPostCardType => {
+    return {
+      id: jobPost.id,
+      title: jobPost.title,
+      workType: jobPost.workType || ("on-site" as WorkType),
+      wage: jobPost.hourlyWage,
+      location: jobPost.businessLocInfo.address || "Location not specified",
+      dateRange: "Recently", // 기본값
+      businessName: jobPost.businessLocInfo.name,
+      description: jobPost.jobDescription,
+      applicants: jobPost.applicantCount || 0,
+      views: 0,
+      logoImage: jobPost.businessLocInfo.logoImg
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${jobPost.businessLocInfo.logoImg}`
+        : undefined,
+      requiredSkills: jobPost.requiredSkills,
+    };
+  };
+
   const filteredAppliedJobs = useMemo(() => {
     if (!appliedJobs || appliedJobs.length === 0) return [];
-    return appliedJobs.map(convertToJobPostCard);
+    return appliedJobs.map(convertJobPostDataToCard);
   }, [appliedJobs]);
 
   const handleViewJob = useCallback(

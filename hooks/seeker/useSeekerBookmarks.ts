@@ -1,9 +1,7 @@
 import { useCallback } from "react";
 import { API_URLS } from "@/constants/api";
-import { apiGetData } from "@/utils/client/API";
-import { JobPost } from "@/types/job";
-import { usePagination } from "@/hooks/usePagination";
-import { PaginationParams } from "@/types/hooks";
+import { JobPostData, JobPostMapper, ApiBookmarkedJobResponse } from "@/types/jobPost";
+import { useSeekerPagination } from "./useSeekerPagination";
 
 interface UseSeekerBookmarksOptions {
   limit?: number;
@@ -11,7 +9,7 @@ interface UseSeekerBookmarksOptions {
 }
 
 interface UseSeekerBookmarksReturn {
-  bookmarkedJobs: JobPost[];
+  bookmarkedJobs: JobPostData[];
   loading: boolean;
   error: string | null;
   hasMore: boolean;
@@ -24,64 +22,36 @@ export function useSeekerBookmarks({
   limit = 10,
   autoFetch = true,
 }: UseSeekerBookmarksOptions = {}): UseSeekerBookmarksReturn {
-  const fetchBookmarkedJobs = useCallback(
-    async (
-      params: PaginationParams
-    ): Promise<{
-      data: JobPost[];
-      totalCount: number;
-      hasMore: boolean;
-    }> => {
-      const response = await apiGetData<
-        Array<{
-          id: string;
-          user_id: string;
-          job_post_id: string;
-          job_post: JobPost;
-        }>
-      >(API_URLS.JOB_POSTS.BOOKMARKS, params as any);
-
-      if (!response || !Array.isArray(response)) {
-        return {
-          data: [],
-          totalCount: 0,
-          hasMore: false,
-        };
-      }
-
-      // job_post 객체만 추출하여 JobPost 배열로 변환
-      const jobPosts = response.map((item) => item.job_post);
-
-      const result = {
-        data: jobPosts,
-        totalCount: jobPosts.length, // 실제로는 API에서 totalCount를 받아야 하지만 현재는 배열 길이 사용
-        hasMore: jobPosts.length === params.limit,
-      };
-
-      return result;
-    },
-    []
-  );
+  // JobPostData 변환 함수
+  const transformBookmarkedJob = useCallback((data: ApiBookmarkedJobResponse): JobPostData => {
+    return JobPostMapper.fromBookmarkedJobResponse(data);
+  }, []);
 
   const {
     data: bookmarkedJobs,
-    pagination,
     loading,
     error,
+    hasMore,
+    totalCount,
     isInitialized,
+    currentPage,
+    fetchData: fetchBookmarkedJobs,
     loadMore,
     refresh,
-  } = usePagination({
-    initialLimit: limit,
+    setPage,
+  } = useSeekerPagination<JobPostData>({
+    apiUrl: API_URLS.JOB_POSTS.BOOKMARKS,
+    page: 1,
+    limit,
     autoFetch,
-    fetchFunction: fetchBookmarkedJobs,
+    transformData: transformBookmarkedJob,
   });
 
   return {
-    bookmarkedJobs: bookmarkedJobs || [], // null일 경우 빈 배열 반환
+    bookmarkedJobs: bookmarkedJobs || [],
     loading,
     error,
-    hasMore: pagination.hasMore,
+    hasMore,
     loadMore,
     refresh,
     isInitialized,

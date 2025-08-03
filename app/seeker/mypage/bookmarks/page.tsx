@@ -6,8 +6,11 @@ import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { useRouter } from "next/navigation";
 import { useSeekerBookmarks } from "@/hooks/seeker/useSeekerBookmarks";
-import { convertToJobPostCard } from "@/utils/client/jobPostUtils";
+import { JobPostData } from "@/types/jobPost";
+import { WorkType } from "@/constants/enums";
+import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
+import { JobPostCard as JobPostCardType } from "@/types/job";
 
 // 상수 분리
 const DEFAULT_VALUES = {
@@ -22,28 +25,34 @@ function SeekerBookmarksPage() {
     autoFetch: true,
   });
 
-  const filteredBookmarkedJobs = useMemo(() => {
-    console.log("🔍 bookmarks 페이지 - bookmarkedJobs:", {
-      bookmarkedJobs: bookmarkedJobs?.length,
-    });
+  // JobPostData를 JobPostCard 타입으로 변환
+  const convertJobPostDataToCard = (jobPost: JobPostData): JobPostCardType => {
+    return {
+      id: jobPost.id,
+      title: jobPost.title,
+      workType: jobPost.workType || ("on-site" as WorkType),
+      wage: jobPost.hourlyWage,
+      location: jobPost.businessLocInfo.address || "Location not specified",
+      dateRange: "Recently", // 기본값
+      businessName: jobPost.businessLocInfo.name,
+      description: jobPost.jobDescription,
+      applicants: jobPost.applicantCount || 0,
+      views: 0,
+      logoImage: jobPost.businessLocInfo.logoImg
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${jobPost.businessLocInfo.logoImg}`
+        : undefined,
+      requiredSkills: jobPost.requiredSkills,
+    };
+  };
 
+  const filteredBookmarkedJobs = useMemo(() => {
     if (!bookmarkedJobs || bookmarkedJobs.length === 0) {
-      console.log("📭 bookmarks 페이지 - 북마크된 작업이 없음");
       return [];
     }
 
-    console.log("✅ bookmarks 페이지 - 북마크된 작업 수:", bookmarkedJobs.length);
     // JobPostCard 형태로 변환
-    return bookmarkedJobs.map(convertToJobPostCard);
+    return bookmarkedJobs.map(convertJobPostDataToCard);
   }, [bookmarkedJobs]);
-
-  console.log("🔍 bookmarks 페이지 - 전체 상태:", {
-    bookmarkedJobs: bookmarkedJobs?.length,
-    filteredBookmarkedJobs: filteredBookmarkedJobs.length,
-    loading,
-    error,
-    hasMore,
-  });
 
   const handleViewJob = useCallback(
     (id: string) => {

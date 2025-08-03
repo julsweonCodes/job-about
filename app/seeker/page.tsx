@@ -10,11 +10,8 @@ import { useRouter } from "next/navigation";
 import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import {
-  JobPost as ApiJobPost,
-  JobPostCard as JobPostCardType,
-  RecommendedJobPost,
-} from "@/types/job";
+import { JobPostCard as JobPostCardType, RecommendedJobPost } from "@/types/job";
+import { JobPostData } from "@/types/jobPost";
 import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
 
@@ -48,12 +45,32 @@ function SeekerPage() {
     autoFetch: true,
   });
 
-  // 추천 공고를 JobPostCard 타입으로 변환
+  // JobPostData를 JobPostCard 타입으로 변환 (공통 함수)
+  const convertJobPostDataToCard = (jobPost: JobPostData): JobPostCardType => {
+    return {
+      id: jobPost.id,
+      title: jobPost.title,
+      workType: jobPost.workType || ("on-site" as WorkType),
+      wage: jobPost.hourlyWage,
+      location: jobPost.businessLocInfo.address || "Location not specified",
+      dateRange: "Recently", // 기본값
+      businessName: jobPost.businessLocInfo.name,
+      description: jobPost.jobDescription,
+      applicants: jobPost.applicantCount || 0,
+      views: 0, // 기본값
+      logoImage: jobPost.businessLocInfo.logoImg
+        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${jobPost.businessLocInfo.logoImg}`
+        : undefined,
+      requiredSkills: jobPost.requiredSkills,
+    };
+  };
+
+  // 추천 공고를 JobPostCard 타입으로 변환 (기존 로직 유지)
   const convertRecommendedToJobPostCard = (recommendedJob: RecommendedJobPost): JobPostCardType => {
     return {
       id: recommendedJob.id.toString(),
       title: recommendedJob.title,
-      type: recommendedJob.jobType as WorkType,
+      workType: recommendedJob.jobType as WorkType,
       wage: recommendedJob.wage,
       location: recommendedJob.company.address,
       dateRange: "Recently", // 추천 공고는 최신순이므로
@@ -68,40 +85,20 @@ function SeekerPage() {
     };
   };
 
-  // Latest Jobs 데이터를 JobPostCard 타입으로 변환
-  const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
-    return {
-      id: apiJob.id,
-      title: apiJob.title,
-      type: apiJob.work_type as WorkType,
-      wage: apiJob.wage,
-      location: "Location not specified", // API에서 location 필드가 없음
-      dateRange: apiJob.daysAgo ? `${apiJob.daysAgo} days ago` : "Recently",
-      businessName: "Company", // Placeholder, as business info might be limited in API response
-      description: apiJob.description,
-      applicants: apiJob.applicantCount || 0,
-      views: 0, // Placeholder
-      logoImage: apiJob.business_loc?.logo_url
-        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJob.business_loc?.logo_url}`
-        : undefined, // Changed from coverImage
-      requiredSkills: apiJob.requiredSkills, // required skills 추가
-    };
-  };
-
   // 필터링된 최신 공고
   const filteredLatestJobs = useMemo(() => {
     if (!Array.isArray(latestJobs)) return [];
 
     return latestJobs
       .filter((job) => {
-        // Job Type filter
-        if (filters.jobType !== "all") {
-          const jobTypeMap: Record<string, string> = {
-            Remote: "REMOTE",
-            OnSite: "ON_SITE",
-            Hybrid: "HYBRID",
+        // Work Type filter
+        if (filters.workType !== "all") {
+          const workTypeMap: Record<string, WorkType> = {
+            Remote: WorkType.REMOTE,
+            OnSite: WorkType.ON_SITE,
+            Hybrid: WorkType.HYBRID,
           };
-          if (job.work_type !== jobTypeMap[filters.jobType]) {
+          if (job.workType !== workTypeMap[filters.workType]) {
             return false;
           }
         }
@@ -116,7 +113,7 @@ function SeekerPage() {
 
         return true;
       })
-      .map(convertToJobPostCard);
+      .map(convertJobPostDataToCard);
   }, [latestJobs, filters]);
 
   // 필터링된 추천 공고
@@ -125,14 +122,14 @@ function SeekerPage() {
 
     return recommendedJobs
       .filter((job) => {
-        // Job Type filter
-        if (filters.jobType !== "all") {
-          const jobTypeMap: Record<string, string> = {
+        // Work Type filter
+        if (filters.workType !== "all") {
+          const workTypeMap: Record<string, string> = {
             Remote: "REMOTE",
             OnSite: "ON_SITE",
             Hybrid: "HYBRID",
           };
-          if (job.jobType !== jobTypeMap[filters.jobType]) {
+          if (job.jobType !== workTypeMap[filters.workType]) {
             return false;
           }
         }
@@ -179,8 +176,8 @@ function SeekerPage() {
           <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown
               filter={{
-                id: "jobType",
-                label: "Job Type",
+                id: "workType",
+                label: "Work Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
                 options: ["all", "Remote", "OnSite", "Hybrid"],
               }}

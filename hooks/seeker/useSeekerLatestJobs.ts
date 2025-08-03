@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { JobPost } from "@/types/job";
+import { JobPostData, JobPostMapper, ApiLatestJobPost } from "@/types/jobPost";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
@@ -14,7 +14,7 @@ interface UseLatestJobsParams {
 }
 
 interface UseLatestJobsReturn {
-  latestJobs: JobPost[];
+  latestJobs: JobPostData[];
   loading: boolean;
   error: string | null;
   hasMore: boolean;
@@ -34,35 +34,9 @@ export function useLatestJobs({
   limit = 10,
   autoFetch = true,
 }: UseLatestJobsParams = {}): UseLatestJobsReturn {
-  // JobPost 데이터 변환 함수
-  const transformJobPost = useCallback((data: any): JobPost => {
-    return {
-      id: data.id,
-      business_loc_id: data.business_loc_id,
-      user_id: data.user_id,
-      title: data.title,
-      job_type: data.job_type,
-      deadline: data.deadline,
-      work_schedule: data.work_schedule,
-      job_fit_type_id_1: data.job_fit_type_id_1,
-      job_fit_type_id_2: data.job_fit_type_id_2,
-      job_fit_type_id_3: data.job_fit_type_id_3,
-      skill_id_1: data.skill_id_1,
-      skill_id_2: data.skill_id_2,
-      skill_id_3: data.skill_id_3,
-      wage: data.wage,
-      location: data.location,
-      description: data.description,
-      status: data.status,
-      work_type: data.work_type,
-      language_level: data.language_level,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      daysAgo: data.daysAgo,
-      applicantCount: data.applicantCount,
-      business_loc: data.business_loc,
-      requiredSkills: data.requiredSkills,
-    };
+  // JobPostData 변환 함수
+  const transformJobPost = useCallback((data: ApiLatestJobPost): JobPostData => {
+    return JobPostMapper.fromLatestJobPost(data);
   }, []);
 
   const {
@@ -77,7 +51,7 @@ export function useLatestJobs({
     loadMore,
     refresh,
     setPage,
-  } = useSeekerPagination<JobPost>({
+  } = useSeekerPagination<JobPostData>({
     apiUrl: API_URLS.JOB_POSTS.ROOT,
     workType,
     location,

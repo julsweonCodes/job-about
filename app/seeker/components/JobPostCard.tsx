@@ -9,7 +9,7 @@ import { formatDescription } from "@/utils/client/textUtils";
 export interface JobPost {
   id: string;
   title: string;
-  type: WorkType;
+  workType: WorkType;
   wage: string;
   location: string;
   dateRange: string;
@@ -94,11 +94,15 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
 
   // WorkType에 따른 라벨/색상 분기 (예시)
   const typeLabel =
-    job.type === WorkType.ON_SITE ? "On-Site" : job.type === WorkType.REMOTE ? "Remote" : "Hybrid";
+    job.workType === WorkType.ON_SITE
+      ? "On-Site"
+      : job.workType === WorkType.REMOTE
+        ? "Remote"
+        : "Hybrid";
   const typeClass =
-    job.type === WorkType.ON_SITE
+    job.workType === WorkType.ON_SITE
       ? "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
-      : job.type === WorkType.REMOTE
+      : job.workType === WorkType.REMOTE
         ? "bg-green-100 text-green-800 hover:bg-green-100/80"
         : "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
 

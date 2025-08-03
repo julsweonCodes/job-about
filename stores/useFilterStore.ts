@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface JobFilters {
-  jobType: string;
+  workType: string;
   location: string;
   salary: string;
   sortBy: string;
@@ -18,7 +18,7 @@ interface FilterState {
 }
 
 const defaultFilters: JobFilters = {
-  jobType: "all",
+  workType: "all",
   location: "all",
   salary: "all",
   sortBy: "date",
