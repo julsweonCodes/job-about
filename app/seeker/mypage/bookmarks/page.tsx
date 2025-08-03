@@ -85,8 +85,7 @@ function SeekerBookmarksPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookmarks</h1>
               {bookmarkedJobs && bookmarkedJobs.length > 0 && (
                 <p className="text-slate-600 mt-1">
-                  {filteredBookmarkedJobs.length} job
-                  {filteredBookmarkedJobs.length !== 1 ? "s" : ""} bookmarked
+                  you can check your bookmarks here
                 </p>
               )}
             </div>

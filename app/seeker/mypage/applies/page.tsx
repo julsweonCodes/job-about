@@ -81,8 +81,7 @@ function SeekerAppliedPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Applications</h1>
               {appliedJobs && appliedJobs.length > 0 && (
                 <p className="text-slate-600 mt-1">
-                  {filteredAppliedJobs.length} job{filteredAppliedJobs.length !== 1 ? "s" : ""}{" "}
-                  applied
+                  you can check your applications here
                 </p>
               )}
             </div>
