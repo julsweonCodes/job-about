@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { apiGetData } from "@/utils/client/API";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
+import { toPrismaWorkType } from "@/types/enumMapper";
 
 interface UseSeekerPaginationParams<T> {
   apiUrl: string;
@@ -53,31 +54,32 @@ export function useSeekerPagination<T>({
 
         const queryParams: Record<string, any> = {};
 
-        if (params?.workType || workType) {
-          queryParams.work_type = params?.workType || workType;
+        // 파라미터 우선, 없으면 기본값 사용
+        const finalWorkType = params?.workType || workType;
+        const finalLocation = params?.location || location;
+        const finalPage = params?.page || currentPage;
+        const finalLimit = params?.limit || limit;
+
+        if (finalWorkType) {
+          queryParams.work_type = toPrismaWorkType(finalWorkType);
         }
 
-        if (params?.location || location) {
-          queryParams.location = params?.location || location;
+        if (finalLocation) {
+          queryParams.location = finalLocation;
         }
 
-        if (params?.page || currentPage) {
-          queryParams.page = params?.page || currentPage;
-        }
-
-        if (params?.limit || limit) {
-          queryParams.limit = params?.limit || limit;
-        }
+        queryParams.page = finalPage;
+        queryParams.limit = finalLimit;
 
         const response = await apiGetData<any[]>(apiUrl, queryParams);
 
         if (response && Array.isArray(response)) {
           const newData = transformData ? response.map(transformData) : response;
-          const targetPage = params?.page || currentPage;
 
-          if (targetPage === 1) {
-            // 첫 페이지면 전체 교체
+          if (finalPage === 1) {
+            // 첫 페이지면 전체 교체 (필터 변경 시)
             setData(newData);
+            setCurrentPage(1);
           } else {
             // 추가 페이지면 중복 제거 후 추가
             setData((prev) => {
@@ -85,12 +87,12 @@ export function useSeekerPagination<T>({
               const uniqueNewData = newData.filter((item: any) => !existingIds.has(item.id));
               return [...prev, ...uniqueNewData];
             });
+            setCurrentPage(finalPage);
           }
 
           // hasMore는 현재 페이지의 데이터가 limit보다 적으면 false
-          setHasMore(newData.length >= (params?.limit || limit));
+          setHasMore(newData.length >= finalLimit);
           setTotalCount(newData.length || 0);
-          setCurrentPage(targetPage);
         } else {
           setError("Failed to fetch data");
           setData([]);
@@ -120,8 +122,9 @@ export function useSeekerPagination<T>({
         limit: limit,
       };
 
+      // loadMore에서는 현재 설정된 workType과 location 사용
       if (workType) {
-        queryParams.work_type = workType;
+        queryParams.work_type = toPrismaWorkType(workType);
       }
 
       if (location) {
@@ -151,7 +154,7 @@ export function useSeekerPagination<T>({
     } finally {
       setLoading(false);
     }
-  }, [loading, hasMore, currentPage, workType, location, limit, apiUrl, transformData]);
+  }, [loading, hasMore, currentPage, limit, apiUrl, transformData]);
 
   const refresh = useCallback(async () => {
     setCurrentPage(1);

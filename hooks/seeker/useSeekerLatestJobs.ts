@@ -1,9 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { JobPostData, JobPostMapper, ApiLatestJobPost } from "@/types/jobPost";
 import { API_URLS } from "@/constants/api";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
 import { useSeekerPagination } from "./useSeekerPagination";
+import { useFilterStore } from "@/stores/useFilterStore";
 
 interface UseLatestJobsParams {
   workType?: WorkType;
@@ -34,10 +35,36 @@ export function useLatestJobs({
   limit = 10,
   autoFetch = true,
 }: UseLatestJobsParams = {}): UseLatestJobsReturn {
+  const { filters } = useFilterStore();
+
+  // 필터 스토어의 workType 문자열을 WorkType enum으로 변환
+  const getWorkTypeFromFilter = useCallback((filterWorkType: string): WorkType | undefined => {
+    if (filterWorkType === "all") return undefined;
+
+    const workTypeMap: Record<string, WorkType> = {
+      Remote: WorkType.REMOTE,
+      "On-Site": WorkType.ON_SITE,
+      Hybrid: WorkType.HYBRID,
+    };
+
+    return workTypeMap[filterWorkType];
+  }, []);
+
+  // 필터에서 workType 가져오기
+  const filterWorkType = getWorkTypeFromFilter(filters.workType);
+
   // JobPostData 변환 함수
   const transformJobPost = useCallback((data: ApiLatestJobPost): JobPostData => {
     return JobPostMapper.fromLatestJobPost(data);
   }, []);
+
+  // 현재 적용된 필터 계산 (메모이제이션)
+  const currentFilters = useMemo(() => {
+    return {
+      workType: filterWorkType || workType,
+      location: filters.location !== "all" ? (filters.location as Location) : location,
+    };
+  }, [filterWorkType, workType, filters.location, location]);
 
   const {
     data: latestJobs,
@@ -53,13 +80,35 @@ export function useLatestJobs({
     setPage,
   } = useSeekerPagination<JobPostData>({
     apiUrl: API_URLS.JOB_POSTS.ROOT,
-    workType,
-    location,
+    workType: currentFilters.workType, // 현재 필터 적용
+    location: currentFilters.location,
     page,
     limit,
-    autoFetch,
+    autoFetch: false, // 수동으로 첫 페이지 로드
     transformData: transformJobPost,
   });
+
+  // 필터 변경 시에만 데이터 리셋
+  useEffect(() => {
+    if (isInitialized) {
+      fetchLatestJobs({
+        page: 1,
+        workType: currentFilters.workType,
+        location: currentFilters.location,
+      });
+    }
+  }, [currentFilters.workType, currentFilters.location, isInitialized]);
+
+  // 초기 로딩
+  useEffect(() => {
+    if (!isInitialized) {
+      fetchLatestJobs({
+        page: 1,
+        workType: currentFilters.workType,
+        location: currentFilters.location,
+      });
+    }
+  }, [currentFilters.workType, currentFilters.location, isInitialized]);
 
   return {
     latestJobs,

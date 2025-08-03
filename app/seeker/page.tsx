@@ -5,6 +5,7 @@ import { MapPin, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
+import { EmptyState } from "@/components/common/EmptyState";
 import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobs";
@@ -85,67 +86,17 @@ function SeekerPage() {
     };
   };
 
-  // 필터링된 최신 공고
+  // 서버에서 필터링된 데이터를 그대로 사용
   const filteredLatestJobs = useMemo(() => {
     if (!Array.isArray(latestJobs)) return [];
+    return latestJobs.map(convertJobPostDataToCard);
+  }, [latestJobs]);
 
-    return latestJobs
-      .filter((job) => {
-        // Work Type filter
-        if (filters.workType !== "all") {
-          const workTypeMap: Record<string, WorkType> = {
-            Remote: WorkType.REMOTE,
-            OnSite: WorkType.ON_SITE,
-            Hybrid: WorkType.HYBRID,
-          };
-          if (job.workType !== workTypeMap[filters.workType]) {
-            return false;
-          }
-        }
-
-        // Search query filter
-        if (
-          filters.searchQuery &&
-          !job.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
-        ) {
-          return false;
-        }
-
-        return true;
-      })
-      .map(convertJobPostDataToCard);
-  }, [latestJobs, filters]);
-
-  // 필터링된 추천 공고
+  // 서버에서 필터링된 데이터를 그대로 사용
   const filteredRecommendedJobs = useMemo(() => {
     if (!Array.isArray(recommendedJobs)) return [];
-
-    return recommendedJobs
-      .filter((job) => {
-        // Work Type filter
-        if (filters.workType !== "all") {
-          const workTypeMap: Record<string, string> = {
-            Remote: "REMOTE",
-            OnSite: "ON_SITE",
-            Hybrid: "HYBRID",
-          };
-          if (job.jobType !== workTypeMap[filters.workType]) {
-            return false;
-          }
-        }
-
-        // Search query filter
-        if (
-          filters.searchQuery &&
-          !job.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
-        ) {
-          return false;
-        }
-
-        return true;
-      })
-      .map(convertRecommendedToJobPostCard);
-  }, [recommendedJobs, filters]);
+    return recommendedJobs.map(convertRecommendedToJobPostCard);
+  }, [recommendedJobs]);
 
   const handleViewJob = (id: string) => {
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
@@ -179,7 +130,7 @@ function SeekerPage() {
                 id: "workType",
                 label: "Work Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "Remote", "OnSite", "Hybrid"],
+                options: ["all", "Remote", "On-Site", "Hybrid"],
               }}
             />
             <FilterDropdown
@@ -246,6 +197,21 @@ function SeekerPage() {
                     />
                   ))}
                 </div>
+
+                {/* 추천 공고 빈 상태 */}
+                {!recommendedLoading && filteredRecommendedJobs.length === 0 && (
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No recommendations yet"
+                    description="We're working on finding the perfect jobs for you. Check back later for personalized recommendations."
+                    primaryAction={{
+                      label: "Refresh Recommendations",
+                      onClick: refreshRecommended,
+                    }}
+                    size="md"
+                    className="bg-purple-50 rounded-lg"
+                  />
+                )}
               </>
             )}
           </section>
@@ -283,15 +249,23 @@ function SeekerPage() {
               </div>
 
               {!latestLoading && filteredLatestJobs.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">No jobs found matching your criteria.</p>
-                  <button
-                    onClick={refreshLatest}
-                    className="mt-4 text-purple-600 hover:text-purple-800 underline"
-                  >
-                    Clear filters
-                  </button>
-                </div>
+                <EmptyState
+                  icon={Briefcase}
+                  title="No jobs found"
+                  description="We couldn't find any jobs matching your current filters. Try adjusting your search criteria or clear all filters to see more opportunities."
+                  primaryAction={{
+                    label: "Clear All Filters",
+                    onClick: () => {
+                      useFilterStore.getState().resetFilters();
+                      refreshLatest();
+                    },
+                  }}
+                  secondaryAction={{
+                    label: "Refresh Results",
+                    onClick: refreshLatest,
+                  }}
+                  size="lg"
+                />
               )}
             </>
           )}

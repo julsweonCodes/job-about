@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from "react";
 import { Bookmark } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useRouter } from "next/navigation";
 import { useSeekerBookmarks } from "@/hooks/seeker/useSeekerBookmarks";
 import { JobPostData } from "@/types/jobPost";
@@ -84,9 +85,7 @@ function SeekerBookmarksPage() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookmarks</h1>
               {bookmarkedJobs && bookmarkedJobs.length > 0 && (
-                <p className="text-slate-600 mt-1">
-                  you can check your bookmarks here
-                </p>
+                <p className="text-slate-600 mt-1">you can check your bookmarks here</p>
               )}
             </div>
           </div>
@@ -130,21 +129,16 @@ function SeekerBookmarksPage() {
                 </>
               ) : (
                 /* 데이터가 없는 경우 (빈 상태) */
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Bookmark className="w-8 h-8 text-slate-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No bookmarks yet</h3>
-                  <p className="text-slate-600 mb-6">
-                    You haven't bookmarked any jobs yet. Start exploring opportunities!
-                  </p>
-                  <button
-                    onClick={handleBrowseJobs}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200"
-                  >
-                    Browse Jobs
-                  </button>
-                </div>
+                <EmptyState
+                  icon={Bookmark}
+                  title="No bookmarks yet"
+                  description="You haven't bookmarked any jobs yet. Start exploring opportunities!"
+                  primaryAction={{
+                    label: "Browse Jobs",
+                    onClick: handleBrowseJobs,
+                  }}
+                  size="md"
+                />
               )}
             </>
           )}
@@ -152,19 +146,18 @@ function SeekerBookmarksPage() {
 
         {/* 에러 상태는 로딩 상태와 독립적으로 표시 */}
         {error && (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Bookmark className="w-8 h-8 text-red-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Something went wrong</h3>
-            <p className="text-slate-600 mb-4">Failed to load your bookmarks. Please try again.</p>
-            <button
-              onClick={handleRefresh}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
+          <EmptyState
+            icon={Bookmark}
+            title="Something went wrong"
+            description="Failed to load your bookmarks. Please try again."
+            primaryAction={{
+              label: "Try Again",
+              onClick: handleRefresh,
+              variant: "secondary",
+            }}
+            size="md"
+            className="bg-red-50 rounded-lg"
+          />
         )}
       </div>
     </div>

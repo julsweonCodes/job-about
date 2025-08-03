@@ -64,7 +64,7 @@ function RecommendedJobsPage() {
         if (filters.workType !== "all") {
           const workTypeMap: Record<string, WorkType> = {
             Remote: WorkType.REMOTE,
-            OnSite: WorkType.ON_SITE,
+            "On-Site": WorkType.ON_SITE,
             Hybrid: WorkType.HYBRID,
           };
           // RecommendedJobPost에는 workType이 없으므로 jobType으로 비교
@@ -151,7 +151,7 @@ function RecommendedJobsPage() {
                 id: "workType",
                 label: "Work Type",
                 icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "Remote", "OnSite", "Hybrid"],
+                options: ["all", "Remote", "On-Site", "Hybrid"],
               }}
             />
             <FilterDropdown

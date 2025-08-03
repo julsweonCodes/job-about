@@ -17,6 +17,7 @@ interface FilterDropdownProps {
 const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" }) => {
   const { filters, setFilter } = useFilterStore();
   const [isOpen, setIsOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const selectedValue = filters[filter.id as keyof typeof filters] || "all";
 
@@ -25,8 +26,25 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
     setIsOpen(false);
   };
 
+  // 외부 클릭 감지
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
