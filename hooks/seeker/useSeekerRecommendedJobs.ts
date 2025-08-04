@@ -8,9 +8,9 @@ const convertFiltersToPrisma = (filters: { workType: string; location: string })
   const convertedFilters: any = {};
 
   // workType 변환
-  if (filters.workType && filters.workType !== "all") {
-    convertedFilters.jobType = filters.workType;
-  }
+  // if (filters.workType && filters.workType !== "all") {
+  //   convertedFilters.jobType = filters.workType;
+  // }
 
   // location 변환
   if (filters.location && filters.location !== "all") {
