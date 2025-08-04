@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCommonData } from "@/hooks/useCommonData";
 import { JobType } from "@/constants/jobTypes";
 import { LanguageLevel, WorkType } from "@/constants/enums";
@@ -98,6 +99,7 @@ interface UseJobPostCreateReturn {
 
 export const useEmployerJobPostCreate = (): UseJobPostCreateReturn => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { skills, workStyles, isLoading: commonDataLoading } = useCommonData();
 
   // Form Data
@@ -216,6 +218,11 @@ export const useEmployerJobPostCreate = (): UseJobPostCreateReturn => {
 
       const result = await res.json();
       console.log(result);
+
+      // Job posts 캐시 무효화 (새로운 job post가 생성되었으므로)
+      queryClient.invalidateQueries({ queryKey: ["employer-active-job-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-draft-job-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-dashboard"] });
 
       // 미리보기 페이지로 이동
       if (formData.useAI) {

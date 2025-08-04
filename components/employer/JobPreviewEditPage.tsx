@@ -10,6 +10,7 @@ import LoadingScreen from "@/components/common/LoadingScreen";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiPatchData } from "@/utils/client/API";
 import { Button } from "../ui/Button";
 
@@ -45,6 +46,7 @@ const DESCRIPTION_LABELS: Record<DescriptionVersion, string> = {
 
 const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const useAI = searchParams.get("useAI") === "true";
 
@@ -227,6 +229,11 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         newJobDesc,
       });
 
+      // Job posts 캐시 무효화 (job post가 publish되었으므로)
+      queryClient.invalidateQueries({ queryKey: ["employer-active-job-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-draft-job-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-dashboard"] });
+
       showSuccessToast("Job post published successfully");
       router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
     } catch (error) {
@@ -235,7 +242,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     } finally {
       setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-  }, [postId, newJobDesc, router]);
+  }, [postId, newJobDesc, router, queryClient]);
 
   const getDialogTitle = useCallback((version: DescriptionVersion): string => {
     return `Edit ${DESCRIPTION_LABELS[version]}`;

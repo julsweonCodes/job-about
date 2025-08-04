@@ -44,12 +44,6 @@ interface JobPostViewProps {
 // Constants
 const JOB_DETAIL_ITEMS = [
   {
-    icon: MapPin,
-    label: "Location",
-    color: "text-red-500",
-    bgColor: "bg-red-50",
-  },
-  {
     icon: DollarSign,
     label: "Hourly Wage",
     color: "text-green-500",
@@ -485,7 +479,6 @@ const ActionButtons: React.FC<{
 // Utility functions
 const getJobDetailValue = (jobData: JobPostData, label: string): string | undefined => {
   const valueMap: Record<string, string | undefined> = {
-    Location: jobData.businessLocInfo?.address,
     "Hourly Wage": jobData.hourlyWage,
     Schedule: jobData.schedule,
     "Language Level": jobData.languageLevel,

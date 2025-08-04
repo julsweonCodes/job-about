@@ -1,11 +1,24 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { Dashboard, JobPost } from "@/types/employer";
 import { API_URLS } from "@/constants/api";
 
-interface UseEmployerDashboardParams {
-  autoFetch?: boolean;
-}
+// API 함수들
+const fetchDashboard = async (): Promise<Dashboard> => {
+  const data = await apiGetData<Dashboard>(API_URLS.EMPLOYER.DASHBOARD.ROOT);
+  return data || ({} as Dashboard);
+};
+
+const fetchActiveJobPosts = async (): Promise<JobPost[]> => {
+  const data = await apiGetData<JobPost[]>(API_URLS.EMPLOYER.DASHBOARD.JOBPOSTS);
+  return Array.isArray(data) ? data : [];
+};
+
+const fetchDraftJobPosts = async (): Promise<JobPost[]> => {
+  // TODO: draft API 엔드포인트가 구현되면 수정 필요
+  // 현재는 빈 배열로 설정
+  return [];
+};
 
 interface UseEmployerDashboardReturn {
   dashboard: Dashboard | undefined;
@@ -18,129 +31,86 @@ interface UseEmployerDashboardReturn {
   };
   error: string | null;
   isInitialized: boolean;
-  fetchDashboard: () => Promise<void>;
-  fetchActiveJobPostList: () => Promise<void>;
-  fetchDraftJobPostList: () => Promise<void>;
   refreshAll: () => Promise<void>;
+  invalidateJobPosts: () => void;
 }
 
-export function useEmployerDashboard({
-  autoFetch = true,
-}: UseEmployerDashboardParams = {}): UseEmployerDashboardReturn {
-  // 상태 관리
-  const [dashboard, setDashboard] = useState<Dashboard>();
-  const [activeJobPostList, setActiveJobPostList] = useState<JobPost[]>([]);
-  const [draftJobPostList, setDraftJobPostList] = useState<JobPost[]>([]);
-  const [loadingStates, setLoadingStates] = useState({
-    dashboard: true,
-    activeJobPostList: true,
-    draftJobPostList: true,
+export function useEmployerDashboard(): UseEmployerDashboardReturn {
+  const queryClient = useQueryClient();
+
+  // Dashboard 데이터 쿼리
+  const {
+    data: dashboard,
+    isLoading: dashboardLoading,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useQuery({
+    queryKey: ["employer-dashboard"],
+    queryFn: fetchDashboard,
+    staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    refetchOnWindowFocus: false,
   });
-  const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // 중복 요청 방지를 위한 ref
-  const isInitializing = useRef(false);
+  // Active Job Posts 쿼리
+  const {
+    data: activeJobPostList = [],
+    isLoading: activeJobPostListLoading,
+    error: activeJobPostListError,
+    refetch: refetchActiveJobPosts,
+  } = useQuery({
+    queryKey: ["employer-active-job-posts"],
+    queryFn: fetchActiveJobPosts,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-  // 대시보드 데이터 조회
-  const fetchDashboard = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, dashboard: true }));
-      setError(null);
+  // Draft Job Posts 쿼리
+  const {
+    data: draftJobPostList = [],
+    isLoading: draftJobPostListLoading,
+    error: draftJobPostListError,
+    refetch: refetchDraftJobPosts,
+  } = useQuery({
+    queryKey: ["employer-draft-job-posts"],
+    queryFn: fetchDraftJobPosts,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-      const data = await apiGetData<Dashboard>(API_URLS.EMPLOYER.DASHBOARD.ROOT);
-      setDashboard(data || undefined);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch dashboard";
-      setError(errorMessage);
-      setDashboard(undefined);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, dashboard: false }));
-    }
-  }, []);
+  // 전체 새로고침 함수
+  const refreshAll = async () => {
+    await Promise.allSettled([refetchDashboard(), refetchActiveJobPosts(), refetchDraftJobPosts()]);
+  };
 
-  // 활성 채용 공고 조회
-  const fetchActiveJobPostList = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, activeJobPostList: true }));
-      setError(null);
+  // Job Posts 캐시 무효화 함수 (publish 시 사용)
+  const invalidateJobPosts = () => {
+    queryClient.invalidateQueries({ queryKey: ["employer-active-job-posts"] });
+    queryClient.invalidateQueries({ queryKey: ["employer-draft-job-posts"] });
+    queryClient.invalidateQueries({ queryKey: ["employer-dashboard"] });
+  };
 
-      const data = await apiGetData<JobPost[]>(API_URLS.EMPLOYER.DASHBOARD.JOBPOSTS);
-      setActiveJobPostList(Array.isArray(data) ? data : []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch active job posts";
-      setError(errorMessage);
-      setActiveJobPostList([]);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, activeJobPostList: false }));
-    }
-  }, []);
-
-  // 초안 채용 공고 조회 (현재는 빈 배열 반환)
-  const fetchDraftJobPostList = useCallback(async () => {
-    try {
-      setLoadingStates((prev) => ({ ...prev, draftJobPostList: true }));
-      setError(null);
-
-      // TODO: draft API 엔드포인트가 구현되면 수정 필요
-      // 현재는 빈 배열로 설정
-      setDraftJobPostList([]);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch draft job posts";
-      setError(errorMessage);
-      setDraftJobPostList([]);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, draftJobPostList: false }));
-    }
-  }, []);
-
-  // 전체 데이터 새로고침
-  const refreshAll = useCallback(async () => {
-    if (isInitializing.current) return; // 중복 요청 방지
-
-    try {
-      isInitializing.current = true;
-
-      // 로딩 상태 초기화
-      setLoadingStates({
-        dashboard: true,
-        activeJobPostList: true,
-        draftJobPostList: true,
-      });
-      setError(null);
-
-      // 병렬로 API 호출 (하나가 실패해도 다른 것들은 계속 진행)
-      await Promise.allSettled([
-        fetchDashboard(),
-        fetchActiveJobPostList(),
-        fetchDraftJobPostList(),
-      ]);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to refresh data";
-      setError(errorMessage);
-    } finally {
-      setIsInitialized(true);
-      isInitializing.current = false;
-    }
-  }, [fetchDashboard, fetchActiveJobPostList, fetchDraftJobPostList]);
-
-  // 초기 데이터 로딩
-  useEffect(() => {
-    if (autoFetch && !isInitializing.current) {
-      refreshAll();
-    }
-  }, [autoFetch, refreshAll]);
+  // 에러 처리
+  const error =
+    dashboardError?.message ||
+    activeJobPostListError?.message ||
+    draftJobPostListError?.message ||
+    null;
 
   return {
     dashboard,
     activeJobPostList,
     draftJobPostList,
-    loadingStates,
+    loadingStates: {
+      dashboard: dashboardLoading,
+      activeJobPostList: activeJobPostListLoading,
+      draftJobPostList: draftJobPostListLoading,
+    },
     error,
-    isInitialized,
-    fetchDashboard,
-    fetchActiveJobPostList,
-    fetchDraftJobPostList,
+    isInitialized: !dashboardLoading && !activeJobPostListLoading && !draftJobPostListLoading,
     refreshAll,
+    invalidateJobPosts,
   };
 }

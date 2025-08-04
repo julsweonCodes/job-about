@@ -34,7 +34,7 @@ export default function TextArea({
         className={`input-style resize-none scrollbar-hide ${error ? "border-red-400 " : ""} ${className}`}
         {...props}
       />
-      {error && <div className="text-xs text-red-500 mt-1">{error}</div>}
+      {error && <div className="text-sm sm:text-base text-red-500 mt-1">{error}</div>}
     </div>
   );
 }
