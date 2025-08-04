@@ -57,7 +57,6 @@ function JobSeekerProfile() {
   const {
     formData,
     workExperiences,
-    availableSkills,
     cities,
     isLoading,
     updateFormData,
@@ -461,7 +460,7 @@ function JobSeekerProfile() {
             description="Select your language skill level"
             iconColor="teal"
           >
-            <div className="flex gap-2 sm:grid sm:grid-cols-3">
+            <div className="flex gap-2 flex-wrap sm:grid sm:grid-cols-4">
               {languageLevels.map((level) => (
                 <FullWidthChip
                   key={level}

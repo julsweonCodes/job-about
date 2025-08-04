@@ -38,7 +38,6 @@ interface UseSeekerFormReturn {
   // 상태
   formData: JobSeekerFormData;
   workExperiences: ExperienceForm[];
-  availableSkills: Skill[];
   cities: string[];
   loadingStates: {
     skills: boolean;
@@ -56,7 +55,6 @@ interface UseSeekerFormReturn {
 
 export const useSeekerForm = (): UseSeekerFormReturn => {
   const {
-    skills: availableSkills,
     locations: availableLocations,
     isLoading: isCommonDataLoading,
   } = useCommonData();
@@ -126,7 +124,6 @@ export const useSeekerForm = (): UseSeekerFormReturn => {
   return {
     formData,
     workExperiences,
-    availableSkills,
     cities,
     loadingStates,
     isLoading,
