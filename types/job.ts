@@ -98,7 +98,7 @@ export interface RecommendationResponse {
 export interface JobPostCard {
   id: string;
   title: string;
-  type: WorkType;
+  workType: WorkType;
   wage: string;
   location: string;
   dateRange: string;

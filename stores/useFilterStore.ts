@@ -1,8 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export interface JobFilters {
-  jobType: string;
+  workType: string;
   location: string;
   salary: string;
   sortBy: string;
@@ -18,49 +17,41 @@ interface FilterState {
 }
 
 const defaultFilters: JobFilters = {
-  jobType: "all",
+  workType: "all",
   location: "all",
   salary: "all",
   sortBy: "date",
   searchQuery: "",
 };
 
-export const useFilterStore = create<FilterState>()(
-  persist(
-    (set, get) => ({
+export const useFilterStore = create<FilterState>()((set, get) => ({
+  filters: defaultFilters,
+
+  setFilter: (key, value) =>
+    set((state) => ({
+      filters: { ...state.filters, [key]: value },
+    })),
+
+  setFilters: (newFilters) =>
+    set((state) => ({
+      filters: { ...state.filters, ...newFilters },
+    })),
+
+  resetFilters: () =>
+    set({
       filters: defaultFilters,
-
-      setFilter: (key, value) =>
-        set((state) => ({
-          filters: { ...state.filters, [key]: value },
-        })),
-
-      setFilters: (newFilters) =>
-        set((state) => ({
-          filters: { ...state.filters, ...newFilters },
-        })),
-
-      resetFilters: () =>
-        set({
-          filters: defaultFilters,
-        }),
-
-      getActiveFilters: () => {
-        const { filters } = get();
-        const activeFilters: Partial<JobFilters> = {};
-
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== "all" && value !== "") {
-            activeFilters[key as keyof JobFilters] = value;
-          }
-        });
-
-        return activeFilters;
-      },
     }),
-    {
-      name: "job-filters",
-      partialize: (state) => ({ filters: state.filters }),
-    }
-  )
-);
+
+  getActiveFilters: () => {
+    const { filters } = get();
+    const activeFilters: Partial<JobFilters> = {};
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== "all" && value !== "") {
+        activeFilters[key as keyof JobFilters] = value;
+      }
+    });
+
+    return activeFilters;
+  },
+}));

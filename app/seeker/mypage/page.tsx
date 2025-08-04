@@ -6,7 +6,7 @@ import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import { useSeekerMypageMain } from "@/hooks/seeker/useSeekerMypageMain";
 import { STORAGE_URLS } from "@/constants/storage";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
-import { useAuthStore } from "@/stores/useAuthStore";
+
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
 import { QuickActionCard } from "@/components/seeker/QuickActionCard";
 import { Button } from "@/components/ui/Button";
@@ -69,7 +69,6 @@ const QuickActionSkeleton = () => (
 );
 
 function SeekerMypage() {
-  const { appUser } = useAuthStore();
   const router = useRouter();
   // Custom hooks
   const {
@@ -126,7 +125,7 @@ function SeekerMypage() {
                     <ImageWithSkeleton
                       key={displayImage}
                       src={displayImage}
-                      alt={appUser?.name || "Profile"}
+                      alt={userInfo?.name || "Profile"}
                       fallbackSrc="/images/img-default-profile.png"
                       className="w-full h-full object-cover"
                       skeletonClassName="bg-gray-200 animate-pulse rounded-full"
@@ -142,20 +141,20 @@ function SeekerMypage() {
 
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                   <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                    {appUser?.name || "User"}
+                    {userInfo?.name || "User"}
                   </h2>
 
                   <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-slate-500">
                     <div className="flex items-center gap-2">
                       <Phone size={16} className="text-slate-400" />
-                      <span>{appUser?.phone_number || "No phone number"}</span>
+                      <span>{userInfo?.phone_number || "No phone number"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar size={16} className="text-slate-400" />
                       <span>
                         Joined{" "}
-                        {appUser?.created_at
-                          ? new Date(appUser.created_at).toLocaleDateString()
+                        {userInfo?.created_at
+                          ? new Date(userInfo.created_at).toLocaleDateString()
                           : "Unknown"}
                       </span>
                     </div>

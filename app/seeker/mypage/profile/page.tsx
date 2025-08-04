@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Briefcase, Calendar, Lightbulb, MapPin, Star, Globe, Plus } from "lucide-react";
+import { Briefcase, Calendar, Lightbulb, MapPin, Star, Globe, Plus, Target } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import InfoSection from "@/components/common/InfoSection";
 import TextArea from "@/components/ui/TextArea";
@@ -13,7 +13,7 @@ import { ExperienceCard } from "@/components/seeker/ExperienceCard";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import { DeleteExperienceDialog } from "@/components/seeker/DeleteExperienceDialog";
-import { useSeekerMypageProfile, DialogStates } from "@/hooks/seeker/profile";
+import { useSeekerMypageProfile, DialogStates } from "@/hooks/seeker/useSeekerMypageProfile";
 import { useSeekerExperience } from "@/hooks/seeker/useSeekerExperience";
 import {
   Select,
@@ -70,7 +70,7 @@ function SeekerProfilePage() {
     selectedJobTypes,
     dialogStates,
     setDialogStates,
-    handleOptionsSave,
+    updateProfileSection,
     handleSkillsEdit,
     handleSkillsConfirm,
     handleSkillsCancel,
@@ -95,7 +95,7 @@ function SeekerProfilePage() {
     handleSaveExperience: saveExperience,
   } = useSeekerExperience();
 
-  if (isLoading || !applicantProfile || !tempData) {
+  if (isLoading || !applicantProfile) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
         {/* Loading Screen for API calls */}
@@ -142,7 +142,7 @@ function SeekerProfilePage() {
             subtitle="Tell us about yourself and your experience"
             onEdit={() => handleEditSection("description")}
             isEditing={isEditing.description}
-            onSave={() => handleOptionsSave("description")}
+            onSave={() => updateProfileSection("description")}
             onCancel={() => handleCancelSection("description")}
           >
             {!isEditing.description ? (
@@ -183,7 +183,7 @@ function SeekerProfilePage() {
             subtitle="Your preferred work location"
             onEdit={() => handleEditSection("location")}
             isEditing={isEditing.location}
-            onSave={() => handleOptionsSave("location")}
+            onSave={() => updateProfileSection("location")}
             onCancel={() => handleCancelSection("location")}
           >
             {!isEditing.location ? (
@@ -217,7 +217,7 @@ function SeekerProfilePage() {
             subtitle="Your practical skills and expertise"
             onEdit={handleSkillsEdit}
             isEditing={isEditing.skills}
-            onSave={() => handleOptionsSave("skills")}
+            onSave={() => updateProfileSection("skills")}
             onCancel={() => handleCancelSection("skills")}
           >
             <div className="flex flex-wrap gap-2">
@@ -247,7 +247,7 @@ function SeekerProfilePage() {
             subtitle="Your preferred work arrangement"
             onEdit={() => handleEditSection("workType")}
             isEditing={isEditing.workType}
-            onSave={() => handleOptionsSave("workType")}
+            onSave={() => updateProfileSection("workType")}
             onCancel={() => handleCancelSection("workType")}
           >
             {!isEditing.workType ? (
@@ -275,13 +275,13 @@ function SeekerProfilePage() {
 
           {/* Preferred Job Types */}
           <InfoSection
-            icon={<Briefcase size={18} className="text-indigo-600" />}
+            icon={<Target size={18} className="text-indigo-600" />}
             iconClassName="bg-gradient-to-br from-indigo-100 to-blue-100"
             title="Preferred Job Types"
             subtitle="Types of jobs you're interested in"
             onEdit={handleJobTypesEdit}
             isEditing={isEditing.jobTypes}
-            onSave={() => handleOptionsSave("jobTypes")}
+            onSave={() => updateProfileSection("jobTypes")}
             onCancel={() => handleCancelSection("jobTypes")}
           >
             <div className="flex flex-wrap gap-2">
@@ -308,7 +308,7 @@ function SeekerProfilePage() {
             subtitle="When you're available to work"
             onEdit={() => handleEditSection("availability")}
             isEditing={isEditing.availability}
-            onSave={() => handleOptionsSave("availability")}
+            onSave={() => updateProfileSection("availability")}
             onCancel={() => handleCancelSection("availability")}
           >
             {!isEditing.availability ? (
@@ -374,7 +374,7 @@ function SeekerProfilePage() {
             subtitle="Select your language skill level"
             onEdit={() => handleEditSection("languages")}
             isEditing={isEditing.languages}
-            onSave={() => handleOptionsSave("languages")}
+            onSave={() => updateProfileSection("languages")}
             onCancel={() => handleCancelSection("languages")}
           >
             {!isEditing.languages ? (
@@ -402,8 +402,8 @@ function SeekerProfilePage() {
 
           {/* Work Experience */}
           <InfoSection
-            icon={<Briefcase size={18} className="text-emerald-600" />}
-            iconClassName="bg-gradient-to-br from-emerald-100 to-teal-100"
+            icon={<Briefcase size={18} className="text-rose-600" />}
+            iconClassName="bg-gradient-to-br from-rose-100 to-pink-100"
             title="Work Experience"
             subtitle="Your previous work experience"
           >
@@ -428,7 +428,7 @@ function SeekerProfilePage() {
                 <span className="text-sm sm:text-base">Add Experience</span>
               </button>
               <button
-                onClick={() => handleOptionsSave("workExperience")}
+                onClick={() => updateProfileSection("workExperience")}
                 disabled={!hasExperiencesChanged()}
                 className={`w-full sm:w-auto font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 touch-manipulation active:scale-[0.98] ${
                   hasExperiencesChanged()

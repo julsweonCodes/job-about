@@ -98,6 +98,8 @@ export const PAGE_URLS = {
   },
   SEEKER: {
     ROOT: "/seeker",
+    LATEST: "/seeker/latest",
+    RECOMMENDATIONS: "/seeker/recommendations",
     MYPAGE: {
       ROOT: "/seeker/mypage",
       PROFILE: "/seeker/mypage/profile",

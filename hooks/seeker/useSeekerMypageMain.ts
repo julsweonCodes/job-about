@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
-import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { useSeekerStore, useSeekerWorkStyle } from "@/stores/useSeekerStore";
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGetData, apiPatchData } from "@/utils/client/API";
+import { API_URLS } from "@/constants/api";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { PAGE_URLS } from "@/constants/api";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
 
 // Types
@@ -15,7 +16,17 @@ export interface UserInfo {
   created_at: Date;
 }
 
+export interface PersonalityProfile {
+  id?: number;
+  name_ko: string;
+  name_en: string;
+  description_ko: string;
+  description_en: string;
+}
+
 export interface ApplicantProfileMain {
+  name: string;
+  description: string;
   personalityName: string;
   personalityDesc: string;
 }
@@ -53,145 +64,141 @@ interface UseSeekerMypageMainReturn {
   setDialogStates: React.Dispatch<React.SetStateAction<DialogStates>>;
 }
 
-// Constants
-const INITIAL_APPLICANT_PROFILE: ApplicantProfileMain = {
-  personalityName: "",
-  personalityDesc: "",
+// API Functions
+const fetchPersonalityProfile = async (): Promise<PersonalityProfile | null> => {
+  try {
+    const profileData = await apiGetData<PersonalityProfile | null>(API_URLS.QUIZ.MY_PROFILE);
+    return profileData || null;
+  } catch (error) {
+    console.error("Error fetching personality profile:", error);
+    showErrorToast("Failed to load personality data");
+    return null;
+  }
 };
 
+// Constants
 const INITIAL_DIALOG_STATES: DialogStates = {
   imageUpload: false,
   profileEdit: false,
 };
 
-const DUMMY_PERSONALITY_PROFILE: ApplicantProfileMain = {
-  personalityName: "Empathetic Coordinator",
-  personalityDesc:
-    "Gains energy from collaboration and communication. Excellent at understanding customer emotions and building positive relationships.",
-};
-
 export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
   const router = useRouter();
-  const { appUser, setAppUser } = useAuthStore();
-  const {
-    workStyle,
-    isLoading: workStyleLoading,
-    setWorkStyle,
-    setLoading: setWorkStyleLoading,
-  } = useSeekerWorkStyle();
+  const { updateProfileImage: updateAuthProfileImage, setAppUser } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  // React Query hooks
+  const userInfoQuery = useQuery({
+    queryKey: ["user-info"],
+    queryFn: async () => {
+      const userData = await apiGetData(API_URLS.USER.ME);
+      return userData.user;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  const personalityQuery = useQuery({
+    queryKey: ["personality-profile"],
+    queryFn: fetchPersonalityProfile,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  // Mutations
+  const updateProfileImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("img", file);
+      return await apiPatchData(API_URLS.USER.UPDATE_PROFILE_IMAGE, formData);
+    },
+    onSuccess: (result) => {
+      if (result && result.img_url !== undefined) {
+        showSuccessToast("Profile image updated!");
+        // Update auth store
+        updateAuthProfileImage(result.img_url);
+        // Invalidate queries
+        queryClient.invalidateQueries({ queryKey: ["user-info"] });
+        queryClient.invalidateQueries({ queryKey: ["personality-profile"] });
+      } else {
+        showErrorToast("Failed to update profile image");
+      }
+    },
+    onError: (error) => {
+      console.error("Error updating profile image:", error);
+      showErrorToast("Failed to update profile image");
+    },
+  });
+
+  const updateUserProfileMutation = useMutation({
+    mutationFn: async (userData: { name: string; phone_number: string }) => {
+      return await apiPatchData(API_URLS.USER.UPDATE, userData);
+    },
+    onSuccess: (result) => {
+      showSuccessToast("Profile updated successfully!");
+      // Update auth store if result contains user data
+      if (result && result.user) {
+        setAppUser(result.user);
+      }
+      // Invalidate all related queries
+      queryClient.invalidateQueries({ queryKey: ["user-info"] });
+      queryClient.invalidateQueries({ queryKey: ["personality-profile"] });
+    },
+    onError: (error) => {
+      console.error("Error updating profile:", error);
+      showErrorToast("Failed to update profile");
+    },
+  });
+
+  // Derived data
+  const userInfo: UserInfo | null = userInfoQuery.data || null;
+
+  const applicantProfile: ApplicantProfileMain = {
+    name: userInfo?.name || "",
+    description: userInfo?.description || "",
+    personalityName: personalityQuery.data?.name_en || "",
+    personalityDesc: personalityQuery.data?.description_en || "",
+  };
 
   // State
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [applicantProfile, setApplicantProfile] =
-    useState<ApplicantProfileMain>(INITIAL_APPLICANT_PROFILE);
-  const [isLoading, setIsLoading] = useState(true);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
   const [dialogStates, setDialogStates] = useState<DialogStates>(INITIAL_DIALOG_STATES);
   const [profileEditData, setProfileEditData] = useState<ProfileEditData>({
-    name: appUser?.name || "",
-    phone_number: appUser?.phone_number || "",
+    name: userInfo?.name || "",
+    phone_number: userInfo?.phone_number || "",
   });
 
-  const setUserInfoFromAppUser = useCallback(() => {
-    if (appUser) {
-      setUserInfo({
-        name: appUser.name || "",
-        description: appUser.description || "",
-        phone_number: appUser.phone_number || "",
-        img_url: appUser.img_url || undefined,
-        created_at: appUser.created_at ? new Date(appUser.created_at) : new Date(),
-      });
-    }
-  }, [appUser]);
-
-  // Fetch personality profile (Work Style)
-  const fetchPersonalityProfile = useCallback(async () => {
-    if (!appUser?.id) return;
-
-    // Store에 이미 데이터가 있으면 API 호출하지 않음
-    if (workStyle) {
-      setApplicantProfile({
-        personalityName: workStyle.name_en || "",
-        personalityDesc: workStyle.description_en || "",
-      });
-      return;
-    }
-
-    try {
-      setWorkStyleLoading(true);
-      const profileData = await apiGetData<{
-        id: number;
-        name_ko: string;
-        name_en: string;
-        description_ko: string;
-        description_en: string;
-      } | null>(API_URLS.QUIZ.MY_PROFILE);
-
-      if (profileData) {
-        // Store에 데이터 저장
-        setWorkStyle(profileData);
-
-        setApplicantProfile({
-          personalityName: profileData.name_en || "",
-          personalityDesc: profileData.description_en || "",
-        });
-      } else {
-        // data가 null인 경우 더미 데이터 사용
-        setApplicantProfile(DUMMY_PERSONALITY_PROFILE);
-      }
-    } catch (error) {
-      console.error("Error fetching personality profile:", error);
-      // 에러 발생 시에도 더미 데이터 사용
-      setApplicantProfile(DUMMY_PERSONALITY_PROFILE);
-    } finally {
-      setWorkStyleLoading(false);
-    }
-  }, [appUser?.id, workStyle, setWorkStyle, setWorkStyleLoading]);
-
   // Update profile image
-  const updateProfileImage = useCallback(async (file: File) => {
-    try {
-      setImageUploadLoading(true);
-      const formData = new FormData();
-      formData.append("img", file);
-
-      const result = await apiPatchData(API_URLS.USER.UPDATE_PROFILE_IMAGE, formData);
-
-      if (result && result.img_url !== undefined) {
-        // Update user info with new image
-        setUserInfo((prev) => (prev ? { ...prev, img_url: result.img_url } : null));
-
-        // Update auth store appUser
-        const { setAppUser } = useAuthStore.getState();
-        const currentAppUser = useAuthStore.getState().appUser;
-        if (currentAppUser) {
-          setAppUser({
-            ...currentAppUser,
-            img_url: result.img_url,
-          });
-        }
+  const updateProfileImageHandler = useCallback(
+    async (file: File) => {
+      try {
+        setImageUploadLoading(true);
+        await updateProfileImageMutation.mutateAsync(file);
+      } catch (error) {
+        console.error("Error updating profile image:", error);
+      } finally {
+        setImageUploadLoading(false);
       }
-    } catch (error) {
-      console.error("Error updating profile image:", error);
-      showErrorToast("Failed to update profile image");
-      throw error;
-    } finally {
-      setImageUploadLoading(false);
-    }
-  }, []);
+    },
+    [updateProfileImageMutation]
+  );
 
   // Profile image change handler
   const handleProfileImageChange = useCallback(
     async (file: File) => {
       try {
-        await updateProfileImage(file);
-        showSuccessToast("Profile image updated!");
+        await updateProfileImageHandler(file);
       } catch (error) {
         console.error("Error updating profile image:", error);
-        showErrorToast("Failed to update profile image");
       }
     },
-    [updateProfileImage]
+    [updateProfileImageHandler]
   );
 
   // Dialog handlers
@@ -201,11 +208,11 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
 
   const handleProfileEditDialog = useCallback(() => {
     setProfileEditData({
-      name: appUser?.name || "",
-      phone_number: appUser?.phone_number || "",
+      name: userInfo?.name || "",
+      phone_number: userInfo?.phone_number || "",
     });
     setDialogStates((prev) => ({ ...prev, profileEdit: true }));
-  }, [appUser?.name, appUser?.phone_number]);
+  }, [userInfo?.name, userInfo?.phone_number]);
 
   const handleProfileEditClose = useCallback(() => {
     setDialogStates((prev) => ({ ...prev, profileEdit: false }));
@@ -213,29 +220,15 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
 
   const handleProfileEditSave = useCallback(async () => {
     try {
-      const response = await apiPatchData(API_URLS.USER.UPDATE, {
+      await updateUserProfileMutation.mutateAsync({
         name: profileEditData.name,
         phone_number: profileEditData.phone_number,
       });
-
-      if (response) {
-        // 성공 시 페이지 데이터 업데이트
-        if (appUser) {
-          setAppUser({
-            ...appUser,
-            name: profileEditData.name,
-            phone_number: profileEditData.phone_number,
-          });
-        }
-
-        setDialogStates((prev) => ({ ...prev, profileEdit: false }));
-        showSuccessToast("Profile updated successfully!");
-      }
+      setDialogStates((prev) => ({ ...prev, profileEdit: false }));
     } catch (error) {
       console.error("Error updating profile:", error);
-      showErrorToast("Failed to update profile");
     }
-  }, [profileEditData, appUser, setAppUser]);
+  }, [profileEditData, updateUserProfileMutation]);
 
   const handleProfileEditChange = useCallback((field: "name" | "phone_number", value: string) => {
     setProfileEditData((prev) => ({ ...prev, [field]: value }));
@@ -254,35 +247,14 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
     router.push(PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS);
   }, [router]);
 
-  // Initialize data
-  useEffect(() => {
-    const initializeData = async () => {
-      setIsLoading(true);
-      try {
-        // userInfo는 동기적으로 설정
-        setUserInfoFromAppUser();
-        // personality profile만 비동기로 가져오기 (store에 없을 때만)
-        await fetchPersonalityProfile();
-      } catch (error) {
-        console.error("Error initializing data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (appUser?.id) {
-      initializeData();
-    }
-  }, [appUser?.id, setUserInfoFromAppUser, fetchPersonalityProfile]);
-
   return {
     userInfo,
     applicantProfile,
-    isLoading: isLoading || workStyleLoading,
+    isLoading: userInfoQuery.isLoading || personalityQuery.isLoading,
     imageUploadLoading,
     dialogStates,
     profileEditData,
-    updateProfileImage,
+    updateProfileImage: updateProfileImageHandler,
     handleProfileImageChange,
     handleImageUploadDialog,
     handleProfileEditDialog,

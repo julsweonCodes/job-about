@@ -104,8 +104,54 @@ export function usePagination<T>({
     if (loading || !pagination.hasMore) return;
 
     const nextPage = pagination.currentPage + 1;
-    await fetchPage(nextPage);
-  }, [loading, pagination.hasMore, pagination.currentPage, fetchPage]);
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params: PaginationParams = {
+        page: nextPage,
+        limit: initialLimit,
+      };
+
+      // 새로운 요청을 시작하고 ref에 저장
+      const requestPromise = fetchFunction(params);
+      currentRequestRef.current = requestPromise;
+
+      const result = await requestPromise;
+
+      // 요청이 완료되면 ref를 null로 설정
+      currentRequestRef.current = null;
+
+      const totalPages = Math.ceil(result.totalCount / initialLimit);
+
+      // loadMore에서는 항상 기존 데이터에 추가
+      setData((prevData) => {
+        const existingData = prevData || [];
+        const newData = result.data;
+
+        // 중복된 ID를 가진 항목들을 제거
+        const existingIds = new Set(existingData.map((item: any) => item.id));
+        const uniqueNewData = newData.filter((item: any) => !existingIds.has(item.id));
+
+        return [...existingData, ...uniqueNewData];
+      });
+
+      setPagination({
+        currentPage: nextPage,
+        totalPages,
+        totalCount: result.totalCount,
+        hasMore: result.hasMore,
+      });
+    } catch (err) {
+      // 요청이 실패해도 ref를 null로 설정
+      currentRequestRef.current = null;
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+      setIsInitialized(true);
+    }
+  }, [loading, pagination.hasMore, pagination.currentPage, fetchFunction, initialLimit]);
 
   const refresh = useCallback(async () => {
     await fetchPage(initialPage);

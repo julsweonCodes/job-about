@@ -1,129 +1,108 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
-import { JobPost } from "@/types/job";
 import { API_URLS } from "@/constants/api";
+import { toPrismaWorkType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
-import { Location } from "@/constants/location";
 
-interface UseLatestJobsParams {
-  workType?: WorkType;
-  location?: Location;
-  page?: number;
-  limit?: number;
-  autoFetch?: boolean;
-}
+// 필터를 Prisma 타입으로 변환
+const convertFiltersToPrisma = (filters: { workType: string; location: string }) => {
+  const convertedFilters: any = {};
 
-interface UseLatestJobsReturn {
-  latestJobs: JobPost[];
-  loading: boolean;
-  error: string | null;
-  hasMore: boolean;
-  totalCount: number;
-  isInitialized: boolean;
-  fetchLatestJobs: (params?: Partial<UseLatestJobsParams>) => Promise<void>;
-  loadMore: () => Promise<void>;
-  refresh: () => Promise<void>;
-}
-
-export function useLatestJobs({
-  workType,
-  location,
-  page = 1,
-  limit = 10,
-  autoFetch = true,
-}: UseLatestJobsParams = {}): UseLatestJobsReturn {
-  const [latestJobs, setLatestJobs] = useState<JobPost[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(page);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  const fetchLatestJobs = useCallback(
-    async (params?: Partial<UseLatestJobsParams>) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const queryParams: Record<string, any> = {};
-
-        if (params?.workType || workType) {
-          queryParams.work_type = params?.workType || workType;
-        }
-
-        if (params?.location || location) {
-          queryParams.location = params?.location || location;
-        }
-
-        if (params?.page || currentPage) {
-          queryParams.page = params?.page || currentPage;
-        }
-
-        if (params?.limit || limit) {
-          queryParams.limit = params?.limit || limit;
-        }
-
-        const data = await apiGetData<JobPost[]>(API_URLS.JOB_POSTS.ROOT, queryParams);
-
-        if (data && Array.isArray(data)) {
-          const newLatestJobs = data;
-
-          if (params?.page === 1 || currentPage === 1) {
-            // 첫 페이지면 전체 교체
-            setLatestJobs(newLatestJobs);
-          } else {
-            // 추가 페이지면 기존에 추가
-            setLatestJobs((prev) => [...prev, ...newLatestJobs]);
-          }
-
-          setHasMore(newLatestJobs.length === (params?.limit || limit));
-          setTotalCount(newLatestJobs.length || 0);
-        } else {
-          setError("Failed to fetch latest jobs");
-          setLatestJobs([]);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-        setLatestJobs([]);
-      } finally {
-        setLoading(false);
-        setIsInitialized(true);
-      }
-    },
-    [workType, location, currentPage, limit]
-  );
-
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
-
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    await fetchLatestJobs({ page: nextPage });
-  }, [loading, hasMore, currentPage, fetchLatestJobs]);
-
-  const refresh = useCallback(async () => {
-    setCurrentPage(1);
-    setLatestJobs([]);
-    setHasMore(true);
-    await fetchLatestJobs({ page: 1 });
-  }, [fetchLatestJobs]);
-
-  useEffect(() => {
-    if (autoFetch) {
-      fetchLatestJobs();
+  // workType 변환
+  if (filters.workType && filters.workType !== "all") {
+    try {
+      convertedFilters.work_type = toPrismaWorkType(filters.workType as WorkType);
+    } catch (error) {
+      console.error("Invalid workType filter:", filters.workType);
     }
-  }, [autoFetch, fetchLatestJobs]);
+  }
+
+  // location 변환 (location은 그대로 사용)
+  if (filters.location && filters.location !== "all") {
+    convertedFilters.location = filters.location;
+  }
+
+  return convertedFilters;
+};
+
+// API 함수
+const fetchLatestJobs = async (filters = { workType: "all", location: "all" }) => {
+  // 필터를 Prisma 타입으로 변환
+  const prismaFilters = convertFiltersToPrisma(filters);
+
+  try {
+    const response = await apiGetData(API_URLS.JOB_POSTS.ROOT, {
+      page: 1,
+      limit: 10,
+      ...prismaFilters,
+    });
+    if (Array.isArray(response)) {
+      return response;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+// React Query Hook (단순 버전)
+export const useLatestJobs = (filters = { workType: "all", location: "all" }) => {
+  const {
+    data: jobs,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["latest-jobs", filters],
+    queryFn: () => fetchLatestJobs(filters),
+    staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 안함
+  });
 
   return {
-    latestJobs,
-    loading,
+    jobs: jobs || [],
+    isLoading,
     error,
-    hasMore,
-    totalCount,
-    isInitialized,
-    fetchLatestJobs,
-    loadMore,
-    refresh,
+    hasMore: false,
+    loadMore: () => {},
+    isLoadMoreLoading: false,
   };
-}
+};
+
+// 무한 스크롤용 Hook (별도로 제공)
+export const useLatestJobsInfinite = (filters = { workType: "all", location: "all" }) => {
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["latest-jobs-infinite", filters],
+      queryFn: ({ pageParam }) => {
+        // 필터를 Prisma 타입으로 변환
+        const prismaFilters = convertFiltersToPrisma(filters);
+
+        return apiGetData(API_URLS.JOB_POSTS.ROOT, {
+          page: pageParam,
+          limit: 10,
+          ...prismaFilters,
+        }).then((res) => ({
+          jobs: res || [], // res is already the data array
+          currentPage: pageParam,
+          hasMore: res?.length === 10,
+          totalCount: res.totalCount || 0, // totalCount might be missing if res is just the array
+        }));
+      },
+      getNextPageParam: (lastPage, allPages) =>
+        lastPage.hasMore ? allPages.length + 1 : undefined,
+      initialPageParam: 1,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+    });
+  const jobs = data?.pages.flatMap((page) => page.jobs) || [];
+  return {
+    jobs,
+    isLoading,
+    error,
+    hasMore: hasNextPage,
+    loadMore: fetchNextPage,
+    isLoadMoreLoading: isFetchingNextPage,
+  };
+};
