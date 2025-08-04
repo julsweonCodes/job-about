@@ -131,6 +131,31 @@ export function toPrismaLocation(value: string): string {
   return map[value] || value;
 }
 
+export function toPrismaLocationStrict (value: string): $Enums.Location {
+  // Location enum의 key값을 반환
+  const map: Record<string, $Enums.Location> = {
+    toronto: "TORONTO",
+    north_york: "NORTH_YORK",
+    scarborough: "SCARBOROUGH",
+    etobicoke: "ETOBICOKE",
+    mississauga: "MISSISSAUGA",
+    brampton: "BRAMPTON",
+    vaughan: "VAUGHAN",
+    richmond_hill: "RICHMOND_HILL",
+    markham: "MARKHAM",
+    thornhill: "THORNHILL",
+    pickering: "PICKERING",
+    ajax: "AJAX",
+    whitby: "WHITBY",
+    oshawa: "OSHAWA",
+    oakville: "OAKVILLE",
+    burlington: "BURLINGTON",
+    milton: "MILTON",
+    newhamburg: "NEWHAMBURG",
+  };
+  return map[value] || value;
+}
+
 // Prisma enum to enum
 export function fromPrismaWorkType(value: string): WorkType {
   const map: Record<string, WorkType> = {
@@ -241,4 +266,16 @@ export function fromPrismaAvailableHour(value: string): AvailableHour {
     PM: AvailableHour.PM,
   };
   return map[value] || AvailableHour.AM;
+}
+
+export function toWorkType(value: string | null): WorkType | undefined {
+  if (!value) return undefined;
+  if (Object.values(WorkType).includes(value as WorkType)) return value as WorkType;
+  return undefined;
+}
+
+export function toLocation(value: string | null): Location | undefined {
+  if (!value) return undefined;
+  if (Object.values(Location).includes(value as Location)) return value as Location;
+  return undefined;
 }
