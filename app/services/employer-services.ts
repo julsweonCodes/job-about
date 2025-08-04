@@ -150,7 +150,9 @@ export async function getAllApplicationsCnt(userId: number, bizLocId: number): P
       created_at: {
         lte: currDate,
       },
-      deadline: currDateStr,
+      deadline: {
+        gte: currDateStr
+      },
       user_id: userId,
       status: "PUBLISHED",
     },
