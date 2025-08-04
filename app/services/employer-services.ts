@@ -202,6 +202,9 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
         },
       },
     },
+    orderBy: {
+      deadline: "asc"
+    }
   });
 
   // console.log("bizLocInfo: ", bizLocInfo);
