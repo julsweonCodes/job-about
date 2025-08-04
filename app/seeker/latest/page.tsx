@@ -14,11 +14,7 @@ import BackHeader from "@/components/common/BackHeader";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
 import { Briefcase } from "lucide-react";
-
-// 상수 정의
-const DEFAULT_VALUES = {
-  PAGE_ID: "latest-jobs",
-} as const;
+import { SCROLL_IDS } from "@/constants/scrollIds";
 
 function LatestJobsPage() {
   const router = useRouter();
@@ -33,7 +29,7 @@ function LatestJobsPage() {
 
   // 스크롤 복원 훅 사용
   const { restoreScrollPosition, handleNavigateToDetail } = useScrollRestoration({
-    pageId: DEFAULT_VALUES.PAGE_ID,
+    pageId: SCROLL_IDS.SEEKER.LATEST,
     enabled: true,
     delay: 100,
   });

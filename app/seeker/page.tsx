@@ -13,6 +13,8 @@ import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
 import { Briefcase } from "lucide-react";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { SCROLL_IDS } from "@/constants/scrollIds";
 
 function SeekerPage() {
   const router = useRouter();
@@ -22,6 +24,20 @@ function SeekerPage() {
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // 스크롤 복원 로직 추가
+  const { handleNavigateToDetail, restoreScrollPosition } = useScrollRestoration({
+    pageId: SCROLL_IDS.SEEKER.HOME,
+    enabled: true,
+    delay: 150, // 약간 더 긴 딜레이로 안정성 확보
+  });
+
+  // 스크롤 복원 실행
+  React.useEffect(() => {
+    if (isMounted) {
+      restoreScrollPosition();
+    }
+  }, [isMounted, restoreScrollPosition]);
 
   // 필터 상태 관리
   const { filters: currentFilters } = useFilterStore();
@@ -79,6 +95,8 @@ function SeekerPage() {
   }, [latestJobs, latestLoading]);
 
   const handleViewJob = (id: string) => {
+    // 상세 페이지로 이동하기 전에 스크롤 위치 저장
+    handleNavigateToDetail();
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
   };
 
@@ -97,85 +115,27 @@ function SeekerPage() {
         <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
-            <p className="text-base lg:text-lg text-gray-600">
-              Discover opportunities that match your skills and interests
-            </p>
+            <p className="text-base lg:text-lg text-gray-600">Discover your next opportunity</p>
           </div>
-          <div className="py-5 md:py-8 md:mb-8">
+
+          {/* 필터 섹션 */}
+          <div className="mt-8 mb-8">
             <div className="flex flex-wrap gap-2 md:gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg">
-                <div className="w-4 h-4 md:w-5 md:h-5 bg-gray-200 rounded animate-pulse" />
-                <span className="text-sm font-medium text-gray-700">Work Type</span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg">
-                <div className="w-4 h-4 md:w-5 md:h-5 bg-gray-200 rounded animate-pulse" />
-                <span className="text-sm font-medium text-gray-700">Location</span>
-              </div>
+              <FilterDropdown filter={workTypeFilter} />
+              <FilterDropdown filter={locationFilter} />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            {[...Array(6)].map((_, i) => (
-              <JobPostCardSkeleton key={`hydration-skeleton-${i}`} />
-            ))}
-          </div>
-        </main>
-      </div>
-    );
-  }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ProfileHeader />
-
-      <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
-          <p className="text-base lg:text-lg text-gray-600">
-            Discover opportunities that match your skills and interests
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="py-5 md:py-8 md:mb-8">
-          <div className="flex flex-wrap gap-2 md:gap-4">
-            <FilterDropdown filter={workTypeFilter} />
-            <FilterDropdown filter={locationFilter} />
-          </div>
-        </div>
-
-        {/* Error Display */}
-        {hasError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{hasError}</p>
-            <div className="mt-2 space-x-2">
-              <button
-                onClick={() => refreshRecommended()}
-                className="text-sm text-red-600 hover:text-red-800 underline"
-              >
-                Refresh Recommended
-              </button>
-              <button
-                onClick={() => window.location.reload()}
-                className="text-sm text-red-600 hover:text-red-800 underline"
-              >
-                Refresh Latest
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Recommended Jobs */}
-        {(filteredRecommendedJobs.length > 0 || showRecommendedSkeleton) && (
+          {/* 추천 공고 섹션 */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Recommended for You</h2>
-              {!showRecommendedSkeleton && recommendedJobs.length > 0 && (
+              {!showRecommendedSkeleton && filteredRecommendedJobs.length > 0 && (
                 <button
-                  onClick={() => router.push("/seeker/recommendations")}
-                  className="text-sm text-purple-600 hover:text-purple-800"
+                  onClick={() => refreshRecommended()}
+                  className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
                 >
-                  Show More
+                  Refresh
                 </button>
               )}
             </div>
@@ -215,7 +175,77 @@ function SeekerPage() {
               </>
             )}
           </section>
-        )}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <ProfileHeader />
+      <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
+          <p className="text-base lg:text-lg text-gray-600">Discover your next opportunity</p>
+        </div>
+
+        {/* 필터 섹션 */}
+        <div className="mt-8 mb-8">
+          <div className="flex flex-wrap gap-2 md:gap-4">
+            <FilterDropdown filter={workTypeFilter} />
+            <FilterDropdown filter={locationFilter} />
+          </div>
+        </div>
+
+        {/* 추천 공고 섹션 */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Recommended for You</h2>
+            {!showRecommendedSkeleton && filteredRecommendedJobs.length > 0 && (
+              <button
+                onClick={() => refreshRecommended()}
+                className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
+              >
+                Refresh
+              </button>
+            )}
+          </div>
+          {showRecommendedSkeleton ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              {[...Array(4)].map((_, i) => (
+                <JobPostCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                {filteredRecommendedJobs.map((job, index) => (
+                  <JobPostCard
+                    key={`recommended-${job.id}-${index}`}
+                    job={job}
+                    onView={handleViewJob}
+                    isRecommended
+                  />
+                ))}
+              </div>
+
+              {/* 추천 공고 빈 상태 */}
+              {!recommendedLoading && filteredRecommendedJobs.length === 0 && (
+                <EmptyState
+                  icon={Briefcase}
+                  title="No recommendations yet"
+                  description="We're working on finding the perfect jobs for you. Check back later for personalized recommendations."
+                  primaryAction={{
+                    label: "Refresh Recommendations",
+                    onClick: () => refreshRecommended(),
+                  }}
+                  size="md"
+                  className="bg-purple-50 rounded-lg"
+                />
+              )}
+            </>
+          )}
+        </section>
 
         {/* Latest Jobs */}
         <section>
