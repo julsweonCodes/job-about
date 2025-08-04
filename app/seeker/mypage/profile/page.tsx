@@ -481,7 +481,6 @@ function SeekerProfilePage() {
         onClose={handleSkillsCancel}
         selectedSkills={selectedSkills}
         onConfirm={handleSkillsConfirm}
-        skills={availableSkills}
       />
 
       <JobTypesDialog

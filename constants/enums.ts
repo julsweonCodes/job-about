@@ -7,10 +7,10 @@ export enum WorkType {
 
 // 언어 수준
 export enum LanguageLevel {
+  NOT_REQUIRED = "Not Required",
   BEGINNER = "Beginner",
   INTERMEDIATE = "Intermediate",
   FLUENT = "Fluent",
-  NOT_REQUIRED = "Not Required"
 }
 // 채용 상태
 export enum JobStatus {
@@ -53,10 +53,10 @@ export enum AvailableHour {
 }
 
 export const LANGUAGE_LEVELS = [
+  LanguageLevel.NOT_REQUIRED,
   LanguageLevel.BEGINNER,
   LanguageLevel.INTERMEDIATE,
   LanguageLevel.FLUENT,
-  LanguageLevel.NOT_REQUIRED,
 ] as const;
 
 export const WORK_TYPES = [WorkType.REMOTE, WorkType.ON_SITE, WorkType.HYBRID] as const;

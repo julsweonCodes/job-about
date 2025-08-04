@@ -3,6 +3,7 @@ import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { WorkStyle } from "@/types/profile";
+import { useCommonData } from "@/hooks/useCommonData";
 
 const MAX_SELECTED = 5;
 
@@ -11,9 +12,9 @@ const PreferredPersonalityDialog: React.FC<{
   onClose: () => void;
   selectedTraits: WorkStyle[];
   onConfirm: (workStyle: WorkStyle[]) => void;
-  workStyles: WorkStyle[];
-}> = ({ open, onClose, selectedTraits, onConfirm, workStyles }) => {
+}> = ({ open, onClose, selectedTraits, onConfirm }) => {
   const [localSelected, setLocalSelected] = useState<WorkStyle[]>(selectedTraits);
+  const { workStyles } = useCommonData();
 
   useEffect(() => {
     setLocalSelected(selectedTraits);

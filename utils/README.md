@@ -5,7 +5,7 @@
 ```
 utils/
 ├── client/           # 클라이언트 전용 유틸리티
-│   ├── jobTypeUtils.ts
+│   ├── jobTypeUtils.ts (moved to constants/jobTypes.ts)
 │   ├── formUtils.ts
 │   └── uiUtils.ts
 ├── server/           # 서버 전용 유틸리티
@@ -43,7 +43,7 @@ utils/
 
 ```typescript
 // 클라이언트에서 사용
-import { getJobTypeName } from "@/utils/client/jobTypeUtils";
+import { getJobTypeName } from "@/constants/jobTypes";
 
 // 서버에서 사용
 import { validateJobData } from "@/utils/server/validationUtils";

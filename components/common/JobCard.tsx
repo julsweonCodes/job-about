@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import { MapPin, Calendar } from "lucide-react";
-import { getJobTypeName } from "@/utils/client/jobTypeUtils";
+import { getJobTypeName } from "@/constants/jobTypes";
 
 export type JobCardJob = {
   id: number;

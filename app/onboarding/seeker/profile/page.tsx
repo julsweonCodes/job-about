@@ -541,7 +541,6 @@ function JobSeekerProfile() {
               handleInputChange("skills", skills);
               skillsDialog.close();
             }}
-            skills={availableSkills}
           />
 
           <JobTypesDialog
