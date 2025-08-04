@@ -19,6 +19,8 @@ import { SCROLL_IDS } from "@/constants/scrollIds";
 function SeekerPage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = React.useState(false);
+  const MAX_RECOMMENDED_JOBS = 4;
+  const MAX_LATEST_JOBS = 6;
 
   // Hydration 완료 후 마운트 상태 설정
   React.useEffect(() => {
@@ -29,7 +31,7 @@ function SeekerPage() {
   const { handleNavigateToDetail, restoreScrollPosition } = useScrollRestoration({
     pageId: SCROLL_IDS.SEEKER.HOME,
     enabled: true,
-    delay: 150, // 약간 더 긴 딜레이로 안정성 확보
+    delay: 100,
   });
 
   // 스크롤 복원 실행
@@ -49,21 +51,21 @@ function SeekerPage() {
     error: recommendedError,
     refresh: refreshRecommended,
     isInitialized: recommendedInitialized,
-  } = useRecommendedJobs(currentFilters, 4);
+  } = useRecommendedJobs(currentFilters, MAX_RECOMMENDED_JOBS + 1);
 
   // 최신 공고 (전체 최신 공고)
   const {
     jobs: latestJobs,
     isLoading: latestLoading,
     error: latestError,
-  } = useLatestJobs(currentFilters);
+  } = useLatestJobs(currentFilters, MAX_LATEST_JOBS + 1);
 
   // 추천 공고를 JobPostCard 타입으로 변환
   const filteredRecommendedJobs = useMemo(() => {
     if (!Array.isArray(recommendedJobs) || recommendedJobs.length === 0) return [];
 
     return recommendedJobs
-      .slice(0, 4)
+      .slice(0, MAX_RECOMMENDED_JOBS)
       .map((recommendedJob) => {
         try {
           return JobPostMapper.convertRecommendedToJobPostCard(recommendedJob);
@@ -80,7 +82,7 @@ function SeekerPage() {
     if (!Array.isArray(latestJobs) || latestJobs.length === 0) return [];
 
     return latestJobs
-      .slice(0, 6)
+      .slice(0, MAX_LATEST_JOBS)
       .map((apiJobPost) => {
         try {
           // API 응답을 JobPostData로 변환
@@ -132,16 +134,16 @@ function SeekerPage() {
               <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Recommended for You</h2>
               {!showRecommendedSkeleton && filteredRecommendedJobs.length > 0 && (
                 <button
-                  onClick={() => refreshRecommended()}
+                  onClick={() => router.push(PAGE_URLS.SEEKER.RECOMMENDATIONS)}
                   className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
                 >
-                  Refresh
+                  Show More
                 </button>
               )}
             </div>
             {showRecommendedSkeleton ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                {[...Array(4)].map((_, i) => (
+                {[...Array(MAX_RECOMMENDED_JOBS)].map((_, i) => (
                   <JobPostCardSkeleton key={i} />
                 ))}
               </div>
@@ -201,12 +203,12 @@ function SeekerPage() {
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Recommended for You</h2>
-            {!showRecommendedSkeleton && filteredRecommendedJobs.length > 0 && (
+            {!showRecommendedSkeleton && recommendedJobs.length > MAX_RECOMMENDED_JOBS && (
               <button
-                onClick={() => refreshRecommended()}
+                onClick={() => router.push(PAGE_URLS.SEEKER.RECOMMENDATIONS)}
                 className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
               >
-                Refresh
+                Show More
               </button>
             )}
           </div>
@@ -251,7 +253,7 @@ function SeekerPage() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Latest Opportunities</h2>
-            {!showLatestSkeleton && latestJobs.length > 6 && (
+            {!showLatestSkeleton && latestJobs.length > MAX_LATEST_JOBS && (
               <button
                 onClick={() => router.push(PAGE_URLS.SEEKER.LATEST)}
                 className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
@@ -262,7 +264,7 @@ function SeekerPage() {
           </div>
           {showLatestSkeleton ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(MAX_LATEST_JOBS)].map((_, i) => (
                 <JobPostCardSkeleton key={i} />
               ))}
             </div>

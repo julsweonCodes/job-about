@@ -3,7 +3,8 @@
 // Seeker 관련 Query Keys
 export const SEEKER_QUERY_KEYS = {
   JOB_DETAIL: (postId: string) => ["seeker-job-detail", postId] as const,
-  LATEST_JOBS: (filters?: any) => ["seeker-latest-jobs", filters] as const,
+  LATEST_JOBS: (filters?: any, limit?: number) => ["seeker-latest-jobs", filters, limit] as const,
+  LATEST_JOBS_INFINITE: (filters?: any) => ["seeker-latest-jobs-infinite", filters] as const,
   RECOMMENDED_JOBS: (filters?: any, limit?: number) =>
     ["seeker-recommended-jobs", filters, limit] as const,
   APPLIED_JOBS: (limit?: number) => ["seeker-applied-jobs", limit] as const,
