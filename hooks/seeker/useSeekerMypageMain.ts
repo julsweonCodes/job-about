@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGetData, apiPatchData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
+import { SEEKER_QUERY_KEYS, USER_QUERY_KEYS, QUIZ_QUERY_KEYS } from "@/constants/queryKeys";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { PAGE_URLS } from "@/constants/api";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -89,7 +90,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
 
   // React Query hooks
   const userInfoQuery = useQuery({
-    queryKey: ["user-info"],
+    queryKey: USER_QUERY_KEYS.INFO,
     queryFn: async () => {
       const userData = await apiGetData(API_URLS.USER.ME);
       return userData.user;
@@ -102,7 +103,7 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
   });
 
   const personalityQuery = useQuery({
-    queryKey: ["personality-profile"],
+    queryKey: QUIZ_QUERY_KEYS.PERSONALITY_PROFILE,
     queryFn: fetchPersonalityProfile,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -124,8 +125,8 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
         // Update auth store
         updateAuthProfileImage(result.img_url);
         // Invalidate queries
-        queryClient.invalidateQueries({ queryKey: ["user-info"] });
-        queryClient.invalidateQueries({ queryKey: ["personality-profile"] });
+        queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.INFO });
+        queryClient.invalidateQueries({ queryKey: QUIZ_QUERY_KEYS.PERSONALITY_PROFILE });
       } else {
         showErrorToast("Failed to update profile image");
       }
@@ -147,8 +148,8 @@ export const useSeekerMypageMain = (): UseSeekerMypageMainReturn => {
         setAppUser(result.user);
       }
       // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ["user-info"] });
-      queryClient.invalidateQueries({ queryKey: ["personality-profile"] });
+      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.INFO });
+      queryClient.invalidateQueries({ queryKey: QUIZ_QUERY_KEYS.PERSONALITY_PROFILE });
     },
     onError: (error) => {
       console.error("Error updating profile:", error);

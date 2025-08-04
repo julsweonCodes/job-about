@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { RecommendationResponse } from "@/types/job";
 import { API_URLS } from "@/constants/api";
+import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 
 // 필터를 Prisma 타입으로 변환
 const convertFiltersToPrisma = (filters: { workType: string; location: string }) => {
@@ -58,7 +59,7 @@ const fetchRecommendedJobs = async (filters = { workType: "all", location: "all"
 // React Query Hook (현재는 단순 쿼리, 향후 무한 스크롤로 확장 예정)
 export const useRecommendedJobs = (filters = { workType: "all", location: "all" }, limit = 4) => {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["recommended-jobs", filters, limit],
+    queryKey: SEEKER_QUERY_KEYS.RECOMMENDED_JOBS(filters, limit),
     queryFn: () => fetchRecommendedJobs(filters, limit),
     staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
     gcTime: 10 * 60 * 1000, // 10분간 캐시 유지

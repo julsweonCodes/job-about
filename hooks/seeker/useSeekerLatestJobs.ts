@@ -1,6 +1,7 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
+import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { toPrismaWorkType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
 
@@ -53,7 +54,7 @@ export const useLatestJobs = (filters = { workType: "all", location: "all" }) =>
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["latest-jobs", filters],
+    queryKey: SEEKER_QUERY_KEYS.LATEST_JOBS(filters),
     queryFn: () => fetchLatestJobs(filters),
     staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
     gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
@@ -74,7 +75,7 @@ export const useLatestJobs = (filters = { workType: "all", location: "all" }) =>
 export const useLatestJobsInfinite = (filters = { workType: "all", location: "all" }) => {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["latest-jobs-infinite", filters],
+      queryKey: SEEKER_QUERY_KEYS.LATEST_JOBS(filters),
       queryFn: ({ pageParam }) => {
         // 필터를 Prisma 타입으로 변환
         const prismaFilters = convertFiltersToPrisma(filters);
@@ -83,15 +84,21 @@ export const useLatestJobsInfinite = (filters = { workType: "all", location: "al
           page: pageParam,
           limit: 10,
           ...prismaFilters,
-        }).then((res) => ({
-          jobs: res || [], // res is already the data array
-          currentPage: pageParam,
-          hasMore: res?.length === 10,
-          totalCount: res.totalCount || 0, // totalCount might be missing if res is just the array
-        }));
+        }).then((res) => {
+          // API 응답이 배열인지 확인
+          const jobs = Array.isArray(res) ? res : [];
+          return {
+            jobs,
+            currentPage: pageParam,
+            hasMore: jobs.length === 10,
+            totalCount: jobs.length,
+          };
+        });
       },
-      getNextPageParam: (lastPage, allPages) =>
-        lastPage.hasMore ? allPages.length + 1 : undefined,
+      getNextPageParam: (lastPage, allPages) => {
+        if (!lastPage || !lastPage.hasMore) return undefined;
+        return allPages.length + 1;
+      },
       initialPageParam: 1,
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,

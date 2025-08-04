@@ -11,6 +11,7 @@ import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { apiPatchData } from "@/utils/client/API";
 import { Button } from "../ui/Button";
 
@@ -230,9 +231,9 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       });
 
       // Job posts 캐시 무효화 (job post가 publish되었으므로)
-      queryClient.invalidateQueries({ queryKey: ["employer-active-job-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-draft-job-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS });
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS });
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DASHBOARD });
 
       showSuccessToast("Job post published successfully");
       router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));

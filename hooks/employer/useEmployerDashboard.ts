@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
+import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { Dashboard, JobPost } from "@/types/employer";
 import { API_URLS } from "@/constants/api";
 
@@ -45,7 +46,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
     error: dashboardError,
     refetch: refetchDashboard,
   } = useQuery({
-    queryKey: ["employer-dashboard"],
+    queryKey: EMPLOYER_QUERY_KEYS.DASHBOARD,
     queryFn: fetchDashboard,
     staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
     gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
@@ -59,7 +60,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
     error: activeJobPostListError,
     refetch: refetchActiveJobPosts,
   } = useQuery({
-    queryKey: ["employer-active-job-posts"],
+    queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS,
     queryFn: fetchActiveJobPosts,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -73,7 +74,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
     error: draftJobPostListError,
     refetch: refetchDraftJobPosts,
   } = useQuery({
-    queryKey: ["employer-draft-job-posts"],
+    queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS,
     queryFn: fetchDraftJobPosts,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -87,9 +88,9 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
 
   // Job Posts 캐시 무효화 함수 (publish 시 사용)
   const invalidateJobPosts = () => {
-    queryClient.invalidateQueries({ queryKey: ["employer-active-job-posts"] });
-    queryClient.invalidateQueries({ queryKey: ["employer-draft-job-posts"] });
-    queryClient.invalidateQueries({ queryKey: ["employer-dashboard"] });
+    queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS });
+    queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS });
+    queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DASHBOARD });
   };
 
   // 에러 처리

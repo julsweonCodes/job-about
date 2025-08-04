@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGetData, apiPatchData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
+import { SEEKER_QUERY_KEYS, USER_QUERY_KEYS } from "@/constants/queryKeys";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useCommonData } from "@/hooks/useCommonData";
 import { Skill } from "@/types/profile";
@@ -156,7 +157,7 @@ export const useSeekerMypageProfile = () => {
 
   // React Query hooks
   const userInfoQuery = useQuery({
-    queryKey: ["user-info"],
+    queryKey: USER_QUERY_KEYS.INFO,
     queryFn: fetchUserInfo,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -166,7 +167,7 @@ export const useSeekerMypageProfile = () => {
   });
 
   const profileQuery = useQuery({
-    queryKey: ["seeker-profile"],
+    queryKey: SEEKER_QUERY_KEYS.PROFILES,
     queryFn: fetchProfileData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -181,7 +182,7 @@ export const useSeekerMypageProfile = () => {
       return await apiPatchData(API_URLS.SEEKER.PROFILES, profileData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["seeker-profile"] });
+      queryClient.invalidateQueries({ queryKey: SEEKER_QUERY_KEYS.PROFILES });
     },
     onError: (error) => {
       console.error("Error updating profile:", error);
@@ -194,7 +195,7 @@ export const useSeekerMypageProfile = () => {
       return await apiPatchData(API_URLS.USER.ME, userData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-info"] });
+      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.INFO });
     },
     onError: (error) => {
       console.error("Error updating user info:", error);

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { useCommonData } from "@/hooks/useCommonData";
 import { JobType } from "@/constants/jobTypes";
 import { LanguageLevel, WorkType } from "@/constants/enums";
@@ -220,9 +221,9 @@ export const useEmployerJobPostCreate = (): UseJobPostCreateReturn => {
       console.log(result);
 
       // Job posts 캐시 무효화 (새로운 job post가 생성되었으므로)
-      queryClient.invalidateQueries({ queryKey: ["employer-active-job-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-draft-job-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["employer-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS });
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS });
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DASHBOARD });
 
       // 미리보기 페이지로 이동
       if (formData.useAI) {

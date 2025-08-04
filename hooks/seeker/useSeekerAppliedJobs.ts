@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
+import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { JobPostData, JobPostMapper, ApiAppliedJobResponse } from "@/types/jobPost";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { apiGetData } from "@/utils/client/API";
@@ -72,7 +73,7 @@ export const useSeekerAppliedJobs = (
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useInfiniteQuery({
-      queryKey: ["applied-jobs", filters],
+      queryKey: SEEKER_QUERY_KEYS.APPLIED_JOBS(limit),
       queryFn: ({ pageParam }) => fetchAppliedJobs(pageParam, limit),
       getNextPageParam: (lastPage, allPages) =>
         lastPage.hasMore ? allPages.length + 1 : undefined,
