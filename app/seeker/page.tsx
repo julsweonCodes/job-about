@@ -6,13 +6,11 @@ import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { EmptyState } from "@/components/common/EmptyState";
-import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPostMapper } from "@/types/jobPost";
-import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
 
 function SeekerPage() {
@@ -51,58 +49,36 @@ function SeekerPage() {
   const filteredRecommendedJobs = useMemo(() => {
     if (!Array.isArray(recommendedJobs) || recommendedJobs.length === 0) return [];
 
-    return recommendedJobs.slice(0, 4).map((recommendedJob) => {
-      try {
-        return JobPostMapper.convertRecommendedToJobPostCard(recommendedJob);
-      } catch (error) {
-        // 안전한 기본값 반환
-        return {
-          id: recommendedJob.id?.toString() || "unknown",
-          title: recommendedJob.title || "Unknown Job",
-          workType: "on-site" as WorkType,
-          wage: recommendedJob.wage?.toString() || "0",
-          location: "Location not specified",
-          dateRange: "Recently",
-          businessName: "Unknown Company",
-          description: recommendedJob.description || "No description available",
-          applicants: recommendedJob.applicantCount || 0,
-          views: 0,
-          logoImage: undefined,
-          requiredSkills: recommendedJob.requiredSkills || [],
-        };
-      }
-    });
+    return recommendedJobs
+      .slice(0, 4)
+      .map((recommendedJob) => {
+        try {
+          return JobPostMapper.convertRecommendedToJobPostCard(recommendedJob);
+        } catch (error) {
+          console.warn("Failed to convert recommended job:", error);
+          return null;
+        }
+      })
+      .filter((job): job is NonNullable<typeof job> => job !== null);
   }, [recommendedJobs]);
 
   // 서버에서 필터링된 데이터를 그대로 사용 (최대 6개)
   const filteredLatestJobs = useMemo(() => {
     if (!Array.isArray(latestJobs) || latestJobs.length === 0) return [];
 
-    return latestJobs.slice(0, 6).map((apiJobPost) => {
-      try {
-        // API 응답을 JobPostData로 변환
-        const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
-        return JobPostMapper.convertJobPostDataToCard(jobPostData);
-      } catch (error) {
-        // 안전한 기본값 반환
-        return {
-          id: apiJobPost.id || "unknown",
-          title: apiJobPost.title || "Unknown Job",
-          workType: "on-site" as WorkType,
-          wage: apiJobPost.wage || 0,
-          location: "Location not specified",
-          dateRange: "Recently",
-          businessName: "Unknown Company",
-          description: apiJobPost.description || "No description available",
-          applicants: apiJobPost.applicantCount || 0,
-          views: 0,
-          logoImage: apiJobPost.business_loc?.logo_url
-            ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJobPost.business_loc.logo_url}`
-            : undefined,
-          requiredSkills: apiJobPost.requiredSkills || [],
-        };
-      }
-    });
+    return latestJobs
+      .slice(0, 6)
+      .map((apiJobPost) => {
+        try {
+          // API 응답을 JobPostData로 변환
+          const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
+          return JobPostMapper.convertJobPostDataToCard(jobPostData);
+        } catch (error) {
+          console.warn("Failed to convert latest job:", error);
+          return null;
+        }
+      })
+      .filter((job): job is NonNullable<typeof job> => job !== null);
   }, [latestJobs, latestLoading]);
 
   const handleViewJob = (id: string) => {
