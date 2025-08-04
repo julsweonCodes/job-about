@@ -25,7 +25,7 @@ export function toPrismaLanguageLevel(value: LanguageLevel): $Enums.LanguageLeve
     [LanguageLevel.BEGINNER]: "BEGINNER",
     [LanguageLevel.INTERMEDIATE]: "INTERMEDIATE",
     [LanguageLevel.FLUENT]: "FLUENT",
-    [LanguageLevel.NOT_REQUIRED]: "NOT_REQUIRED",
+    [LanguageLevel.NOT_REQUIRED]: "NOT_REQUIRED" as $Enums.LanguageLevel,
   };
   return map[value];
 }
@@ -132,7 +132,7 @@ export function toPrismaLocation(value: string): string {
   return map[value] || value;
 }
 
-export function toPrismaLocationStrict (value: string): $Enums.Location {
+export function toPrismaLocationStrict(value: string): $Enums.Location {
   // Location enum의 key값을 반환
   const map: Record<string, $Enums.Location> = {
     toronto: "TORONTO",

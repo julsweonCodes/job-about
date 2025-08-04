@@ -56,7 +56,7 @@ export const LANGUAGE_LEVELS = [
   LanguageLevel.BEGINNER,
   LanguageLevel.INTERMEDIATE,
   LanguageLevel.FLUENT,
-  LanguageLevel.NOT_REQUIRED
+  LanguageLevel.NOT_REQUIRED,
 ] as const;
 
 export const WORK_TYPES = [WorkType.REMOTE, WorkType.ON_SITE, WorkType.HYBRID] as const;
