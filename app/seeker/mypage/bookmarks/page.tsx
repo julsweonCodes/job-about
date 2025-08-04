@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useCallback, useEffect, useRef } from "react";
+import React, { useMemo, useCallback, useEffect, useRef, useState } from "react";
 import { Bookmark } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -24,6 +24,7 @@ function SeekerBookmarksPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const { bookmarkedJobs, loading, error, hasMore, loadMore, refresh, isLoadMoreLoading } =
     useSeekerBookmarks({
@@ -42,6 +43,10 @@ function SeekerBookmarksPage() {
 
   const handleViewJob = useCallback(
     (id: string) => {
+      const currentScrollY = window.scrollY;
+      sessionStorage.setItem("scroll-bookmarked-jobs-window", currentScrollY.toString());
+      // 상세 페이지로 이동할 때 플래그 설정
+      sessionStorage.setItem("from-detail-page", "true");
       router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
     },
     [router]
@@ -54,6 +59,110 @@ function SeekerBookmarksPage() {
   const handleBrowseJobs = useCallback(() => {
     router.push(PAGE_URLS.SEEKER.ROOT);
   }, [router]);
+
+  // 스크롤 위치 복원 함수
+  const restoreScrollPosition = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const savedPosition = sessionStorage.getItem("scroll-bookmarked-jobs-window");
+    const isBackNavigation = sessionStorage.getItem("scroll-back-navigation");
+
+    // 뒤로가기 플래그가 있으면 복원하지 않음 (브라우저 뒤로가기로 페이지를 벗어난 경우)
+    if (isBackNavigation) {
+      // 뒤로가기 플래그 제거
+      sessionStorage.removeItem("scroll-back-navigation");
+      return;
+    }
+
+    // 상세 페이지에서 뒤로 왔는지 확인
+    const isFromDetailPage = sessionStorage.getItem("from-detail-page") === "true";
+
+    // 상세 페이지에서 뒤로 왔고, 저장된 스크롤 위치가 있으면 복원
+    if (isFromDetailPage && savedPosition) {
+      const scrollY = parseInt(savedPosition, 10);
+      if (!isNaN(scrollY) && scrollY > 0) {
+        window.scrollTo(0, scrollY);
+      }
+      // 플래그 제거
+      sessionStorage.removeItem("from-detail-page");
+    }
+  }, []);
+
+  // 클라이언트 사이드 렌더링 확인
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  // 페이지 로드 시 스크롤 위치 복원
+  useEffect(() => {
+    if (isHydrated) {
+      const savedPosition = sessionStorage.getItem("scroll-bookmarked-jobs-window");
+      const isBackNavigation = sessionStorage.getItem("scroll-back-navigation");
+
+      // 뒤로가기 플래그가 있으면 복원하지 않음 (브라우저 뒤로가기로 페이지를 벗어난 경우)
+      if (isBackNavigation) {
+        sessionStorage.removeItem("scroll-back-navigation");
+        return;
+      }
+
+      // 상세 페이지에서 뒤로 왔는지 확인
+      const isFromDetailPage = sessionStorage.getItem("from-detail-page") === "true";
+
+      // 상세 페이지에서 뒤로 왔고, 저장된 스크롤 위치가 있으면 복원
+      if (isFromDetailPage && savedPosition) {
+        const scrollY = parseInt(savedPosition, 10);
+        if (!isNaN(scrollY) && scrollY > 0) {
+          setTimeout(() => {
+            window.scrollTo(0, scrollY);
+          }, 100);
+        }
+        // 플래그 제거
+        sessionStorage.removeItem("from-detail-page");
+      }
+    }
+  }, [isHydrated]);
+
+  // 데이터 로딩 완료 후 스크롤 위치 복원
+  useEffect(() => {
+    if (isHydrated && !loading && bookmarkedJobs.length > 0) {
+      const timer = setTimeout(() => {
+        restoreScrollPosition();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isHydrated, loading, bookmarkedJobs.length, restoreScrollPosition]);
+
+  // 브라우저 내장 뒤로가기 버튼 감지
+  useEffect(() => {
+    const handlePopState = () => {
+      // 즉시 스크롤을 맨 위로 이동
+      window.scrollTo(0, 0);
+      // 뒤로가기로 페이지를 벗어날 때 스크롤 초기화
+      sessionStorage.removeItem("scroll-bookmarked-jobs-window");
+      // 뒤로가기 플래그 설정
+      sessionStorage.setItem("scroll-back-navigation", "true");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // 페이지 로드 시점에서 뒤로가기 감지
+  useEffect(() => {
+    // document.referrer를 사용해서 뒤로가기 감지
+    const isBackFromDetailPage =
+      document.referrer &&
+      document.referrer.includes(PAGE_URLS.SEEKER.POST.DETAIL("")) &&
+      window.location.href.includes(PAGE_URLS.SEEKER.MYPAGE.BOOKMARKS);
+
+    if (isBackFromDetailPage) {
+      // 상세 페이지에서 뒤로가기로 돌아온 경우 스크롤 초기화
+      sessionStorage.removeItem("scroll-bookmarked-jobs-window");
+    }
+  }, []);
 
   // Intersection Observer 콜백
   const handleIntersection = useCallback(
