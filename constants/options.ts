@@ -33,4 +33,5 @@ export const LANGUAGE_LEVEL_OPTIONS = [
   { value: LanguageLevel.BEGINNER, label: "Beginner" },
   { value: LanguageLevel.INTERMEDIATE, label: "Intermediate" },
   { value: LanguageLevel.FLUENT, label: "Fluent" },
+  { value: LanguageLevel.FLUENT, label: "Not Required" },
 ] as const;

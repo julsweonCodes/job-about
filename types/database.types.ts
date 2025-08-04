@@ -855,7 +855,7 @@ export type Database = {
         | "ELECTRICIAN"
         | "PLUMBER"
         | "JANITOR"
-      LanguageLevel: "BEGINNER" | "INTERMEDIATE" | "FLUENT"
+      LanguageLevel: "BEGINNER" | "INTERMEDIATE" | "FLUENT" | "NOT_REQUIRED"
       Location:
         | "TORONTO"
         | "NORTH_YORK"
@@ -1059,7 +1059,7 @@ export const Constants = {
         "PLUMBER",
         "JANITOR",
       ],
-      LanguageLevel: ["BEGINNER", "INTERMEDIATE", "FLUENT"],
+      LanguageLevel: ["BEGINNER", "INTERMEDIATE", "FLUENT", "NOT_REQUIRED"],
       Location: [
         "TORONTO",
         "NORTH_YORK",

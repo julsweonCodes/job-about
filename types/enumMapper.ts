@@ -25,6 +25,7 @@ export function toPrismaLanguageLevel(value: LanguageLevel): $Enums.LanguageLeve
     [LanguageLevel.BEGINNER]: "BEGINNER",
     [LanguageLevel.INTERMEDIATE]: "INTERMEDIATE",
     [LanguageLevel.FLUENT]: "FLUENT",
+    [LanguageLevel.NOT_REQUIRED]: "NOT_REQUIRED",
   };
   return map[value];
 }
@@ -187,6 +188,7 @@ export function fromPrismaLanguageLevel(value: string): LanguageLevel {
     BEGINNER: LanguageLevel.BEGINNER,
     INTERMEDIATE: LanguageLevel.INTERMEDIATE,
     FLUENT: LanguageLevel.FLUENT,
+    NOT_REQUIRED: LanguageLevel.NOT_REQUIRED,
   };
   return map[value] || LanguageLevel.BEGINNER;
 }

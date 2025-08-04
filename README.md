@@ -108,3 +108,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ---
 
 For more details, see the comments in each file.
+
+### generate type
+```
+npx supabase gen types typescript --project-id "ffljwadxkmnkczqygftv" --schema public > database.types.ts
+```
