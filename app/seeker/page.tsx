@@ -23,21 +23,17 @@ function SeekerPage() {
     setIsMounted(true);
   }, []);
 
+  // 필터 상태 관리
+  const { filters: currentFilters } = useFilterStore();
+
   // 추천 공고 (AI 맞춤 추천)
   const {
     recommendedJobs,
     loading: recommendedLoading,
     error: recommendedError,
-    hasMore: recommendedHasMore,
     refresh: refreshRecommended,
     isInitialized: recommendedInitialized,
-  } = useRecommendedJobs({
-    limit: 4,
-    autoFetch: true,
-  });
-
-  // 필터 상태 관리
-  const { filters: currentFilters } = useFilterStore();
+  } = useRecommendedJobs(currentFilters, 4);
 
   // 최신 공고 (전체 최신 공고)
   const {
@@ -154,7 +150,7 @@ function SeekerPage() {
             <p className="text-red-700">{hasError}</p>
             <div className="mt-2 space-x-2">
               <button
-                onClick={refreshRecommended}
+                onClick={() => refreshRecommended()}
                 className="text-sm text-red-600 hover:text-red-800 underline"
               >
                 Refresh Recommended
@@ -174,7 +170,7 @@ function SeekerPage() {
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Recommended for You</h2>
-              {!showRecommendedSkeleton && recommendedJobs.length > 0 && recommendedHasMore && (
+              {!showRecommendedSkeleton && recommendedJobs.length > 0 && (
                 <button
                   onClick={() => router.push("/seeker/recommendations")}
                   className="text-sm text-purple-600 hover:text-purple-800"
@@ -210,7 +206,7 @@ function SeekerPage() {
                     description="We're working on finding the perfect jobs for you. Check back later for personalized recommendations."
                     primaryAction={{
                       label: "Refresh Recommendations",
-                      onClick: refreshRecommended,
+                      onClick: () => refreshRecommended(),
                     }}
                     size="md"
                     className="bg-purple-50 rounded-lg"

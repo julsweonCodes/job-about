@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useMemo, useCallback, useEffect, useRef } from "react";
-import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
+import React, { useMemo } from "react";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { WorkType } from "@/constants/enums";
@@ -16,22 +15,15 @@ import { workTypeFilter, locationFilterLimited } from "@/constants/filterOptions
 function RecommendedJobsPage() {
   const router = useRouter();
   const { filters } = useFilterStore();
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadingRef = useRef<HTMLDivElement>(null);
 
-  // 추천 공고 (무한 스크롤)
+  // 추천 공고
   const {
     recommendedJobs,
     loading: recommendedLoading,
     error: recommendedError,
-    hasMore: recommendedHasMore,
-    loadMore: loadMoreRecommended,
     refresh: refreshRecommended,
     isInitialized: recommendedInitialized,
-  } = useRecommendedJobs({
-    limit: 10,
-    autoFetch: true,
-  });
+  } = useRecommendedJobs(filters, 10);
 
   // 필터링된 추천 공고
   const filteredRecommendedJobs = useMemo(() => {
@@ -70,38 +62,12 @@ function RecommendedJobsPage() {
       .map((job) => JobPostMapper.convertRecommendedToJobPostCard(job));
   }, [recommendedJobs, filters]);
 
-  // 무한 스크롤 콜백
-  const handleIntersection = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries;
-      if (entry.isIntersecting && recommendedHasMore && !recommendedLoading) {
-        loadMoreRecommended();
-      }
-    },
-    [recommendedHasMore, recommendedLoading, loadMoreRecommended]
-  );
-
-  // Intersection Observer 설정
-  useEffect(() => {
-    if (loadingRef.current) {
-      observerRef.current = new IntersectionObserver(handleIntersection, {
-        root: null,
-        rootMargin: "100px",
-        threshold: 0.1,
-      });
-
-      observerRef.current.observe(loadingRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [handleIntersection]);
-
   const handleViewJob = (id: string) => {
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
+  };
+
+  const handleRefresh = () => {
+    refreshRecommended();
   };
 
   const showSkeleton =
@@ -135,7 +101,7 @@ function RecommendedJobsPage() {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-700">{recommendedError}</p>
             <button
-              onClick={refreshRecommended}
+              onClick={handleRefresh}
               className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
             >
               Refresh
@@ -159,12 +125,6 @@ function RecommendedJobsPage() {
               ))}
         </div>
 
-        {/* 무한 스크롤 로딩 인디케이터 */}
-        {recommendedLoading && recommendedJobs.length > 0 && <InfiniteScrollLoader />}
-
-        {/* 무한 스크롤 트리거 요소 */}
-        <div ref={loadingRef} className="h-10" />
-
         {/* 결과가 없을 때 */}
         {!showSkeleton && filteredRecommendedJobs.length === 0 && !recommendedLoading && (
           <div className="text-center py-12">
@@ -172,7 +132,7 @@ function RecommendedJobsPage() {
               No recommended jobs found matching your criteria.
             </p>
             <button
-              onClick={refreshRecommended}
+              onClick={handleRefresh}
               className="mt-4 text-purple-600 hover:text-purple-800 underline"
             >
               Clear filters
