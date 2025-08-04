@@ -1,8 +1,8 @@
-import { useCallback, useEffect } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { JobPostData, JobPostMapper, ApiAppliedJobResponse } from "@/types/jobPost";
-import { useSeekerPagination } from "./useSeekerPagination";
 import { useFilterStore } from "@/stores/useFilterStore";
+import { apiGetData } from "@/utils/client/API";
 
 interface UseSeekerAppliedJobsOptions {
   limit?: number;
@@ -10,14 +10,59 @@ interface UseSeekerAppliedJobsOptions {
 }
 
 interface UseSeekerAppliedJobsReturn {
-  appliedJobs: JobPostData[] | null;
+  appliedJobs: JobPostData[];
   loading: boolean;
-  error: string | null;
+  error: Error | null;
   hasMore: boolean;
   loadMore: () => void;
   refresh: () => void;
-  isInitialized: boolean;
+  isLoadMoreLoading: boolean;
 }
+
+// API 함수
+const fetchAppliedJobs = async (pageParam: number, limit: number) => {
+  try {
+    const response = await apiGetData(API_URLS.SEEKER.APPLY, {
+      page: pageParam,
+      limit,
+    });
+
+    if (!response) {
+      throw new Error("No response received from API");
+    }
+
+    if (Array.isArray(response)) {
+      const jobs = response
+        .map((data: ApiAppliedJobResponse) => {
+          try {
+            return JobPostMapper.fromAppliedJobResponse(data);
+          } catch (error) {
+            console.warn("Failed to transform applied job data:", error, data);
+            return null;
+          }
+        })
+        .filter((job): job is JobPostData => job !== null);
+
+      return {
+        jobs,
+        currentPage: pageParam,
+        hasMore: response.length === limit,
+        totalCount: response.length,
+      };
+    } else {
+      console.warn("Unexpected response format:", response);
+      return {
+        jobs: [],
+        currentPage: pageParam,
+        hasMore: false,
+        totalCount: 0,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to fetch applied jobs:", error);
+    throw error instanceof Error ? error : new Error("Unknown error occurred");
+  }
+};
 
 export const useSeekerAppliedJobs = (
   options: UseSeekerAppliedJobsOptions = {}
@@ -25,53 +70,42 @@ export const useSeekerAppliedJobs = (
   const { limit = 20, autoFetch = true } = options;
   const { filters } = useFilterStore();
 
-  // JobPostData 변환 함수
-  const transformAppliedJob = useCallback((data: ApiAppliedJobResponse): JobPostData => {
-    return JobPostMapper.fromAppliedJobResponse(data);
-  }, []);
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useInfiniteQuery({
+      queryKey: ["applied-jobs", filters],
+      queryFn: ({ pageParam }) => fetchAppliedJobs(pageParam, limit),
+      getNextPageParam: (lastPage, allPages) =>
+        lastPage.hasMore ? allPages.length + 1 : undefined,
+      initialPageParam: 1,
+      staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+      gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+      refetchOnWindowFocus: false,
+      enabled: autoFetch,
+      retry: (failureCount, error) => {
+        // 네트워크 에러나 5xx 에러만 재시도
+        if (failureCount >= 3) return false;
+        if (error instanceof Error) {
+          return (
+            error.message.includes("network") ||
+            error.message.includes("500") ||
+            error.message.includes("502") ||
+            error.message.includes("503")
+          );
+        }
+        return true;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    });
 
-  const {
-    data: appliedJobs,
-    loading,
-    error,
-    hasMore,
-    totalCount,
-    isInitialized,
-    currentPage,
-    fetchData: fetchAppliedJobs,
-    loadMore,
-    refresh,
-    setPage,
-  } = useSeekerPagination<JobPostData>({
-    apiUrl: API_URLS.SEEKER.APPLY,
-    page: 1,
-    limit,
-    autoFetch: false, // 필터 변경 시 수동으로 호출하도록 변경
-    transformData: transformAppliedJob,
-  });
-
-  // 필터가 변경될 때마다 새로운 데이터 가져오기
-  useEffect(() => {
-    if (isInitialized) {
-      // 필터 변경 시 첫 페이지부터 다시 시작
-      fetchAppliedJobs({ page: 1 });
-    }
-  }, [filters.workType, filters.location, fetchAppliedJobs, isInitialized]);
-
-  // 초기 로딩
-  useEffect(() => {
-    if (!isInitialized) {
-      fetchAppliedJobs({ page: 1 });
-    }
-  }, [fetchAppliedJobs, isInitialized]);
+  const appliedJobs = data?.pages.flatMap((page) => page.jobs) || [];
 
   return {
-    appliedJobs: appliedJobs || null,
-    loading,
-    error,
-    hasMore,
-    loadMore,
-    refresh,
-    isInitialized,
+    appliedJobs,
+    loading: isLoading,
+    error: error as Error | null,
+    hasMore: hasNextPage,
+    loadMore: fetchNextPage,
+    refresh: refetch,
+    isLoadMoreLoading: isFetchingNextPage,
   };
 };
