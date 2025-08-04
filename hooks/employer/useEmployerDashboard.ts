@@ -27,8 +27,7 @@ interface UseEmployerDashboardReturn {
   draftJobPostList: JobPost[];
   loadingStates: {
     dashboard: boolean;
-    activeJobPostList: boolean;
-    draftJobPostList: boolean;
+    allJobPostList: boolean;
   };
   error: string | null;
   isInitialized: boolean;
@@ -55,35 +54,35 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
 
   // Active Job Posts 쿼리
   const {
-    data: activeJobPostList = [],
-    isLoading: activeJobPostListLoading,
-    error: activeJobPostListError,
-    refetch: refetchActiveJobPosts,
+    data: jobPostList = { draft: [], active: [] },
+    isLoading: allJobPostListLoading,
+    error: allJobPostListError,
+    refetch: refetchAllJobPostList,
   } = useQuery({
     queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS,
     queryFn: fetchActiveJobPosts,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    select: (data: JobPost[]) => {
+      return {
+        draft: data.filter((p) => p.status === "DRAFT"),
+        active: data.filter((p) => p.status === "PUBLISHED"),
+      };
+    }
   });
 
-  // Draft Job Posts 쿼리
-  const {
-    data: draftJobPostList = [],
-    isLoading: draftJobPostListLoading,
-    error: draftJobPostListError,
-    refetch: refetchDraftJobPosts,
-  } = useQuery({
-    queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS,
-    queryFn: fetchDraftJobPosts,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const draftJobPostList = jobPostList.draft ?? [];
+  const activeJobPostList = jobPostList.active ?? [];
 
   // 전체 새로고침 함수
   const refreshAll = async () => {
-    await Promise.allSettled([refetchDashboard(), refetchActiveJobPosts(), refetchDraftJobPosts()]);
+    const result = await Promise.allSettled([refetchDashboard(), refetchAllJobPostList()]);
+    result.forEach( (r) => {
+      if (r.status === "rejected") {
+        console.error("❌ Failed during refreshAll:", r.reason);
+      }
+    });
   };
 
   // Job Posts 캐시 무효화 함수 (publish 시 사용)
@@ -96,8 +95,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
   // 에러 처리
   const error =
     dashboardError?.message ||
-    activeJobPostListError?.message ||
-    draftJobPostListError?.message ||
+    allJobPostListError?.message ||
     null;
 
   return {
@@ -106,11 +104,10 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
     draftJobPostList,
     loadingStates: {
       dashboard: dashboardLoading,
-      activeJobPostList: activeJobPostListLoading,
-      draftJobPostList: draftJobPostListLoading,
+      allJobPostList: allJobPostListLoading,
     },
     error,
-    isInitialized: !dashboardLoading && !activeJobPostListLoading && !draftJobPostListLoading,
+    isInitialized: !dashboardLoading && !allJobPostListLoading,
     refreshAll,
     invalidateJobPosts,
   };

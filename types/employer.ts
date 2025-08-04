@@ -66,4 +66,5 @@ export interface JobPost {
   coverImage: string;
   strt_date: string;
   deadline_date: string;
+  status: $Enums.JobStatus;
 }

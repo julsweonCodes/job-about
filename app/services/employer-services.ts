@@ -190,7 +190,9 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     where: {
       business_loc_id: bizLocInfo.id,
       user_id: userId,
-      status: "PUBLISHED",
+      status: {
+        in: ["PUBLISHED", "DRAFT"],
+      },
       deadline: {
         gte: currDateStr,
       },
@@ -223,6 +225,7 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     type: post.work_type,
     views: 0,
     wage: post.wage,
+    status: post.status,
   }));
   // console.log("activeJobPostList: ", activeJobPostList);
   return activeJobPostList;
