@@ -12,14 +12,7 @@ import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-
-// 상수 분리
-const DEFAULT_VALUES = {
-  SKELETON_COUNT: 6,
-  INTERSECTION_THRESHOLD: 0.1,
-  INTERSECTION_ROOT_MARGIN: "100px",
-  PAGE_ID: "applied-jobs",
-} as const;
+import { SCROLL_IDS } from "@/constants/scrollIds";
 
 function SeekerAppliedPage() {
   const router = useRouter();
@@ -36,7 +29,7 @@ function SeekerAppliedPage() {
 
   // 스크롤 복원 훅 사용
   const { restoreScrollPosition, handleNavigateToDetail } = useScrollRestoration({
-    pageId: DEFAULT_VALUES.PAGE_ID,
+    pageId: SCROLL_IDS.SEEKER.APPLIES,
     enabled: true,
     delay: 100,
   });
@@ -103,8 +96,8 @@ function SeekerAppliedPage() {
     if (loadingRef.current && hasMore && !loading && !isLoadingRef.current) {
       observerRef.current = new IntersectionObserver(handleIntersection, {
         root: null,
-        rootMargin: DEFAULT_VALUES.INTERSECTION_ROOT_MARGIN,
-        threshold: DEFAULT_VALUES.INTERSECTION_THRESHOLD,
+        rootMargin: "100px",
+        threshold: 0.1,
       });
       observerRef.current.observe(loadingRef.current);
     }
@@ -133,7 +126,7 @@ function SeekerAppliedPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {Array.from({ length: DEFAULT_VALUES.SKELETON_COUNT }).map((_, index) => (
+            {Array.from({ length: 6 }).map((_, index) => (
               <JobPostCardSkeleton key={index} />
             ))}
           </div>

@@ -31,6 +31,7 @@ import {
   Droplets,
   Building2,
 } from "lucide-react";
+import { fromPrismaJobType } from "@/types/enumMapper";
 
 // 근무 타입
 export enum JobType {
@@ -323,11 +324,6 @@ export const getJobTypesByCategory = () => {
   return grouped;
 };
 
-// 일반적인 JobType만 반환
-export const getCommonJobTypes = (): JobTypeConfig[] => {
-  return Object.values(JOB_TYPE_CONFIGS).filter((config) => config.isCommon);
-};
-
 // 특정 JobType의 설정을 가져오는 헬퍼 함수
 export const getJobTypeConfig = (jobType: JobType): JobTypeConfig => {
   return JOB_TYPE_CONFIGS[jobType];
@@ -335,7 +331,20 @@ export const getJobTypeConfig = (jobType: JobType): JobTypeConfig => {
 
 // 서버에서 받은 JobType enum 값으로부터 클라이언트 설정을 가져오는 함수
 export const getJobTypeConfigFromServer = (serverJobType: string): JobTypeConfig | null => {
+  // fromPrismaJobType을 사용해서 Prisma enum 값을 클라이언트 enum으로 변환
+  const jobType = fromPrismaJobType(serverJobType);
+  return JOB_TYPE_CONFIGS[jobType];
+};
+
+// 서버에서 받은 JobType enum 값으로부터 UI에 필요한 정보를 가져오는 함수들
+export const getJobTypeName = (serverJobType: string): string => {
+  // 직접 JobType enum에서 찾기
   const jobType = Object.values(JobType).find((type) => type === serverJobType);
-  if (!jobType) return null;
-  return JOB_TYPE_CONFIGS[jobType as JobType];
+
+  if (jobType) {
+    return JOB_TYPE_CONFIGS[jobType].name;
+  }
+
+  const config = getJobTypeConfigFromServer(serverJobType);
+  return config?.name || serverJobType;
 };

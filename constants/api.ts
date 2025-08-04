@@ -116,7 +116,7 @@ export const PAGE_URLS = {
     POST: {
       CREATE: "/employer/post/create",
       DASHBOARD: "/employer/post/dashboard",
-      PREVIEW: (id: string) => `/employer/post/preview/${id}`,
+      PREVIEW: (id: string, useAI: boolean) => `/employer/post/preview/${id}?useAI=${useAI}`,
       DETAIL: (id: string) => `/employer/post/${id}`,
       EDIT: (id: string) => `/employer/post/${id}/edit`,
     },

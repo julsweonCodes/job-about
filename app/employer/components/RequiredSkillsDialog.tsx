@@ -3,6 +3,7 @@ import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Skill } from "@/types/profile";
+import { useCommonData } from "@/hooks/useCommonData";
 
 const MAX_SELECTED = 5;
 
@@ -12,9 +13,9 @@ const RequiredSkillsDialog: React.FC<{
   onClose: () => void;
   selectedSkills: Skill[];
   onConfirm: (skills: Skill[]) => void;
-  skills: Skill[];
-}> = ({ maxSelected = MAX_SELECTED, open, onClose, selectedSkills, onConfirm, skills }) => {
+}> = ({ maxSelected = MAX_SELECTED, open, onClose, selectedSkills, onConfirm }) => {
   const [localSelected, setLocalSelected] = useState<Skill[]>(selectedSkills);
+  const { skills } = useCommonData();
 
   useEffect(() => {
     setLocalSelected(selectedSkills);

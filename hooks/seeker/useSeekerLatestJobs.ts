@@ -1,6 +1,7 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
+import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { toPrismaWorkType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
 
@@ -26,14 +27,14 @@ const convertFiltersToPrisma = (filters: { workType: string; location: string })
 };
 
 // API 함수
-const fetchLatestJobs = async (filters = { workType: "all", location: "all" }) => {
+const fetchLatestJobs = async (filters = { workType: "all", location: "all" }, limit = 10) => {
   // 필터를 Prisma 타입으로 변환
   const prismaFilters = convertFiltersToPrisma(filters);
 
   try {
     const response = await apiGetData(API_URLS.JOB_POSTS.ROOT, {
       page: 1,
-      limit: 10,
+      limit,
       ...prismaFilters,
     });
     if (Array.isArray(response)) {
@@ -47,14 +48,14 @@ const fetchLatestJobs = async (filters = { workType: "all", location: "all" }) =
 };
 
 // React Query Hook (단순 버전)
-export const useLatestJobs = (filters = { workType: "all", location: "all" }) => {
+export const useLatestJobs = (filters = { workType: "all", location: "all" }, limit = 10) => {
   const {
     data: jobs,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["latest-jobs", filters],
-    queryFn: () => fetchLatestJobs(filters),
+    queryKey: SEEKER_QUERY_KEYS.LATEST_JOBS(filters, limit),
+    queryFn: () => fetchLatestJobs(filters, limit),
     staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
     gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 안함
@@ -74,7 +75,8 @@ export const useLatestJobs = (filters = { workType: "all", location: "all" }) =>
 export const useLatestJobsInfinite = (filters = { workType: "all", location: "all" }) => {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["latest-jobs-infinite", filters],
+      enabled: true, // 명시적으로 활성화
+      queryKey: SEEKER_QUERY_KEYS.LATEST_JOBS_INFINITE(filters),
       queryFn: ({ pageParam }) => {
         // 필터를 Prisma 타입으로 변환
         const prismaFilters = convertFiltersToPrisma(filters);
@@ -83,20 +85,56 @@ export const useLatestJobsInfinite = (filters = { workType: "all", location: "al
           page: pageParam,
           limit: 10,
           ...prismaFilters,
-        }).then((res) => ({
-          jobs: res || [], // res is already the data array
-          currentPage: pageParam,
-          hasMore: res?.length === 10,
-          totalCount: res.totalCount || 0, // totalCount might be missing if res is just the array
-        }));
+        })
+          .then((res) => {
+            // API 응답이 배열인지 확인하고 안전하게 처리
+            const jobs = Array.isArray(res) ? res : [];
+            const hasMore = jobs.length === 10;
+
+            // 항상 일관된 객체 구조 반환
+            return {
+              jobs: jobs || [],
+              currentPage: pageParam || 1,
+              hasMore: Boolean(hasMore),
+              totalCount: jobs.length || 0,
+            };
+          })
+          .catch((error) => {
+            // 에러 발생 시 빈 결과 반환
+            console.error("Failed to fetch latest jobs:", error);
+            return {
+              jobs: [],
+              currentPage: pageParam || 1,
+              hasMore: false,
+              totalCount: 0,
+            };
+          });
       },
-      getNextPageParam: (lastPage, allPages) =>
-        lastPage.hasMore ? allPages.length + 1 : undefined,
+      getNextPageParam: (lastPage, allPages) => {
+        // lastPage가 undefined이거나 hasMore가 false면 더 이상 페이지가 없음
+        if (!lastPage || typeof lastPage !== "object") return undefined;
+        if (lastPage.hasMore === false) return undefined;
+        return allPages.length + 1;
+      },
       initialPageParam: 1,
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
+      retry: (failureCount, error) => {
+        // 네트워크 에러나 5xx 에러만 재시도
+        if (failureCount >= 3) return false;
+        if (error instanceof Error) {
+          return (
+            error.message.includes("network") ||
+            error.message.includes("500") ||
+            error.message.includes("502") ||
+            error.message.includes("503")
+          );
+        }
+        return true;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
-  const jobs = data?.pages.flatMap((page) => page.jobs) || [];
+  const jobs = data?.pages.flatMap((page) => page?.jobs || []) || [];
   return {
     jobs,
     isLoading,

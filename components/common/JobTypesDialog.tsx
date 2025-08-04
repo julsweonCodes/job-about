@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import Input from "@/components/ui/Input";
 import { X, Search } from "lucide-react";
-import { getJobTypesByCategory, getJobTypeConfig } from "@/constants/jobTypes";
+import { getJobTypeConfig, getJobTypeConfigFromServer } from "@/constants/jobTypes";
 import { JobType } from "@/constants/jobTypes";
+import { useCommonData } from "@/hooks/useCommonData";
 
 // Job type categories
 const JOB_CATEGORIES_DISPLAY = {
@@ -42,7 +43,25 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  const jobTypesByCategory = getJobTypesByCategory();
+  // useCommonData에서 jobTypes 가져오기
+  const { jobTypes } = useCommonData();
+
+  // 서버에서 받은 jobTypes를 클라이언트 설정으로 매핑
+  const jobTypesByCategory = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+
+    jobTypes.forEach((serverJobType: string) => {
+      const config = getJobTypeConfigFromServer(serverJobType);
+      if (config) {
+        if (!grouped[config.category]) {
+          grouped[config.category] = [];
+        }
+        grouped[config.category].push(config);
+      }
+    });
+
+    return grouped;
+  }, [jobTypes]);
 
   // 검색 결과 필터링
   const searchResults = useMemo(() => {
@@ -119,7 +138,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
         {showSearchResults && (
           <div className="py-2 border-gray-100 max-h-[50vh] overflow-y-auto px-5 md:px-8">
             {searchResults.length > 0 ? (
-              searchResults.map((config, index) => {
+              searchResults.map((config: any, index) => {
                 const Icon = config.icon;
                 const isSelected = localSelected.includes(config.id);
                 const disabled = !isSelected && localSelected.length >= maxSelected;
@@ -163,7 +182,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
                     category}
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {jobTypes.map((config, index) => {
+                  {jobTypes.map((config: any, index) => {
                     const isSelected = localSelected.includes(config.id);
                     const disabled = !isSelected && localSelected.length >= maxSelected;
 

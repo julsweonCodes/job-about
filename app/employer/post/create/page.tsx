@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "react-day-picker/dist/style.css";
 import {
   ArrowLeft,
@@ -18,179 +18,58 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import { FullWidthChip } from "@/components/ui/FullWidthChip";
-import { LanguageLevel, LANGUAGE_LEVELS, WorkType } from "@/constants/enums";
+import { LANGUAGE_LEVELS } from "@/constants/enums";
 import { getJobTypeConfig } from "@/constants/jobTypes";
 import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import PreferredPersonalityDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
-import { useRouter } from "next/navigation";
-import { Skill, WorkStyle } from "@/types/profile";
 import { capitalize } from "@/lib/utils";
 import { WORK_TYPE_OPTIONS } from "@/constants/options";
 import { FormSection } from "@/components/common/FormSection";
-import { JobType } from "@/constants/jobTypes";
-import { API_URLS } from "@/constants/api";
-import { showErrorToast } from "@/utils/client/toastUtils";
+import { useEmployerJobPostCreate } from "@/hooks/employer/useEmployerJobPostCreate";
+
 function JobPostCreatePage() {
-  const [tempDeadline, setTempDeadline] = useState<Date | null>(null);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [personalityDialogOpen, setPersonalityDialogOpen] = useState(false);
-  const [skillsDialogOpen, setSkillsDialogOpen] = useState(false);
-  const [jobTypesDialogOpen, setJobTypesDialogOpen] = useState(false);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [workStyles, setWorkStyles] = useState<WorkStyle[]>([]);
+  const {
+    // Form Data
+    formData,
+    handleInputChange,
 
-  // 각 API 호출의 개별 상태
-  const [loadingStates, setLoadingStates] = useState({
-    skills: false,
-    jobTypes: false,
-    workStyles: false,
-    workType: false,
-  });
-  const [geminiResState, setGeminiResState] = useState(false);
-  // 전체 로딩 상태 계산
-  const isLoading = Object.values(loadingStates).some((state) => state);
+    // UI States
+    tempDeadline,
+    setTempDeadline,
+    calendarOpen,
+    setCalendarOpen,
+    personalityDialogOpen,
+    setPersonalityDialogOpen,
+    skillsDialogOpen,
+    setSkillsDialogOpen,
+    jobTypesDialogOpen,
+    setJobTypesDialogOpen,
 
-  const [formData, setFormData] = useState({
-    jobTitle: "",
-    selectedJobType: null as JobType | null,
-    deadline: undefined as Date | undefined,
-    workSchedule: "",
-    requiredSkills: [],
-    requiredWorkStyles: [],
-    wage: "",
-    jobDescription: "",
-    languageLevel: null as LanguageLevel | null,
-    selectedWorkType: null as WorkType | null,
-    useAI: true, // AI 사용 여부 (기본값: true)
-  });
+    // Loading States
+    isLoading,
+    geminiResState,
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch("/api/utils");
-      const data = await res.json();
+    // Validation
+    touched,
+    setTouched,
+    validateRequired,
+    isFormValid,
 
-      if (res.ok) {
-        setSkills(data.data.skills);
-        setWorkStyles(data.data.workStyles);
-      } else {
-        console.error("Failed to fetch data:", data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
+    // Actions
+    handleSubmit,
+    handleBack,
 
-  const initializeData = async () => {
-    try {
-      // 로딩 시작
-      setLoadingStates({
-        skills: true,
-        jobTypes: true,
-        workStyles: true,
-        workType: true,
-      });
-
-      // 모든 API 호출을 병렬로 실행
-      await Promise.all([
-        fetchData(),
-        // 추가 API 호출들을 여기에 추가
-      ]);
-    } catch (error) {
-      console.error("Error initializing data:", error);
-    } finally {
-      // 로딩 완료
-      setLoadingStates({
-        skills: false,
-        jobTypes: false,
-        workStyles: false,
-        workType: false,
-      });
-    }
-  };
-
-  useEffect(() => {
-    initializeData();
-  }, []);
-
-  const router = useRouter();
-
-  const handleInputChange = (
-    field: string,
-    value:
-      | string
-      | boolean
-      | Date
-      | string[]
-      | Skill[]
-      | WorkStyle[]
-      | JobType
-      | WorkType
-      | LanguageLevel
-      | null
-      | undefined
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGeminiResState(true);
-    // 1. AI로 공고 생성 & DB 저장 (예시: /api/employer/job-post 호출)
-    const res = await fetch(API_URLS.EMPLOYER.POST.CREATE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    if (!res.ok) {
-      showErrorToast("Failed to create job post.");
-      setGeminiResState(false);
-      return;
-    }
-    const result = await res.json();
-    setGeminiResState(false);
-    console.log(result);
-
-    // 2. 미리보기 페이지로 이동
-    if (formData.useAI) {
-      router.replace(`/employer/post/preview/${result.data.id}?useAI=true`);
-    } else {
-      router.replace(`/employer/post/preview/${result.data.id}?useAI=false`);
-    }
-  };
-
-  const handleBack = () => {
-    window.history.back();
-  };
-
-  // Calculate completion percentage
-  const calculateCompletion = () => {
-    const fields = [
-      formData.jobTitle,
-      formData.selectedJobType,
-      formData.deadline,
-      formData.workSchedule,
-      formData.requiredSkills.length > 0,
-      formData.requiredWorkStyles.length > 0,
-      formData.wage,
-      formData.jobDescription,
-      formData.languageLevel,
-      formData.selectedWorkType,
-    ];
-    const completed = fields.filter(Boolean).length;
-    return Math.round((completed / fields.length) * 100);
-  };
-
-  const progress = calculateCompletion();
+    // Computed Values
+    progress,
+  } = useEmployerJobPostCreate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
       {isLoading && <LoadingScreen message="Generating job post..." />}
       {geminiResState && <LoadingScreen message="Generating AI-powered job description..." />}
+
       {/* Header */}
       <PageProgressHeader
         title="Generate a Job Post with AI"
@@ -201,7 +80,6 @@ function JobPostCreatePage() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/*<form onSubmit={handleSubmit} className="space-y-6"> */}
         <div className="space-y-6">
           {/* Job Title Section */}
           <FormSection
@@ -213,8 +91,12 @@ function JobPostCreatePage() {
             <Input
               value={formData.jobTitle}
               onChange={(e: any) => handleInputChange("jobTitle", e.target.value)}
+              onBlur={() => setTouched((t) => ({ ...t, jobTitle: true }))}
               placeholder="Enter Job Title"
               required
+              error={
+                touched.jobTitle ? validateRequired(formData.jobTitle, "Job title is required") : ""
+              }
             />
           </FormSection>
 
@@ -240,14 +122,21 @@ function JobPostCreatePage() {
                     <FullWidthChip
                       key={option.value}
                       selected={formData.selectedWorkType === option.value}
-                      onClick={() => handleInputChange("selectedWorkType", option.value)}
+                      onClick={() => {
+                        handleInputChange("selectedWorkType", option.value);
+                        setTouched((t) => ({ ...t, selectedWorkType: true }));
+                      }}
                       color="green"
                     >
                       {option.label}
                     </FullWidthChip>
                   ))}
                 </div>
+                {touched.selectedWorkType && !formData.selectedWorkType && (
+                  <p className="text-red-500 text-sm mt-1">Work type is required</p>
+                )}
               </div>
+
               {/* Job Type Selection */}
               <div>
                 <Typography
@@ -266,6 +155,15 @@ function JobPostCreatePage() {
                     formData.selectedJobType ? getJobTypeConfig(formData.selectedJobType).name : ""
                   }
                   onClick={() => setJobTypesDialogOpen(true)}
+                  onBlur={() => setTouched((t) => ({ ...t, selectedJobType: true }))}
+                  error={
+                    touched.selectedJobType
+                      ? validateRequired(
+                          formData.selectedJobType ? "selected" : "",
+                          "Job type is required"
+                        )
+                      : ""
+                  }
                 />
               </div>
             </div>
@@ -297,6 +195,15 @@ function JobPostCreatePage() {
                       : ""
                   }
                   onClick={() => setCalendarOpen(true)}
+                  onBlur={() => setTouched((t) => ({ ...t, deadline: true }))}
+                  error={
+                    touched.deadline
+                      ? validateRequired(
+                          formData.deadline ? "selected" : "",
+                          "Deadline is required"
+                        )
+                      : ""
+                  }
                 />
               </div>
 
@@ -308,9 +215,15 @@ function JobPostCreatePage() {
                     label="Work Schedule"
                     value={formData.workSchedule}
                     onChange={(e: any) => handleInputChange("workSchedule", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, workSchedule: true }))}
                     placeholder="Weekends only, 10am–2pm"
                     required
                     rightIcon={<Calendar className="w-5 h-5 text-gray-400" />}
+                    error={
+                      touched.workSchedule
+                        ? validateRequired(formData.workSchedule, "Work schedule is required")
+                        : ""
+                    }
                   />
                 </div>
               </div>
@@ -341,6 +254,15 @@ function JobPostCreatePage() {
                     )
                     .join(", ")}
                   onClick={() => setSkillsDialogOpen(true)}
+                  onBlur={() => setTouched((t) => ({ ...t, requiredSkills: true }))}
+                  error={
+                    touched.requiredSkills
+                      ? validateRequired(
+                          formData.requiredSkills.length > 0 ? "selected" : "",
+                          "Required skills are required"
+                        )
+                      : ""
+                  }
                 />
               </div>
 
@@ -359,6 +281,15 @@ function JobPostCreatePage() {
                     )
                     .join(", ")}
                   onClick={() => setPersonalityDialogOpen(true)}
+                  onBlur={() => setTouched((t) => ({ ...t, requiredWorkStyles: true }))}
+                  error={
+                    touched.requiredWorkStyles
+                      ? validateRequired(
+                          formData.requiredWorkStyles.length > 0 ? "selected" : "",
+                          "Required work style is required"
+                        )
+                      : ""
+                  }
                 />
               </div>
 
@@ -371,18 +302,24 @@ function JobPostCreatePage() {
                 >
                   Required Language Level
                 </Typography>
-                <div className="flex gap-2 sm:grid sm:grid-cols-3">
+                <div className="flex gap-2 flex-wrap sm:grid sm:grid-cols-4">
                   {LANGUAGE_LEVELS.map((level) => (
                     <FullWidthChip
                       key={level}
                       selected={formData.languageLevel === level}
-                      onClick={() => handleInputChange("languageLevel", level)}
+                      onClick={() => {
+                        handleInputChange("languageLevel", level);
+                        setTouched((t) => ({ ...t, languageLevel: true }));
+                      }}
                       color="teal"
                     >
                       {level}
                     </FullWidthChip>
                   ))}
                 </div>
+                {touched.languageLevel && !formData.languageLevel && (
+                  <p className="text-red-500 text-sm mt-1">Language level is required</p>
+                )}
               </div>
             </div>
           </FormSection>
@@ -401,8 +338,10 @@ function JobPostCreatePage() {
                   step="0.01"
                   value={formData.wage}
                   onChange={(e: any) => handleInputChange("wage", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, wage: true }))}
                   placeholder="Enter Wage"
                   required
+                  error={touched.wage ? validateRequired(formData.wage, "Wage is required") : ""}
                 />
               </div>
             </div>
@@ -459,6 +398,7 @@ function JobPostCreatePage() {
               label="Job Description"
               value={formData.jobDescription}
               onChange={(e: any) => handleInputChange("jobDescription", e.target.value)}
+              onBlur={() => setTouched((t) => ({ ...t, jobDescription: true }))}
               placeholder={
                 formData.useAI
                   ? "AI will generate description based on your inputs..."
@@ -466,24 +406,29 @@ function JobPostCreatePage() {
               }
               rows={4}
               required
+              error={
+                touched.jobDescription
+                  ? validateRequired(formData.jobDescription, "Job description is required")
+                  : ""
+              }
             />
           </FormSection>
 
           {/* Submit Button */}
           <div className="pb-8">
             <Button
-              //type="submit"
               onClick={handleSubmit}
               size="xl"
               variant="gradient"
               className="w-full"
+              disabled={!isFormValid()}
             >
               {formData.useAI ? "Generate Job Posting with AI" : "Create Job Posting"}
             </Button>
           </div>
         </div>
 
-        {/* JobTypesDialog */}
+        {/* Dialogs */}
         <JobTypesDialog
           title="Select Job Type"
           open={jobTypesDialogOpen}
@@ -495,7 +440,7 @@ function JobPostCreatePage() {
           }}
           maxSelected={1}
         />
-        {/* 날짜 선택 다이얼로그 */}
+
         <DatePickerDialog
           open={calendarOpen}
           onClose={() => setCalendarOpen(false)}
@@ -507,7 +452,7 @@ function JobPostCreatePage() {
           confirmLabel="Select"
           required
         />
-        {/* Required Skills Dialog */}
+
         <RequiredSkillsDialog
           open={skillsDialogOpen}
           onClose={() => setSkillsDialogOpen(false)}
@@ -516,9 +461,8 @@ function JobPostCreatePage() {
             handleInputChange("requiredSkills", skills);
             setSkillsDialogOpen(false);
           }}
-          skills={skills}
         />
-        {/* Preferred Personality Dialog */}
+
         <PreferredPersonalityDialog
           open={personalityDialogOpen}
           onClose={() => setPersonalityDialogOpen(false)}
@@ -527,7 +471,6 @@ function JobPostCreatePage() {
             handleInputChange("requiredWorkStyles", workStyles);
             setPersonalityDialogOpen(false);
           }}
-          workStyles={workStyles}
         />
       </div>
     </div>

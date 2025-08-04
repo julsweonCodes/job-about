@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { JobPostData } from "@/types/jobPost";
 import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/textUtils";
+import { getJobTypeName } from "@/constants/jobTypes";
 
 // Types
 interface JobPostViewProps {
@@ -44,12 +45,6 @@ interface JobPostViewProps {
 // Constants
 const JOB_DETAIL_ITEMS = [
   {
-    icon: MapPin,
-    label: "Location",
-    color: "text-red-500",
-    bgColor: "bg-red-50",
-  },
-  {
     icon: DollarSign,
     label: "Hourly Wage",
     color: "text-green-500",
@@ -72,6 +67,12 @@ const JOB_DETAIL_ITEMS = [
     label: "Application Deadline",
     color: "text-orange-500",
     bgColor: "bg-orange-50",
+  },
+  {
+    icon: Building2,
+    label: "Job Type",
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-50",
   },
 ];
 
@@ -485,11 +486,11 @@ const ActionButtons: React.FC<{
 // Utility functions
 const getJobDetailValue = (jobData: JobPostData, label: string): string | undefined => {
   const valueMap: Record<string, string | undefined> = {
-    Location: jobData.businessLocInfo?.address,
     "Hourly Wage": jobData.hourlyWage,
     Schedule: jobData.schedule,
     "Language Level": jobData.languageLevel,
     "Application Deadline": jobData.deadline,
+    "Job Type": jobData.jobType ? getJobTypeName(jobData.jobType) : undefined,
   };
   return valueMap[label];
 };
