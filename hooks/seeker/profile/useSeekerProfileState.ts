@@ -91,10 +91,28 @@ interface UseProfileStateReturn {
 }
 
 export const useSeekerProfileState = (
-  applicantProfile: ApplicantProfile
+  applicantProfile: ApplicantProfile | null
 ): UseProfileStateReturn => {
+  // Default profile when applicantProfile is null
+  const defaultProfile: ApplicantProfile = {
+    name: "",
+    description: "",
+    joinDate: "",
+    personalityName: "",
+    personalityDesc: "",
+    location: "",
+    phone: "",
+    skillIds: [],
+    workType: "",
+    jobTypes: [],
+    availabilityDay: "",
+    availabilityTime: "",
+    englishLevel: "",
+    experiences: [],
+  };
+
   // State
-  const [tempData, setTempData] = useState<ApplicantProfile>(applicantProfile);
+  const [tempData, setTempData] = useState<ApplicantProfile>(applicantProfile || defaultProfile);
   const [isEditing, setIsEditingState] = useState<EditingStates>(INITIAL_EDITING_STATES);
   const [loadingStates, setLoadingStatesState] = useState<LoadingStates>(INITIAL_LOADING_STATES);
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
@@ -106,8 +124,10 @@ export const useSeekerProfileState = (
 
   // Sync tempData with applicantProfile
   useEffect(() => {
-    setTempData(applicantProfile);
-    setOriginalExperiences(applicantProfile.experiences);
+    if (applicantProfile) {
+      setTempData(applicantProfile);
+      setOriginalExperiences(applicantProfile.experiences);
+    }
   }, [applicantProfile]);
 
   // Actions

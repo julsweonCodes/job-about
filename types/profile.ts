@@ -23,7 +23,6 @@ import {
   LanguageLevel as ClientLanguageLevel,
   WorkPeriod as ClientWorkPeriod,
 } from "@/constants/enums";
-import { $Enums } from "@prisma/client";
 
 export interface applicantProfile {
   job_type1: string;

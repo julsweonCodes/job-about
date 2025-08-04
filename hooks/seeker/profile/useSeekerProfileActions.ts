@@ -16,8 +16,9 @@ import {
   toPrismaLocation,
   toPrismaWorkPeriod,
 } from "@/types/enumMapper";
-import { ApplicantProfile } from "./useSeekerProfileData";
+import { ApplicantProfile } from "@/hooks/seeker/useSeekerProfileQueries";
 import { EditingStates, LoadingStates, DialogStates } from "./useSeekerProfileState";
+import { useSeekerProfileMutations } from "@/hooks/seeker/useSeekerProfileMutations";
 
 const SECTION_MAPPINGS = {
   contact: (data: any) => ({
@@ -108,6 +109,8 @@ export const useSeekerProfileActions = (
   dialogStates: DialogStates
 ): UseProfileActionsReturn => {
   const { updateProfileImage } = useAuthStore();
+  const { updateProfile, updateSkills, updateJobTypes, updateExperiences } =
+    useSeekerProfileMutations();
 
   // Centralized error handler
   const handleApiError = useCallback((error: Error, context: string) => {
@@ -120,8 +123,9 @@ export const useSeekerProfileActions = (
     async (section: string, payload: Partial<applicantProfile>, showToast: boolean = true) => {
       try {
         setLoadingStates({ profileUpdate: true });
-        console.log("🔍 updateProfileSection payload:", payload);
-        await apiPatchData(API_URLS.SEEKER.PROFILES, payload);
+
+        // Use React Query mutation instead of direct API call
+        await updateProfile.mutateAsync(payload);
 
         if (showToast) {
           showSuccessToast(`${section} updated successfully`);
@@ -135,7 +139,7 @@ export const useSeekerProfileActions = (
         setLoadingStates({ profileUpdate: false });
       }
     },
-    [tempData, setApplicantProfile, setLoadingStates, handleApiError]
+    [tempData, setApplicantProfile, setLoadingStates, handleApiError, updateProfile]
   );
 
   const handleOptionsSave = useCallback(
@@ -183,25 +187,25 @@ export const useSeekerProfileActions = (
           })),
         };
 
-        const success = await updateProfileSection("skills", payload, false);
-        if (success) {
-          setApplicantProfile({
-            ...applicantProfile,
-            skillIds: skillIds,
-          });
-          showSuccessToast("Skills updated successfully!");
-        }
+        // Use React Query mutation for skills update
+        await updateSkills.mutateAsync(payload);
+
+        setApplicantProfile({
+          ...applicantProfile,
+          skillIds: skillIds,
+        });
+        showSuccessToast("Skills updated successfully!");
       } finally {
         setLoadingStates({ skillsUpdate: false });
       }
     },
     [
       handleTempInputChange,
-      updateProfileSection,
       applicantProfile,
       setApplicantProfile,
       setDialogStates,
       setLoadingStates,
+      updateSkills,
     ]
   );
 
@@ -231,8 +235,8 @@ export const useSeekerProfileActions = (
         };
 
         try {
-          console.log("🔍 job types payload:", payload);
-          await apiPatchData(API_URLS.SEEKER.PROFILES, payload);
+          // Use React Query mutation for job types update
+          await updateJobTypes.mutateAsync(payload);
 
           setApplicantProfile({
             ...applicantProfile,
@@ -254,6 +258,7 @@ export const useSeekerProfileActions = (
       setDialogStates,
       setLoadingStates,
       handleApiError,
+      updateJobTypes,
     ]
   );
 
@@ -267,17 +272,42 @@ export const useSeekerProfileActions = (
     [setDialogStates]
   );
 
-  const confirmDeleteExperience = useCallback(() => {
+  const confirmDeleteExperience = useCallback(async () => {
     const { experienceIndex } = dialogStates.deleteConfirm;
     if (experienceIndex !== null) {
-      const updatedExperiences = tempData.experiences.filter((_, i) => i !== experienceIndex);
-      setTempData({ ...tempData, experiences: updatedExperiences });
-      showSuccessToast("Experience deleted successfully!");
+      try {
+        const updatedExperiences = tempData.experiences.filter((_, i) => i !== experienceIndex);
+        setTempData({ ...tempData, experiences: updatedExperiences });
+
+        // Update server with new experiences
+        const payload = {
+          work_experiences: updatedExperiences.map((exp: any) => ({
+            company_name: exp.company,
+            job_type: toPrismaJobType(exp.jobType),
+            start_year: exp.startYear,
+            work_period: toPrismaWorkPeriod(exp.workedPeriod),
+            work_type: toPrismaWorkType(exp.workType),
+            description: exp.description,
+          })),
+        };
+
+        await updateExperiences.mutateAsync(payload);
+        showSuccessToast("Experience deleted successfully!");
+      } catch (error) {
+        handleApiError(error as Error, "delete experience");
+      }
     }
     setDialogStates({
       deleteConfirm: { isOpen: false, experienceIndex: null },
     });
-  }, [dialogStates.deleteConfirm, tempData, setTempData, setDialogStates]);
+  }, [
+    dialogStates.deleteConfirm,
+    tempData,
+    setTempData,
+    setDialogStates,
+    updateExperiences,
+    handleApiError,
+  ]);
 
   const cancelDeleteExperience = useCallback(() => {
     setDialogStates({

@@ -1,9 +1,10 @@
 import { useCallback } from "react";
 import { convertLocationKeyToValue } from "@/constants/location";
 import { useCommonData } from "@/hooks/useCommonData";
-import { useSeekerProfileData, ApplicantProfile } from "./useSeekerProfileData";
+import { useSeekerProfileData } from "./useSeekerProfileData";
 import { useSeekerProfileState, EditingStates } from "./useSeekerProfileState";
 import { useSeekerProfileActions } from "./useSeekerProfileActions";
+import { ApplicantProfile } from "@/hooks/seeker/useSeekerProfileQueries";
 
 export interface UseSeekerMypageProfileImprovedReturn {
   // State
@@ -91,13 +92,12 @@ export const useSeekerMypageProfileImproved = (): UseSeekerMypageProfileImproved
     setSelectedSkills,
     setSelectedJobTypes,
     setDialogStates,
-    setOriginalExperiences,
     hasExperiencesChanged,
-  } = useSeekerProfileState(applicantProfile);
+  } = useSeekerProfileState(applicantProfile || null);
 
   // Utility functions
   const handleTempInputChange = useCallback(
-    (field: keyof ApplicantProfile, value: any) => {
+    (field: string | number | symbol, value: any) => {
       setTempData((prev: ApplicantProfile) => ({ ...prev, [field]: value }) as ApplicantProfile);
     },
     [setTempData]

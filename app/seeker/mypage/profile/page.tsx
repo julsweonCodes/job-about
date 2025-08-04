@@ -95,7 +95,7 @@ function SeekerProfilePage() {
     handleSaveExperience: saveExperience,
   } = useSeekerExperience();
 
-  if (isLoading || !applicantProfile || !tempData) {
+  if (isLoading || !applicantProfile) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
         {/* Loading Screen for API calls */}

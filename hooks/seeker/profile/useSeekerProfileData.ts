@@ -1,52 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
-import { API_URLS } from "@/constants/api";
-import { showErrorToast } from "@/utils/client/toastUtils";
+import { useCallback } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { applicantProfile, ApplicantProfileMapper } from "@/types/profile";
-import { apiGetData } from "@/utils/client/API";
 import { useCommonData } from "@/hooks/useCommonData";
+import { useSeekerProfileQueries } from "@/hooks/seeker/useSeekerProfileQueries";
 
 // Types
-export interface UserInfo {
-  name: string;
-  description: string;
-  phone_number: string;
-  img_url?: string;
-  created_at: Date;
-}
-
-export interface Personality {
-  id?: number;
-  name_ko: string;
-  name_en: string;
-  description_ko: string;
-  description_en: string;
-}
-
-export interface ApplicantProfile {
-  name: string;
-  description: string;
-  joinDate: string;
-  personalityName: string;
-  personalityDesc: string;
-  location: string;
-  phone: string;
-  skillIds: number[];
-  workType: string;
-  jobTypes: string[];
-  availabilityDay: string;
-  availabilityTime: string;
-  englishLevel: string;
-  experiences: {
-    company: string;
-    jobType: string;
-    startYear: string;
-    workedPeriod: string;
-    workType: string;
-    description: string;
-  }[];
-}
-
 export interface LoadingStates {
   skills: boolean;
   locations: boolean;
@@ -60,36 +17,19 @@ const INITIAL_LOADING_STATES: LoadingStates = {
   profile: false,
 };
 
-const INITIAL_APPLICANT_PROFILE: ApplicantProfile = {
-  name: "",
-  description: "",
-  joinDate: "",
-  personalityName: "",
-  personalityDesc: "",
-  location: "",
-  phone: "",
-  skillIds: [],
-  workType: "",
-  jobTypes: [],
-  availabilityDay: "",
-  availabilityTime: "",
-  englishLevel: "",
-  experiences: [],
-};
-
 interface UseProfileDataReturn {
   // State
-  userInfo: UserInfo | null;
-  seekerProfile: applicantProfile | null;
-  applicantProfile: ApplicantProfile;
+  userInfo: any;
+  seekerProfile: any;
+  applicantProfile: any;
   isInitialized: boolean;
   isLoading: boolean;
   loadingStates: LoadingStates;
 
   // Actions
-  setUserInfo: (userInfo: UserInfo | null) => void;
-  setSeekerProfile: (profile: applicantProfile | null) => void;
-  setApplicantProfile: (profile: ApplicantProfile) => void;
+  setUserInfo: (userInfo: any) => void;
+  setSeekerProfile: (profile: any) => void;
+  setApplicantProfile: (profile: any) => void;
 }
 
 export const useSeekerProfileData = (): UseProfileDataReturn => {
@@ -97,145 +37,39 @@ export const useSeekerProfileData = (): UseProfileDataReturn => {
   const { supabaseUser: authUser, appUser } = useAuthStore();
   const { isLoading: isCommonDataLoading } = useCommonData();
 
-  // State
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [seekerPersonality, setSeekerPersonality] = useState<Personality | null>(null);
-  const [seekerProfile, setSeekerProfile] = useState<applicantProfile | null>(null);
-  const [applicantProfile, setApplicantProfile] =
-    useState<ApplicantProfile>(INITIAL_APPLICANT_PROFILE);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingStates, setLoadingStates] = useState<LoadingStates>(INITIAL_LOADING_STATES);
+  // React Query hooks
+  const {
+    userInfo,
+    personality,
+    profile: seekerProfile,
+    transformedProfile: applicantProfile,
+    isLoading,
+    isError,
+    error,
+    userInfoLoading,
+    personalityLoading,
+    profileLoading,
+  } = useSeekerProfileQueries();
 
-  // Centralized error handler
-  const handleApiError = useCallback((error: Error, context: string) => {
-    console.error(`Error in ${context}:`, error);
-    showErrorToast(`Failed to ${context}`);
+  // Dummy setter functions for backward compatibility
+  const setUserInfo = useCallback((userInfo: any) => {
+    console.warn("setUserInfo is deprecated - use React Query mutations instead");
   }, []);
 
-  // API Functions
-  const fetchInitialData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setLoadingStates((prev) => ({ ...prev, profile: true }));
+  const setSeekerProfile = useCallback((profile: any) => {
+    console.warn("setSeekerProfile is deprecated - use React Query mutations instead");
+  }, []);
 
-      // User Info
-      if (authUser && appUser) {
-        const userInfoData: UserInfo = {
-          name: appUser.name || authUser.email || "",
-          description: "",
-          phone_number: "",
-          img_url: appUser.img_url || undefined,
-          created_at: new Date(appUser.created_at || Date.now()),
-        };
-        setUserInfo(userInfoData);
-      } else {
-        const userData = await apiGetData(API_URLS.USER.ME);
-        setUserInfo(userData.user);
-      }
+  const setApplicantProfile = useCallback((profile: any) => {
+    console.warn("setApplicantProfile is deprecated - use React Query mutations instead");
+  }, []);
 
-      // Personality Data
-      try {
-        const personalityData = await apiGetData(API_URLS.QUIZ.MY_PROFILE);
-        if (personalityData) {
-          setSeekerPersonality(personalityData);
-        } else {
-          // Fallback to dummy data
-          setSeekerPersonality({
-            id: 3,
-            name_ko: "공감형 코디네이터",
-            name_en: "Empathetic Coordinator",
-            description_ko:
-              "사람들과의 협업과 소통에서 에너지를 얻습니다. 특히 고객의 감정을 잘 파악하고 긍정적인 관계를 맺는 데 강점이 있습니다.",
-            description_en:
-              "Gains energy from collaboration and communication. Excellent at understanding customer emotions and building positive relationships.",
-          });
-        }
-      } catch (error) {
-        handleApiError(error as Error, "load personality data");
-        // Fallback to dummy data
-        setSeekerPersonality({
-          id: 3,
-          name_ko: "공감형 코디네이터",
-          name_en: "Empathetic Coordinator",
-          description_ko:
-            "사람들과의 협업과 소통에서 에너지를 얻습니다. 특히 고객의 감정을 잘 파악하고 긍정적인 관계를 맺는 데 강점이 있습니다.",
-          description_en:
-            "Gains energy from collaboration and communication. Excellent at understanding customer emotions and building positive relationships.",
-        });
-      }
-
-      // Profile Data
-      const profileData = await apiGetData(API_URLS.SEEKER.PROFILES);
-      setSeekerProfile(profileData);
-    } catch (error) {
-      handleApiError(error as Error, "load profile data");
-    } finally {
-      setIsLoading(false);
-      setLoadingStates((prev) => ({ ...prev, profile: false }));
-    }
-  }, [authUser, appUser, handleApiError]);
-
-  // Effects
-  useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
-
-  // Transform and initialize data
-  useEffect(() => {
-    if (!userInfo || !seekerPersonality) return;
-
-    const profile: ApplicantProfile = {
-      name: userInfo.name || "",
-      description: userInfo.description || "",
-      joinDate: new Date(userInfo.created_at).toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
-      personalityName: seekerPersonality.name_en,
-      personalityDesc: seekerPersonality.description_en,
-      location: "",
-      phone: userInfo.phone_number || "",
-      skillIds: [],
-      workType: "",
-      jobTypes: [],
-      availabilityDay: "",
-      availabilityTime: "",
-      englishLevel: "",
-      experiences: [],
-    };
-
-    if (seekerProfile) {
-      try {
-        const formData = ApplicantProfileMapper.fromApi(seekerProfile);
-
-        Object.assign(profile, {
-          location: formData.location,
-          skillIds: formData.skillIds,
-          workType: formData.workType,
-          jobTypes: formData.preferredJobTypes,
-          availabilityDay: formData.availableDay,
-          availabilityTime: formData.availableHour,
-          englishLevel: formData.englishLevel,
-          description: formData.description,
-          experiences: formData.experiences.map((exp: any) => ({
-            company: exp.company,
-            jobType: exp.jobType,
-            startYear: exp.startYear,
-            workedPeriod: exp.workPeriod,
-            workType: exp.workType,
-            description: exp.description,
-          })),
-        });
-      } catch (error) {
-        handleApiError(error as Error, "parse seeker profile");
-      }
-    }
-
-    setApplicantProfile(profile);
-    setIsInitialized(true);
-  }, [userInfo, seekerPersonality, seekerProfile, handleApiError]);
+  // Loading states
+  const loadingStates: LoadingStates = {
+    skills: false, // Skills are handled by useCommonData
+    locations: false, // Locations are handled by useCommonData
+    profile: profileLoading,
+  };
 
   // Combined loading state
   const combinedIsLoading = isLoading || isCommonDataLoading;
@@ -244,12 +78,27 @@ export const useSeekerProfileData = (): UseProfileDataReturn => {
     // State
     userInfo,
     seekerProfile,
-    applicantProfile,
-    isInitialized,
+    applicantProfile: applicantProfile || {
+      name: "",
+      description: "",
+      joinDate: "",
+      personalityName: "",
+      personalityDesc: "",
+      location: "",
+      phone: "",
+      skillIds: [],
+      workType: "",
+      jobTypes: [],
+      availabilityDay: "",
+      availabilityTime: "",
+      englishLevel: "",
+      experiences: [],
+    },
+    isInitialized: !isLoading && !isError,
     isLoading: combinedIsLoading,
     loadingStates,
 
-    // Actions
+    // Actions (deprecated but kept for backward compatibility)
     setUserInfo,
     setSeekerProfile,
     setApplicantProfile,
