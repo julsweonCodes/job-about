@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   saveEmployerProfile,
-  updateEmployerProfile,
   uploadEmployerImages,
 } from "@/app/services/employer-services";
 import {getUserIdFromSession} from "@/utils/auth";
@@ -51,7 +50,6 @@ export async function POST(
       updated_at: new Date().toISOString(),
     };
 
-    //const updated = await updateEmployerProfile(Number(params.userId), payload);
     const updated = await saveEmployerProfile(payload);
 
     return NextResponse.json(updated);

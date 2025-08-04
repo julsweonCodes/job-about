@@ -4,7 +4,7 @@ import { EmployerProfilePayload, JobPost } from "@/types/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
-import { toPrismaLocation } from "@/types/enumMapper";
+import { toPrismaLocationStrict } from "@/types/enumMapper";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -64,7 +64,7 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
     ...payload,
     description: payload.description ?? "",
     user_id: Number(payload.user_id),
-    location: toPrismaLocation(payload.location),
+    location: toPrismaLocationStrict(payload.location),
   };
   console.log(safePayload);
   const { data, error } = await supabaseClient.from("business_loc").insert([safePayload]);
@@ -76,12 +76,14 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
 }
 
 // PUT - Update business loc
+/*
 export async function updateEmployerProfile(id: number, payload: EmployerProfilePayload) {
   const { data, error } = await supabaseClient.from("business_loc").update(payload).eq("id", id);
 
   if (error) throw error;
   return data;
 }
+ */
 
 /** 2. Dashboard */
 // GET - Select cnt values for employer dashboard
@@ -200,6 +202,9 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
         },
       },
     },
+    orderBy: {
+      deadline: "asc"
+    }
   });
 
   // console.log("bizLocInfo: ", bizLocInfo);

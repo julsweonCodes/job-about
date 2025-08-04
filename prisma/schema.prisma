@@ -270,6 +270,7 @@ enum LanguageLevel {
   BEGINNER
   INTERMEDIATE
   FLUENT
+  NOT_REQUIRED
 }
 
 enum WorkType {

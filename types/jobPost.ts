@@ -1,5 +1,6 @@
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
+import { Location } from "@/constants/location";
 import { Skill, WorkStyle } from "@/types/profile";
 
 export interface JobPostData {

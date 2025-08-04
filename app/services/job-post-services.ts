@@ -1,18 +1,19 @@
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
-import { Location, Role, WorkType } from "@prisma/client";
+import { Role, WorkType } from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
 import {
   toPrismaJobType,
   toPrismaWorkType,
   toPrismaLanguageLevel,
-  toPrismaJobStatus,
+  toPrismaJobStatus, toLocation, fromPrismaLocation,
 } from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
+import { Location } from "@/constants/location";
 import { STORAGE_URLS } from "@/constants/storage";
 import { HttpError } from "../lib/server/commonResponse";
 
@@ -267,11 +268,13 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     bizLocRes.img_url5 ? img_base_url.concat(bizLocRes.img_url5) : "",
   ];
 
+  const locationValue : Location = toLocation(fromPrismaLocation(bizLocRes.location))!;
+
   const bizLocInfo: BizLocInfo = {
     bizDescription: bizLocRes.description,
     bizLocId: bizLocRes.id.toString(),
     address: bizLocRes.address,
-    location: bizLocRes.location,
+    location: locationValue,
     name: bizLocRes.name,
     logoImg: img_base_url.concat(bizLocRes.logo_url ?? ""),
     extraPhotos: extraImgs,
