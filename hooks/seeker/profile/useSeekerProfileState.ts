@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Skill } from "@/types/profile";
 import { JobType } from "@/constants/jobTypes";
-import { ApplicantProfile } from "./useSeekerProfileData";
+import { ApplicantProfile } from "@/hooks/seeker/useSeekerProfileQueries";
 
 export interface EditingStates {
   basicInfo: boolean;
@@ -149,7 +149,7 @@ export const useSeekerProfileState = (
       return true;
     }
 
-    return tempData.experiences.some((exp, index) => {
+    return tempData.experiences.some((exp: ApplicantProfile["experiences"][0], index: number) => {
       const original = originalExperiences[index];
       if (!original) return true;
 

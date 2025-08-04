@@ -1,11 +1,9 @@
 // Data fetching
 export { useSeekerProfileData } from "./useSeekerProfileData";
-export type {
-  UserInfo,
-  Personality,
-  ApplicantProfile,
-  LoadingStates as DataLoadingStates,
-} from "./useSeekerProfileData";
+export type { LoadingStates as DataLoadingStates } from "./useSeekerProfileData";
+
+// Types from useSeekerProfileQueries
+export type { UserInfo, ApplicantProfile } from "@/hooks/seeker/useSeekerProfileQueries";
 
 // State management
 export { useSeekerProfileState } from "./useSeekerProfileState";

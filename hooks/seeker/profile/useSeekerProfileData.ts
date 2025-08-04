@@ -10,13 +10,6 @@ export interface LoadingStates {
   profile: boolean;
 }
 
-// Constants
-const INITIAL_LOADING_STATES: LoadingStates = {
-  skills: false,
-  locations: false,
-  profile: false,
-};
-
 interface UseProfileDataReturn {
   // State
   userInfo: any;
@@ -34,20 +27,17 @@ interface UseProfileDataReturn {
 
 export const useSeekerProfileData = (): UseProfileDataReturn => {
   // Auth Store
-  const { supabaseUser: authUser, appUser } = useAuthStore();
   const { isLoading: isCommonDataLoading } = useCommonData();
 
   // React Query hooks
   const {
     userInfo,
-    personality,
     profile: seekerProfile,
     transformedProfile: applicantProfile,
     isLoading,
     isError,
     error,
     userInfoLoading,
-    personalityLoading,
     profileLoading,
   } = useSeekerProfileQueries();
 
