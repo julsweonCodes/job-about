@@ -1,117 +1,84 @@
-import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
-import { RecommendedJobPost, RecommendationResponse } from "@/types/job";
+import { RecommendationResponse } from "@/types/job";
 import { API_URLS } from "@/constants/api";
-import { WorkType } from "@/constants/enums";
-import { Location } from "@/constants/location";
-import { usePagination } from "../usePagination";
-import { PaginationParams } from "@/types/hooks";
 
-interface UseRecommendedJobsParams {
-  workType?: WorkType;
-  location?: Location;
-  page?: number;
-  limit?: number;
-  autoFetch?: boolean;
-}
+// 필터를 Prisma 타입으로 변환
+const convertFiltersToPrisma = (filters: { workType: string; location: string }) => {
+  const convertedFilters: any = {};
 
-interface UseRecommendedJobsReturn {
-  recommendedJobs: RecommendedJobPost[];
-  loading: boolean;
-  error: string | null;
-  hasMore: boolean;
-  totalCount: number;
-  isInitialized: boolean;
-  currentPage: number;
-  fetchRecommendedJobs: (params?: Partial<UseRecommendedJobsParams>) => Promise<void>;
-  loadMore: () => Promise<void>;
-  refresh: () => Promise<void>;
-  setPage: (page: number) => void;
-}
+  // workType 변환
+  if (filters.workType && filters.workType !== "all") {
+    convertedFilters.jobType = filters.workType;
+  }
 
-export function useRecommendedJobs({
-  workType,
-  location,
-  page = 1,
-  limit = 10,
-  autoFetch = true,
-}: UseRecommendedJobsParams = {}): UseRecommendedJobsReturn {
-  const fetchRecommendedJobsFunction = useCallback(
-    async (params: PaginationParams) => {
-      const queryParams: Record<string, any> = {
-        page: params.page,
-        limit: params.limit,
+  // location 변환
+  if (filters.location && filters.location !== "all") {
+    convertedFilters.location = filters.location;
+  }
+
+  return convertedFilters;
+};
+
+// API 함수 (현재는 페이지네이션 없음, 향후 확장 예정)
+const fetchRecommendedJobs = async (filters = { workType: "all", location: "all" }, limit = 4) => {
+  // 필터를 Prisma 타입으로 변환
+  const prismaFilters = convertFiltersToPrisma(filters);
+
+  try {
+    const response = await apiGetData<RecommendationResponse>(API_URLS.RECOMMENDATIONS.JOBS, {
+      // 향후 페이지네이션 추가 시 page 파라미터 추가 예정
+      // page: 1,
+      limit,
+      ...prismaFilters,
+    });
+
+    if (response && response.recommendations && Array.isArray(response.recommendations)) {
+      return {
+        jobs: response.recommendations,
+        // 향후 페이지네이션 추가 시 아래 필드들 활용 예정
+        // currentPage: 1,
+        // hasMore: false, // 현재는 항상 false
+        totalCount: response.totalCount || 0,
       };
+    } else {
+      return {
+        jobs: [],
+        // currentPage: 1,
+        // hasMore: false,
+        totalCount: 0,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to fetch recommended jobs:", error);
+    throw error;
+  }
+};
 
-      if (workType) {
-        queryParams.jobType = workType;
-      }
-
-      if (location) {
-        queryParams.location = location;
-      }
-
-      const data = await apiGetData<RecommendationResponse>(
-        API_URLS.RECOMMENDATIONS.JOBS,
-        queryParams
-      );
-
-      if (data && data.recommendations && Array.isArray(data.recommendations)) {
-        return {
-          data: data.recommendations,
-          totalCount: data.totalCount || 0,
-          hasMore: data.recommendations.length === params.limit,
-        };
-      } else {
-        throw new Error("Failed to fetch recommended jobs");
-      }
-    },
-    [workType, location]
-  );
-
-  const {
-    data: recommendedJobs,
-    pagination,
-    loading,
-    error,
-    isInitialized,
-    fetchPage,
-    loadMore,
-    refresh,
-    goToPage,
-  } = usePagination({
-    initialPage: page,
-    initialLimit: limit,
-    autoFetch,
-    fetchFunction: fetchRecommendedJobsFunction,
+// React Query Hook (현재는 단순 쿼리, 향후 무한 스크롤로 확장 예정)
+export const useRecommendedJobs = (filters = { workType: "all", location: "all" }, limit = 4) => {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["recommended-jobs", filters, limit],
+    queryFn: () => fetchRecommendedJobs(filters, limit),
+    staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 안함
   });
 
-  const fetchRecommendedJobs = useCallback(
-    async (params?: Partial<UseRecommendedJobsParams>) => {
-      const targetPage = params?.page || page;
-      await fetchPage(targetPage);
-    },
-    [fetchPage, page]
-  );
-
-  const setPage = useCallback(
-    (page: number) => {
-      goToPage(page);
-    },
-    [goToPage]
-  );
+  const jobs = data?.jobs || [];
 
   return {
-    recommendedJobs: recommendedJobs || [], // null일 경우 빈 배열 반환
-    loading,
-    error,
-    hasMore: pagination.hasMore,
-    totalCount: pagination.totalCount,
-    isInitialized,
-    currentPage: pagination.currentPage,
-    fetchRecommendedJobs,
-    loadMore,
-    refresh,
-    setPage,
+    recommendedJobs: jobs,
+    loading: isLoading,
+    error: error?.message || null,
+    hasMore: false, // 현재는 항상 false, 향후 페이지네이션 추가 시 변경
+    totalCount: data?.totalCount || 0,
+    isInitialized: !isLoading,
+    currentPage: 1, // 현재는 항상 1, 향후 페이지네이션 추가 시 변경
+    fetchRecommendedJobs: refetch,
+    loadMore: () => {}, // 현재는 빈 함수, 향후 무한 스크롤 추가 시 구현
+    refresh: refetch,
+    setPage: () => {}, // 현재는 빈 함수, 향후 페이지네이션 추가 시 구현
+    isLoadMoreLoading: false, // 현재는 항상 false, 향후 무한 스크롤 추가 시 변경
   };
-}
+};
