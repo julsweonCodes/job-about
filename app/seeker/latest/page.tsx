@@ -1,35 +1,24 @@
 "use client";
 
 import React, { useMemo, useCallback, useEffect, useRef, useState } from "react";
-import { MapPin, Briefcase } from "lucide-react";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { EmptyState } from "@/components/common/EmptyState";
-import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useLatestJobsInfinite } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-
 import { JobPostMapper } from "@/types/jobPost";
-import { STORAGE_URLS } from "@/constants/storage";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
+import { Briefcase } from "lucide-react";
 
-// 필터 정의
-const workTypeFilter = {
-  id: "workType",
-  label: "Work Type",
-  icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-  options: ["all", "on-site", "remote", "hybrid"],
-};
-
-const locationFilter = {
-  id: "location",
-  label: "Location",
-  icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
-  options: ["all", "Vancouver", "Toronto", "Montreal", "Calgary"],
-};
+// 상수 정의
+const DEFAULT_VALUES = {
+  PAGE_ID: "latest-jobs",
+} as const;
 
 function LatestJobsPage() {
   const router = useRouter();
@@ -42,6 +31,13 @@ function LatestJobsPage() {
   // 필터 상태 관리
   const { filters: currentFilters } = useFilterStore();
 
+  // 스크롤 복원 훅 사용
+  const { restoreScrollPosition, handleNavigateToDetail } = useScrollRestoration({
+    pageId: DEFAULT_VALUES.PAGE_ID,
+    enabled: true,
+    delay: 100,
+  });
+
   // Latest Jobs 데이터
   const {
     jobs: latestJobs,
@@ -52,71 +48,30 @@ function LatestJobsPage() {
     isLoadMoreLoading: isFetchingNextPage,
   } = useLatestJobsInfinite(currentFilters);
 
-  const restoreScrollPosition = useCallback(() => {
-    if (typeof window === "undefined") return;
-    const savedPosition = sessionStorage.getItem("scroll-latest-jobs-window");
-    const isBackNavigation = sessionStorage.getItem("scroll-back-navigation");
+  // API 응답을 JobPostCard로 변환
+  const filteredLatestJobs = useMemo(() => {
+    if (!Array.isArray(latestJobs) || latestJobs.length === 0) return [];
 
-    // 뒤로가기 플래그가 있으면 복원하지 않음 (브라우저 뒤로가기로 페이지를 벗어난 경우)
-    if (isBackNavigation) {
-      // 뒤로가기 플래그 제거
-      sessionStorage.removeItem("scroll-back-navigation");
-      return;
-    }
-
-    // 상세 페이지에서 뒤로 왔는지 확인
-    const isFromDetailPage = sessionStorage.getItem("from-detail-page") === "true";
-
-    // 상세 페이지에서 뒤로 왔고, 저장된 스크롤 위치가 있으면 복원
-    if (isFromDetailPage && savedPosition) {
-      const scrollY = parseInt(savedPosition, 10);
-      if (!isNaN(scrollY) && scrollY > 0) {
-        window.scrollTo(0, scrollY);
-      }
-      // 플래그 제거
-      sessionStorage.removeItem("from-detail-page");
-    }
-  }, []);
+    return latestJobs
+      .map((apiJobPost) => {
+        try {
+          // API 응답을 JobPostData로 변환
+          const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
+          return JobPostMapper.convertJobPostDataToCard(jobPostData);
+        } catch (error) {
+          console.warn("Failed to convert latest job:", error);
+          return null;
+        }
+      })
+      .filter((job): job is NonNullable<typeof job> => job !== null);
+  }, [latestJobs]);
 
   // 클라이언트 사이드 렌더링 확인
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsHydrated(true);
-      // 브라우저 자동 스크롤 복원 비활성화
-      // if ("scrollRestoration" in history) {
-      //   history.scrollRestoration = "manual";
-      // }
     }
   }, []);
-
-  // 페이지 로드 시 스크롤 위치 복원
-  useEffect(() => {
-    if (isHydrated) {
-      const savedPosition = sessionStorage.getItem("scroll-latest-jobs-window");
-      const isBackNavigation = sessionStorage.getItem("scroll-back-navigation");
-
-      // 뒤로가기 플래그가 있으면 복원하지 않음 (브라우저 뒤로가기로 페이지를 벗어난 경우)
-      if (isBackNavigation) {
-        sessionStorage.removeItem("scroll-back-navigation");
-        return;
-      }
-
-      // 상세 페이지에서 뒤로 왔는지 확인
-      const isFromDetailPage = sessionStorage.getItem("from-detail-page") === "true";
-
-      // 상세 페이지에서 뒤로 왔고, 저장된 스크롤 위치가 있으면 복원
-      if (isFromDetailPage && savedPosition) {
-        const scrollY = parseInt(savedPosition, 10);
-        if (!isNaN(scrollY) && scrollY > 0) {
-          setTimeout(() => {
-            window.scrollTo(0, scrollY);
-          }, 100);
-        }
-        // 플래그 제거
-        sessionStorage.removeItem("from-detail-page");
-      }
-    }
-  }, [isHydrated]);
 
   // 데이터 로딩 완료 후 스크롤 위치 복원
   useEffect(() => {
@@ -147,56 +102,18 @@ function LatestJobsPage() {
     };
   }, [isHydrated]);
 
-  // 데이터 변환
-  const filteredLatestJobs = useMemo(() => {
-    if (!Array.isArray(latestJobs)) return [];
-
-    return latestJobs.map((apiJobPost) => {
-      try {
-        const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
-        return JobPostMapper.convertJobPostDataToCard(jobPostData);
-      } catch (error) {
-        console.error("Error converting jobPost:", error, apiJobPost);
-        return {
-          id: apiJobPost.id || "unknown",
-          title: apiJobPost.title || "Unknown Job",
-          workType: "on-site" as WorkType,
-          wage: apiJobPost.wage || 0,
-          location: "Location not specified",
-          dateRange: "Recently",
-          businessName: "Unknown Company",
-          description: apiJobPost.description || "No description available",
-          applicants: apiJobPost.applicantCount || 0,
-          views: 0,
-          logoImage: apiJobPost.business_loc?.logo_url
-            ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${apiJobPost.business_loc.logo_url}`
-            : undefined,
-          requiredSkills: apiJobPost.requiredSkills || [],
-        };
-      }
-    });
-  }, [latestJobs]);
-
-  // 무한 스크롤 콜백
+  // Intersection Observer 콜백
   const handleIntersection = useCallback(
-    async (entries: IntersectionObserverEntry[]) => {
+    (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
-
-      if (!entry.isIntersecting || isLoadingRef.current || !latestHasMore || latestLoading) {
-        return;
-      }
-
-      isLoadingRef.current = true;
-
-      try {
-        await loadMoreLatest();
-      } catch (error) {
-        console.error("Failed to load more jobs:", error);
-      } finally {
-        isLoadingRef.current = false;
+      if (entry.isIntersecting && latestHasMore && !latestLoading && !isLoadingRef.current) {
+        isLoadingRef.current = true;
+        loadMoreLatest().finally(() => {
+          isLoadingRef.current = false;
+        });
       }
     },
-    [latestHasMore, loadMoreLatest, latestLoading]
+    [latestHasMore, latestLoading, loadMoreLatest]
   );
 
   // Intersection Observer 설정
@@ -225,43 +142,10 @@ function LatestJobsPage() {
 
   // 상세 페이지 이동
   const handleViewJob = (id: string) => {
-    const currentScrollY = window.scrollY;
-    sessionStorage.setItem("scroll-latest-jobs-window", currentScrollY.toString());
-    // 상세 페이지로 이동할 때 플래그 설정
-    sessionStorage.setItem("from-detail-page", "true");
+    // 상세 페이지로 이동할 때 스크롤 위치 저장
+    handleNavigateToDetail();
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
   };
-
-  // 브라우저 내장 뒤로가기 버튼 감지
-  useEffect(() => {
-    const handlePopState = () => {
-      // 즉시 스크롤을 맨 위로 이동
-      window.scrollTo(0, 0);
-      // 뒤로가기로 페이지를 벗어날 때 스크롤 초기화
-      sessionStorage.removeItem("scroll-latest-jobs-window");
-      // 뒤로가기 플래그 설정
-      sessionStorage.setItem("scroll-back-navigation", "true");
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
-
-  // 페이지 로드 시점에서 뒤로가기 감지
-  useEffect(() => {
-    // document.referrer를 사용해서 뒤로가기 감지
-    const isBackFromDetailPage =
-      document.referrer &&
-      document.referrer.includes(PAGE_URLS.SEEKER.POST.DETAIL("")) &&
-      window.location.href.includes(PAGE_URLS.SEEKER.LATEST);
-
-    if (isBackFromDetailPage) {
-      // 상세 페이지에서 뒤로가기로 돌아온 경우 스크롤 초기화
-      sessionStorage.removeItem("scroll-latest-jobs-window");
-    }
-  }, []);
 
   const showSkeleton = latestLoading && latestJobs.length === 0;
 

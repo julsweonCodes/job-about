@@ -11,12 +11,14 @@ import { useSeekerAppliedJobs } from "@/hooks/seeker/useSeekerAppliedJobs";
 import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import { JobPostCard as JobPostCardType } from "@/types/job";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // 상수 분리
 const DEFAULT_VALUES = {
   SKELETON_COUNT: 6,
   INTERSECTION_THRESHOLD: 0.1,
   INTERSECTION_ROOT_MARGIN: "100px",
+  PAGE_ID: "applied-jobs",
 } as const;
 
 function SeekerAppliedPage() {
@@ -32,6 +34,13 @@ function SeekerAppliedPage() {
       autoFetch: true,
     });
 
+  // 스크롤 복원 훅 사용
+  const { restoreScrollPosition, handleNavigateToDetail } = useScrollRestoration({
+    pageId: DEFAULT_VALUES.PAGE_ID,
+    enabled: true,
+    delay: 100,
+  });
+
   const filteredAppliedJobs = useMemo(() => {
     if (!appliedJobs || appliedJobs.length === 0) return [];
     return appliedJobs.map(JobPostMapper.convertJobPostDataToCard);
@@ -39,13 +48,11 @@ function SeekerAppliedPage() {
 
   const handleViewJob = useCallback(
     (id: string) => {
-      const currentScrollY = window.scrollY;
-      sessionStorage.setItem("scroll-applied-jobs-window", currentScrollY.toString());
-      // 상세 페이지로 이동할 때 플래그 설정
-      sessionStorage.setItem("from-detail-page", "true");
+      // 상세 페이지로 이동할 때 스크롤 위치 저장
+      handleNavigateToDetail();
       router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
     },
-    [router]
+    [router, handleNavigateToDetail]
   );
 
   const handleRefresh = useCallback(() => {
@@ -56,68 +63,12 @@ function SeekerAppliedPage() {
     router.push(PAGE_URLS.SEEKER.ROOT);
   }, [router]);
 
-  // 스크롤 위치 복원 함수
-  const restoreScrollPosition = useCallback(() => {
-    if (typeof window === "undefined") return;
-    const savedPosition = sessionStorage.getItem("scroll-applied-jobs-window");
-    const isBackNavigation = sessionStorage.getItem("scroll-back-navigation");
-
-    // 뒤로가기 플래그가 있으면 복원하지 않음 (브라우저 뒤로가기로 페이지를 벗어난 경우)
-    if (isBackNavigation) {
-      // 뒤로가기 플래그 제거
-      sessionStorage.removeItem("scroll-back-navigation");
-      return;
-    }
-
-    // 상세 페이지에서 뒤로 왔는지 확인
-    const isFromDetailPage = sessionStorage.getItem("from-detail-page") === "true";
-
-    // 상세 페이지에서 뒤로 왔고, 저장된 스크롤 위치가 있으면 복원
-    if (isFromDetailPage && savedPosition) {
-      const scrollY = parseInt(savedPosition, 10);
-      if (!isNaN(scrollY) && scrollY > 0) {
-        window.scrollTo(0, scrollY);
-      }
-      // 플래그 제거
-      sessionStorage.removeItem("from-detail-page");
-    }
-  }, []);
-
   // 클라이언트 사이드 렌더링 확인
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsHydrated(true);
     }
   }, []);
-
-  // 페이지 로드 시 스크롤 위치 복원
-  useEffect(() => {
-    if (isHydrated) {
-      const savedPosition = sessionStorage.getItem("scroll-applied-jobs-window");
-      const isBackNavigation = sessionStorage.getItem("scroll-back-navigation");
-
-      // 뒤로가기 플래그가 있으면 복원하지 않음 (브라우저 뒤로가기로 페이지를 벗어난 경우)
-      if (isBackNavigation) {
-        sessionStorage.removeItem("scroll-back-navigation");
-        return;
-      }
-
-      // 상세 페이지에서 뒤로 왔는지 확인
-      const isFromDetailPage = sessionStorage.getItem("from-detail-page") === "true";
-
-      // 상세 페이지에서 뒤로 왔고, 저장된 스크롤 위치가 있으면 복원
-      if (isFromDetailPage && savedPosition) {
-        const scrollY = parseInt(savedPosition, 10);
-        if (!isNaN(scrollY) && scrollY > 0) {
-          setTimeout(() => {
-            window.scrollTo(0, scrollY);
-          }, 100);
-        }
-        // 플래그 제거
-        sessionStorage.removeItem("from-detail-page");
-      }
-    }
-  }, [isHydrated]);
 
   // 데이터 로딩 완료 후 스크롤 위치 복원
   useEffect(() => {
@@ -128,37 +79,6 @@ function SeekerAppliedPage() {
       return () => clearTimeout(timer);
     }
   }, [isHydrated, loading, appliedJobs.length, restoreScrollPosition]);
-
-  // 브라우저 내장 뒤로가기 버튼 감지
-  useEffect(() => {
-    const handlePopState = () => {
-      // 즉시 스크롤을 맨 위로 이동
-      window.scrollTo(0, 0);
-      // 뒤로가기로 페이지를 벗어날 때 스크롤 초기화
-      sessionStorage.removeItem("scroll-applied-jobs-window");
-      // 뒤로가기 플래그 설정
-      sessionStorage.setItem("scroll-back-navigation", "true");
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
-
-  // 페이지 로드 시점에서 뒤로가기 감지
-  useEffect(() => {
-    // document.referrer를 사용해서 뒤로가기 감지
-    const isBackFromDetailPage =
-      document.referrer &&
-      document.referrer.includes(PAGE_URLS.SEEKER.POST.DETAIL("")) &&
-      window.location.href.includes(PAGE_URLS.SEEKER.MYPAGE.APPLIES);
-
-    if (isBackFromDetailPage) {
-      // 상세 페이지에서 뒤로가기로 돌아온 경우 스크롤 초기화
-      sessionStorage.removeItem("scroll-applied-jobs-window");
-    }
-  }, []);
 
   // Intersection Observer 콜백
   const handleIntersection = useCallback(

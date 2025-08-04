@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { MapPin, Briefcase } from "lucide-react";
 import { ProfileHeader } from "@/components/common/ProfileHeader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -12,6 +11,8 @@ import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
+import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
+import { Briefcase } from "lucide-react";
 
 function SeekerPage() {
   const router = useRouter();
@@ -142,22 +143,8 @@ function SeekerPage() {
         {/* Filters */}
         <div className="py-5 md:py-8 md:mb-8">
           <div className="flex flex-wrap gap-2 md:gap-4">
-            <FilterDropdown
-              filter={{
-                id: "workType",
-                label: "Work Type",
-                icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "on-site", "remote", "hybrid"],
-              }}
-            />
-            <FilterDropdown
-              filter={{
-                id: "location",
-                label: "Location",
-                icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "Vancouver", "Toronto", "Montreal", "Calgary"],
-              }}
-            />
+            <FilterDropdown filter={workTypeFilter} />
+            <FilterDropdown filter={locationFilter} />
           </div>
         </div>
 

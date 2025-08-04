@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useCallback, useEffect, useRef } from "react";
-import { MapPin, Briefcase } from "lucide-react";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
@@ -9,10 +8,10 @@ import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
 import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPostCard as JobPostCardType, RecommendedJobPost } from "@/types/job";
-import { STORAGE_URLS } from "@/constants/storage";
+import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
+import { workTypeFilter, locationFilterLimited } from "@/constants/filterOptions";
 
 function RecommendedJobsPage() {
   const router = useRouter();
@@ -33,26 +32,6 @@ function RecommendedJobsPage() {
     limit: 10,
     autoFetch: true,
   });
-
-  // 추천 공고를 JobPostCard 타입으로 변환
-  const convertRecommendedToJobPostCard = (recommendedJob: RecommendedJobPost): JobPostCardType => {
-    return {
-      id: recommendedJob.id.toString(),
-      title: recommendedJob.title,
-      workType: recommendedJob.jobType as WorkType,
-      wage: recommendedJob.wage,
-      location: recommendedJob.company.address,
-      dateRange: "Recently", // 추천 공고는 최신순이므로
-      businessName: recommendedJob.company.name,
-      description: recommendedJob.description,
-      applicants: recommendedJob.applicantCount,
-      views: 0,
-      logoImage: recommendedJob.company.logoUrl
-        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${recommendedJob.company.logoUrl}`
-        : undefined,
-      requiredSkills: recommendedJob.requiredSkills,
-    };
-  };
 
   // 필터링된 추천 공고
   const filteredRecommendedJobs = useMemo(() => {
@@ -88,7 +67,7 @@ function RecommendedJobsPage() {
 
         return true;
       })
-      .map(convertRecommendedToJobPostCard);
+      .map((job) => JobPostMapper.convertRecommendedToJobPostCard(job));
   }, [recommendedJobs, filters]);
 
   // 무한 스크롤 콜백
@@ -146,22 +125,8 @@ function RecommendedJobsPage() {
         {/* Filters */}
         <div className="py-5 md:py-8 md:mb-8">
           <div className="flex flex-wrap gap-2 md:gap-4">
-            <FilterDropdown
-              filter={{
-                id: "workType",
-                label: "Work Type",
-                icon: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all", "Remote", "On-Site", "Hybrid"],
-              }}
-            />
-            <FilterDropdown
-              filter={{
-                id: "location",
-                label: "Location",
-                icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />,
-                options: ["all"],
-              }}
-            />
+            <FilterDropdown filter={workTypeFilter} />
+            <FilterDropdown filter={locationFilterLimited} />
           </div>
         </div>
 

@@ -1,219 +1,121 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useScrollStore } from "@/stores/useScrollStore";
 
 interface UseScrollRestorationOptions {
-  key: string;
+  pageId: string;
   enabled?: boolean;
   delay?: number;
 }
 
-interface UseScrollRestorationReturn {
-  saveScrollPosition: () => void;
-  restoreScrollPosition: () => void;
-  clearScrollPosition: () => void;
-}
-
-export function useScrollRestoration({
-  key,
+export const useScrollRestoration = ({
+  pageId,
   enabled = true,
   delay = 100,
-}: UseScrollRestorationOptions): UseScrollRestorationReturn {
-  const elementRef = useRef<HTMLElement | null>(null);
-  const restoredRef = useRef(false);
-
-  // 스크롤 위치 저장
-  const saveScrollPosition = useCallback(() => {
-    if (!enabled || !elementRef.current) return;
-
-    // 브라우저 환경에서만 실행
-    if (typeof window === "undefined") return;
-
-    try {
-      const scrollTop = elementRef.current.scrollTop;
-      sessionStorage.setItem(`scroll-${key}`, scrollTop.toString());
-    } catch (error) {
-      console.warn("Failed to save scroll position:", error);
-    }
-  }, [key, enabled]);
-
-  // 스크롤 위치 복원
-  const restoreScrollPosition = useCallback(() => {
-    if (!enabled || !elementRef.current || restoredRef.current) return;
-
-    // 브라우저 환경에서만 실행
-    if (typeof window === "undefined") return;
-
-    try {
-      const savedPosition = sessionStorage.getItem(`scroll-${key}`);
-      if (savedPosition) {
-        const scrollTop = parseInt(savedPosition, 10);
-        if (!isNaN(scrollTop) && scrollTop > 0) {
-          elementRef.current.scrollTop = scrollTop;
-          restoredRef.current = true;
-        }
-      }
-    } catch (error) {
-      console.warn("Failed to restore scroll position:", error);
-    }
-  }, [key, enabled]);
-
-  // 스크롤 위치 삭제
-  const clearScrollPosition = useCallback(() => {
-    try {
-      sessionStorage.removeItem(`scroll-${key}`);
-      restoredRef.current = false;
-    } catch (error) {
-      console.warn("Failed to clear scroll position:", error);
-    }
-  }, [key]);
-
-  // 스크롤 이벤트 리스너
-  useEffect(() => {
-    if (!enabled || !elementRef.current) return;
-
-    const handleScroll = () => {
-      saveScrollPosition();
-    };
-
-    const element = elementRef.current;
-    element.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      element.removeEventListener("scroll", handleScroll);
-    };
-  }, [saveScrollPosition, enabled]);
-
-  // 페이지 진입 시 스크롤 위치 복원
-  useEffect(() => {
-    if (!enabled) return;
-
-    const timer = setTimeout(() => {
-      restoreScrollPosition();
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [restoreScrollPosition, enabled, delay]);
-
-  return {
+}: UseScrollRestorationOptions) => {
+  const {
     saveScrollPosition,
-    restoreScrollPosition,
+    getScrollPosition,
+    setFromDetailPage,
+    isFromDetailPage,
     clearScrollPosition,
-  };
-}
+  } = useScrollStore();
 
-// ref를 받는 버전
-export function useScrollRestorationWithRef(
-  ref: React.RefObject<HTMLElement>,
-  key: string,
-  options: Omit<UseScrollRestorationOptions, "key"> = {}
-) {
-  const { enabled = true, delay = 100 } = options;
-  const restoredRef = useRef(false);
+  const isRestoringRef = useRef(false);
+  const hasRestoredRef = useRef(false);
 
   // 스크롤 위치 저장
-  const saveScrollPosition = useCallback(() => {
-    if (!enabled || !ref.current) {
-      console.log("🔄 Scroll save skipped:", { enabled, hasRef: !!ref.current });
-      return;
-    }
+  const saveCurrentScrollPosition = useCallback(() => {
+    if (!enabled || typeof window === "undefined") return;
 
-    // 브라우저 환경에서만 실행
-    if (typeof window === "undefined") {
-      console.log("🔄 Scroll save skipped - not in browser");
-      return;
+    const currentScrollY = window.scrollY;
+    if (currentScrollY > 0) {
+      saveScrollPosition(pageId, currentScrollY);
     }
-
-    try {
-      const scrollTop = ref.current.scrollTop;
-      console.log("🔄 Saving scroll position:", { scrollTop, key });
-      sessionStorage.setItem(`scroll-${key}`, scrollTop.toString());
-      console.log("🔄 Scroll position saved successfully");
-    } catch (error) {
-      console.warn("Failed to save scroll position:", error);
-    }
-  }, [key, enabled, ref]);
+  }, [pageId, saveScrollPosition, enabled]);
 
   // 스크롤 위치 복원
   const restoreScrollPosition = useCallback(() => {
-    if (!enabled || !ref.current || restoredRef.current) {
-      console.log("🔄 Scroll restore skipped:", {
-        enabled,
-        hasRef: !!ref.current,
-        alreadyRestored: restoredRef.current,
-      });
-      return;
-    }
+    if (!enabled || typeof window === "undefined" || hasRestoredRef.current) return;
 
-    // 브라우저 환경에서만 실행
-    if (typeof window === "undefined") {
-      console.log("🔄 Scroll restore skipped - not in browser");
-      return;
-    }
+    const savedPosition = getScrollPosition(pageId);
+    const fromDetail = isFromDetailPage(pageId);
 
-    try {
-      const savedPosition = sessionStorage.getItem(`scroll-${key}`);
-      console.log("🔄 Attempting to restore scroll position:", { savedPosition, key });
+    if (savedPosition && fromDetail) {
+      isRestoringRef.current = true;
 
-      if (savedPosition) {
-        const scrollTop = parseInt(savedPosition, 10);
-        if (!isNaN(scrollTop) && scrollTop > 0) {
-          console.log("🔄 Restoring scroll position to:", scrollTop);
-          ref.current.scrollTop = scrollTop;
-          restoredRef.current = true;
-          console.log("🔄 Scroll position restored successfully");
-        } else {
-          console.log("🔄 Invalid scroll position:", savedPosition);
+      setTimeout(() => {
+        try {
+          // 스크롤 가능한 최대 높이 확인
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          const safeScrollY = Math.min(savedPosition, maxScroll);
+
+          window.scrollTo({ top: safeScrollY, behavior: "instant" });
+
+          // 복원 완료 후 플래그 제거
+          setFromDetailPage(pageId, false);
+        } catch (error) {
+          console.warn("Failed to restore scroll position:", error);
+        } finally {
+          isRestoringRef.current = false;
+          hasRestoredRef.current = true;
         }
-      } else {
-        console.log("🔄 No saved scroll position found");
-      }
-    } catch (error) {
-      console.warn("Failed to restore scroll position:", error);
+      }, delay);
     }
-  }, [key, enabled, ref]);
+  }, [pageId, getScrollPosition, isFromDetailPage, setFromDetailPage, enabled, delay]);
 
-  // 스크롤 위치 삭제
-  const clearScrollPosition = useCallback(() => {
-    // 브라우저 환경에서만 실행
-    if (typeof window === "undefined") return;
+  // 상세 페이지로 이동할 때 스크롤 위치 저장
+  const handleNavigateToDetail = useCallback(() => {
+    if (!enabled || typeof window === "undefined") return;
 
-    try {
-      sessionStorage.removeItem(`scroll-${key}`);
-      restoredRef.current = false;
-    } catch (error) {
-      console.warn("Failed to clear scroll position:", error);
+    const currentScrollY = window.scrollY;
+    if (currentScrollY > 0) {
+      saveScrollPosition(pageId, currentScrollY);
+      setFromDetailPage(pageId, true);
     }
-  }, [key]);
+  }, [pageId, saveScrollPosition, setFromDetailPage, enabled]);
 
-  // 스크롤 이벤트 리스너
-  useEffect(() => {
-    if (!enabled || !ref.current) return;
-
-    const handleScroll = () => {
-      saveScrollPosition();
-    };
-
-    const element = ref.current;
-    element.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      element.removeEventListener("scroll", handleScroll);
-    };
-  }, [saveScrollPosition, enabled, ref]);
-
-  // 페이지 진입 시 스크롤 위치 복원
+  // 브라우저 뒤로가기 감지 및 처리
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
 
-    const timer = setTimeout(() => {
-      restoreScrollPosition();
-    }, delay);
+    const handlePopState = () => {
+      // 뒤로가기로 페이지를 벗어날 때 스크롤 위치 초기화
+      clearScrollPosition(pageId);
+    };
 
-    return () => clearTimeout(timer);
-  }, [restoreScrollPosition, enabled, delay]);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [pageId, clearScrollPosition, enabled]);
+
+  // 스크롤 이벤트 리스너 (디바운싱)
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined") return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      if (isRestoringRef.current) return;
+
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        saveCurrentScrollPosition();
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [enabled, saveCurrentScrollPosition]);
 
   return {
-    saveScrollPosition,
     restoreScrollPosition,
-    clearScrollPosition,
+    handleNavigateToDetail,
+    saveCurrentScrollPosition,
+    isFromDetailPage: isFromDetailPage(pageId),
   };
-}
+};
