@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Bookmark, ArrowLeft } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/jobPost";
 import { useRouter } from "next/navigation";
 import { apiGetData, apiPostData, apiDeleteData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
@@ -62,7 +62,12 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     try {
       // 올바른 API 호출 - status 파라미터를 함수에 직접 전달
       const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(params.postId, "published"));
-      setJobDetails(data);
+      if (!data) {
+        throw new Error("No data received from API");
+      }
+
+      const jobPostData = JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
+      setJobDetails(jobPostData);
 
       // API 응답에서 isBookmarked 상태 설정
       if (data && typeof data.isBookmarked === "boolean") {

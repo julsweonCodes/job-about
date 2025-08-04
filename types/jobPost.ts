@@ -2,7 +2,7 @@ import { JobStatus, LanguageLevel, WorkType } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
 import { Skill, WorkStyle } from "@/types/profile";
-import { fromPrismaWorkType } from "@/types/enumMapper";
+import { fromPrismaWorkType, fromPrismaJobType } from "@/types/enumMapper";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
 
@@ -184,6 +184,42 @@ export interface ApiRecommendedJobPost {
   createdAt: string;
 }
 
+// Job Post Detail API의 data 필드 타입
+export interface ApiJobPostDetailData {
+  businessLocInfo: {
+    bizDescription: string;
+    bizLocId: string;
+    address: string;
+    location: string;
+    name: string;
+    logoImg: string;
+    extraPhotos: string[];
+    workingHours: string;
+  };
+  deadline: string;
+  jobDescription: string;
+  hourlyWage: string;
+  id: string;
+  jobType: string;
+  languageLevel: string;
+  requiredWorkStyles: Array<{
+    id: number;
+    name_ko: string;
+    name_en: string;
+  }>;
+  requiredSkills: Array<{
+    id: number;
+    category_ko: string;
+    category_en: string;
+    name_ko: string;
+    name_en: string;
+  }>;
+  schedule: string;
+  status: string;
+  title: string;
+  isBookmarked: boolean;
+}
+
 // Mapper 클래스
 export class JobPostMapper {
   /**
@@ -195,7 +231,7 @@ export class JobPostMapper {
         id: apiJobPost.id,
         title: apiJobPost.title,
         workType: fromPrismaWorkType(apiJobPost.work_type),
-        jobType: apiJobPost.job_type as JobType,
+        jobType: fromPrismaJobType(apiJobPost.job_type),
         status: apiJobPost.status,
         businessLocInfo: this.mapLatestJobBusinessLocInfo(apiJobPost.business_loc),
         deadline: apiJobPost.deadline,
@@ -232,7 +268,7 @@ export class JobPostMapper {
         id: apiJobPost.id,
         title: apiJobPost.title,
         workType: fromPrismaWorkType(apiJobPost.work_type),
-        jobType: apiJobPost.job_type as JobType,
+        jobType: fromPrismaJobType(apiJobPost.job_type),
         status: apiJobPost.status,
         businessLocInfo: this.mapAppliedJobBusinessLocInfo(apiJobPost.business_loc),
         deadline: apiJobPost.deadline,
@@ -269,7 +305,7 @@ export class JobPostMapper {
         id: apiJobPost.id,
         title: apiJobPost.title,
         workType: fromPrismaWorkType(apiJobPost.work_type),
-        jobType: apiJobPost.job_type as JobType,
+        jobType: fromPrismaJobType(apiJobPost.job_type),
         status: apiJobPost.status,
         businessLocInfo: this.mapBookmarkedJobBusinessLocInfo(apiJobPost.business_loc),
         deadline: apiJobPost.deadline,
@@ -296,7 +332,7 @@ export class JobPostMapper {
         id: apiJobPost.id.toString(),
         title: apiJobPost.title,
         workType: "on-site" as WorkType, // Recommended jobs에는 workType이 없으므로 기본값
-        jobType: apiJobPost.jobType as JobType,
+        jobType: fromPrismaJobType(apiJobPost.jobType),
         status: "PUBLISHED" as JobStatus, // Recommended jobs는 항상 published
         businessLocInfo: this.mapRecommendedJobBusinessLocInfo(apiJobPost.company),
         deadline: apiJobPost.deadline,
@@ -311,6 +347,42 @@ export class JobPostMapper {
     } catch (error) {
       console.error("Error mapping RecommendedJobPost to JobPostData:", error);
       throw new Error("Failed to map recommended job post data");
+    }
+  }
+
+  /**
+   * Job Post Detail API의 data를 JobPostData로 변환
+   */
+  static fromDetailJobPost(apiJobPost: ApiJobPostDetailData): JobPostData {
+    try {
+      return {
+        id: apiJobPost.id,
+        title: apiJobPost.title,
+        workType: "on-site" as WorkType, // Detail API에는 workType이 없으므로 기본값
+        jobType: fromPrismaJobType(apiJobPost.jobType),
+        status: apiJobPost.status as JobStatus,
+        businessLocInfo: {
+          bizLocId: apiJobPost.businessLocInfo.bizLocId,
+          name: apiJobPost.businessLocInfo.name,
+          bizDescription: apiJobPost.businessLocInfo.bizDescription,
+          logoImg: apiJobPost.businessLocInfo.logoImg,
+          extraPhotos: apiJobPost.businessLocInfo.extraPhotos,
+          location: apiJobPost.businessLocInfo.location as Location,
+          address: apiJobPost.businessLocInfo.address,
+          workingHours: apiJobPost.businessLocInfo.workingHours,
+        },
+        deadline: apiJobPost.deadline,
+        schedule: apiJobPost.schedule,
+        requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
+        requiredWorkStyles: this.mapWorkStyles(apiJobPost.requiredWorkStyles),
+        languageLevel: apiJobPost.languageLevel as LanguageLevel,
+        hourlyWage: apiJobPost.hourlyWage,
+        jobDescription: apiJobPost.jobDescription,
+        isBookmarked: apiJobPost.isBookmarked,
+      };
+    } catch (error) {
+      console.error("Error mapping DetailJobPost to JobPostData:", error);
+      throw new Error("Failed to map detail job post data");
     }
   }
 
@@ -416,9 +488,15 @@ export class JobPostMapper {
   }
 
   /**
-   * Work Styles 매핑 (Recommended jobs용)
+   * Work Styles 매핑
    */
-  private static mapWorkStyles(workStyles?: ApiRecommendedJobPost["workStyles"]): WorkStyle[] {
+  private static mapWorkStyles(
+    workStyles?: Array<{
+      id: number;
+      name_ko: string;
+      name_en: string;
+    }>
+  ): WorkStyle[] {
     if (!workStyles || !Array.isArray(workStyles)) {
       return [];
     }

@@ -338,6 +338,13 @@ export const getJobTypeConfigFromServer = (serverJobType: string): JobTypeConfig
 
 // 서버에서 받은 JobType enum 값으로부터 UI에 필요한 정보를 가져오는 함수들
 export const getJobTypeName = (serverJobType: string): string => {
+  // 직접 JobType enum에서 찾기
+  const jobType = Object.values(JobType).find((type) => type === serverJobType);
+
+  if (jobType) {
+    return JOB_TYPE_CONFIGS[jobType].name;
+  }
+
   const config = getJobTypeConfigFromServer(serverJobType);
   return config?.name || serverJobType;
 };

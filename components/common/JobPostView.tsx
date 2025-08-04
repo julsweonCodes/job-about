@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { JobPostData } from "@/types/jobPost";
 import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/textUtils";
+import { getJobTypeName } from "@/constants/jobTypes";
 
 // Types
 interface JobPostViewProps {
@@ -66,6 +67,12 @@ const JOB_DETAIL_ITEMS = [
     label: "Application Deadline",
     color: "text-orange-500",
     bgColor: "bg-orange-50",
+  },
+  {
+    icon: Building2,
+    label: "Job Type",
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-50",
   },
 ];
 
@@ -483,6 +490,7 @@ const getJobDetailValue = (jobData: JobPostData, label: string): string | undefi
     Schedule: jobData.schedule,
     "Language Level": jobData.languageLevel,
     "Application Deadline": jobData.deadline,
+    "Job Type": jobData.jobType ? getJobTypeName(jobData.jobType) : undefined,
   };
   return valueMap[label];
 };

@@ -3,10 +3,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
 import PostHeader from "@/components/common/PostHeader";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/jobPost";
 import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EllipsisVertical } from "lucide-react";
+import { apiGetData } from "@/utils/client/API";
 
 interface Props {
   postId: string;
@@ -70,21 +71,19 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
     setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
 
     try {
-      const response = await fetch(`${API_URLS.JOB_POSTS.DETAIL(postId, "published")}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch job details: ${response.status}`);
+      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(postId, "published"));
+      if (!data) {
+        throw new Error("No data received from API");
       }
-
-      const data = await response.json();
-      setJobDetails(data.data);
+      const jobPostData = JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
+      setJobDetails(jobPostData);
     } catch (error) {
       console.error("Error fetching job details:", error);
-      // TODO: Show error toast to user
+      router.push(PAGE_URLS.EMPLOYER.ROOT);
     } finally {
       setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
     }
-  }, [postId]);
+  }, [postId, router]);
 
   // Effects
   useEffect(() => {
