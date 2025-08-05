@@ -65,7 +65,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
           </Typography>
         </div>
 
-        {/* Skills */}
+        {/* Skills
         <div className="flex flex-wrap gap-2">
           {applicant.skills?.map((skill, index) => (
             <Chip
@@ -77,7 +77,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               <span>{skill}</span>
             </Chip>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Action Buttons */}
