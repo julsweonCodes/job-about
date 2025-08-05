@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Users, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
+import { Users } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { useRouter } from "next/navigation";
 import { ApplicantStatus } from "@/constants/enums";
@@ -18,8 +18,7 @@ function ReviewApplicantsPage() {
   const router = useRouter();
   const params = useParams();
   const postId = params?.postId as string;
-  const { jobPostAppList, loadingStates, refreshAll, queryClient } =
-    useEmployerJobPostAppList(postId);
+  const { jobPostAppList, loadingStates, queryClient } = useEmployerJobPostAppList(postId);
   const [activeTab, setActiveTab] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
@@ -32,7 +31,7 @@ function ReviewApplicantsPage() {
     setSelectedStatus(null);
   };
 
-  // TODO api call 
+  // TODO api call
   const handleSaveStatus = async () => {
     if (!selectedApplicantId || !selectedStatus) return;
 
