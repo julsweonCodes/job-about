@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
     const minScoreParam = url.searchParams.get("minScore");
     const locationParam = url.searchParams.get("location");
     const jobTypeParam = url.searchParams.get("jobType");
+    const workTypeParam = url.searchParams.get("workType");
 
     const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
     const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
@@ -92,6 +93,11 @@ export async function GET(req: NextRequest) {
 
     if (jobTypeParam) {
       whereConditions.job_type = jobTypeParam;
+    }
+
+    if (workTypeParam) {
+      console.log(`workType 필터 적용: ${workTypeParam}`);
+      whereConditions.work_type = workTypeParam;
     }
 
     const jobPosts = await prisma.job_posts.findMany({
@@ -162,11 +168,11 @@ export async function GET(req: NextRequest) {
     }
 
     // 매칭 점수 계산
-    const jobPostIds = jobPosts.map((jp) => Number(jp.id));
+    const jobPostIds = jobPosts.map((jp: any) => Number(jp.id));
     const recommendationScores = await calculateJobRecommendationScores(personalityId, jobPostIds);
 
     // 매칭 결과와 채용공고 정보 결합
-    const jobRecommendations = jobPosts.map((jobPost) => {
+    const jobRecommendations = jobPosts.map((jobPost: any) => {
       const scoreResult = recommendationScores.find((rs) => rs.jobPostId === Number(jobPost.id));
       const matchScore = scoreResult?.matchScore || 0;
       const compatibility = getCompatibilityLevel(matchScore);
@@ -175,6 +181,7 @@ export async function GET(req: NextRequest) {
         id: Number(jobPost.id),
         title: jobPost.title,
         jobType: jobPost.job_type,
+        workType: jobPost.work_type,
         wage: jobPost.wage,
         workSchedule: jobPost.work_schedule,
         description: jobPost.description,
@@ -187,12 +194,12 @@ export async function GET(req: NextRequest) {
         employer: {
           name: jobPost.user.name,
         },
-        workStyles: jobPost.job_work_styles.map((jws) => ({
+        workStyles: jobPost.job_work_styles.map((jws: any) => ({
           id: Number(jws.work_style.id),
           name_ko: jws.work_style.name_ko,
           name_en: jws.work_style.name_en,
         })),
-        requiredSkills: jobPost.job_practical_skills.map((jps) => ({
+        requiredSkills: jobPost.job_practical_skills.map((jps: any) => ({
           id: Number(jps.practical_skill.id),
           name_ko: jps.practical_skill.name_ko,
           name_en: jps.practical_skill.name_en,
@@ -213,8 +220,8 @@ export async function GET(req: NextRequest) {
 
     // 점수 필터링 및 정렬
     const filteredRecommendations = jobRecommendations
-      .filter((job) => job.matchScore >= minScore)
-      .sort((a, b) => b.matchScore - a.matchScore)
+      .filter((job: any) => job.matchScore >= minScore)
+      .sort((a: any, b: any) => b.matchScore - a.matchScore)
       .slice(0, limit);
 
     console.log(
@@ -222,8 +229,8 @@ export async function GET(req: NextRequest) {
     );
     
     // Required skills 정보 로그 출력
-    filteredRecommendations.forEach((job, index) => {
-      console.log(`Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map(s => s.name_ko).join(', ')}`);
+    filteredRecommendations.forEach((job: any, index: number) => {
+      console.log(`Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map((s: any) => s.name_ko).join(', ')}`);
     });
 
     return successResponse(
@@ -240,6 +247,7 @@ export async function GET(req: NextRequest) {
           minScore,
           location: locationParam,
           jobType: jobTypeParam,
+          workType: workTypeParam,
         },
       }),
       200,
