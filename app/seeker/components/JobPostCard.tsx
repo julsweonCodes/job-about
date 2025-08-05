@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MapPin, Calendar, CircleDollarSign, Tag, Star } from "lucide-react";
+import { MapPin, Calendar, CircleDollarSign, Tag, Star, Users } from "lucide-react";
 import { WorkType } from "@/constants/enums";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";
@@ -76,6 +76,12 @@ export const JobPostCardSkeleton: React.FC = () => {
           <div className="h-6 w-20 bg-gray-200 rounded-lg animate-pulse"></div>
           <div className="h-6 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
           <div className="h-6 w-18 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+
+        {/* 지원자 수 스켈레톤 */}
+        <div className="flex items-center justify-end gap-1">
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
         </div>
       </div>
     </div>
@@ -179,7 +185,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
     >
       {/* 상단: 썸네일 + 제목/타입 */}
       <div className="flex items-center gap-4 mb-4 min-w-0 flex-shrink-0">
-        <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 overflow-hidden bg-gray-100 shadow-sm">
+        <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 bg-gray-100 shadow-sm">
           <img
             src={getImageSrc()}
             alt={job.title}
@@ -266,6 +272,14 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
                 {skill.name_en}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* 지원자 수 표시 - 카드 우하단 */}
+        {job.applicants > 0 && (
+          <div className="flex items-center justify-end gap-1 text-gray-500">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium">{job.applicants}</span>
           </div>
         )}
       </div>
