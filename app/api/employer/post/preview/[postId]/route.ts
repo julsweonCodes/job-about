@@ -12,26 +12,31 @@ import { throws } from "node:assert";
  *
  */
 
-export async function GET(_req: NextRequest, { params }: {params: {postId: string}}) {
+export async function GET(_req: NextRequest, { params }: { params: { postId: string } }) {
   const userId = await getUserIdFromSession();
   try {
     console.log("This is cache - 1:", getCache(`gemini:${params.postId}`));
     console.log("This is cahce - 2:", getCache(`desc:${params.postId}`));
-    const previewJobPost  = await getJobPostView(params.postId, JobStatus.DRAFT);
+
+    const previewJobPost = await getJobPostView(params.postId, JobStatus.DRAFT, userId);
     if (previewJobPost) {
       // console.log(bizLocRes, jobPostRes);
-      return successResponse({postData: parseBigInt(previewJobPost), geminiRes: getCache(`gemini:${params.postId}`)}, 200, "success");
+      return successResponse(
+        { postData: parseBigInt(previewJobPost), geminiRes: getCache(`gemini:${params.postId}`) },
+        200,
+        "success"
+      );
     } else {
       return successResponse("no data", 200);
     }
-  } catch(e) {
+  } catch (e) {
     console.error(e);
     return errorResponse("error", 500);
   }
 }
 
 export async function PATCH(_req: NextRequest) {
-  const userId= await getUserIdFromSession();
+  const userId = await getUserIdFromSession();
   const body = await _req.json();
 
   if (!userId) {

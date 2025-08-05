@@ -37,7 +37,11 @@ export const API_URLS = {
     POST: {
       CREATE: "/api/employer/post/create",
       PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
-      DETAIL: (id: string) => `/api/employer/post/${id}`,
+      DETAIL: (id: string, status?: string) =>
+        status ? `/api/employer/post/${id}?status=${status}` : `/api/employer/post/${id}`,
+    },
+    APPLICANTS: {
+      UPDATE_STATUS: "/api/employer/applicants/update-status",
     },
   },
 
@@ -120,8 +124,10 @@ export const PAGE_URLS = {
       PREVIEW: (id: string, useAI: boolean) => `/employer/post/preview/${id}?useAI=${useAI}`,
       DETAIL: (id: string) => `/employer/post/${id}`,
       EDIT: (id: string) => `/employer/post/${id}/edit`,
+      APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
+      APPLICANT: (id: string, applicantId: string) =>
+        `/employer/post/${id}/applicants/${applicantId}`,
     },
-    APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
     PENDING_UPDATES: "/employer/pending-updates",
   },
   AUTH: {

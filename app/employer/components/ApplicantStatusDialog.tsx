@@ -11,6 +11,7 @@ interface ApplicantStatusDialogProps {
   onSelect: (status: ApplicantStatus) => void;
   onSave: () => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 const statusList = [
@@ -49,6 +50,7 @@ const ApplicantStatusDialog: React.FC<ApplicantStatusDialogProps> = ({
   onSelect,
   onSave,
   onCancel,
+  isLoading = false,
 }) => {
   return (
     <Dialog open={open} onClose={onCancel} type="bottomSheet">
@@ -83,11 +85,16 @@ const ApplicantStatusDialog: React.FC<ApplicantStatusDialogProps> = ({
           })}
         </div>
         <div className="flex gap-3 w-full">
-          <Button variant="secondary" size="lg" onClick={onCancel}>
+          <Button variant="secondary" size="lg" onClick={onCancel} disabled={isLoading}>
             Cancel
           </Button>
-          <Button variant="black" size="lg" onClick={onSave} disabled={!selectedStatus}>
-            Save
+          <Button
+            variant="black"
+            size="lg"
+            onClick={onSave}
+            disabled={!selectedStatus || isLoading}
+          >
+            {isLoading ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>

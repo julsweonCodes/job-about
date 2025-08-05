@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
 import PostHeader from "@/components/common/PostHeader";
@@ -7,10 +7,12 @@ import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/jobPos
 import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EllipsisVertical } from "lucide-react";
-import { apiGetData } from "@/utils/client/API";
+import { apiGetData, ApiError } from "@/utils/client/API";
+import { showErrorToast } from "@/utils/client/toastUtils";
 
 interface Props {
   postId: string;
+  status?: "published" | "draft";
 }
 
 interface LoadingStates {
@@ -24,7 +26,7 @@ interface DropdownItem {
   isDestructive?: boolean;
 }
 
-const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
+const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }) => {
   const router = useRouter();
 
   // State
@@ -34,17 +36,21 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
     jobDetails: true,
   });
 
+  // 중복 실행 방지를 위한 ref
+  const isInitializingRef = useRef(false);
+
   // Handlers
   const handleDropdownToggle = useCallback(() => {
     setShowActionsDropdown((prev) => !prev);
   }, []);
 
   const handleEdit = useCallback(() => {
-    router.push(PAGE_URLS.EMPLOYER.POST.EDIT(postId));
-  }, [router, postId]);
+    console.log("handleEdit", postId, status);
+    router.push(`${PAGE_URLS.EMPLOYER.POST.EDIT(postId)}?status=${status}`);
+  }, [router, postId, status]);
 
   const handleStatusChange = useCallback((newStatus: JobStatus) => {
-    // TODO: API call to update job post status
+    // TODO: API call to update job post status @jeongyoun
     console.log("Status changed to:", newStatus);
     setShowActionsDropdown(false);
   }, []);
@@ -68,10 +74,14 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
 
   // Data fetching
   const fetchJobDetails = useCallback(async () => {
+    if (isInitializingRef.current) return;
+    isInitializingRef.current = true;
+
     setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
 
     try {
-      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(postId, "published"));
+      // 상태에 따라 다른 API 엔드포인트 호출
+      const data = await apiGetData(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
       if (!data) {
         throw new Error("No data received from API");
       }
@@ -79,11 +89,18 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
       setJobDetails(jobPostData);
     } catch (error) {
       console.error("Error fetching job details:", error);
-      router.push(PAGE_URLS.EMPLOYER.ROOT);
+
+      showErrorToast(error instanceof Error ? error.message : "Failed to fetch job details");
+
+      // 토스트가 보이도록 2초 후에 페이지 이동
+      setTimeout(() => {
+        router.replace(PAGE_URLS.EMPLOYER.ROOT);
+      }, 2000);
     } finally {
       setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
+      isInitializingRef.current = false;
     }
-  }, [postId, router]);
+  }, [postId, status, router]);
 
   // Effects
   useEffect(() => {

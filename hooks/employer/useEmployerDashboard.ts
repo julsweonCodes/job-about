@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { Dashboard, JobPost } from "@/types/employer";
@@ -19,7 +19,7 @@ const fetchActiveJobPosts = async (): Promise<JobPost[]> => {
 const fetchJobPostAppList = async (postId: string): Promise<Applicant[]> => {
   const data = await apiGetData<Applicant[]>(API_URLS.EMPLOYER.DASHBOARD.APPLICANT_LIST(postId));
   return Array.isArray(data) ? data : [];
-}
+};
 
 interface UseEmployerDashboardReturn {
   dashboard: Dashboard | undefined;
@@ -44,6 +44,7 @@ interface UseEmployerJobPostAppListReturn {
   isInitialized: boolean;
   refreshAll: () => Promise<void>;
   invalidateJobPostAllList: () => void;
+  queryClient: QueryClient;
 }
 
 export function useEmployerDashboard(): UseEmployerDashboardReturn {
@@ -80,7 +81,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
         draft: data.filter((p) => p.status === "DRAFT"),
         active: data.filter((p) => p.status === "PUBLISHED"),
       };
-    }
+    },
   });
 
   const draftJobPostList = jobPostList.draft ?? [];
@@ -89,7 +90,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
   // 전체 새로고침 함수
   const refreshAll = async () => {
     const result = await Promise.allSettled([refetchDashboard(), refetchAllJobPostList()]);
-    result.forEach( (r) => {
+    result.forEach((r) => {
       if (r.status === "rejected") {
         console.error("❌ Failed during refreshAll:", r.reason);
       }
@@ -104,10 +105,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
   };
 
   // 에러 처리
-  const error =
-    dashboardError?.message ||
-    allJobPostListError?.message ||
-    null;
+  const error = dashboardError?.message || allJobPostListError?.message || null;
 
   return {
     dashboard,
@@ -144,7 +142,7 @@ export function useEmployerJobPostAppList(postId: string): UseEmployerJobPostApp
   // 전체 새로고침 함수
   const refreshAll = async () => {
     const result = await Promise.allSettled([refetchJobPostAppList()]);
-    result.forEach( (r) => {
+    result.forEach((r) => {
       if (r.status === "rejected") {
         console.error("❌ Failed during refreshAll:", r.reason);
       }
@@ -157,9 +155,7 @@ export function useEmployerJobPostAppList(postId: string): UseEmployerJobPostApp
   };
 
   // 에러 처리
-  const error =
-    jobPostAppListError?.message ||
-    null;
+  const error = jobPostAppListError?.message || null;
 
   return {
     jobPostAppList,
@@ -170,5 +166,6 @@ export function useEmployerJobPostAppList(postId: string): UseEmployerJobPostApp
     isInitialized: !jobPostAppListLoading,
     refreshAll,
     invalidateJobPostAllList,
+    queryClient,
   };
 }

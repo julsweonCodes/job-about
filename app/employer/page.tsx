@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
 import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
 import { AlertBanner } from "./components/AlertBanner";
@@ -72,16 +72,36 @@ const EmptyState = ({
 
 export default function EmployerDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("active");
+  const searchParams = useSearchParams();
+
+  // URL 파라미터에서 탭 상태 읽기, 기본값은 "active"
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const tabFromUrl = searchParams.get("tab") as TabType;
+    return tabFromUrl === "drafts" ? "drafts" : "active";
+  });
 
   const { dashboard, activeJobPostList, draftJobPostList, loadingStates } = useEmployerDashboard();
 
   const handleViewJob = (id: string) => {
-    router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(id));
+    if (activeTab === "drafts") {
+      // Draft 상태일 때는 바로 Edit 페이지로 이동
+      router.push(`${PAGE_URLS.EMPLOYER.POST.EDIT(id)}?status=draft`);
+    } else {
+      // Active 상태일 때는 Detail 페이지로 이동
+      router.push(`${PAGE_URLS.EMPLOYER.POST.DETAIL(id)}?status=published`);
+    }
+  };
+
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    // URL 파라미터 업데이트
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tabId);
+    router.replace(url.pathname + url.search);
   };
 
   const handleViewApplicants = (id: string) => {
-    router.push(PAGE_URLS.EMPLOYER.APPLICANTS(id));
+    router.push(PAGE_URLS.EMPLOYER.POST.APPLICANTS(id));
   };
 
   const handleCreateJobPost = () => {
@@ -151,7 +171,7 @@ export default function EmployerDashboard() {
               },
             ]}
             activeTab={activeTab}
-            onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+            onTabChange={(tabId) => handleTabChange(tabId as TabType)}
             isLoading={loadingStates.allJobPostList}
           />
 
