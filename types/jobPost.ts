@@ -543,7 +543,6 @@ export class JobPostMapper {
       workType: jobPost.workType || ("on-site" as WorkType),
       wage: jobPost.hourlyWage,
       location: jobPost.businessLocInfo.address || "Location not specified",
-      dateRange: "Recently", // 기본값
       workSchedule: jobPost.workSchedule,
       businessName: jobPost.businessLocInfo.name,
       description: jobPost.jobDescription,
