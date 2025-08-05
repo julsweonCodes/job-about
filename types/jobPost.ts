@@ -217,7 +217,7 @@ export interface ApiJobPostDetailData {
     name_ko: string;
     name_en: string;
   }>;
-  schedule: string;
+  workSchedule: string;
   status: string;
   title: string;
   isBookmarked: boolean;
@@ -378,7 +378,7 @@ export class JobPostMapper {
           workingHours: apiJobPost.businessLocInfo.workingHours,
         },
         deadline: apiJobPost.deadline,
-        workSchedule: apiJobPost.schedule,
+        workSchedule: apiJobPost.workSchedule,
         requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
         requiredWorkStyles: this.mapWorkStyles(apiJobPost.requiredWorkStyles),
         languageLevel: apiJobPost.languageLevel as LanguageLevel,
