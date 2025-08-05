@@ -266,7 +266,7 @@ const SkillsAndPersonality: React.FC<{ jobData: JobPostData; mode: string }> = (
 }) => (
   <div className="mb-8">
     <div className="flex items-center justify-between mb-6">
-      <h2 className="text-xl font-bold text-gray-900">Skills & Personality</h2>
+      <h2 className="text-xl font-bold text-gray-900">Skills & Work Styles</h2>
     </div>
     <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
       <div className="mb-6">
@@ -293,7 +293,7 @@ const SkillsAndPersonality: React.FC<{ jobData: JobPostData; mode: string }> = (
           ) : (
             <Heart className="w-5 h-5 text-purple-500" />
           )}
-          <h3 className="font-semibold text-gray-800">Personality Traits</h3>
+          <h3 className="font-semibold text-gray-800">Work Styles</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           {jobData.requiredWorkStyles.map((ws) => (

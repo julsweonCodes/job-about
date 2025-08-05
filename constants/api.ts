@@ -32,6 +32,7 @@ export const API_URLS = {
     DASHBOARD: {
       ROOT: "/api/employer/dashboard",
       JOBPOSTS: "/api/employer/dashboard/jobposts",
+      APPLICANT_LIST: (postId: string) => `/api/employer/dashboard/${postId}/applicants`,
     },
     POST: {
       CREATE: "/api/employer/post/create",

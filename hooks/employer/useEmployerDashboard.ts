@@ -3,6 +3,7 @@ import { apiGetData } from "@/utils/client/API";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { Dashboard, JobPost } from "@/types/employer";
 import { API_URLS } from "@/constants/api";
+import { Applicant } from "@/types/job";
 
 // API 함수들
 const fetchDashboard = async (): Promise<Dashboard> => {
@@ -15,11 +16,10 @@ const fetchActiveJobPosts = async (): Promise<JobPost[]> => {
   return Array.isArray(data) ? data : [];
 };
 
-const fetchDraftJobPosts = async (): Promise<JobPost[]> => {
-  // TODO: draft API 엔드포인트가 구현되면 수정 필요
-  // 현재는 빈 배열로 설정
-  return [];
-};
+const fetchJobPostAppList = async (postId: string): Promise<Applicant[]> => {
+  const data = await apiGetData<Applicant[]>(API_URLS.EMPLOYER.DASHBOARD.APPLICANT_LIST(postId));
+  return Array.isArray(data) ? data : [];
+}
 
 interface UseEmployerDashboardReturn {
   dashboard: Dashboard | undefined;
@@ -27,13 +27,23 @@ interface UseEmployerDashboardReturn {
   draftJobPostList: JobPost[];
   loadingStates: {
     dashboard: boolean;
-    activeJobPostList: boolean;
-    draftJobPostList: boolean;
+    allJobPostList: boolean;
   };
   error: string | null;
   isInitialized: boolean;
   refreshAll: () => Promise<void>;
   invalidateJobPosts: () => void;
+}
+
+interface UseEmployerJobPostAppListReturn {
+  jobPostAppList: Applicant[];
+  loadingStates: {
+    jobPostAppList: boolean;
+  };
+  error: string | null;
+  isInitialized: boolean;
+  refreshAll: () => Promise<void>;
+  invalidateJobPostAllList: () => void;
 }
 
 export function useEmployerDashboard(): UseEmployerDashboardReturn {
@@ -55,35 +65,35 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
 
   // Active Job Posts 쿼리
   const {
-    data: activeJobPostList = [],
-    isLoading: activeJobPostListLoading,
-    error: activeJobPostListError,
-    refetch: refetchActiveJobPosts,
+    data: jobPostList = { draft: [], active: [] },
+    isLoading: allJobPostListLoading,
+    error: allJobPostListError,
+    refetch: refetchAllJobPostList,
   } = useQuery({
     queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS,
     queryFn: fetchActiveJobPosts,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    select: (data: JobPost[]) => {
+      return {
+        draft: data.filter((p) => p.status === "DRAFT"),
+        active: data.filter((p) => p.status === "PUBLISHED"),
+      };
+    }
   });
 
-  // Draft Job Posts 쿼리
-  const {
-    data: draftJobPostList = [],
-    isLoading: draftJobPostListLoading,
-    error: draftJobPostListError,
-    refetch: refetchDraftJobPosts,
-  } = useQuery({
-    queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS,
-    queryFn: fetchDraftJobPosts,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const draftJobPostList = jobPostList.draft ?? [];
+  const activeJobPostList = jobPostList.active ?? [];
 
   // 전체 새로고침 함수
   const refreshAll = async () => {
-    await Promise.allSettled([refetchDashboard(), refetchActiveJobPosts(), refetchDraftJobPosts()]);
+    const result = await Promise.allSettled([refetchDashboard(), refetchAllJobPostList()]);
+    result.forEach( (r) => {
+      if (r.status === "rejected") {
+        console.error("❌ Failed during refreshAll:", r.reason);
+      }
+    });
   };
 
   // Job Posts 캐시 무효화 함수 (publish 시 사용)
@@ -96,8 +106,7 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
   // 에러 처리
   const error =
     dashboardError?.message ||
-    activeJobPostListError?.message ||
-    draftJobPostListError?.message ||
+    allJobPostListError?.message ||
     null;
 
   return {
@@ -106,12 +115,60 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
     draftJobPostList,
     loadingStates: {
       dashboard: dashboardLoading,
-      activeJobPostList: activeJobPostListLoading,
-      draftJobPostList: draftJobPostListLoading,
+      allJobPostList: allJobPostListLoading,
     },
     error,
-    isInitialized: !dashboardLoading && !activeJobPostListLoading && !draftJobPostListLoading,
+    isInitialized: !dashboardLoading && !allJobPostListLoading,
     refreshAll,
     invalidateJobPosts,
+  };
+}
+
+export function useEmployerJobPostAppList(postId: string): UseEmployerJobPostAppListReturn {
+  const queryClient = useQueryClient();
+
+  // Job Post  쿼리
+  const {
+    data: jobPostAppList = [],
+    isLoading: jobPostAppListLoading,
+    error: jobPostAppListError,
+    refetch: refetchJobPostAppList,
+  } = useQuery({
+    queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_LIST(postId),
+    queryFn: () => fetchJobPostAppList(postId),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // 전체 새로고침 함수
+  const refreshAll = async () => {
+    const result = await Promise.allSettled([refetchJobPostAppList()]);
+    result.forEach( (r) => {
+      if (r.status === "rejected") {
+        console.error("❌ Failed during refreshAll:", r.reason);
+      }
+    });
+  };
+
+  // Job Posts 캐시 무효화 함수 (publish 시 사용)
+  const invalidateJobPostAllList = () => {
+    queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_LIST(postId) });
+  };
+
+  // 에러 처리
+  const error =
+    jobPostAppListError?.message ||
+    null;
+
+  return {
+    jobPostAppList,
+    loadingStates: {
+      jobPostAppList: jobPostAppListLoading,
+    },
+    error,
+    isInitialized: !jobPostAppListLoading,
+    refreshAll,
+    invalidateJobPostAllList,
   };
 }

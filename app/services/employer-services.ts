@@ -4,7 +4,15 @@ import { EmployerProfilePayload, JobPost } from "@/types/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
-import { toPrismaLocationStrict } from "@/types/enumMapper";
+import {
+  fromPrismaAppStatus,
+  fromPrismaWorkPeriod, fromPrismaWorkType,
+  toPrismaJobStatus,
+  toPrismaLocationStrict,
+} from "@/types/enumMapper";
+import { Applicant } from "@/types/job";
+import { Prisma } from "@prisma/client";
+import { toISOString } from "@/utils/shared/dateUtils";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -85,7 +93,10 @@ export async function updateEmployerProfile(id: number, payload: EmployerProfile
 }
  */
 
-/** 2. Dashboard */
+/**
+ * 2. Dashboard
+ * */
+
 // GET - Select cnt values for employer dashboard
 export async function getActiveJobPostsCnt(userId: number, bizLocId: number): Promise<number> {
   const currDate = new Date();
@@ -150,7 +161,9 @@ export async function getAllApplicationsCnt(userId: number, bizLocId: number): P
       created_at: {
         lte: currDate,
       },
-      deadline: currDateStr,
+      deadline: {
+        gte: currDateStr
+      },
       user_id: userId,
       status: "PUBLISHED",
     },
@@ -190,7 +203,9 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     where: {
       business_loc_id: bizLocInfo.id,
       user_id: userId,
-      status: "PUBLISHED",
+      status: {
+        in: ["PUBLISHED", "DRAFT"],
+      },
       deadline: {
         gte: currDateStr,
       },
@@ -223,7 +238,88 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     type: post.work_type,
     views: 0,
     wage: post.wage,
+    status: post.status,
   }));
   // console.log("activeJobPostList: ", activeJobPostList);
   return activeJobPostList;
+}
+
+/**
+ * Dashboard - applicants
+ */
+export async function getApplicantsList(postId: string): Promise<Applicant[]> {
+  console.log("start - service");
+  const res1 = await prisma.$queryRaw<
+    Array<{
+      application_id: bigint;
+      profile_id: bigint;
+      user_id: bigint;
+      job_post_id: bigint;
+      status: string;
+      created_at: Date;
+      name: string;
+      img_url: string;
+      description: string;
+      applied_at: Date;
+    }>
+  >(Prisma.sql`
+    SELECT
+      b.id "application_id",
+      a.id "profile_id",
+      a.user_id,
+      b.job_post_id,
+      b.status,
+      a.created_at,
+      d.name,
+      d.img_url,
+      a.description,
+      b.created_at "applied_at"
+    FROM
+      applicant_profiles a,
+      applications b,
+      job_posts c,
+      users d
+    WHERE
+      a.user_id = d.id
+      AND a.id = b.profile_id
+      AND b.job_post_id = c.id
+      AND c.id = ${Number(postId)};
+  `);
+
+  if (res1) {
+    const res2 = await Promise.all(
+      res1.map(async (applicant) => {
+        const workExperience = await prisma.work_experiences.findMany({
+          where: {
+            profile_id: applicant.profile_id,
+          }
+        });
+        return {
+          application_id: Number(applicant.application_id),
+          profile_id: Number(applicant.profile_id),
+          user_id: Number(applicant.user_id),
+          job_post_id: Number(applicant.job_post_id),
+          status: fromPrismaAppStatus(applicant.status),
+          created_at: applicant.created_at ? formatDateYYYYMMDD(applicant.created_at): "",
+          profile_image_url: applicant.img_url,
+          description: applicant.description,
+          applied_date: applicant.applied_at ? formatDateYYYYMMDD(applicant.applied_at): "",
+          work_experiences: workExperience.map((w) => ({
+            id: Number(w.id),
+            profile_id: Number(w.profile_id),
+            company_name: w.company_name,
+            job_type: w.job_type,
+            start_year: Number(w.start_year),
+            work_period: fromPrismaWorkPeriod(w.work_period),
+            work_type: fromPrismaWorkType(w.work_type),
+            description: w.description,
+          })),
+        };
+      })
+    );
+    console.log(res2);
+    return res2;
+  } else {
+    return [];
+  }
 }

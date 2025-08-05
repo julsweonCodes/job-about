@@ -152,13 +152,13 @@ export default function EmployerDashboard() {
             ]}
             activeTab={activeTab}
             onTabChange={(tabId) => setActiveTab(tabId as TabType)}
-            isLoading={loadingStates.activeJobPostList || loadingStates.draftJobPostList}
+            isLoading={loadingStates.allJobPostList}
           />
 
           {/* Active Jobs Tab */}
           {activeTab === "active" && (
             <>
-              {loadingStates.activeJobPostList ? (
+              {loadingStates.allJobPostList ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
                   {Array.from({ length: 4 }).map((_, index) => (
                     <JobPostCardSkeleton key={index} />
@@ -190,7 +190,7 @@ export default function EmployerDashboard() {
           {/* Drafts Tab */}
           {activeTab === "drafts" && (
             <>
-              {loadingStates.draftJobPostList ? (
+              {loadingStates.allJobPostList ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
                   {Array.from({ length: 4 }).map((_, index) => (
                     <JobPostCardSkeleton key={index} />

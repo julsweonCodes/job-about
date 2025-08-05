@@ -6,6 +6,7 @@ import {
   AvailableDay,
   AvailableHour,
   WorkPeriod,
+  ApplicantStatus
 } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
@@ -268,6 +269,17 @@ export function fromPrismaAvailableHour(value: string): AvailableHour {
     PM: AvailableHour.PM,
   };
   return map[value] || AvailableHour.AM;
+}
+
+export function fromPrismaAppStatus(value: string): ApplicantStatus {
+  const map: Record<string, ApplicantStatus> = {
+    APPLIED: ApplicantStatus.APPLIED,
+    IN_REVIEW: ApplicantStatus.IN_REVIEW,
+    REJECTED: ApplicantStatus.REJECTED,
+    WITHDRAWN: ApplicantStatus.WITHDRAWN,
+    HIRED: ApplicantStatus.HIRED,
+  };
+  return map[value] || ApplicantStatus.APPLIED;
 }
 
 export function toWorkType(value: string | null): WorkType | undefined {
