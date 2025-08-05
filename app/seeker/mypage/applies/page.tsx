@@ -121,7 +121,9 @@ function SeekerAppliedPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Applications</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+                  Check My Applications
+                </h1>
               </div>
             </div>
           </div>
@@ -144,7 +146,9 @@ function SeekerAppliedPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Applications</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+                  Check My Applications
+                </h1>
               </div>
             </div>
           </div>
@@ -172,7 +176,9 @@ function SeekerAppliedPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Applications</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+                Check My Applications
+              </h1>
               {appliedJobs && appliedJobs.length > 0 && (
                 <p className="text-slate-600 mt-1">you can check your applications here</p>
               )}

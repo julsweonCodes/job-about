@@ -101,12 +101,13 @@ export interface JobPostCard {
   workType: WorkType;
   wage: string;
   location: string;
-  dateRange: string;
+  workSchedule: string;
   businessName: string;
   description: string;
   applicants: number;
   views: number;
   logoImage?: string;
+  applicationStatus?: string; // 지원 상태 추가
   requiredSkills?: Array<{
     id: number;
     name_ko: string;

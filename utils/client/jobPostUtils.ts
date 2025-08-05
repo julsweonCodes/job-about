@@ -18,22 +18,13 @@ export const convertToJobPostCard = (apiJob: ApiJobPost): JobPostCardType => {
   // business_loc에는 logo_url만 있으므로 기본값 사용
   const location = DEFAULT_VALUES.LOCATION;
 
-  // daysAgo 계산 (created_at이 있는 경우)
-  let dateRange = "Recently";
-  if (apiJob.created_at) {
-    const createdAt = new Date(apiJob.created_at);
-    const now = new Date();
-    const diffInDays = Math.floor((+now - +createdAt) / (1000 * 60 * 60 * 24));
-    dateRange = diffInDays > 0 ? `${diffInDays} days ago` : "Today";
-  }
-
   return {
     id: apiJob.id,
     title: apiJob.title,
     workType: apiJob.work_type as WorkType,
     wage: apiJob.wage,
     location: location,
-    dateRange: dateRange,
+    workSchedule: apiJob.work_schedule,
     businessName: apiJob.business_loc?.name || DEFAULT_VALUES.BUSINESS_NAME,
     description: apiJob.description,
     applicants: apiJob.applicantCount || 0,

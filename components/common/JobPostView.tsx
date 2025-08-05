@@ -87,7 +87,7 @@ const JobHeader: React.FC<{
 }> = ({ jobData, mode, showEditButtons, onEdit, editableSections }) => (
   <div className="py-6 lg:py-8">
     <div className="flex flex-row items-center space-x-4">
-      <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+      <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
         <img
           src={jobData.businessLocInfo.logoImg}
           alt="Company Logo"
@@ -492,7 +492,7 @@ const ActionButtons: React.FC<{
 const getJobDetailValue = (jobData: JobPostData, label: string): string | undefined => {
   const valueMap: Record<string, string | undefined> = {
     "Hourly Wage": jobData.hourlyWage,
-    Schedule: jobData.schedule,
+    Schedule: jobData.workSchedule,
     "Language Level": jobData.languageLevel,
     "Application Deadline": jobData.deadline,
     "Job Type": jobData.jobType ? getJobTypeName(jobData.jobType) : undefined,

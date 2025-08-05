@@ -125,7 +125,7 @@ function SeekerBookmarksPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookmarks</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Check My Bookmarks</h1>
               </div>
             </div>
           </div>
@@ -148,7 +148,7 @@ function SeekerBookmarksPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookmarks</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Check My Bookmarks</h1>
               </div>
             </div>
           </div>
@@ -176,7 +176,7 @@ function SeekerBookmarksPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Bookmarks</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Check My Bookmarks</h1>
               {bookmarkedJobs && bookmarkedJobs.length > 0 && (
                 <p className="text-slate-600 mt-1">you can check your bookmarks here</p>
               )}
