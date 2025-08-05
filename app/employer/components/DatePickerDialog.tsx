@@ -3,6 +3,7 @@ import { DayPicker } from "react-day-picker";
 import { enUS } from "date-fns/locale";
 import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
+import "react-day-picker/dist/style.css";
 
 interface DatePickerDialogProps {
   open: boolean;
