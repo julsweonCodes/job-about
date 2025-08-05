@@ -40,6 +40,9 @@ export const API_URLS = {
       DETAIL: (id: string, status?: string) =>
         status ? `/api/employer/post/${id}?status=${status}` : `/api/employer/post/${id}`,
     },
+    APPLICANTS: {
+      UPDATE_STATUS: "/api/employer/applicants/update-status",
+    },
   },
 
   // 구직자 관련
@@ -121,8 +124,10 @@ export const PAGE_URLS = {
       PREVIEW: (id: string, useAI: boolean) => `/employer/post/preview/${id}?useAI=${useAI}`,
       DETAIL: (id: string) => `/employer/post/${id}`,
       EDIT: (id: string) => `/employer/post/${id}/edit`,
+      APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
+      APPLICANT: (id: string, applicantId: string) =>
+        `/employer/post/${id}/applicants/${applicantId}`,
     },
-    APPLICANTS: (id: string) => `/employer/post/${id}/applicants`,
     PENDING_UPDATES: "/employer/pending-updates",
   },
   AUTH: {

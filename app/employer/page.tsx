@@ -101,7 +101,7 @@ export default function EmployerDashboard() {
   };
 
   const handleViewApplicants = (id: string) => {
-    router.push(PAGE_URLS.EMPLOYER.APPLICANTS(id));
+    router.push(PAGE_URLS.EMPLOYER.POST.APPLICANTS(id));
   };
 
   const handleCreateJobPost = () => {
