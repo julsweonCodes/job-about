@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useCallback, useEffect, useRef, useState } from "react";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Filter } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -13,6 +13,25 @@ import { PAGE_URLS } from "@/constants/api";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SCROLL_IDS } from "@/constants/scrollIds";
+import { Chip } from "@/components/ui/Chip";
+
+// getApplicationStatusConfig와 동일한 스타일 함수
+const getStatusFilterStyle = (status: string) => {
+  switch (status) {
+    case "applied":
+      return "bg-amber-100 text-amber-700 border-amber-200";
+    case "in_review":
+      return "bg-blue-100 text-blue-700 border-blue-200";
+    case "hired":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    case "rejected":
+      return "bg-red-100 text-red-700 border-red-200";
+    case "withdrawn":
+      return "bg-gray-100 text-gray-700 border-gray-200";
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200";
+  }
+};
 
 function SeekerAppliedPage() {
   const router = useRouter();
@@ -20,6 +39,19 @@ function SeekerAppliedPage() {
   const loadingRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  // 필터링 상태
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+
+  // 필터 옵션
+  const statusFilterOptions = [
+    { key: "all", label: "All Applications" },
+    { key: "applied", label: "Applied" },
+    { key: "in_review", label: "In Review" },
+    { key: "hired", label: "Hired" },
+    { key: "rejected", label: "Rejected" },
+    { key: "withdrawn", label: "Withdrawn" },
+  ];
 
   const { appliedJobs, loading, error, hasMore, loadMore, refresh, isLoadMoreLoading } =
     useSeekerAppliedJobs({
@@ -36,8 +68,17 @@ function SeekerAppliedPage() {
 
   const filteredAppliedJobs = useMemo(() => {
     if (!appliedJobs || appliedJobs.length === 0) return [];
-    return appliedJobs.map(JobPostMapper.convertJobPostDataToCard);
-  }, [appliedJobs]);
+
+    // 먼저 JobPostCard로 변환
+    const convertedJobs = appliedJobs.map(JobPostMapper.convertJobPostDataToCard);
+
+    // 상태별 필터링
+    if (selectedStatus === "all") {
+      return convertedJobs;
+    }
+
+    return convertedJobs.filter((job) => job.applicationStatus === selectedStatus);
+  }, [appliedJobs, selectedStatus]);
 
   const handleViewJob = useCallback(
     (id: string) => {
@@ -184,6 +225,30 @@ function SeekerAppliedPage() {
               )}
             </div>
           </div>
+
+          {/* 필터 섹션 */}
+          {appliedJobs && appliedJobs.length > 0 && (
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
+                {statusFilterOptions.map((option) => (
+                  <Chip
+                    key={option.key}
+                    size="sm"
+                    className={`cursor-pointer transition-all duration-200 ${
+                      selectedStatus === option.key
+                        ? option.key === "all"
+                          ? "bg-blue-100 text-blue-700 border-blue-200"
+                          : getStatusFilterStyle(option.key)
+                        : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+                    }`}
+                    onClick={() => setSelectedStatus(option.key)}
+                  >
+                    {option.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 데이터가 있는 경우 */}
@@ -203,6 +268,19 @@ function SeekerAppliedPage() {
             {/* 무한 스크롤 트리거 요소 */}
             {hasMore && appliedJobs.length > 0 && <div ref={loadingRef} className="h-10" />}
           </>
+        ) : selectedStatus !== "all" ? (
+          /* 필터링된 결과가 없는 경우 */
+          <EmptyState
+            icon={Briefcase}
+            title={`No ${selectedStatus.replace("_", " ")} applications`}
+            description={`You don't have any ${selectedStatus.replace("_", " ")} applications. Try selecting a different filter.`}
+            primaryAction={{
+              label: "Show All",
+              onClick: () => setSelectedStatus("all"),
+            }}
+            size="md"
+            className="bg-blue-50 rounded-lg"
+          />
         ) : (
           /* 데이터가 없는 경우 (빈 상태) */
           <EmptyState

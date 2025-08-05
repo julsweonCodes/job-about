@@ -94,7 +94,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
       case "applied":
         return {
           text: "Applied",
-          style: "bg-green-100 text-green-700 border-green-200",
+          style: "bg-amber-100 text-amber-700 border-amber-200",
         };
       case "in_review":
         return {
