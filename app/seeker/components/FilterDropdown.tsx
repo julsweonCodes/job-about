@@ -81,7 +81,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200"
+        className="flex items-center gap-3 px-3 py-3 sm:px-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200"
       >
         {filter.iconType === "workType" ? (
           <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
