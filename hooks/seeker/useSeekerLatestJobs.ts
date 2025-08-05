@@ -2,8 +2,9 @@ import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { toPrismaWorkType } from "@/types/enumMapper";
+import { toPrismaLocation, toPrismaWorkType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
+import { Location } from "@/constants/location";
 
 // 필터를 Prisma 타입으로 변환
 const convertFiltersToPrisma = (filters: { workType: string; location: string }) => {
@@ -20,7 +21,7 @@ const convertFiltersToPrisma = (filters: { workType: string; location: string })
 
   // location 변환 (location은 그대로 사용)
   if (filters.location && filters.location !== "all") {
-    convertedFilters.location = filters.location;
+    convertedFilters.location = toPrismaLocation(filters.location as Location);
   }
 
   return convertedFilters;

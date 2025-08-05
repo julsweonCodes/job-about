@@ -11,10 +11,11 @@ import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
-import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
+import { workTypeFilter, createLocationFilterFromData } from "@/constants/filterOptions";
 import { Briefcase } from "lucide-react";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SCROLL_IDS } from "@/constants/scrollIds";
+import { useCommonData } from "@/hooks/useCommonData";
 
 function SeekerPage() {
   const router = useRouter();
@@ -43,6 +44,25 @@ function SeekerPage() {
 
   // 필터 상태 관리
   const { filters: currentFilters } = useFilterStore();
+  const { locations } = useCommonData();
+
+  // 동적 location 필터 생성
+  const locationFilter = React.useMemo(() => {
+    if (locations.length > 0) {
+      return createLocationFilterFromData(locations);
+    }
+    // fallback: 기본 location 필터
+    return {
+      id: "location",
+      label: "Location",
+      iconType: "location" as const,
+      options: [
+        { key: "all", label: "All" },
+        { key: "toronto", label: "Toronto" },
+        { key: "mississauga", label: "Mississauga" },
+      ],
+    };
+  }, [locations]);
 
   // 추천 공고 (AI 맞춤 추천)
   const {
