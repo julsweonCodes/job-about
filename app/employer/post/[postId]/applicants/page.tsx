@@ -32,6 +32,7 @@ function ReviewApplicantsPage() {
     setSelectedStatus(null);
   };
 
+  // TODO api call 
   const handleSaveStatus = async () => {
     if (!selectedApplicantId || !selectedStatus) return;
 
@@ -94,8 +95,6 @@ function ReviewApplicantsPage() {
   };
 
   const statusCounts = getStatusCounts();
-  const appliedCount = statusCounts.applied;
-  const totalCount = statusCounts.all;
 
   const filteredApplicants = React.useMemo(() => {
     if (!jobPostAppList) return [];
