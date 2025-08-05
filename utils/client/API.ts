@@ -300,6 +300,7 @@ export const apiDelete = <T = any>(url: string, headers?: Record<string, string>
   api.delete<T>(url, headers);
 
 // 편의 함수들 - 성공 시에만 data를 반환하는 함수들
+// return type: ServerResponse<T>
 export const apiGetData = <T = any>(
   url: string,
   params?: QueryParams,

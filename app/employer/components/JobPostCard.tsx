@@ -196,9 +196,6 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
             <Button variant="secondary" className="h-10 md:h-14" onClick={() => onView(job.id)}>
               Continue Editing
             </Button>
-            <Button variant="default" className="h-10 md:h-14" onClick={() => onView(job.id)}>
-              Publish
-            </Button>
           </>
         ) : (
           <>

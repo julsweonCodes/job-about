@@ -37,7 +37,8 @@ export const API_URLS = {
     POST: {
       CREATE: "/api/employer/post/create",
       PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
-      DETAIL: (id: string) => `/api/employer/post/${id}`,
+      DETAIL: (id: string, status?: string) =>
+        status ? `/api/employer/post/${id}?status=${status}` : `/api/employer/post/${id}`,
     },
   },
 

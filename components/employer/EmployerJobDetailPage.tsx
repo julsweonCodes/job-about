@@ -25,7 +25,7 @@ interface DropdownItem {
   isDestructive?: boolean;
 }
 
-const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "active" }) => {
+const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }) => {
   const router = useRouter();
 
   // State
@@ -41,11 +41,11 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "active" }) =
   }, []);
 
   const handleEdit = useCallback(() => {
-    router.push(PAGE_URLS.EMPLOYER.POST.EDIT(postId));
-  }, [router, postId]);
+    router.push(`${PAGE_URLS.EMPLOYER.POST.EDIT(postId)}?status=${status}`);
+  }, [router, postId, status]);
 
   const handleStatusChange = useCallback((newStatus: JobStatus) => {
-    // TODO: API call to update job post status
+    // TODO: API call to update job post status @jeongyoun
     console.log("Status changed to:", newStatus);
     setShowActionsDropdown(false);
   }, []);
@@ -73,8 +73,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "active" }) =
 
     try {
       // 상태에 따라 다른 API 엔드포인트 호출
-      const apiStatus = status === "draft" ? "draft" : "published";
-      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(postId, apiStatus));
+      const data = await apiGetData(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
       if (!data) {
         throw new Error("No data received from API");
       }

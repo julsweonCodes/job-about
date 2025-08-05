@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import JobPostView from "@/components/common/JobPostView";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { API_URLS } from "@/constants/api";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -19,6 +19,7 @@ const JobPostEditPage: React.FC = () => {
 
   // Job data state
   const [jobData, setJobData] = useState<any>(null);
+  const [jobStatus, setJobStatus] = useState<string>("published");
 
   // Fetch job data on component mount
   useEffect(() => {
@@ -29,17 +30,18 @@ const JobPostEditPage: React.FC = () => {
         const pathSegments = window.location.pathname.split("/");
         const postId = pathSegments[pathSegments.length - 2]; // /employer/post/[postId]/edit
 
-        console.log("Fetching job data for postId:", postId);
+        // Get status from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get("status") || "published"; // 기본값은 published
+        setJobStatus(status);
 
-        const response = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId));
-        console.log("API response status:", response.status);
+        const response = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log("API result:", result);
 
         if (result.data) {
           setJobData(result.data);
@@ -77,9 +79,14 @@ const JobPostEditPage: React.FC = () => {
     }
   };
 
-  // api call to server
+  // TODO: api call to server
   const handleSaveEdit = async () => {
-    console.log("handleSaveEdit", jobData);
+    console.log("save changes to server");
+  };
+
+  // TODO: api call to server (DRAFT -> PUBLISHED)
+  const handlePublish = async () => {
+    console.log("publish job post");
   };
 
   const handleCancel = () => {
@@ -87,9 +94,7 @@ const JobPostEditPage: React.FC = () => {
   };
 
   const handleConfirmCancel = () => {
-    const pathSegments = window.location.pathname.split("/");
-    const postId = pathSegments[pathSegments.length - 2];
-    router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+    router.back();
   };
 
   const handleCloseCancelDialog = () => {
@@ -107,7 +112,10 @@ const JobPostEditPage: React.FC = () => {
         onEdit={handleEdit}
         showEditButtons={true}
         onSaveEdit={handleSaveEdit}
-        showSaveEditButton={true}
+        onPublish={handlePublish}
+        showSaveEditButton={jobStatus === "published"}
+        showPublishButton={jobStatus === "draft"}
+        isDraft={jobStatus === "draft"}
       />
 
       {/* Cancel Confirmation Dialog */}
@@ -135,9 +143,9 @@ const JobPostEditPage: React.FC = () => {
       >
         <div className="text-center py-6">
           <p className="text-sm text-gray-600 leading-relaxed text-sm sm:text-base">
-            Are you sure you want to cancel editing?<br /> All{" "}
-            <span className="font-semibold text-gray-900">unsaved changes</span> will be lost and
-            cannot be recovered.
+            Are you sure you want to cancel editing?
+            <br /> All <span className="font-semibold text-gray-900">unsaved changes</span> will be
+            lost and cannot be recovered.
           </p>
         </div>
       </BaseDialog>

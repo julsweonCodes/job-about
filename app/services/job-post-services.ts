@@ -8,7 +8,9 @@ import {
   toPrismaJobType,
   toPrismaWorkType,
   toPrismaLanguageLevel,
-  toPrismaJobStatus, toLocation, fromPrismaLocation,
+  toPrismaJobStatus,
+  toLocation,
+  fromPrismaLocation,
 } from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
@@ -201,6 +203,8 @@ export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: W
 
 // Get Job Post Preview/view
 export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus, userId?: number) {
+  console.log("getJobPostView called with:", { jobPostId, jobPostStatus, userId });
+
   const bizLocId = await prisma.job_posts.findFirst({
     where: {
       id: Number(jobPostId),
@@ -211,8 +215,15 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     },
   });
 
+  console.log("First query result:", bizLocId);
+
   if (!bizLocId) {
-    console.error("Business Location Id not found...");
+    console.error(
+      "Business Location Id not found for jobPostId:",
+      jobPostId,
+      "status:",
+      jobPostStatus
+    );
     return null;
   }
 
@@ -268,7 +279,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     bizLocRes.img_url5 ? img_base_url.concat(bizLocRes.img_url5) : "",
   ];
 
-  const locationValue : Location = toLocation(fromPrismaLocation(bizLocRes.location))!;
+  const locationValue: Location = toLocation(fromPrismaLocation(bizLocRes.location))!;
 
   const bizLocInfo: BizLocInfo = {
     bizDescription: bizLocRes.description,
@@ -278,7 +289,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     name: bizLocRes.name,
     logoImg: img_base_url.concat(bizLocRes.logo_url ?? ""),
     extraPhotos: extraImgs,
-    workingHours: bizLocRes.operating_start.concat(' - ', bizLocRes.operating_end),
+    workingHours: bizLocRes.operating_start.concat(" - ", bizLocRes.operating_end),
   };
   const requiredSkills = await getJobPostPracSkills(Number(jobPostId));
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));

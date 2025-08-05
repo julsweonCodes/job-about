@@ -40,6 +40,7 @@ interface JobPostViewProps {
   };
   selectedVersion?: "manual" | "struct1" | "struct2";
   onSelectVersion?: (v: "manual" | "struct1" | "struct2") => void;
+  isDraft?: boolean;
 }
 
 // Constants
@@ -413,6 +414,7 @@ const ActionButtons: React.FC<{
   onPublish?: () => void;
   onSaveEdit?: () => void;
   jobData?: JobPostData;
+  isDraft?: boolean;
 }> = ({
   showApplyButton,
   showPublishButton,
@@ -421,6 +423,7 @@ const ActionButtons: React.FC<{
   onPublish,
   onSaveEdit,
   jobData,
+  isDraft = false,
 }) => {
   const renderButton = (type: "apply" | "publish" | "saveEdit") => {
     const config = {
@@ -433,8 +436,10 @@ const ActionButtons: React.FC<{
       publish: {
         show: showPublishButton,
         onClick: onPublish,
-        text: "Publish Job Post",
-        description: "Your job post will be live immediately after publishing",
+        text: isDraft ? "Publish Draft" : "Publish Job Post",
+        description: isDraft
+          ? "Your draft will be published and become live immediately"
+          : "Your job post will be live immediately after publishing",
       },
       saveEdit: {
         show: showSaveEditButton,
@@ -653,13 +658,13 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   jobDescriptions,
   selectedVersion,
   onSelectVersion,
+  isDraft = false,
 }) => {
   // jobData가 없으면 skeleton 표시
   if (!jobData) {
     return <JobPostViewSkeleton />;
   }
 
-  // 실제 extraPhotos가 없으면 더미 데이터 사용
   const extraPhotos =
     jobData.businessLocInfo.extraPhotos && jobData.businessLocInfo.extraPhotos.length > 0
       ? jobData.businessLocInfo.extraPhotos
@@ -706,6 +711,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
         onPublish={onPublish}
         onSaveEdit={onSaveEdit}
         jobData={jobData}
+        isDraft={isDraft}
       />
     </div>
   );

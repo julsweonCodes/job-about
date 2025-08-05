@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
@@ -12,7 +12,7 @@ import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
-import { apiPatchData } from "@/utils/client/API";
+import { apiGetData, apiPatchData } from "@/utils/client/API";
 import { Button } from "../ui/Button";
 
 // Types
@@ -77,6 +77,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   // Initialization flag to prevent duplicate calls
   const [isInitialized, setIsInitialized] = useState(false);
+  const isInitializingRef = useRef(false);
 
   // Utility functions
   const handlePageError = useCallback(
@@ -119,52 +120,42 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   // Data fetching
   const fetchPreviewJobPost = useCallback(async () => {
-    if (isInitialized) return;
-
     try {
-      const res = await fetch(`${API_URLS.EMPLOYER.POST.PUBLISH(postId)}`);
-      const data = await res.json();
+      const data = await apiGetData(`${API_URLS.EMPLOYER.POST.PUBLISH(postId)}`);
 
-      if (!res.ok) {
-        handlePageError("Failed to fetch job post");
+      // Handle string response (e.g., "no data")
+      if (typeof data === "string") {
+        handlePageError("Invalid job post status");
         return;
       }
 
-      if (data?.status === "success" && data?.code === 200) {
-        // Handle string response (e.g., "44")
-        if (typeof data.data === "string") {
-          console.log("Job post ID received:", data.data);
-          // TODO: Fetch actual job post data when API returns string ID
-          return;
-        }
+      // Handle object response
+      if (data?.postData?.status !== "draft") {
+        handlePageError("Invalid job post status");
+        return;
+      }
 
-        // Handle object response
-        if (data?.data?.postData?.status !== "draft") {
-          handlePageError("Invalid job post status");
-          return;
-        }
+      const postData = data.postData;
+      setJobPostData(postData);
+      setNewJobDesc(postData.jobDescription);
 
-        const postData = data.data.postData;
-        setJobPostData(postData);
-        setNewJobDesc(postData.jobDescription);
-
-        const rawGemini = data.data.geminiRes;
-        if (rawGemini) {
-          const processedGemini = processGeminiResponse(rawGemini);
-          setGeminiRes(processedGemini);
-        }
-      } else {
-        handlePageError("Invalid API response");
+      const rawGemini = data.geminiRes;
+      if (rawGemini) {
+        const processedGemini = processGeminiResponse(rawGemini);
+        setGeminiRes(processedGemini);
       }
     } catch (error) {
+      console.error("Failed to fetch job post:", error);
       handlePageError("Failed to fetch job post");
     } finally {
       setIsInitialized(true);
     }
-  }, [postId, handlePageError, processGeminiResponse, isInitialized]);
+  }, [postId, handlePageError, processGeminiResponse]);
 
   const initializeData = useCallback(async () => {
-    if (isInitialized) return;
+    if (isInitialized || isInitializingRef.current) return;
+
+    isInitializingRef.current = true;
 
     try {
       setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
@@ -173,6 +164,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       console.error("Error initializing data:", error);
     } finally {
       setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
+      isInitializingRef.current = false;
     }
   }, [fetchPreviewJobPost, isInitialized]);
 
@@ -185,10 +177,10 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   // Initialize data on mount
   useEffect(() => {
-    if (postId) {
+    if (postId && !isInitialized) {
       initializeData();
     }
-  }, [postId, initializeData]);
+  }, [postId, initializeData, isInitialized]);
 
   // Edit handlers
   const handleEdit = useCallback((section: string, data: EditDialogData) => {
