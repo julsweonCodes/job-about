@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";
 import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { STORAGE_URLS } from "@/constants/storage";
 
 interface ApplicantCardProps {
   applicant: Applicant;
@@ -29,7 +30,11 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
       {/* Applicant Header */}
       <div className="flex items-start gap-4 mb-4">
         <img
-          src={applicant.profile_image_url || ""}
+          src={
+            applicant.profile_image_url
+              ? `${STORAGE_URLS.USER.PROFILE_IMG}${applicant.profile_image_url}`
+              : `${STORAGE_URLS.USER.PROFILE_IMG}/default_profile.png` // 혹은 빈 문자열 "" 등 대체 이미지 경로
+          }
           alt={applicant.name || ""}
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover shadow-sm flex-shrink-0"
         />
