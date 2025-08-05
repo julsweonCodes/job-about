@@ -54,7 +54,24 @@ export async function GET(req: NextRequest) {
             personalityProfile: null,
           },
           recommendations: [],
-          totalCount: 0,
+          pagination: {
+            currentPage: page,
+            totalPages: 0,
+            totalCount: 0,
+            itemsPerPage: limit,
+            hasNextPage: false,
+            hasPrevPage: false,
+            nextPage: null,
+            prevPage: null,
+          },
+          searchParams: {
+            limit,
+            page,
+            minScore,
+            location: locationParam,
+            jobType: jobTypeParam,
+            workType: workTypeParam,
+          },
           message: "성향 테스트를 먼저 완료해주세요.",
         },
         200,
@@ -68,13 +85,16 @@ export async function GET(req: NextRequest) {
     // URL 쿼리 파라미터 처리
     const url = new URL(req.url);
     const limitParam = url.searchParams.get("limit");
+    const pageParam = url.searchParams.get("page");
     const minScoreParam = url.searchParams.get("minScore");
     const locationParam = url.searchParams.get("location");
     const jobTypeParam = url.searchParams.get("jobType");
     const workTypeParam = url.searchParams.get("workType");
 
     const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
+    const page = pageParam ? parseInt(pageParam) : 1; // 기본 1페이지
     const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
+    const offset = (page - 1) * limit;
 
     // 채용공고 조회 (work style이 설정된 공고만)
     const whereConditions: any = {
@@ -99,6 +119,11 @@ export async function GET(req: NextRequest) {
       console.log(`workType 필터 적용: ${workTypeParam}`);
       whereConditions.work_type = workTypeParam;
     }
+
+    // 전체 개수 조회 (페이지네이션용)
+    const totalCount = await prisma.job_posts.count({
+      where: whereConditions,
+    });
 
     const jobPosts = await prisma.job_posts.findMany({
       where: whereConditions,
@@ -143,7 +168,6 @@ export async function GET(req: NextRequest) {
           select: { applications: true },
         },
       },
-      take: limit * 3, // 필터링을 고려해 더 많이 가져옴
       orderBy: {
         created_at: "desc",
       },
@@ -160,7 +184,24 @@ export async function GET(req: NextRequest) {
             personalityProfile: user.personality_profile,
           },
           recommendations: [],
-          totalCount: 0,
+          pagination: {
+            currentPage: page,
+            totalPages: 0,
+            totalCount: 0,
+            itemsPerPage: limit,
+            hasNextPage: false,
+            hasPrevPage: false,
+            nextPage: null,
+            prevPage: null,
+          },
+          searchParams: {
+            limit,
+            page,
+            minScore,
+            location: locationParam,
+            jobType: jobTypeParam,
+            workType: workTypeParam,
+          },
         },
         200,
         "No job posts found."
@@ -219,19 +260,27 @@ export async function GET(req: NextRequest) {
     });
 
     // 점수 필터링 및 정렬
-    const filteredRecommendations = jobRecommendations
+    const sortedRecommendations = jobRecommendations
       .filter((job: any) => job.matchScore >= minScore)
-      .sort((a: any, b: any) => b.matchScore - a.matchScore)
-      .slice(0, limit);
+      .sort((a: any, b: any) => b.matchScore - a.matchScore);
+
+    // 페이지네이션 적용
+    const filteredRecommendations = sortedRecommendations.slice(offset, offset + limit);
+    const filteredTotalCount = sortedRecommendations.length;
 
     console.log(
-      `추천 완료: ${filteredRecommendations.length}개 공고 추천 (최고 점수: ${filteredRecommendations[0]?.matchScore || 0})`
+      `추천 완료: 페이지 ${page}/${Math.ceil(filteredTotalCount / limit)} - ${filteredRecommendations.length}개 공고 추천 (전체 ${filteredTotalCount}개, 최고 점수: ${filteredRecommendations[0]?.matchScore || 0})`
     );
     
     // Required skills 정보 로그 출력
     filteredRecommendations.forEach((job: any, index: number) => {
       console.log(`Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map((s: any) => s.name_ko).join(', ')}`);
     });
+
+    // 페이지네이션 메타데이터 계산
+    const totalPages = Math.ceil(filteredTotalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
 
     return successResponse(
       parseBigInt({
@@ -241,9 +290,19 @@ export async function GET(req: NextRequest) {
           personalityProfile: user.personality_profile,
         },
         recommendations: filteredRecommendations,
-        totalCount: filteredRecommendations.length,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCount: filteredTotalCount,
+          itemsPerPage: limit,
+          hasNextPage,
+          hasPrevPage,
+          nextPage: hasNextPage ? page + 1 : null,
+          prevPage: hasPrevPage ? page - 1 : null,
+        },
         searchParams: {
           limit,
+          page,
           minScore,
           location: locationParam,
           jobType: jobTypeParam,
