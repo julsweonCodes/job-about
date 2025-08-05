@@ -12,7 +12,7 @@ import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
-import { apiGetData, apiPatchData } from "@/utils/client/API";
+import { apiGetData, apiPatchData, ApiError } from "@/utils/client/API";
 import { Button } from "../ui/Button";
 
 // Types
@@ -83,8 +83,17 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
   const handlePageError = useCallback(
     (errorMessage: string) => {
       console.error(`JobPreviewEditPage Error: ${errorMessage}`);
-      showErrorToast("This page is no longer accessible.");
-      router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+
+      if (errorMessage.includes("Unauthorized")) {
+        showErrorToast("Please log in again to access this page.");
+        window.location.href = "/auth/signin";
+      } else if (errorMessage.includes("not found") || errorMessage.includes("access denied")) {
+        showErrorToast("Job post not found or access denied.");
+        router.replace(PAGE_URLS.EMPLOYER.ROOT);
+      } else {
+        showErrorToast("This page is no longer accessible.");
+        router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+      }
     },
     [postId, router]
   );
@@ -146,7 +155,13 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       }
     } catch (error) {
       console.error("Failed to fetch job post:", error);
-      handlePageError("Failed to fetch job post");
+
+      showErrorToast(error instanceof Error ? error.message : "Failed to fetch job post");
+
+      // 토스트가 보이도록 2초 후에 페이지 이동
+      setTimeout(() => {
+        router.back();
+      }, 2000);
     } finally {
       setIsInitialized(true);
     }

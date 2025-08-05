@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
@@ -8,6 +8,8 @@ import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import JobPostView from "@/components/common/JobPostView";
 import { API_URLS } from "@/constants/api";
+import { apiGetData } from "@/utils/client/API";
+import { showErrorToast } from "@/utils/client/toastUtils";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -21,9 +23,15 @@ const JobPostEditPage: React.FC = () => {
   const [jobData, setJobData] = useState<any>(null);
   const [jobStatus, setJobStatus] = useState<string>("published");
 
+  // 중복 실행 방지를 위한 ref
+  const isInitializingRef = useRef(false);
+
   // Fetch job data on component mount
   useEffect(() => {
     const fetchJobData = async () => {
+      if (isInitializingRef.current) return;
+      isInitializingRef.current = true;
+
       try {
         setLoading(true);
         // Get postId from URL
@@ -35,24 +43,19 @@ const JobPostEditPage: React.FC = () => {
         const status = urlParams.get("status") || "published"; // 기본값은 published
         setJobStatus(status);
 
-        const response = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (result.data) {
-          setJobData(result.data);
-        } else {
-          console.error("No data in response");
-          setJobData(null);
-        }
+        const data = await apiGetData(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
+        setJobData(data);
       } catch (error) {
         console.error("Error fetching job data:", error);
+        showErrorToast(error instanceof Error ? error.message : "Failed to fetch job data");
+
+        // 토스트가 보이도록 2초 후에 페이지 이동
+        setTimeout(() => {
+          router.back();
+        }, 2000);
       } finally {
         setLoading(false);
+        isInitializingRef.current = false;
       }
     };
 

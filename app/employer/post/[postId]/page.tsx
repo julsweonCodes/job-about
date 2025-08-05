@@ -8,7 +8,7 @@ export default async function Page({
   params: { postId: string };
   searchParams: { status?: string };
 }) {
-  const status = searchParams.status === "draft" ? "draft" : "active";
+  const status = searchParams.status === "draft" ? "draft" : "published";
 
   return <EmployerJobDetailPage postId={params.postId} status={status} />;
 }

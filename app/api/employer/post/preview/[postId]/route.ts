@@ -17,7 +17,8 @@ export async function GET(_req: NextRequest, { params }: { params: { postId: str
   try {
     console.log("This is cache - 1:", getCache(`gemini:${params.postId}`));
     console.log("This is cahce - 2:", getCache(`desc:${params.postId}`));
-    const previewJobPost = await getJobPostView(params.postId, JobStatus.DRAFT);
+
+    const previewJobPost = await getJobPostView(params.postId, JobStatus.DRAFT, userId);
     if (previewJobPost) {
       // console.log(bizLocRes, jobPostRes);
       return successResponse(

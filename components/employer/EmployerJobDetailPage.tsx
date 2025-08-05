@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
 import PostHeader from "@/components/common/PostHeader";
@@ -7,11 +7,12 @@ import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/jobPos
 import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EllipsisVertical } from "lucide-react";
-import { apiGetData } from "@/utils/client/API";
+import { apiGetData, ApiError } from "@/utils/client/API";
+import { showErrorToast } from "@/utils/client/toastUtils";
 
 interface Props {
   postId: string;
-  status?: "active" | "draft";
+  status?: "published" | "draft";
 }
 
 interface LoadingStates {
@@ -35,12 +36,16 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
     jobDetails: true,
   });
 
+  // 중복 실행 방지를 위한 ref
+  const isInitializingRef = useRef(false);
+
   // Handlers
   const handleDropdownToggle = useCallback(() => {
     setShowActionsDropdown((prev) => !prev);
   }, []);
 
   const handleEdit = useCallback(() => {
+    console.log("handleEdit", postId, status);
     router.push(`${PAGE_URLS.EMPLOYER.POST.EDIT(postId)}?status=${status}`);
   }, [router, postId, status]);
 
@@ -69,6 +74,9 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
 
   // Data fetching
   const fetchJobDetails = useCallback(async () => {
+    if (isInitializingRef.current) return;
+    isInitializingRef.current = true;
+
     setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
 
     try {
@@ -81,9 +89,16 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
       setJobDetails(jobPostData);
     } catch (error) {
       console.error("Error fetching job details:", error);
-      router.push(PAGE_URLS.EMPLOYER.ROOT);
+
+      showErrorToast(error instanceof Error ? error.message : "Failed to fetch job details");
+
+      // 토스트가 보이도록 2초 후에 페이지 이동
+      setTimeout(() => {
+        router.replace(PAGE_URLS.EMPLOYER.ROOT);
+      }, 2000);
     } finally {
       setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
+      isInitializingRef.current = false;
     }
   }, [postId, status, router]);
 
