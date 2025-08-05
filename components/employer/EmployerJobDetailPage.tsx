@@ -11,6 +11,7 @@ import { apiGetData } from "@/utils/client/API";
 
 interface Props {
   postId: string;
+  status?: "active" | "draft";
 }
 
 interface LoadingStates {
@@ -24,7 +25,7 @@ interface DropdownItem {
   isDestructive?: boolean;
 }
 
-const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
+const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "active" }) => {
   const router = useRouter();
 
   // State
@@ -71,7 +72,9 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
     setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
 
     try {
-      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(postId, "published"));
+      // 상태에 따라 다른 API 엔드포인트 호출
+      const apiStatus = status === "draft" ? "draft" : "published";
+      const data = await apiGetData(API_URLS.JOB_POSTS.DETAIL(postId, apiStatus));
       if (!data) {
         throw new Error("No data received from API");
       }
@@ -83,7 +86,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId }) => {
     } finally {
       setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
     }
-  }, [postId, router]);
+  }, [postId, status, router]);
 
   // Effects
   useEffect(() => {

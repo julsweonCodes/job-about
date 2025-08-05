@@ -19,15 +19,16 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const userId = await getUserIdFromSession();
     if (!userId) {
-      return errorResponse('User ID was not provided.', 400);
+      return errorResponse("User ID was not provided.", 400);
     }
 
     if (isNaN(userId)) {
-      return errorResponse('Invalid User ID format.', 400);
+      return errorResponse("Invalid User ID format.", 400);
     }
 
     switch (status) {
       case "published":
+      case "active":
         jobPost = await getJobPostView(jobPostId.toString(), JobStatus.PUBLISHED, userId);
         break;
       case "draft":

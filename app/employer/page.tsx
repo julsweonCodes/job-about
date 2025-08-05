@@ -77,7 +77,8 @@ export default function EmployerDashboard() {
   const { dashboard, activeJobPostList, draftJobPostList, loadingStates } = useEmployerDashboard();
 
   const handleViewJob = (id: string) => {
-    router.push(PAGE_URLS.EMPLOYER.POST.DETAIL(id));
+    const status = activeTab === "drafts" ? "draft" : "active";
+    router.push(`${PAGE_URLS.EMPLOYER.POST.DETAIL(id)}?status=${status}`);
   };
 
   const handleViewApplicants = (id: string) => {
