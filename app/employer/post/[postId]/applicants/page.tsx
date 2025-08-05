@@ -3,128 +3,13 @@
 import React, { useState } from "react";
 import { Users, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { JobPostWithRelations } from "@/types/job";
 import { JobStatus, ApplicantStatus } from "@/constants/enums";
 import ApplicantCard from "@/app/employer/components/ApplicantCard";
 import ApplicantStatusDialog from "@/app/employer/components/ApplicantStatusDialog";
-
-const mockJobPost: JobPostWithRelations = {
-  id: "1",
-  business_loc_id: "business1",
-  user_id: "user1",
-  title: "Server - Full Time",
-  job_type: "server",
-  deadline: "2024-12-31",
-  work_schedule: "Full-Time",
-  work_type: "Full-Time",
-  job_fit_type_id_1: "fit1",
-  skill_id_1: "skill1",
-  wage: "15/hour",
-  location: "Gangnam",
-  description: "Server position at Starbucks Gangnam",
-  status: JobStatus.PUBLISHED,
-  applicants: [
-    {
-      id: "1",
-      user_id: "user1",
-      job_post_id: "1",
-      created_at: "2024-01-15",
-      name: "Sarah Johnson",
-      profile_image_url:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "3 years of restaurant experience with excellent customer service skills",
-      applied_date: "2024-01-15",
-      status: ApplicantStatus.APPLIED,
-      experience: "3 years",
-      skills: ["Customer Service", "Team Work", "Fast Learner"],
-    },
-    {
-      id: "2",
-      user_id: "user2",
-      job_post_id: "1",
-      created_at: "2024-01-14",
-      name: "Mike Chen",
-      profile_image_url:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "Friendly server with experience in high-volume restaurants",
-      applied_date: "2024-01-14",
-      status: ApplicantStatus.IN_REVIEW,
-      experience: "2 years",
-      skills: ["Communication", "Multitasking", "POS Systems"],
-    },
-    {
-      id: "3",
-      user_id: "user3",
-      job_post_id: "1",
-      created_at: "2024-01-13",
-      name: "Emma Davis",
-      profile_image_url:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "Experienced server looking for a stable full-time position",
-      applied_date: "2024-01-13",
-      status: ApplicantStatus.IN_REVIEW,
-      experience: "4 years",
-      skills: ["Leadership", "Training", "Customer Relations"],
-    },
-    {
-      id: "4",
-      user_id: "user4",
-      job_post_id: "1",
-      created_at: "2024-01-12",
-      name: "Alex Rodriguez",
-      profile_image_url:
-        "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "Recent hospitality graduate eager to start career in service",
-      applied_date: "2024-01-12",
-      status: ApplicantStatus.HIRED,
-      experience: "1 year",
-      skills: ["Enthusiasm", "Quick Learner", "Reliability"],
-    },
-    {
-      id: "5",
-      user_id: "user5",
-      job_post_id: "1",
-      created_at: "2024-01-11",
-      name: "Lisa Wang",
-      profile_image_url:
-        "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "Part-time server with flexible schedule availability",
-      applied_date: "2024-01-11",
-      status: ApplicantStatus.REJECTED,
-      experience: "1 year",
-      skills: ["Flexibility", "Weekend Availability"],
-    },
-    {
-      id: "6",
-      user_id: "user6",
-      job_post_id: "1",
-      created_at: "2024-01-10",
-      name: "David Kim",
-      profile_image_url:
-        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "Experienced server with barista skills and morning availability",
-      applied_date: "2024-01-10",
-      status: ApplicantStatus.APPLIED,
-      experience: "5 years",
-      skills: ["Barista", "Morning Shifts", "Training Others"],
-    },
-    {
-      id: "7",
-      user_id: "user7",
-      job_post_id: "1",
-      created_at: "2024-01-09",
-      name: "Maria Garcia",
-      profile_image_url:
-        "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=150",
-      description: "Bilingual server with strong communication and sales skills",
-      applied_date: "2024-01-09",
-      status: ApplicantStatus.IN_REVIEW,
-      experience: "3 years",
-      skills: ["Bilingual", "Sales", "Customer Service"],
-    },
-  ],
-};
+import { useParams } from "next/navigation";
+import { useEmployerJobPostAppList } from "@/hooks/employer/useEmployerDashboard";
 
 const statusTabs = [
   { key: "all", label: "All", count: 0 },
@@ -136,12 +21,15 @@ const statusTabs = [
 
 function ReviewApplicantsPage() {
   const router = useRouter();
-  const [jobPost] = useState<JobPostWithRelations>(mockJobPost);
+  const params = useParams();
+  const postId = params?.postId as string;
+  // const [jobPost] = useState<JobPostWithRelations>(mockJobPost);
+  const {jobPostAppList, loadingStates}= useEmployerJobPostAppList(postId);
   const [activeTab, setActiveTab] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<ApplicantStatus | null>(null);
-  const [applicants, setApplicants] = useState(jobPost.applicants);
+  const [applicants, setApplicants] = useState(jobPostAppList); //useState(jobPost.applicants);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -160,25 +48,25 @@ function ReviewApplicantsPage() {
   const handleSaveStatus = () => {
     if (!selectedApplicantId || !selectedStatus) return;
     setApplicants((prev) =>
-      prev?.map((a) => (a.id === selectedApplicantId ? { ...a, status: selectedStatus } : a))
+      prev?.map((a) => (a.application_id.toString() === selectedApplicantId ? { ...a, status: selectedStatus } : a))
     );
     setDialogOpen(false);
   };
 
   const handleViewProfile = (applicantId: string) => {
-    router.push(`/employer/post/${jobPost.id}/applicants/${applicantId}`);
+    router.push(`/employer/post//applicants/${applicantId}`);
   };
 
   const getStatusCounts = () => {
     const counts = {
-      all: jobPost.applicants?.length || 0,
+      all: jobPostAppList?.length || 0,
       applied: 0,
       in_review: 0,
       hired: 0,
       rejected: 0,
     };
-
-    jobPost.applicants?.forEach((applicant) => {
+    console.log(jobPostAppList);
+    jobPostAppList?.forEach((applicant) => {
       switch (applicant.status) {
         case ApplicantStatus.APPLIED:
           counts.applied++;
@@ -233,10 +121,10 @@ function ReviewApplicantsPage() {
   };
 
   const filteredApplicants = React.useMemo(() => {
-    if (!jobPost.applicants) return [];
-    if (activeTab === "all") return jobPost.applicants;
-    return jobPost.applicants.filter((applicant) => applicant.status === activeTab);
-  }, [activeTab, jobPost.applicants]);
+    if (!jobPostAppList) return [];
+    if (activeTab === "all") return jobPostAppList;
+    return jobPostAppList.filter((applicant) => applicant.status === activeTab);
+  }, [activeTab, jobPostAppList]);
 
   const tabsWithCounts = statusTabs.map((tab) => ({
     ...tab,
@@ -278,19 +166,22 @@ function ReviewApplicantsPage() {
 
       {/* Applicant Cards */}
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6">
+        {jobPostAppList && jobPostAppList.length > 0 ? (
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-6">
-          {(applicants || []).map((applicant) => (
+          {jobPostAppList.map( (applicant) => (
             <ApplicantCard
-              key={applicant.id}
+              key={applicant.application_id}
               applicant={applicant}
               getStatusColor={getStatusColor}
               getStatusIcon={getStatusIcon}
               formatDate={formatDate}
-              onReview={() => handleReviewApplicant(applicant.id)}
-              onViewProfile={() => handleViewProfile(applicant.id)}
+              onReview={() => handleReviewApplicant(applicant.application_id.toString())}
+              onViewProfile={() => handleViewProfile(applicant.application_id.toString())}
             />
           ))}
-        </div>
+        </div>) : (
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-6"></div>
+        )}
 
         {/* Empty State */}
         {filteredApplicants.length === 0 && (

@@ -5,6 +5,7 @@ import { ApplicantStatus } from "@/constants/enums";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import { Chip } from "@/components/ui/Chip";
+import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 
 interface ApplicantCardProps {
   applicant: Applicant;
@@ -56,7 +57,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
         <div className="flex items-center gap-2 mb-3">
           <Calendar className="w-4 h-4 text-gray-400" />
           <Typography as="span" variant="bodyXs" className="text-gray-500">
-            Applied {applicant.applied_date ? formatDate(applicant.applied_date) : ""}
+            Applied {applicant.applied_date ? formatYYYYMMDDtoMonthDayYear(applicant.applied_date) : ""}
           </Typography>
           <span className="text-gray-300">•</span>
           <Typography as="span" variant="bodyXs" className="text-gray-500">
