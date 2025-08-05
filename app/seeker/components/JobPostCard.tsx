@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { MapPin, Calendar, CircleDollarSign, Tag, Star, Users } from "lucide-react";
-import { WorkType } from "@/constants/enums";
-import Typography from "@/components/ui/Typography";
+import { ApplicantStatus, WorkType } from "@/constants/enums";
 import { Chip } from "@/components/ui/Chip";
-
-import { ApplicantStatus } from "@/constants/enums";
 
 export interface JobPost {
   id: string;
@@ -71,7 +68,7 @@ export const JobPostCardSkeleton: React.FC = () => {
       </div>
 
       {/* Required Skills */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 flex-1">
         <div className="flex flex-wrap gap-2">
           <div className="h-6 w-20 bg-gray-200 rounded-lg animate-pulse"></div>
           <div className="h-6 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
@@ -79,7 +76,7 @@ export const JobPostCardSkeleton: React.FC = () => {
         </div>
 
         {/* 지원자 수 스켈레톤 */}
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1 mt-auto">
           <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
           <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
         </div>
@@ -97,27 +94,27 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
     if (!status) return null;
 
     switch (status) {
-      case "applied":
+      case ApplicantStatus.APPLIED:
         return {
           text: "Applied",
           style: "bg-amber-100 text-amber-700 border-amber-200",
         };
-      case "in_review":
+      case ApplicantStatus.IN_REVIEW:
         return {
           text: "In Review",
           style: "bg-blue-100 text-blue-700 border-blue-200",
         };
-      case "hired":
+      case ApplicantStatus.HIRED:
         return {
           text: "Hired",
           style: "bg-emerald-100 text-emerald-700 border-emerald-200",
         };
-      case "rejected":
+      case ApplicantStatus.REJECTED:
         return {
           text: "Rejected",
           style: "bg-red-100 text-red-700 border-red-200",
         };
-      case "withdrawn":
+      case ApplicantStatus.WITHDRAWN:
         return {
           text: "Withdrawn",
           style: "bg-gray-100 text-gray-700 border-gray-200",
@@ -133,20 +130,20 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
   // WorkType 설정
   const getWorkTypeConfig = (workType: WorkType) => {
     switch (workType) {
-      case WorkType.ON_SITE:
-        return {
-          label: "On-Site",
-          className: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
-        };
       case WorkType.REMOTE:
         return {
           label: "Remote",
           className: "bg-green-100 text-green-800 hover:bg-green-100/80",
         };
-      default:
+      case WorkType.HYBRID:
         return {
           label: "Hybrid",
           className: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white ",
+        };
+      default:
+        return {
+          label: "On-Site",
+          className: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
         };
     }
   };
@@ -257,7 +254,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           {formatDescription(job.description)}
         </p>
       </div> */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 flex-1">
         {/* Required Skills - 모든 job에서 표시 */}
         {job.requiredSkills && job.requiredSkills.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -277,7 +274,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
 
         {/* 지원자 수 표시 - 카드 우하단 */}
         {job.applicants > 0 && (
-          <div className="flex items-center justify-end gap-1 text-gray-500">
+          <div className="flex items-center justify-end gap-1 text-gray-500 mt-auto">
             <Users className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="text-xs sm:text-sm font-medium">{job.applicants}</span>
           </div>

@@ -279,7 +279,6 @@ function SeekerAppliedPage() {
               onClick: () => setSelectedStatus("all"),
             }}
             size="md"
-            className="bg-blue-50 rounded-lg"
           />
         ) : (
           /* 데이터가 없는 경우 (빈 상태) */
