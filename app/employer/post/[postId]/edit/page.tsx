@@ -65,26 +65,16 @@ const JobPostEditPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const res = await fetch(API_URLS.EMPLOYER.POST.EDIT(postId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jobPostPayload),
-      });
-
-      if (!res.ok) {
-        showErrorToast("Failed to create job post.");
-        return;
-      }
-      const data = await res.json();
+      const response = await apiPostData(API_URLS.EMPLOYER.POST.EDIT(postId), jobPostPayload);
 
       // Gemini 응답을 jobData에 추가하여 화면에 표시 (새로고침 없이)
       setJobData((prev: any) => ({
         ...prev,
-        geminiRes: data.data,
+        geminiRes: response,
         jobDescriptions: {
           manual: prev?.jobDescription,
-          struct1: data.data[0],
-          struct2: data.data[1],
+          struct1: response[0],
+          struct2: response[1],
         },
         useAI: true, // Gemini 응답이 있음을 표시
         selectedVersion: "manual", // 기본값으로 manual 선택
