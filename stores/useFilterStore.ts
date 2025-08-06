@@ -3,6 +3,7 @@ import { create } from "zustand";
 export interface JobFilters {
   workType: string;
   location: string;
+  jobType: string;
   salary: string;
   sortBy: string;
   searchQuery: string;
@@ -19,6 +20,7 @@ interface FilterState {
 const defaultFilters: JobFilters = {
   workType: "all",
   location: "all",
+  jobType: "all",
   salary: "all",
   sortBy: "date",
   searchQuery: "",

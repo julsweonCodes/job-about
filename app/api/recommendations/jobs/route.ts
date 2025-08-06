@@ -16,6 +16,20 @@ export async function GET(req: NextRequest) {
   try {
     console.log("구직자 채용공고 추천 API 호출");
 
+    // URL 쿼리 파라미터 처리
+    const url = new URL(req.url);
+    const limitParam = url.searchParams.get("limit");
+    const pageParam = url.searchParams.get("page");
+    const minScoreParam = url.searchParams.get("minScore");
+    const locationParam = url.searchParams.get("location");
+    const jobTypeParam = url.searchParams.get("jobType");
+    const workTypeParam = url.searchParams.get("workType");
+
+    const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
+    const page = pageParam ? parseInt(pageParam) : 1; // 기본 1페이지
+    const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
+    const offset = (page - 1) * limit;
+
     // 인증된 사용자 ID 가져오기
     let userId: number;
     try {
@@ -43,20 +57,6 @@ export async function GET(req: NextRequest) {
       console.error(`사용자를 찾을 수 없음: userId=${userId}`);
       return errorResponse("User not found.", 404);
     }
-
-    // URL 쿼리 파라미터 처리
-    const url = new URL(req.url);
-    const limitParam = url.searchParams.get("limit");
-    const pageParam = url.searchParams.get("page");
-    const minScoreParam = url.searchParams.get("minScore");
-    const locationParam = url.searchParams.get("location");
-    const jobTypeParam = url.searchParams.get("jobType");
-    const workTypeParam = url.searchParams.get("workType");
-
-    const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
-    const page = pageParam ? parseInt(pageParam) : 1; // 기본 1페이지
-    const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
-    const offset = (page - 1) * limit;
 
     // 성향 프로필이 없는 경우
     if (!user.personality_profile_id) {
@@ -175,9 +175,10 @@ export async function GET(req: NextRequest) {
 
     console.log(`전체 채용공고 ${jobPosts.length}개 조회`);
 
+    // jobPosts가 비어있으면 빈 결과 반환
     if (jobPosts.length === 0) {
       return successResponse(
-        {
+        parseBigInt({
           user: {
             id: userId,
             name: user.name,
@@ -202,9 +203,9 @@ export async function GET(req: NextRequest) {
             jobType: jobTypeParam,
             workType: workTypeParam,
           },
-        },
+        }),
         200,
-        "No job posts found."
+        "No job posts found matching the criteria."
       );
     }
 

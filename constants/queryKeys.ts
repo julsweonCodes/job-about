@@ -5,8 +5,10 @@ export const SEEKER_QUERY_KEYS = {
   JOB_DETAIL: (postId: string) => ["seeker-job-detail", postId] as const,
   LATEST_JOBS: (filters?: any, limit?: number) => ["seeker-latest-jobs", filters, limit] as const,
   LATEST_JOBS_INFINITE: (filters?: any) => ["seeker-latest-jobs-infinite", filters] as const,
-  RECOMMENDED_JOBS: (filters?: any, limit?: number) =>
-    ["seeker-recommended-jobs", filters, limit] as const,
+  RECOMMENDED_JOBS: (filters?: any, limit?: number, page?: number) =>
+    ["seeker-recommended-jobs", filters, limit, page] as const,
+  RECOMMENDED_JOBS_INFINITE: (serializedFilters?: string, limit?: number) =>
+    ["seeker-recommended-jobs-infinite", serializedFilters, limit] as const,
   APPLIED_JOBS: (limit?: number) => ["seeker-applied-jobs", limit] as const,
   BOOKMARKS: (limit?: number) => ["seeker-bookmarks", limit] as const,
   PROFILES: ["seeker-profiles"] as const,

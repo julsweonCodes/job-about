@@ -30,7 +30,7 @@ const SelectTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         inputStyle !== false && "input-style",
-        "flex items-center justify-between text-base focus:outline-none",
+        "flex items-center justify-between text-base focus:outline-none focus:ring-0 focus:border-gray-200 focus:border-2 focus:border-gray-200 data-[state=open]:border-gray-200 data-[state=closed]:border-gray-200",
         className
       )}
       {...props}
