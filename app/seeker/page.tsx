@@ -116,7 +116,7 @@ function SeekerPage() {
         }
       })
       .filter((job): job is NonNullable<typeof job> => job !== null);
-  }, [latestJobs, latestLoading]);
+  }, [latestJobs]);
 
   const handleViewJob = (id: string) => {
     // 상세 페이지로 이동하기 전에 스크롤 위치 저장

@@ -171,7 +171,9 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
               })
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">No search results for "{searchQuery}".</p>
+                <p className="text-gray-500 text-sm">
+                  No search results for &quot;{searchQuery}&quot;.
+                </p>
                 <p className="text-gray-400 text-xs mt-1">Try searching with different keywords.</p>
               </div>
             )}

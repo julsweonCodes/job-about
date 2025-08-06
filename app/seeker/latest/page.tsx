@@ -164,7 +164,7 @@ function LatestJobsPage() {
             <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
               {[...Array(3)].map((_, i) => (
                 <div key={`filter-skeleton-${i}`} className="relative flex-shrink-0">
-                  <div className="w-32 h-12 bg-gray-200 rounded-xl animate-pulse" />
+                  <div className="sm:w-32 sm:h-12 w-24 h-8 bg-gray-200 rounded-xl animate-pulse" />
                 </div>
               ))}
             </div>
