@@ -1,33 +1,11 @@
 import React, { useState } from "react";
-import { MapPin, Calendar, CircleDollarSign, Tag, Star, Users } from "lucide-react";
+import { Tag, Users } from "lucide-react";
 import { ApplicantStatus, WorkType } from "@/constants/enums";
 import { Chip } from "@/components/ui/Chip";
-
-export interface JobPost {
-  id: string;
-  title: string;
-  workType: WorkType;
-  wage: string;
-  location: string;
-  workSchedule: string;
-  businessName: string;
-  description: string;
-  applicants: number;
-  views: number;
-  logoImage?: string;
-  pending?: number; // Added for pending applications
-  applicationStatus?: string; //
-  requiredSkills?: Array<{
-    id: number;
-    name_ko: string;
-    name_en: string;
-    category_ko: string;
-    category_en: string;
-  }>;
-}
+import { JobPostCard as JobPostCardType } from "@/types/job";
 
 interface JobPostCardProps {
-  job: JobPost;
+  job: JobPostCardType;
   isRecommended?: boolean;
   onView: (id: string) => void;
 }
@@ -219,14 +197,15 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           {typeLabel}
         </Chip>
       </div>
-
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
-        <div className="flex flex-col gap-1 flex-1 min-w-0 pr-4">
+        <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
           <div className="flex items-center gap-2">
             <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">{job.title}</span>
           </div>
-          <span className="text-gray-500 text-md text-sm sm:text-lg font-medium">{job.wage}</span>
+          <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
+            <span className="text-gray-700 font-bold">${job.wage}</span>/hour
+          </span>
         </div>
 
         <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 bg-gray-100 shadow-sm">
@@ -238,42 +217,13 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           />
         </div>
       </div>
-
       {/*  위치, 기간 */}
       <div className="space-y-2 mb-5 flex-shrink-0">
         <div className="flex items-center gap-2">
           {/* <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600" /> */}
           <span className="text-gray-600 text-xs sm:text-sm font-medium">{job.workSchedule}</span>
         </div>
-
-        {/* <div className="flex items-center gap-2">
-          <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600" />
-          <span className="text-gray-600 text-xs sm:text-sm font-medium">{job.location}</span>
-        </div> */}
-
-        {/* wage */}
-        {/* <div className="flex items-center gap-2">
-          <CircleDollarSign className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600" />
-          <span className="text-gray-600 text-xs sm:text-sm font-medium">{job.wage}</span>
-        </div> */}
       </div>
-
-      {/* Description - 유연한 높이 설정 */}
-      {/* <div className="flex-1 mb-6 min-h-0">
-        <p
-          className="text-sm lg:text-base text-gray-700 leading-relaxed mb-3"
-          style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            minHeight: "70px",
-          }}
-        >
-          {formatDescription(job.description)}
-        </p>
-      </div> */}
       <div className="flex flex-col gap-4 flex-1">
         {/* Required Skills - 모든 job에서 표시 */}
         {job.requiredSkills && job.requiredSkills.length > 0 && (
@@ -292,38 +242,27 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           </div>
         )}
 
-        {/* 하단 정보 - 회사명/위치 */}
+        {/* 하단 정보 - 회사명/위치/게시일 */}
         <div className="flex items-center mt-auto">
           <div className="flex flex-wrap items-center gap-2 text-gray-500 text-xs sm:text-sm font-medium">
             <span>{job.businessName}</span>
             <span className="text-gray-400">•</span>
             <span>{job.location}</span>
+            {job.daysAgo !== undefined && (
+              <>
+                <span className="text-gray-400">•</span>
+                <span>
+                  {job.daysAgo === 0
+                    ? "Today"
+                    : job.daysAgo === 1
+                      ? "1 day ago"
+                      : `${job.daysAgo} days ago`}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
-
-      {/* 지원자 통계 및 버튼 */}
-      {/* <div className="flex items-center justify-between mb-6 flex-shrink-0">
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center text-sm lg:text-base text-gray-600">
-            <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-2">
-              <Users className="w-4 h-4 text-blue-600" />
-            </div>
-            <span className="font-semibold text-gray-900">{job.applicants}</span>
-            <span className="ml-1 text-gray-600">applicants</span>
-          </div>
-        </div>
-      </div> */}
-
-      {/* <div className="flex space-x-3 flex-shrink-0">
-        <Button
-          variant={isRecommended ? "default" : "secondary"}
-          className="h-10 md:h-14"
-          onClick={() => onView(job.id)}
-        >
-          View Details
-        </Button>
-      </div> */}
     </div>
   );
 };
