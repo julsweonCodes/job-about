@@ -40,6 +40,7 @@ export const API_URLS = {
       DETAIL: (id: string, status?: string) =>
         status ? `/api/employer/post/${id}?status=${status}` : `/api/employer/post/${id}`,
       EDIT: (id: string) => `/api/employer/post/${id}/edit`,
+      STATUS: "/api/employer/dashboard/jobposts",
     },
     APPLICANTS: {
       UPDATE_STATUS: "/api/employer/applicants/update-status",

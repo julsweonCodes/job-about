@@ -8,7 +8,7 @@ import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EllipsisVertical } from "lucide-react";
 import { apiGetData, ApiError } from "@/utils/client/API";
-import { showErrorToast } from "@/utils/client/toastUtils";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 
 interface Props {
   postId: string;
@@ -51,7 +51,9 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
 
   const handleStatusChange = useCallback((newStatus: JobStatus) => {
     // TODO: API call to update job post status @jeongyoun
+    updateStatus(postId, newStatus);
     console.log("Status changed to:", newStatus);
+
     setShowActionsDropdown(false);
   }, []);
 
@@ -109,6 +111,24 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
     }
   }, [postId, status, router]);
 
+  const updateStatus = async (postId: string, status: JobStatus) => {
+    console.log("Let's update job status -",status);
+    try {
+      const res = await fetch(API_URLS.EMPLOYER.POST.STATUS, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({postId, status}),
+      });
+      if (res.ok) {
+        showSuccessToast("Job Status updated successfully.");
+      } else {
+        showErrorToast("Error updating job status");
+      }
+    } catch (e) {
+      console.error("Error updating job status", e);
+      showErrorToast((e as Error).message || "Error updating job status");
+    }
+  }
   // Effects
   useEffect(() => {
     if (postId) {
