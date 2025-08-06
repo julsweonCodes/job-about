@@ -32,7 +32,6 @@ function RecommendedJobsPage() {
     loadMore: loadMoreRecommended,
     error: recommendedError,
     isLoadMoreLoading: isFetchingNextPage,
-    user,
   } = useRecommendedJobsInfinite(filters, 10);
 
   // 클라이언트 사이드 렌더링 확인
@@ -41,13 +40,6 @@ function RecommendedJobsPage() {
       setIsHydrated(true);
     }
   }, []);
-
-  // 필터 변경 시 로그
-  useEffect(() => {
-    if (filters) {
-      // 필터 변경 시 추가 로직이 필요하면 여기에 작성
-    }
-  }, [filters]);
 
   // API에서 받은 데이터를 JobPostCard로 변환
   const recommendedJobCards = useMemo(() => {
@@ -129,8 +121,8 @@ function RecommendedJobsPage() {
         </div>
 
         {/* Filters */}
-        <div className="py-5 md:py-8">
-          <div className="flex flex-wrap gap-2 md:gap-4">
+        <div className="py-5 md:py-8 -mx-6 lg:-mx-8">
+          <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
             <FilterDropdown filter={workTypeFilter} />
             <FilterDropdown filter={jobTypeFilter} />
             <FilterDropdown filter={locationFilter} />

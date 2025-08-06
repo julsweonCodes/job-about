@@ -212,8 +212,8 @@ function LatestJobsPage() {
           </p>
         </div>
         {/* Filters */}
-        <div className="py-5">
-          <div className="flex flex-wrap gap-2 md:gap-4">
+        <div className="py-5 -mx-6 lg:-mx-8">
+          <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
             <FilterDropdown filter={workTypeFilter} />
             <FilterDropdown filter={locationFilter} />
           </div>

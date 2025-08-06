@@ -48,10 +48,10 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
   // 서버에서는 아무것도 렌더링하지 않음
   if (!isMounted) {
     return (
-      <div className={`relative ${className}`}>
-        <div className="flex items-center text-gray-600 gap-3 px-3 py-2 sm:px-5 sm:py-3 bg-white border border-gray-200 rounded-xl shadow-sm">
-          <span className="text-xs sm:text-base  text-gray-600">{filter.label}</span>
-          <ChevronDown className="ml-2 w-5 h-5" />
+      <div className={`relative ${className} flex-shrink-0`}>
+        <div className="flex items-center text-gray-600 gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm">
+          <span className="text-sm font-medium text-gray-600">{filter.label}</span>
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse ml-2" />
         </div>
       </div>
     );
@@ -60,7 +60,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
   const selectedValue = filters[filter.id as keyof typeof filters] || "all";
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} flex-shrink-0`}>
       <Select value={selectedValue} onValueChange={handleValueChange}>
         <SelectTrigger
           className="flex items-center text-gray-600 gap-3 px-3 py-2 sm:px-5 sm:py-3 text-xs sm:text-base  bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-0 focus:border-gray-200 data-[state=open]:border-gray-200 data-[state=closed]:border-gray-200"
