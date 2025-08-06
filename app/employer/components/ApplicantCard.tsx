@@ -49,7 +49,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onReview, onVi
               : `${STORAGE_URLS.USER.PROFILE_IMG}/default_profile.png` // 혹은 빈 문자열 "" 등 대체 이미지 경로
           }
           alt={applicant.name || ""}
-          className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover shadow-sm flex-shrink-0"
+          className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover border border-gray-100 shadow-sm flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
           <Typography as="h3" variant="headlineSm" className="mb-1 text-gray-900">

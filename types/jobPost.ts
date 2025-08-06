@@ -22,6 +22,7 @@ export interface JobPostData {
   jobDescription: string;
   isBookmarked?: boolean;
   applicantCount?: number;
+  daysAgo?: number;
   applicationStatus?: string; // 지원 상태 추가
 }
 
@@ -257,6 +258,7 @@ export class JobPostMapper {
         hourlyWage: apiJobPost.wage,
         jobDescription: apiJobPost.description,
         applicantCount: apiJobPost.applicantCount,
+        daysAgo: apiJobPost.daysAgo,
       };
     } catch (error) {
       console.error("Error mapping LatestJobPost to JobPostData:", error);
@@ -565,6 +567,7 @@ export class JobPostMapper {
         : undefined,
       requiredSkills: jobPost.requiredSkills,
       applicationStatus: jobPost.applicationStatus as any, // 지원 상태 추가
+      daysAgo: jobPost.daysAgo,
     };
   }
 

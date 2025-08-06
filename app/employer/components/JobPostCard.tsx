@@ -174,11 +174,13 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
 
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
-        <div className="flex flex-col gap-1 flex-1 min-w-0 pr-4">
+        <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
           <div className="flex items-center gap-2">
             <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">{job.title}</span>
           </div>
-          <span className="text-gray-500 text-md text-sm sm:text-lg font-medium">{job.wage}</span>
+          <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
+            <span className="text-gray-700 font-bold">${job.wage}</span>/hour
+          </span>
         </div>
 
         <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 bg-gray-100 shadow-sm">

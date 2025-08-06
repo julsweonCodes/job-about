@@ -115,6 +115,7 @@ export interface JobPostCard {
     category_ko: string;
     category_en: string;
   }>;
+  daysAgo?: number;
 }
 
 export interface WorkExperience {

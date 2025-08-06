@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
     const page = pageParam ? parseInt(pageParam) : 1; // 기본 1페이지
     const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
+    const offset = (page - 1) * limit;
 
     // 인증된 사용자 ID 가져오기
     let userId: number;
@@ -57,8 +58,8 @@ export async function GET(req: NextRequest) {
       return errorResponse("User not found.", 404);
     }
 
+    // 성향 프로필이 없는 경우
     if (!user.personality_profile_id) {
-      console.log(`사용자의 성향이 설정되지 않음: userId=${userId}`);
       return successResponse(
         {
           user: {
@@ -94,8 +95,6 @@ export async function GET(req: NextRequest) {
 
     const personalityId = Number(user.personality_profile_id);
     console.log(`구직자 추천: userId=${userId}, personalityId=${personalityId}`);
-
-    const offset = (page - 1) * limit;
 
     // 채용공고 조회 (work style이 설정된 공고만)
     const whereConditions: any = {

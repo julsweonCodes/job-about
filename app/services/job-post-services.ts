@@ -35,8 +35,8 @@ export async function createJobPost(payload: JobPostPayload) {
       work_schedule: payload.workSchedule,
       business_loc_id: bizLocId,
       user_id: userId,
-      work_type: toPrismaWorkType(payload.selectedWorkType),
-      language_level: toPrismaLanguageLevel(payload.languageLevel),
+      work_type: toPrismaWorkType(payload.selectedWorkType!),
+      language_level: toPrismaLanguageLevel(payload.languageLevel!),
     },
     select: {
       id: true,
@@ -204,6 +204,12 @@ export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: W
 // Get Job Post Preview/view
 export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus, userId?: number) {
   console.log("getJobPostView called with:", { jobPostId, jobPostStatus, userId });
+
+  // 입력값 검증
+  if (!jobPostId || isNaN(Number(jobPostId))) {
+    console.error("Invalid jobPostId:", jobPostId);
+    return null;
+  }
 
   const bizLocId = await prisma.job_posts.findFirst({
     where: {
