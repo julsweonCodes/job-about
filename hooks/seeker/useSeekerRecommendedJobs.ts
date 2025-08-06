@@ -3,9 +3,10 @@ import { apiGetData } from "@/utils/client/API";
 import { ApiRecommendedJobResponse } from "@/types/jobPost";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { toPrismaLocation, toPrismaWorkType } from "@/types/enumMapper";
+import { toPrismaJobType, toPrismaLocation, toPrismaWorkType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
+import { JobType } from "@/constants/jobTypes";
 
 // 필터를 Prisma 타입으로 변환
 const convertFiltersToPrisma = (filters: {
@@ -20,10 +21,9 @@ const convertFiltersToPrisma = (filters: {
     convertedFilters.workType = toPrismaWorkType(filters.workType as WorkType);
   }
 
-  // TODO 
   // jobType 변환
   if (filters.jobType && filters.jobType !== "all") {
-    convertedFilters.jobType = filters.jobType;
+    convertedFilters.jobType = toPrismaJobType(filters.jobType as JobType);
   }
 
   // location 변환

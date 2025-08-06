@@ -8,7 +8,8 @@ const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap w-full rounded-xl text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
-      variant: {
+      variant: { 
+        white: "bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-100 hover:text-gray-900",
         default: "bg-background-accent1 text-text-inverse hover:bg-background-accent1/90",
         black: "bg-background-bk text-text-inverse hover:bg-background-bk/90",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",

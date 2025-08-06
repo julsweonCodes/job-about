@@ -29,6 +29,7 @@ interface JobTypesDialogProps {
   selectedJobTypes: JobType[];
   onConfirm: (jobTypes: JobType[]) => void;
   maxSelected?: number; // 최대 선택 가능한 개수 (기본값: 3)
+  allowEmptySelection?: boolean;
 }
 
 const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
@@ -38,6 +39,7 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
   selectedJobTypes,
   onConfirm,
   maxSelected = 3, // 기본값 3
+  allowEmptySelection = false,
 }) => {
   const [localSelected, setLocalSelected] = useState<JobType[]>(selectedJobTypes);
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +91,9 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
   const toggleJobType = (jobType: JobType) => {
     if (localSelected.includes(jobType)) {
       setLocalSelected(localSelected.filter((t) => t !== jobType));
+    } else if (maxSelected === 1) {
+      // maxSelected가 1이면 기존 선택을 교체
+      setLocalSelected([jobType]);
     } else if (localSelected.length < maxSelected) {
       setLocalSelected([...localSelected, jobType]);
     }
@@ -141,7 +146,8 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
               searchResults.map((config: any, index) => {
                 const Icon = config.icon;
                 const isSelected = localSelected.includes(config.id);
-                const disabled = !isSelected && localSelected.length >= maxSelected;
+                const disabled =
+                  !isSelected && maxSelected !== 1 && localSelected.length >= maxSelected;
 
                 return (
                   <button
@@ -184,7 +190,8 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
                 <div className="flex flex-wrap gap-3">
                   {jobTypes.map((config: any, index) => {
                     const isSelected = localSelected.includes(config.id);
-                    const disabled = !isSelected && localSelected.length >= maxSelected;
+                    const disabled =
+                      !isSelected && maxSelected !== 1 && localSelected.length >= maxSelected;
 
                     return (
                       <Chip
@@ -227,14 +234,26 @@ const JobTypesDialog: React.FC<JobTypesDialogProps> = ({
 
         {/* Action Buttons */}
         <div className="px-5 pt-5 md:px-8">
-          <Button
-            variant="default"
-            onClick={handleConfirm}
-            disabled={localSelected.length === 0}
-            size="lg"
-          >
-            Apply
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setLocalSelected([])}
+              size="lg"
+              className="flex-1"
+              disabled={localSelected.length === 0}
+            >
+              Reset
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleConfirm}
+              disabled={localSelected.length === 0 && !allowEmptySelection}
+              size="lg"
+              className="flex-[3]"
+            >
+              Apply
+            </Button>
+          </div>
         </div>
       </div>
     </Dialog>

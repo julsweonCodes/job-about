@@ -12,7 +12,7 @@ import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
+import { workTypeFilter, jobTypeFilter, locationFilter } from "@/constants/filterOptions";
 import { Briefcase } from "lucide-react";
 import { SCROLL_IDS } from "@/constants/scrollIds";
 
@@ -151,13 +151,23 @@ function LatestJobsPage() {
       <div className="min-h-screen bg-gray-50">
         <BackHeader title="Latest Opportunities" />
         <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
-          <div className="mb-8">
+          <div className="sm:mb-8">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
               Discover the newest job opportunities
             </h1>
             <p className="text-base lg:text-lg text-gray-600">
               Check out the newest job opportunities
             </p>
+          </div>
+          {/* Filters Skeleton */}
+          <div className="py-5 -mx-6 lg:-mx-8">
+            <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={`filter-skeleton-${i}`} className="relative flex-shrink-0">
+                  <div className="w-32 h-12 bg-gray-200 rounded-xl animate-pulse" />
+                </div>
+              ))}
+            </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             {[...Array(6)].map((_, i) => (
@@ -215,6 +225,7 @@ function LatestJobsPage() {
         <div className="py-5 -mx-6 lg:-mx-8">
           <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
             <FilterDropdown filter={workTypeFilter} />
+            <FilterDropdown filter={jobTypeFilter} />
             <FilterDropdown filter={locationFilter} />
           </div>
         </div>

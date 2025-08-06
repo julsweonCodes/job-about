@@ -7,7 +7,11 @@ import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
 
 // 필터를 Prisma 타입으로 변환
-const convertFiltersToPrisma = (filters: { workType: string; location: string }) => {
+const convertFiltersToPrisma = (filters: {
+  workType: string;
+  location: string;
+  jobType: string;
+}) => {
   const convertedFilters: any = {};
 
   // workType 변환
@@ -19,6 +23,11 @@ const convertFiltersToPrisma = (filters: { workType: string; location: string })
     }
   }
 
+  // jobType 변환
+  if (filters.jobType && filters.jobType !== "all") {
+    convertedFilters.job_type = filters.jobType;
+  }
+
   // location 변환 (location은 그대로 사용)
   if (filters.location && filters.location !== "all") {
     convertedFilters.location = toPrismaLocation(filters.location as Location);
@@ -28,7 +37,10 @@ const convertFiltersToPrisma = (filters: { workType: string; location: string })
 };
 
 // API 함수
-const fetchLatestJobs = async (filters = { workType: "all", location: "all" }, limit = 10) => {
+const fetchLatestJobs = async (
+  filters = { workType: "all", location: "all", jobType: "all" },
+  limit = 10
+) => {
   // 필터를 Prisma 타입으로 변환
   const prismaFilters = convertFiltersToPrisma(filters);
 
@@ -49,7 +61,10 @@ const fetchLatestJobs = async (filters = { workType: "all", location: "all" }, l
 };
 
 // React Query Hook (단순 버전)
-export const useLatestJobs = (filters = { workType: "all", location: "all" }, limit = 10) => {
+export const useLatestJobs = (
+  filters = { workType: "all", location: "all", jobType: "all" },
+  limit = 10
+) => {
   const {
     data: jobs,
     isLoading,
@@ -73,7 +88,9 @@ export const useLatestJobs = (filters = { workType: "all", location: "all" }, li
 };
 
 // 무한 스크롤용 Hook (별도로 제공)
-export const useLatestJobsInfinite = (filters = { workType: "all", location: "all" }) => {
+export const useLatestJobsInfinite = (
+  filters = { workType: "all", location: "all", jobType: "all" }
+) => {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       enabled: true, // 명시적으로 활성화

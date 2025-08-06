@@ -11,7 +11,11 @@ import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
-import { workTypeFilter, createLocationFilterFromData } from "@/constants/filterOptions";
+import {
+  workTypeFilter,
+  jobTypeFilter,
+  createLocationFilterFromData,
+} from "@/constants/filterOptions";
 import { Briefcase } from "lucide-react";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SCROLL_IDS } from "@/constants/scrollIds";
@@ -136,10 +140,11 @@ function SeekerPage() {
             <p className="text-base lg:text-lg text-gray-600">Discover your next opportunity</p>
           </div>
 
-          {/* 필터 섹션 */}
-          <div className="mt-8 mb-8 -mx-6 lg:-mx-8">
-            <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 scrollbar-hide px-6 lg:px-8">
+          {/* Filters */}
+          <div className="py-5 md:py-8 -mx-6 lg:-mx-8">
+            <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
               <FilterDropdown filter={workTypeFilter} />
+              <FilterDropdown filter={jobTypeFilter} />
               <FilterDropdown filter={locationFilter} />
             </div>
           </div>
@@ -226,10 +231,11 @@ function SeekerPage() {
           <p className="text-base lg:text-lg text-gray-600">Discover your next opportunity</p>
         </div>
 
-        {/* 필터 섹션 */}
-        <div className="mt-8 mb-8 -mx-6 lg:-mx-8">
-          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 scrollbar-hide px-6 lg:px-8">
+        {/* Filters */}
+        <div className="py-5 md:py-8 -mx-6 lg:-mx-8">
+          <div className="flex gap-2 md:gap-4 overflow-x-auto py-2 scrollbar-hide px-6 lg:px-8">
             <FilterDropdown filter={workTypeFilter} />
+            <FilterDropdown filter={jobTypeFilter} />
             <FilterDropdown filter={locationFilter} />
           </div>
         </div>
