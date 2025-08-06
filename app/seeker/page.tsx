@@ -183,11 +183,16 @@ function SeekerPage() {
                     title="No recommendations yet"
                     description="We're working on finding the perfect jobs for you. Check back later for personalized recommendations."
                     primaryAction={{
-                      label: "Refresh Recommendations",
-                      onClick: () => refreshRecommended(),
+                      label: "Clear All Filters",
+                      onClick: () => {
+                        useFilterStore.getState().resetFilters();
+                      },
                     }}
-                    size="md"
-                    className="bg-purple-50 rounded-lg"
+                    secondaryAction={{
+                      label: "Refresh Results",
+                      onClick: () => window.location.reload(),
+                    }}
+                    size="lg"
                   />
                 )}
               </>
@@ -266,13 +271,18 @@ function SeekerPage() {
                 <EmptyState
                   icon={Briefcase}
                   title="No recommendations yet"
-                  description="We're working on finding the perfect jobs for you. Check back later for personalized recommendations."
+                  description="We're working on finding the perfect jobs for you. <br/> Check back later for personalized recommendations."
                   primaryAction={{
-                    label: "Refresh Recommendations",
-                    onClick: () => refreshRecommended(),
+                    label: "Clear All Filters",
+                    onClick: () => {
+                      useFilterStore.getState().resetFilters();
+                    },
                   }}
-                  size="md"
-                  className="bg-purple-50 rounded-lg"
+                  secondaryAction={{
+                    label: "Refresh Results",
+                    onClick: () => window.location.reload(),
+                  }}
+                  size="lg"
                 />
               )}
             </>
@@ -314,7 +324,7 @@ function SeekerPage() {
                 <EmptyState
                   icon={Briefcase}
                   title="No jobs found"
-                  description="We couldn't find any jobs matching your current filters. Try adjusting your search criteria or clear all filters to see more opportunities."
+                  description="We couldn't find any jobs matching your current filters. <br/> Try adjusting your search criteria or clear all filters to see more opportunities."
                   primaryAction={{
                     label: "Clear All Filters",
                     onClick: () => {

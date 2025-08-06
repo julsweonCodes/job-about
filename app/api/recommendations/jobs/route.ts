@@ -176,9 +176,10 @@ export async function GET(req: NextRequest) {
 
     console.log(`전체 채용공고 ${jobPosts.length}개 조회`);
 
+    // jobPosts가 비어있으면 빈 결과 반환
     if (jobPosts.length === 0) {
       return successResponse(
-        {
+        parseBigInt({
           user: {
             id: userId,
             name: user.name,
@@ -203,9 +204,9 @@ export async function GET(req: NextRequest) {
             jobType: jobTypeParam,
             workType: workTypeParam,
           },
-        },
+        }),
         200,
-        "No job posts found."
+        "No job posts found matching the criteria."
       );
     }
 
