@@ -164,9 +164,9 @@ const JobDescription: React.FC<{
                     selectedVersion: "manual",
                   })
                 }
-                className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                className="p-1.5 sm:p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors flex-shrink-0"
               >
-                <Edit3 className="w-4 h-4" />
+                <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
             )}
           {showEditButtons &&
