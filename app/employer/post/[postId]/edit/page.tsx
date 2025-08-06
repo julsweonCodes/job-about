@@ -7,6 +7,11 @@ import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import { Button } from "@/components/ui/Button";
 import JobPostView from "@/components/common/JobPostView";
+import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
+import JobTypesDialog from "@/components/common/JobTypesDialog";
+import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
+import RequiredPersonalitiesDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
+import LanguageLevelSelector from "@/components/ui/LanguageLevelSelector";
 import { API_URLS } from "@/constants/api";
 import { apiGetData } from "@/utils/client/API";
 import { showErrorToast } from "@/utils/client/toastUtils";
@@ -63,16 +68,105 @@ const JobPostEditPage: React.FC = () => {
   }, []);
 
   const handleEdit = (section: string, initialData?: any) => {
-    setTempEditData(initialData || {});
-    setEditingSection(section);
+    console.log("Edit section:", section, "Data:", initialData);
+
+    // 섹션과 항목을 분리 (예: "jobDetails.hourlyWage")
+    const [mainSection, subItem] = section.split(".");
+
+    if (subItem) {
+      // 개별 항목 수정
+      setTempEditData({ [subItem]: initialData[subItem] });
+      setEditingSection(section);
+    } else {
+      // 전체 섹션 수정
+      setTempEditData(initialData || {});
+      setEditingSection(section);
+    }
   };
 
   const handleSave = async (section: string, data: any) => {
     setIsSaving(true);
     try {
-      const updatedData = { ...jobData, ...data };
-      setJobData(updatedData);
+      let updatedData = { ...jobData };
 
+      // 섹션과 항목을 분리
+      const [mainSection, subItem] = section.split(".");
+
+      if (subItem) {
+        // 개별 항목 수정
+        switch (mainSection) {
+          case "jobDetails":
+            updatedData = {
+              ...updatedData,
+              [subItem]: data[subItem] || updatedData[subItem],
+            };
+            break;
+          case "skillsAndStyles":
+            if (subItem === "requiredSkills") {
+              updatedData = {
+                ...updatedData,
+                requiredSkills: data.requiredSkills || updatedData.requiredSkills,
+              };
+            } else if (subItem === "requiredWorkStyles") {
+              updatedData = {
+                ...updatedData,
+                requiredWorkStyles: data.requiredWorkStyles || updatedData.requiredWorkStyles,
+              };
+            }
+            break;
+        }
+      } else {
+        // 전체 섹션 수정
+        switch (section) {
+          case "header":
+            updatedData = {
+              ...updatedData,
+              title: data.title,
+              businessLocInfo: {
+                ...updatedData.businessLocInfo,
+                name: data.business?.name || updatedData.businessLocInfo.name,
+              },
+            };
+            break;
+          case "description":
+            updatedData = {
+              ...updatedData,
+              jobDescription: data.jobDescription,
+            };
+            break;
+          case "business":
+            updatedData = {
+              ...updatedData,
+              businessLocInfo: {
+                ...updatedData.businessLocInfo,
+                name: data.business?.name || updatedData.businessLocInfo.name,
+                address: data.business?.location || updatedData.businessLocInfo.address,
+                bizDescription:
+                  data.business?.description || updatedData.businessLocInfo.bizDescription,
+              },
+            };
+            break;
+          case "jobDetails":
+            updatedData = {
+              ...updatedData,
+              hourlyWage: data.hourlyWage || updatedData.hourlyWage,
+              workSchedule: data.workSchedule || updatedData.workSchedule,
+              languageLevel: data.languageLevel || updatedData.languageLevel,
+              deadline: data.deadline || updatedData.deadline,
+              jobType: data.jobType || updatedData.jobType,
+            };
+            break;
+          case "skillsAndStyles":
+            updatedData = {
+              ...updatedData,
+              requiredSkills: data.requiredSkills || updatedData.requiredSkills,
+              requiredWorkStyles: data.requiredWorkStyles || updatedData.requiredWorkStyles,
+            };
+            break;
+        }
+      }
+
+      setJobData(updatedData);
       setEditingSection(null);
       setTempEditData({});
     } catch (error) {
@@ -84,7 +178,7 @@ const JobPostEditPage: React.FC = () => {
 
   // TODO: api call to server
   const handleSaveEdit = async () => {
-    console.log("save changes to server");
+    console.log("save changes to server", jobData);
   };
 
   // TODO: api call to server (DRAFT -> PUBLISHED)
@@ -119,6 +213,7 @@ const JobPostEditPage: React.FC = () => {
         showSaveEditButton={jobStatus === "published"}
         showPublishButton={jobStatus === "draft"}
         isDraft={jobStatus === "draft"}
+        editableSections={["header", "description", "business", "jobDetails", "skillsAndStyles"]}
       />
 
       {/* Cancel Confirmation Dialog */}
@@ -242,7 +337,7 @@ const JobPostEditPage: React.FC = () => {
               <div>
                 <span className="text-sm md:text-base text-gray-500 mb-2 block">Business Name</span>
                 <Input
-                  value={tempEditData.business?.name || jobData?.business?.name || ""}
+                  value={tempEditData.business?.name || jobData?.businessLocInfo?.name || ""}
                   onChange={(e) =>
                     setTempEditData((prev: any) => ({
                       ...prev,
@@ -255,7 +350,7 @@ const JobPostEditPage: React.FC = () => {
               <div>
                 <span className="text-sm md:text-base text-gray-500 mb-2 block">Location</span>
                 <Input
-                  value={tempEditData.business?.location || jobData?.business?.location || ""}
+                  value={tempEditData.business?.location || jobData?.businessLocInfo?.address || ""}
                   onChange={(e) =>
                     setTempEditData((prev: any) => ({
                       ...prev,
@@ -271,7 +366,11 @@ const JobPostEditPage: React.FC = () => {
                 </span>
                 <TextArea
                   rows={4}
-                  value={tempEditData.business?.description || jobData?.business?.description || ""}
+                  value={
+                    tempEditData.business?.description ||
+                    jobData?.businessLocInfo?.bizDescription ||
+                    ""
+                  }
                   onChange={(e) =>
                     setTempEditData((prev: any) => ({
                       ...prev,
@@ -284,6 +383,172 @@ const JobPostEditPage: React.FC = () => {
               </div>
             </div>
           </BaseDialog>
+
+          {/* Individual Job Details Edit Dialogs */}
+
+          {/* Hourly Wage Edit Dialog */}
+          <BaseDialog
+            type="bottomSheet"
+            open={editingSection === "jobDetails.hourlyWage"}
+            onClose={() => setEditingSection(null)}
+            title="Edit Hourly Wage"
+            actions={
+              <>
+                <Button
+                  onClick={() => handleSave("jobDetails.hourlyWage", tempEditData)}
+                  size="lg"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+              </>
+            }
+          >
+            <div className="flex flex-col gap-4">
+              <div>
+                <span className="text-sm md:text-base text-gray-500 mb-2 block">Hourly Wage</span>
+                <Input
+                  value={tempEditData.hourlyWage || jobData?.hourlyWage || ""}
+                  onChange={(e) =>
+                    setTempEditData((prev: any) => ({ ...prev, hourlyWage: e.target.value }))
+                  }
+                  className="w-full"
+                  placeholder="e.g., 25"
+                />
+              </div>
+            </div>
+          </BaseDialog>
+
+          {/* Work Schedule Edit Dialog */}
+          <BaseDialog
+            type="bottomSheet"
+            open={editingSection === "jobDetails.workSchedule"}
+            onClose={() => setEditingSection(null)}
+            title="Edit Work Schedule"
+            actions={
+              <>
+                <Button
+                  onClick={() => handleSave("jobDetails.workSchedule", tempEditData)}
+                  size="lg"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+              </>
+            }
+          >
+            <div className="flex flex-col gap-4">
+              <div>
+                <span className="text-sm md:text-base text-gray-500 mb-2 block">Work Schedule</span>
+                <Input
+                  value={tempEditData.workSchedule || jobData?.workSchedule || ""}
+                  onChange={(e) =>
+                    setTempEditData((prev: any) => ({ ...prev, workSchedule: e.target.value }))
+                  }
+                  className="w-full"
+                  placeholder="e.g., Monday to Friday, 9 AM - 5 PM"
+                />
+              </div>
+            </div>
+          </BaseDialog>
+
+          {/* Language Level Edit Dialog */}
+          <BaseDialog
+            type="bottomSheet"
+            open={editingSection === "jobDetails.languageLevel"}
+            onClose={() => setEditingSection(null)}
+            title="Select Language Level"
+            actions={
+              <>
+                <Button
+                  onClick={() => handleSave("jobDetails.languageLevel", tempEditData)}
+                  size="lg"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+              </>
+            }
+          >
+            <div className="flex flex-col gap-4 py-5">
+              <LanguageLevelSelector
+                value={tempEditData.languageLevel || jobData?.languageLevel}
+                onChange={(level) => {
+                  setTempEditData((prev: any) => ({ ...prev, languageLevel: level }));
+                }}
+              />
+            </div>
+          </BaseDialog>
+
+          {/* Application Deadline DatePicker Dialog */}
+          <DatePickerDialog
+            open={editingSection === "jobDetails.deadline"}
+            onClose={() => setEditingSection(null)}
+            value={
+              tempEditData.deadline
+                ? new Date(tempEditData.deadline)
+                : jobData?.deadline
+                  ? new Date(jobData.deadline)
+                  : null
+            }
+            onChange={(date) => {
+              if (date) {
+                const formattedDate = date.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                });
+                setTempEditData((prev: any) => ({ ...prev, deadline: formattedDate }));
+                handleSave("jobDetails.deadline", { deadline: formattedDate });
+              }
+            }}
+            confirmLabel="Save"
+          />
+
+          {/* Job Type Dialog */}
+          <JobTypesDialog
+            title="Select Job Type"
+            open={editingSection === "jobDetails.jobType"}
+            onClose={() => setEditingSection(null)}
+            selectedJobTypes={
+              tempEditData.jobType
+                ? [tempEditData.jobType]
+                : jobData?.jobType
+                  ? [jobData.jobType]
+                  : []
+            }
+            onConfirm={(jobTypes) => {
+              if (jobTypes.length > 0) {
+                setTempEditData((prev: any) => ({ ...prev, jobType: jobTypes[0] }));
+                handleSave("jobDetails.jobType", { jobType: jobTypes[0] });
+              }
+            }}
+            maxSelected={1}
+          />
+
+          {/* Individual Skills & Work Styles Edit Dialogs */}
+
+          {/* Required Skills Dialog */}
+          <RequiredSkillsDialog
+            open={editingSection === "skillsAndStyles.requiredSkills"}
+            onClose={() => setEditingSection(null)}
+            selectedSkills={tempEditData.requiredSkills || jobData?.requiredSkills || []}
+            onConfirm={(skills) => {
+              setTempEditData((prev: any) => ({ ...prev, requiredSkills: skills }));
+              handleSave("skillsAndStyles.requiredSkills", { requiredSkills: skills });
+            }}
+          />
+
+          {/* Required Work Styles Dialog */}
+          <RequiredPersonalitiesDialog
+            open={editingSection === "skillsAndStyles.requiredWorkStyles"}
+            onClose={() => setEditingSection(null)}
+            selectedTraits={tempEditData.requiredWorkStyles || jobData?.requiredWorkStyles || []}
+            onConfirm={(workStyles) => {
+              setTempEditData((prev: any) => ({ ...prev, requiredWorkStyles: workStyles }));
+              handleSave("skillsAndStyles.requiredWorkStyles", { requiredWorkStyles: workStyles });
+            }}
+          />
         </>
       )}
     </div>

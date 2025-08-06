@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
 import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
@@ -82,6 +82,20 @@ export default function EmployerDashboard() {
 
   const { dashboard, activeJobPostList, draftJobPostList, loadingStates } = useEmployerDashboard();
 
+  // popstate 이벤트 처리 (브라우저 뒤로가기/앞으로가기)
+  useEffect(() => {
+    const handlePopState = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get("tab") as TabType;
+      if (tabParam && (tabParam === "active" || tabParam === "drafts")) {
+        setActiveTab(tabParam);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const handleViewJob = (id: string) => {
     if (activeTab === "drafts") {
       // Draft 상태일 때는 바로 Edit 페이지로 이동
@@ -94,10 +108,11 @@ export default function EmployerDashboard() {
 
   const handleTabChange = (tabId: TabType) => {
     setActiveTab(tabId);
-    // URL 파라미터 업데이트
+    // URL 파라미터 업데이트 (스크롤 위치 유지)
     const url = new URL(window.location.href);
     url.searchParams.set("tab", tabId);
-    router.replace(url.pathname + url.search);
+    // router.replace 대신 history.pushState 사용하여 스크롤 위치 유지
+    window.history.pushState({}, "", url.pathname + url.search);
   };
 
   const handleViewApplicants = (id: string) => {

@@ -1,3 +1,5 @@
+import { getLocationDisplayName } from "./location";
+
 export interface FilterOption {
   key: string;
   label: string;
@@ -30,10 +32,24 @@ export const locationFilter: FilterDefinition = {
   iconType: "location",
   options: [
     { key: "all", label: "All" },
-    { key: "Vancouver", label: "Vancouver" },
-    { key: "Toronto", label: "Toronto" },
-    { key: "Montreal", label: "Montreal" },
-    { key: "Calgary", label: "Calgary" },
+    { key: "toronto", label: "Toronto" },
+    { key: "north_york", label: "North York" },
+    { key: "scarborough", label: "Scarborough" },
+    { key: "mississauga", label: "Mississauga" },
+    { key: "brampton", label: "Brampton" },
+    { key: "vaughan", label: "Vaughan" },
+    { key: "etobicoke", label: "Etobicoke" },
+    { key: "richmond_hill", label: "Richmond Hill" },
+    { key: "markham", label: "Markham" },
+    { key: "thornhill", label: "Thornhill" },
+    { key: "pickering", label: "Pickering" },
+    { key: "ajax", label: "Ajax" },
+    { key: "whitby", label: "Whitby" },
+    { key: "oshawa", label: "Oshawa" },
+    { key: "oakville", label: "Oakville" },
+    { key: "burlington", label: "Burlington" },
+    { key: "milton", label: "Milton" },
+    { key: "newhamburg", label: "New Hamburg" },
   ],
 };
 
@@ -43,6 +59,34 @@ export const locationFilterLimited: FilterDefinition = {
   label: "Location",
   iconType: "location",
   options: [{ key: "all", label: "All" }],
+};
+
+// 동적 필터 생성 함수
+export const createLocationFilterFromData = (locations: any[]): FilterDefinition => {
+  const locationOptions = [
+    { key: "all", label: "All" },
+    ...locations.map((location) => {
+      // API에서 오는 데이터 구조에 맞게 처리
+      const locationValue =
+        typeof location === "string" ? location : location.value || location.key;
+      const locationLabel =
+        typeof location === "string"
+          ? getLocationDisplayName(location)
+          : location.label || location.name || getLocationDisplayName(locationValue);
+
+      return {
+        key: locationValue,
+        label: locationLabel,
+      };
+    }),
+  ];
+
+  return {
+    id: "location",
+    label: "Location",
+    iconType: "location",
+    options: locationOptions,
+  };
 };
 
 // 모든 필터 정의를 한 곳에서 관리

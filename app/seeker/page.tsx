@@ -11,10 +11,11 @@ import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
-import { workTypeFilter, locationFilter } from "@/constants/filterOptions";
+import { workTypeFilter, createLocationFilterFromData } from "@/constants/filterOptions";
 import { Briefcase } from "lucide-react";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SCROLL_IDS } from "@/constants/scrollIds";
+import { useCommonData } from "@/hooks/useCommonData";
 
 function SeekerPage() {
   const router = useRouter();
@@ -43,22 +44,39 @@ function SeekerPage() {
 
   // 필터 상태 관리
   const { filters: currentFilters } = useFilterStore();
+  const { locations } = useCommonData();
+
+  // 동적 location 필터 생성
+  const locationFilter = React.useMemo(() => {
+    if (locations.length > 0) {
+      return createLocationFilterFromData(locations);
+    }
+    // fallback: 기본 location 필터
+    return {
+      id: "location",
+      label: "Location",
+      iconType: "location" as const,
+      options: [
+        { key: "all", label: "All" },
+        { key: "toronto", label: "Toronto" },
+        { key: "mississauga", label: "Mississauga" },
+      ],
+    };
+  }, [locations]);
 
   // 추천 공고 (AI 맞춤 추천)
   const {
     recommendedJobs,
     loading: recommendedLoading,
-    error: recommendedError,
     refresh: refreshRecommended,
     isInitialized: recommendedInitialized,
   } = useRecommendedJobs(currentFilters, MAX_RECOMMENDED_JOBS + 1);
 
   // 최신 공고 (전체 최신 공고)
-  const {
-    jobs: latestJobs,
-    isLoading: latestLoading,
-    error: latestError,
-  } = useLatestJobs(currentFilters, MAX_LATEST_JOBS + 1);
+  const { jobs: latestJobs, isLoading: latestLoading } = useLatestJobs(
+    currentFilters,
+    MAX_LATEST_JOBS + 1
+  );
 
   // 추천 공고를 JobPostCard 타입으로 변환
   const filteredRecommendedJobs = useMemo(() => {
@@ -101,8 +119,6 @@ function SeekerPage() {
     handleNavigateToDetail();
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
   };
-
-  const hasError = recommendedError || (latestError ? latestError.message : null);
 
   // 스켈레톤 표시 조건 수정
   const showRecommendedSkeleton =
@@ -176,6 +192,20 @@ function SeekerPage() {
                 )}
               </>
             )}
+          </section>
+
+          {/* Latest Jobs */}
+          <section>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Latest Opportunities</h2>
+            </div>
+          </section>
+          <section className="mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              {[...Array(4)].map((_, i) => (
+                <JobPostCardSkeleton key={i} />
+              ))}
+            </div>
           </section>
         </main>
       </div>

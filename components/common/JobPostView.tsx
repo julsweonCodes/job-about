@@ -87,7 +87,7 @@ const JobHeader: React.FC<{
 }> = ({ jobData, mode, showEditButtons, onEdit, editableSections }) => (
   <div className="py-6 lg:py-8">
     <div className="flex flex-row items-center space-x-4">
-      <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+      <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
         <img
           src={jobData.businessLocInfo.logoImg}
           alt="Company Logo"
@@ -223,7 +223,13 @@ const JobDescription: React.FC<{
   </div>
 );
 
-const JobDetails: React.FC<{ jobData: JobPostData }> = ({ jobData }) => {
+const JobDetails: React.FC<{
+  jobData: JobPostData;
+  mode: string;
+  showEditButtons: boolean;
+  onEdit?: (section: string, data: any) => void;
+  editableSections: string[];
+}> = ({ jobData, mode, showEditButtons, onEdit, editableSections }) => {
   const jobDetailItems = JOB_DETAIL_ITEMS.map((item) => ({
     ...item,
     value: getJobDetailValue(jobData, item.label),
@@ -247,7 +253,47 @@ const JobDetails: React.FC<{ jobData: JobPostData }> = ({ jobData }) => {
                   <IconComponent className={`w-5 h-5 ${item.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-500 mb-1">{item.label}</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-medium text-gray-500">{item.label}</p>
+                    {mode === "edit" &&
+                      showEditButtons &&
+                      onEdit &&
+                      editableSections.includes("jobDetails") && (
+                        <button
+                          onClick={() => {
+                            const editData: any = {};
+                            let sectionName = "jobDetails";
+
+                            switch (item.label) {
+                              case "Hourly Wage":
+                                editData.hourlyWage = jobData.hourlyWage;
+                                sectionName = "jobDetails.hourlyWage";
+                                break;
+                              case "Schedule":
+                                editData.workSchedule = jobData.workSchedule;
+                                sectionName = "jobDetails.workSchedule";
+                                break;
+                              case "Language Level":
+                                editData.languageLevel = jobData.languageLevel;
+                                sectionName = "jobDetails.languageLevel";
+                                break;
+                              case "Application Deadline":
+                                editData.deadline = jobData.deadline;
+                                sectionName = "jobDetails.deadline";
+                                break;
+                              case "Job Type":
+                                editData.jobType = jobData.jobType;
+                                sectionName = "jobDetails.jobType";
+                                break;
+                            }
+                            onEdit(sectionName, editData);
+                          }}
+                          className="p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                  </div>
                   <p className="text-base font-semibold text-gray-900 break-words">
                     {item.value?.toString() || ""}
                   </p>
@@ -261,19 +307,39 @@ const JobDetails: React.FC<{ jobData: JobPostData }> = ({ jobData }) => {
   );
 };
 
-const SkillsAndPersonality: React.FC<{ jobData: JobPostData; mode: string }> = ({
-  jobData,
-  mode,
-}) => (
+const SkillsAndPersonality: React.FC<{
+  jobData: JobPostData;
+  mode: string;
+  showEditButtons: boolean;
+  onEdit?: (section: string, data: any) => void;
+  editableSections: string[];
+}> = ({ jobData, mode, showEditButtons, onEdit, editableSections }) => (
   <div className="mb-8">
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-xl font-bold text-gray-900">Skills & Work Styles</h2>
     </div>
     <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
       <div className="mb-6">
-        <div className="flex items-center space-x-2 mb-3">
-          <Users className="w-5 h-5 text-blue-500" />
-          <h3 className="font-semibold text-gray-800">Required Skills</h3>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <Users className="w-5 h-5 text-blue-500" />
+            <h3 className="font-semibold text-gray-800">Required Skills</h3>
+          </div>
+          {mode === "edit" &&
+            showEditButtons &&
+            onEdit &&
+            editableSections.includes("skillsAndStyles") && (
+              <button
+                onClick={() =>
+                  onEdit("skillsAndStyles.requiredSkills", {
+                    requiredSkills: jobData.requiredSkills,
+                  })
+                }
+                className="p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+            )}
         </div>
         <div className="flex flex-wrap gap-2">
           {jobData.requiredSkills.map((skill) => (
@@ -288,13 +354,30 @@ const SkillsAndPersonality: React.FC<{ jobData: JobPostData; mode: string }> = (
       </div>
 
       <div>
-        <div className="flex items-center space-x-2 mb-3">
-          {mode === "preview" ? (
-            <CheckCircle className="w-5 h-5 text-purple-500" />
-          ) : (
-            <Heart className="w-5 h-5 text-purple-500" />
-          )}
-          <h3 className="font-semibold text-gray-800">Work Styles</h3>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            {mode === "preview" ? (
+              <CheckCircle className="w-5 h-5 text-purple-500" />
+            ) : (
+              <Heart className="w-5 h-5 text-purple-500" />
+            )}
+            <h3 className="font-semibold text-gray-800">Work Styles</h3>
+          </div>
+          {mode === "edit" &&
+            showEditButtons &&
+            onEdit &&
+            editableSections.includes("skillsAndStyles") && (
+              <button
+                onClick={() =>
+                  onEdit("skillsAndStyles.requiredWorkStyles", {
+                    requiredWorkStyles: jobData.requiredWorkStyles,
+                  })
+                }
+                className="p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+            )}
         </div>
         <div className="flex flex-wrap gap-2">
           {jobData.requiredWorkStyles.map((ws) => (
@@ -492,7 +575,7 @@ const ActionButtons: React.FC<{
 const getJobDetailValue = (jobData: JobPostData, label: string): string | undefined => {
   const valueMap: Record<string, string | undefined> = {
     "Hourly Wage": jobData.hourlyWage,
-    Schedule: jobData.schedule,
+    Schedule: jobData.workSchedule,
     "Language Level": jobData.languageLevel,
     "Application Deadline": jobData.deadline,
     "Job Type": jobData.jobType ? getJobTypeName(jobData.jobType) : undefined,
@@ -652,7 +735,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   showApplyButton = false,
   showPublishButton = false,
   showSaveEditButton = false,
-  editableSections = ["header", "description", "business"],
+  editableSections = ["header", "description", "business", "jobDetails", "skillsAndStyles"],
   useAI,
   geminiRes,
   jobDescriptions,
@@ -694,9 +777,21 @@ const JobPostView: React.FC<JobPostViewProps> = ({
           onSelectVersion={onSelectVersion}
         />
 
-        <JobDetails jobData={jobData} />
+        <JobDetails
+          jobData={jobData}
+          mode={mode}
+          showEditButtons={showEditButtons}
+          onEdit={onEdit}
+          editableSections={editableSections}
+        />
 
-        <SkillsAndPersonality jobData={jobData} mode={mode} />
+        <SkillsAndPersonality
+          jobData={jobData}
+          mode={mode}
+          showEditButtons={showEditButtons}
+          onEdit={onEdit}
+          editableSections={editableSections}
+        />
 
         <WorkplacePhotos extraPhotos={extraPhotos} />
 

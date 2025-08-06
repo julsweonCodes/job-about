@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { JobPostData, JobPostMapper, ApiAppliedJobResponse } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiJobPostWithBusinessLoc } from "@/types/jobPost";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { apiGetData } from "@/utils/client/API";
 
@@ -34,9 +34,9 @@ const fetchAppliedJobs = async (pageParam: number, limit: number) => {
 
     if (Array.isArray(response)) {
       const jobs = response
-        .map((data: ApiAppliedJobResponse) => {
+        .map((data: ApiJobPostWithBusinessLoc) => {
           try {
-            return JobPostMapper.fromAppliedJobResponse(data);
+            return JobPostMapper.fromAppliedJobPost(data);
           } catch (error) {
             console.warn("Failed to transform applied job data:", error, data);
             return null;

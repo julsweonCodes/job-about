@@ -2,7 +2,7 @@ import { JobStatus, LanguageLevel, WorkType } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";
 import { Skill, WorkStyle } from "@/types/profile";
-import { fromPrismaWorkType, fromPrismaJobType } from "@/types/enumMapper";
+import { fromPrismaWorkType, fromPrismaJobType, fromPrismaAppStatus } from "@/types/enumMapper";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
 
@@ -14,7 +14,7 @@ export interface JobPostData {
   status: JobStatus;
   businessLocInfo: BizLocInfo;
   deadline: string;
-  schedule: string;
+  workSchedule: string;
   requiredSkills: Skill[];
   requiredWorkStyles: WorkStyle[];
   languageLevel?: LanguageLevel;
@@ -22,6 +22,7 @@ export interface JobPostData {
   jobDescription: string;
   isBookmarked?: boolean;
   applicantCount?: number;
+  applicationStatus?: string; // 지원 상태 추가
 }
 
 export interface BizLocInfo {
@@ -63,6 +64,7 @@ export interface ApiLatestJobPost {
     category_ko: string;
     category_en: string;
   }>;
+  applicationStatus?: string; // 지원 상태 추가
 }
 
 // 공통 Job Post 타입 (Applied와 Bookmarked에서 공통으로 사용)
@@ -103,6 +105,7 @@ export interface ApiJobPostWithBusinessLoc {
   _count?: {
     applications: number;
   };
+  applicationStatus?: string; // 지원 상태 추가
 }
 
 // Applied Jobs API 응답 타입
@@ -214,7 +217,7 @@ export interface ApiJobPostDetailData {
     name_ko: string;
     name_en: string;
   }>;
-  schedule: string;
+  workSchedule: string;
   status: string;
   title: string;
   isBookmarked: boolean;
@@ -235,7 +238,7 @@ export class JobPostMapper {
         status: apiJobPost.status,
         businessLocInfo: this.mapLatestJobBusinessLocInfo(apiJobPost.business_loc),
         deadline: apiJobPost.deadline,
-        schedule: apiJobPost.work_schedule,
+        workSchedule: apiJobPost.work_schedule,
         requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
         requiredWorkStyles: [], // API에서 제공되지 않는 경우 빈 배열
         languageLevel: apiJobPost.language_level as LanguageLevel,
@@ -272,13 +275,16 @@ export class JobPostMapper {
         status: apiJobPost.status,
         businessLocInfo: this.mapAppliedJobBusinessLocInfo(apiJobPost.business_loc),
         deadline: apiJobPost.deadline,
-        schedule: apiJobPost.work_schedule,
+        workSchedule: apiJobPost.work_schedule,
         requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
         requiredWorkStyles: [], // API에서 제공되지 않는 경우 빈 배열
         languageLevel: apiJobPost.language_level as LanguageLevel,
         hourlyWage: apiJobPost.wage,
         jobDescription: apiJobPost.description,
         applicantCount: apiJobPost.applicantCount || apiJobPost._count?.applications,
+        applicationStatus: apiJobPost.applicationStatus
+          ? fromPrismaAppStatus(apiJobPost.applicationStatus)
+          : undefined, // 지원 상태 추가
       };
     } catch (error) {
       console.error("Error mapping AppliedJobPost to JobPostData:", error);
@@ -309,7 +315,7 @@ export class JobPostMapper {
         status: apiJobPost.status,
         businessLocInfo: this.mapBookmarkedJobBusinessLocInfo(apiJobPost.business_loc),
         deadline: apiJobPost.deadline,
-        schedule: apiJobPost.work_schedule,
+        workSchedule: apiJobPost.work_schedule,
         requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
         requiredWorkStyles: [], // API에서 제공되지 않는 경우 빈 배열
         languageLevel: apiJobPost.language_level as LanguageLevel,
@@ -336,7 +342,7 @@ export class JobPostMapper {
         status: "PUBLISHED" as JobStatus, // Recommended jobs는 항상 published
         businessLocInfo: this.mapRecommendedJobBusinessLocInfo(apiJobPost.company),
         deadline: apiJobPost.deadline,
-        schedule: apiJobPost.workSchedule,
+        workSchedule: apiJobPost.workSchedule,
         requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
         requiredWorkStyles: this.mapWorkStyles(apiJobPost.workStyles),
         languageLevel: "INTERMEDIATE" as LanguageLevel, // 기본값
@@ -372,7 +378,7 @@ export class JobPostMapper {
           workingHours: apiJobPost.businessLocInfo.workingHours,
         },
         deadline: apiJobPost.deadline,
-        schedule: apiJobPost.schedule,
+        workSchedule: apiJobPost.workSchedule,
         requiredSkills: this.mapRequiredSkills(apiJobPost.requiredSkills),
         requiredWorkStyles: this.mapWorkStyles(apiJobPost.requiredWorkStyles),
         languageLevel: apiJobPost.languageLevel as LanguageLevel,
@@ -537,7 +543,7 @@ export class JobPostMapper {
       workType: jobPost.workType || ("on-site" as WorkType),
       wage: jobPost.hourlyWage,
       location: jobPost.businessLocInfo.address || "Location not specified",
-      dateRange: "Recently", // 기본값
+      workSchedule: jobPost.workSchedule,
       businessName: jobPost.businessLocInfo.name,
       description: jobPost.jobDescription,
       applicants: jobPost.applicantCount || 0,
@@ -546,6 +552,7 @@ export class JobPostMapper {
         ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${jobPost.businessLocInfo.logoImg}`
         : undefined,
       requiredSkills: jobPost.requiredSkills,
+      applicationStatus: jobPost.applicationStatus as any, // 지원 상태 추가
     };
   }
 
@@ -559,7 +566,7 @@ export class JobPostMapper {
       workType: recommendedJob.jobType as WorkType,
       wage: recommendedJob.wage,
       location: recommendedJob.company.address,
-      dateRange: "Recently", // 추천 공고는 최신순이므로
+      workSchedule: recommendedJob.workSchedule,
       businessName: recommendedJob.company.name,
       description: recommendedJob.description,
       applicants: recommendedJob.applicantCount,

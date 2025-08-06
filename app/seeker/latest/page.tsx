@@ -203,7 +203,7 @@ function LatestJobsPage() {
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="sm:mb-8">
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
             Discover the newest job opportunities
           </h1>
@@ -212,7 +212,7 @@ function LatestJobsPage() {
           </p>
         </div>
         {/* Filters */}
-        <div className="py-5 md:py-8 md:mb-8">
+        <div className="py-5">
           <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown filter={workTypeFilter} />
             <FilterDropdown filter={locationFilter} />

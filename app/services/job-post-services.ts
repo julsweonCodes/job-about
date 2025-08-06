@@ -316,7 +316,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     languageLevel: jobPostRes.language_level ? LanguageLevel[jobPostRes.language_level] : undefined,
     requiredWorkStyles: requiredWorkStyles,
     requiredSkills: requiredSkills,
-    schedule: jobPostRes.work_schedule,
+    workSchedule: jobPostRes.work_schedule,
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
     isBookmarked,
@@ -457,7 +457,7 @@ export async function getAppliedJobPosts(
 
   const skip = (page - 1) * limit;
 
-  const jobPosts = await prisma.applications.findMany({
+  const applications = await prisma.applications.findMany({
     where: {
       profile_id: profileId,
     },
@@ -470,10 +470,53 @@ export async function getAppliedJobPosts(
           _count: {
             select: { applications: true },
           },
+          job_practical_skills: {
+            include: {
+              practical_skill: true,
+            },
+          },
         },
       },
     },
+    orderBy: {
+      created_at: "desc",
+    },
   });
 
-  return jobPosts;
+  // 지원 상태 정보를 포함하여 반환
+  return applications.map((application) => {
+    const jobPost = application.job_post;
+    const now = new Date();
+    const createdAt = new Date(jobPost.created_at);
+    const diffInDays = Math.floor((+now - +createdAt) / (1000 * 60 * 60 * 24));
+
+    return {
+      id: jobPost.id.toString(),
+      business_loc_id: jobPost.business_loc_id.toString(),
+      user_id: jobPost.user_id.toString(),
+      title: jobPost.title,
+      job_type: jobPost.job_type,
+      deadline: jobPost.deadline,
+      work_schedule: jobPost.work_schedule,
+      wage: jobPost.wage,
+      location: jobPost.business_loc.location,
+      description: jobPost.description,
+      status: jobPost.status,
+      work_type: jobPost.work_type,
+      language_level: jobPost.language_level,
+      created_at: jobPost.created_at,
+      updated_at: jobPost.updated_at,
+      daysAgo: diffInDays,
+      applicantCount: jobPost._count.applications,
+      business_loc: jobPost.business_loc,
+      applicationStatus: application.status, // 지원 상태 추가
+      requiredSkills: jobPost.job_practical_skills.map((jps: any) => ({
+        id: Number(jps.practical_skill.id),
+        name_ko: jps.practical_skill.name_ko,
+        name_en: jps.practical_skill.name_en,
+        category_ko: jps.practical_skill.category_ko,
+        category_en: jps.practical_skill.category_en,
+      })),
+    };
+  });
 }
