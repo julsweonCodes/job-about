@@ -79,7 +79,10 @@ export function EmptyState({
         <h3 className={`${classes.title} font-semibold text-gray-900 mb-2`}>{title}</h3>
 
         {/* 설명 */}
-        <p className={`${classes.description} text-gray-500 mb-6 leading-relaxed`}>{description}</p>
+        <p
+          className={`${classes.description} text-gray-500 mb-6 leading-relaxed`}
+          dangerouslySetInnerHTML={{ __html: description }}
+        />
 
         {/* 액션 버튼들 */}
         {(primaryAction || secondaryAction) && (
