@@ -28,6 +28,15 @@ else
         exit 1
     fi
     echo "✅ ESLint passed for staged files!"
+    
+    # 변경된 파일들만 TypeScript 체크 (프로젝트 설정 사용)
+    echo "🔧 Running TypeScript check on staged files..."
+    echo "$STAGED_FILES" | xargs npx tsc --noEmit --skipLibCheck
+    if [ $? -ne 0 ]; then
+        echo "❌ TypeScript check failed on staged files. Please fix the errors before committing."
+        exit 1
+    fi
+    echo "✅ TypeScript check passed for staged files!"
 fi
 
 echo "✅ All pre-commit checks passed!"
@@ -37,4 +46,4 @@ EOF
 chmod +x .git/hooks/pre-commit
 
 echo "✅ Git hooks setup completed!"
-echo "📝 Now every commit will automatically run ESLint on staged files only." 
+echo "📝 Now every commit will automatically run ESLint and TypeScript checks on staged files only." 
