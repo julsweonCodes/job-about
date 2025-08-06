@@ -1,10 +1,6 @@
-import {
-  getActiveJobPostsCnt,
-  getAllApplicationsCnt,
-  getEmployerBizLoc,
-  getStatusUpdateCnt,
-} from "@/app/services/employer-services";
+import { getEmployerBizLoc } from "@/app/services/employer-services";
 import { getUserIdFromSession } from "@/utils/auth";
+import { getActiveJobPostsCnt, getAllApplicationsCnt, getStatusUpdateCnt} from "@/app/services/employer-dash-services";
 import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
 import { Dashboard } from "@/types/employer";
 

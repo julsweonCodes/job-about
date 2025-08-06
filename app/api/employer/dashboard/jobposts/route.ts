@@ -1,6 +1,7 @@
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
-import { getActiveJobPostsList } from "@/app/services/employer-services";
+import { getActiveJobPostsList, updateJobPostStatus } from "@/app/services/employer-dash-services";
 import { getUserIdFromSession } from "@/utils/auth";
+import { NextRequest } from "next/server";
 
 export async function GET() {
   console.log("GET API - /employer/dashboard/jobposts");

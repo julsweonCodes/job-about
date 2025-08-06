@@ -1,6 +1,6 @@
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { NextRequest } from "next/server";
-import { getApplicantsList } from "@/app/services/employer-services";
+import { getApplicantsList } from "@/app/services/employer-dash-services";
 
 export async function GET(
   _req: NextRequest,
