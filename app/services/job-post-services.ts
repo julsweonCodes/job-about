@@ -35,8 +35,8 @@ export async function createJobPost(payload: JobPostPayload) {
       work_schedule: payload.workSchedule,
       business_loc_id: bizLocId,
       user_id: userId,
-      work_type: toPrismaWorkType(payload.selectedWorkType),
-      language_level: toPrismaLanguageLevel(payload.languageLevel),
+      work_type: toPrismaWorkType(payload.selectedWorkType!),
+      language_level: toPrismaLanguageLevel(payload.languageLevel!),
     },
     select: {
       id: true,

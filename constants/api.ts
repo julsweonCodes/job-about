@@ -39,6 +39,7 @@ export const API_URLS = {
       PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
       DETAIL: (id: string, status?: string) =>
         status ? `/api/employer/post/${id}?status=${status}` : `/api/employer/post/${id}`,
+      EDIT: (id: string) => `/api/employer/post/${id}/edit`,
     },
     APPLICANTS: {
       UPDATE_STATUS: "/api/employer/applicants/update-status",

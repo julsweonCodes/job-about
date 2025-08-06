@@ -15,6 +15,7 @@ import {
 import { JobPostData } from "@/types/jobPost";
 import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/textUtils";
 import { getJobTypeName } from "@/constants/jobTypes";
+import { JobPostPayload } from "@/types/employer";
 
 // Types
 interface JobPostViewProps {
@@ -41,6 +42,7 @@ interface JobPostViewProps {
   selectedVersion?: "manual" | "struct1" | "struct2";
   onSelectVersion?: (v: "manual" | "struct1" | "struct2") => void;
   isDraft?: boolean;
+  onGeminiClicked?: () => void;
 }
 
 // Constants
@@ -130,6 +132,8 @@ const JobDescription: React.FC<{
   jobDescriptions?: any;
   selectedVersion?: string;
   onSelectVersion?: (v: "manual" | "struct1" | "struct2") => void;
+  isDraft?: boolean;
+  onGeminiClicked?: () => void;
 }> = ({
   jobData,
   mode,
@@ -141,10 +145,18 @@ const JobDescription: React.FC<{
   jobDescriptions,
   selectedVersion,
   onSelectVersion,
+  isDraft,
+  onGeminiClicked,
 }) => (
   <div className="mb-8">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
+      {showEditButtons && onEdit && editableSections.includes("description") && !useAI && isDraft && (
+        <button
+          onClick={() => onGeminiClicked?.()}
+          className="px-3 py-1.5 text-sm bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200"
+        >Gemini</button>
+      )}
       {showEditButtons && onEdit && editableSections.includes("description") && !useAI && (
         <button
           onClick={() =>
@@ -742,6 +754,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   selectedVersion,
   onSelectVersion,
   isDraft = false,
+  onGeminiClicked,
 }) => {
   // jobData가 없으면 skeleton 표시
   if (!jobData) {
@@ -775,6 +788,8 @@ const JobPostView: React.FC<JobPostViewProps> = ({
           jobDescriptions={jobDescriptions}
           selectedVersion={selectedVersion}
           onSelectVersion={onSelectVersion}
+          isDraft={isDraft}
+          onGeminiClicked={onGeminiClicked}
         />
 
         <JobDetails

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import Input from "@/components/ui/Input";
@@ -13,11 +13,16 @@ import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog
 import RequiredPersonalitiesDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import LanguageLevelSelector from "@/components/ui/LanguageLevelSelector";
 import { API_URLS } from "@/constants/api";
+import { JobPostPayload } from "@/types/employer";
 import { apiGetData } from "@/utils/client/API";
 import { showErrorToast } from "@/utils/client/toastUtils";
+import { JobPostData } from "@/types/jobPost";
+import { param } from "ts-interface-checker";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
+  const params = useParams();
+  const postId = params?.postId as string;
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [tempEditData, setTempEditData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -28,8 +33,62 @@ const JobPostEditPage: React.FC = () => {
   const [jobData, setJobData] = useState<any>(null);
   const [jobStatus, setJobStatus] = useState<string>("published");
 
+  // Job Data Payload for Gemini and Publishing
+  const [jobPostPayload, setJobPostPayload] = useState<JobPostPayload>();
   // 중복 실행 방지를 위한 ref
   const isInitializingRef = useRef(false);
+
+  const mapToFormData = (data: JobPostData): JobPostPayload => {
+    const payload: JobPostPayload = {
+      jobTitle: data.title,
+      selectedJobType: data.jobType,
+      deadline: data.deadline, // 날짜 포맷 확인 필요
+      workSchedule: data.workSchedule,
+      requiredSkills: data.requiredSkills,
+      requiredWorkStyles: data.requiredWorkStyles,
+      wage: data.hourlyWage,
+      jobDescription: data.jobDescription,
+      languageLevel: data.languageLevel,
+      selectedWorkType: data.workType,
+      useAI: false // 기본값 또는 URL 쿼리 파라미터에서 추출 가능
+    };
+    return payload;
+  }
+
+  const onGeminiClicked = async (): Promise<void> => {
+    if (!jobPostPayload) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch(API_URLS.EMPLOYER.POST.EDIT(postId), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jobPostPayload),
+      });
+
+      if (!res.ok) {
+        showErrorToast("Failed to create job post.");
+        return;
+      }
+      const data = await res.json();
+
+      setJobData((prev: any) => ({
+        ...prev,
+        geminiRes: data.data,
+        jobDescriptions: {
+          manual: prev?.jobDescription,
+          struct1: data.data[0],
+          struct2: data.data[1],
+        },
+      }
+      ));
+    } catch (error) {
+      console.error("Gemini API failed:", error);
+      showErrorToast("Failed to fetch AI-generated descriptions");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch job data on component mount
   useEffect(() => {
@@ -50,6 +109,9 @@ const JobPostEditPage: React.FC = () => {
 
         const data = await apiGetData(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
         setJobData(data);
+        setJobPostPayload(mapToFormData(data));
+        console.log("*****data: ", data);
+
       } catch (error) {
         console.error("Error fetching job data:", error);
         showErrorToast(error instanceof Error ? error.message : "Failed to fetch job data");
@@ -67,6 +129,9 @@ const JobPostEditPage: React.FC = () => {
     fetchJobData();
   }, []);
 
+  useEffect(() => {
+    console.log(jobData);
+  }, [jobData]);
   const handleEdit = (section: string, initialData?: any) => {
     console.log("Edit section:", section, "Data:", initialData);
 
@@ -214,6 +279,7 @@ const JobPostEditPage: React.FC = () => {
         showPublishButton={jobStatus === "draft"}
         isDraft={jobStatus === "draft"}
         editableSections={["header", "description", "business", "jobDetails", "skillsAndStyles"]}
+        onGeminiClicked={onGeminiClicked}
       />
 
       {/* Cancel Confirmation Dialog */}
