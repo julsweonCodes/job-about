@@ -15,8 +15,10 @@ import LanguageLevelSelector from "@/components/ui/LanguageLevelSelector";
 import { API_URLS } from "@/constants/api";
 import { JobPostPayload } from "@/types/employer";
 import { apiGetData } from "@/utils/client/API";
-import { showErrorToast } from "@/utils/client/toastUtils";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { JobPostData } from "@/types/jobPost";
+import { formatDate } from "@/utils/shared/dateUtils";
+import { formatDateYYYYMMDD } from "@/lib/utils";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -62,7 +64,7 @@ const JobPostEditPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const res = await fetch(API_URLS.EMPLOYER.POST.EDIT(postId), {
+      const res = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jobPostPayload),
@@ -131,7 +133,9 @@ const JobPostEditPage: React.FC = () => {
     fetchJobData();
   }, [router]);
 
-  useEffect(() => {}, [jobData]);
+  useEffect(() => {
+    console.log(jobData);
+  }, [jobData]);
   const handleEdit = (section: string, initialData?: any) => {
     // 섹션과 항목을 분리 (예: "jobDetails.hourlyWage")
     const [mainSection, subItem] = section.split(".");
@@ -254,9 +258,24 @@ const JobPostEditPage: React.FC = () => {
     console.log("save changes to server", jobData);
   };
 
-  // TODO: api call to server (DRAFT -> PUBLISHED)
   const handlePublish = async () => {
-    console.log("publish job post");
+    setJobPostPayload(mapToFormData(jobData));
+    try {
+      const res = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jobPostPayload),
+      });
+      const data = await res.json();
+      if (res.ok && data.data.status === "PUBLISHED") {
+        showSuccessToast("Job Post published successfully");
+      } else {
+        showErrorToast("Something went wrong publishing job post :<.");
+      }
+    } catch (e) {
+      console.error("Error publishing job post");
+      showErrorToast((e as Error).message || "Something went wrong publishing job post :<.");
+    }
   };
 
   const handleCancel = () => {

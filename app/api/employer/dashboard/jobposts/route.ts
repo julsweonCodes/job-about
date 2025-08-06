@@ -30,7 +30,6 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const res = await updateJobPostStatus(body.postId, body.status, userId);
-    console.log("route.ts - ", res);
     if (res) {
       return successResponse(res, 200);
     } else {

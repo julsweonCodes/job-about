@@ -50,7 +50,6 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
   }, [router, postId, status]);
 
   const handleStatusChange = useCallback((newStatus: JobStatus) => {
-    // TODO: API call to update job post status @jeongyoun
     updateStatus(postId, newStatus);
     console.log("Status changed to:", newStatus);
 

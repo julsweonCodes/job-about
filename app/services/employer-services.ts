@@ -1,18 +1,19 @@
 // 📁 services/employer-service.ts
 import { supabaseClient } from "@/utils/supabase/client";
-import { EmployerProfilePayload, JobPost } from "@/types/employer";
+import { EmployerProfilePayload, JobPost, JobPostPayload } from "@/types/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
 import {
   fromPrismaAppStatus,
   fromPrismaWorkPeriod, fromPrismaWorkType,
-  toPrismaJobStatus,
-  toPrismaLocationStrict,
+  toPrismaJobStatus, toPrismaJobType, toPrismaLanguageLevel,
+  toPrismaLocationStrict, toPrismaWorkType,
 } from "@/types/enumMapper";
 import { Applicant } from "@/types/job";
 import { Prisma } from "@prisma/client";
 import { toISOString } from "@/utils/shared/dateUtils";
+import { getBusinessLocId } from "@/app/services/job-post-services";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -83,3 +84,33 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
   return data;
 }
 
+export async function updateJobPost(postId: string, payload: JobPostPayload, userId: number) {
+  const bizLocId = await getBusinessLocId(userId);
+  const res = await prisma.job_posts.update({
+    where: {
+      id: Number(postId),
+      business_loc_id: bizLocId,
+      user_id: userId,
+    },
+    data: {
+      deadline: "20240808", //payload.deadline,
+      description: payload.jobDescription,
+      job_type: toPrismaJobType(payload.selectedJobType),
+      language_level: payload.languageLevel ? toPrismaLanguageLevel(payload.languageLevel) : "NOT_REQUIRED",
+      status: "PUBLISHED",
+      title: payload.jobTitle,
+      updated_at: new Date(),
+      wage: payload.wage,
+      work_schedule: payload.workSchedule,
+      work_type: payload.selectedWorkType ? toPrismaWorkType(payload.selectedWorkType) : "ON_SITE",
+      business_loc_id: bizLocId,
+      user_id: userId,
+    },
+    select: {
+      id: true,
+      business_loc_id: true,
+      status: true,
+    }
+  });
+  return parseBigInt(res);
+}
