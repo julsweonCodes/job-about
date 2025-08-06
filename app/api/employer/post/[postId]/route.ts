@@ -49,6 +49,11 @@ export async function GET(req: NextRequest, { params }: { params: { postId: stri
     }
 
     console.log("Final result:", check ? "Found" : "Not found");
+
+    if (!check) {
+      return errorResponse("Job post not found", 404);
+    }
+
     return successResponse(check, 200, "success");
   } catch (e) {
     console.error("check failed", e);

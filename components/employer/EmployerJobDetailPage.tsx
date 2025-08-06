@@ -82,15 +82,22 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
     try {
       // 상태에 따라 다른 API 엔드포인트 호출
       const data = await apiGetData(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
+
       if (!data) {
-        throw new Error("No data received from API");
+        throw new Error("Job post not found or you don't have permission to view it");
       }
+
       const jobPostData = JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
       setJobDetails(jobPostData);
     } catch (error) {
       console.error("Error fetching job details:", error);
 
-      showErrorToast(error instanceof Error ? error.message : "Failed to fetch job details");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch job details. Please check if the job post exists and you have permission to view it.";
+
+      showErrorToast(errorMessage);
 
       // 토스트가 보이도록 2초 후에 페이지 이동
       setTimeout(() => {

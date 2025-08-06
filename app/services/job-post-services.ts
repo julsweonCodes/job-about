@@ -205,6 +205,12 @@ export async function deleteAndInsertWorkStyles(jobPostId: number, workStyles: W
 export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus, userId?: number) {
   console.log("getJobPostView called with:", { jobPostId, jobPostStatus, userId });
 
+  // 입력값 검증
+  if (!jobPostId || isNaN(Number(jobPostId))) {
+    console.error("Invalid jobPostId:", jobPostId);
+    return null;
+  }
+
   const bizLocId = await prisma.job_posts.findFirst({
     where: {
       id: Number(jobPostId),
