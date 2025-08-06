@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 export const GET = async (request: NextRequest) => {
   try {
     const searchParams = request.nextUrl.searchParams;
-    // 이거 그냥 이렇게 해야 동작하는디?? 
+    // 이거 그냥 이렇게 해야 동작하는디??
     const workType = searchParams.get("work_type");
     const location = toLocation(searchParams.get("location"));
 
