@@ -14,6 +14,8 @@ import {
   Users,
   CheckCircle,
   Edit3,
+  Sparkles,
+  Wand2,
 } from "lucide-react";
 
 // Constants
@@ -79,9 +81,9 @@ const JobHeader: React.FC<{
   onEdit?: (section: string, data: any) => void;
   editableSections: string[];
 }> = ({ jobData, showEditButtons, onEdit, editableSections }) => (
-  <div className="py-6 lg:py-8">
-    <div className="flex flex-row items-center space-x-4">
-      <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+  <div className="py-4 sm:py-6 lg:py-8">
+    <div className="flex flex-row items-center space-x-3 sm:space-x-4">
+      <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
         <img
           src={jobData.businessLocInfo.logoImg}
           alt="Company Logo"
@@ -91,8 +93,12 @@ const JobHeader: React.FC<{
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">{jobData.title}</h1>
-            <p className="text-lg lg:text-xl text-gray-600">{jobData.businessLocInfo.name}</p>
+            <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 break-words">
+              {jobData.title}
+            </h1>
+            <p className="text-sm sm:text-lg lg:text-xl text-gray-600 break-words">
+              {jobData.businessLocInfo.name}
+            </p>
           </div>
           {showEditButtons && onEdit && editableSections.includes("header") && (
             <button
@@ -102,9 +108,9 @@ const JobHeader: React.FC<{
                   business: jobData.businessLocInfo,
                 })
               }
-              className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+              className="p-1.5 sm:p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors flex-shrink-0"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           )}
         </div>
@@ -146,18 +152,6 @@ const JobDescription: React.FC<{
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Job Description</h2>
         <div className="flex items-center gap-2">
-          {showEditButtons &&
-            onEdit &&
-            editableSections.includes("description") &&
-            !hasGeminiResponse &&
-            isDraft && (
-              <button
-                onClick={() => onGeminiClicked?.()}
-                className="px-3 py-1.5 text-sm bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
-              >
-                Generate with Gemini
-              </button>
-            )}
           {/* Gemini 응답이 있을 때는 edit 버튼 숨김 */}
           {showEditButtons &&
             onEdit &&
@@ -173,6 +167,20 @@ const JobDescription: React.FC<{
                 className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
+              </button>
+            )}
+          {showEditButtons &&
+            onEdit &&
+            editableSections.includes("description") &&
+            !hasGeminiResponse &&
+            isDraft && (
+              <button
+                onClick={() => onGeminiClicked?.()}
+                className="p-2 text-white rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-colors flex items-center gap-2"
+                title="Generate with AI"
+              >
+                <span className="text-xs sm:text-sm font-medium">Generate with AI 🤖</span>
+                {/* <Wand2 className="w-4 h-4" /> */}
               </button>
             )}
         </div>
@@ -258,21 +266,21 @@ const JobDetails: React.FC<{
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Job Details</h2>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
         {jobDetailItems.map((item) => {
           const IconComponent = item.icon;
           return (
             <div
               key={item.label}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start space-x-4">
-                <div className={`p-3 rounded-xl ${item.bgColor} flex-shrink-0`}>
-                  <IconComponent className={`w-5 h-5 ${item.color}`} />
+              <div className="flex items-start space-x-3 sm:space-x-4">
+                <div className={`p-2 sm:p-3 rounded-xl ${item.bgColor} flex-shrink-0`}>
+                  <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 ${item.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-medium text-gray-500">{item.label}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-500">{item.label}</p>
                     {showEditButtons && onEdit && editableSections.includes("jobDetails") && (
                       <button
                         onClick={() => {
@@ -303,13 +311,13 @@ const JobDetails: React.FC<{
                           }
                           onEdit(sectionName, editData);
                         }}
-                        className="p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                        className="p-1 sm:p-1.5 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
+                        <Edit3 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       </button>
                     )}
                   </div>
-                  <p className="text-base font-semibold text-gray-900 break-words">
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 break-words">
                     {item.value?.toString() || ""}
                   </p>
                 </div>
@@ -417,7 +425,7 @@ const WorkplacePhotos: React.FC<{ extraPhotos: string[] }> = ({ extraPhotos }) =
       {/* Photo Thumbnails */}
       {extraPhotos && extraPhotos.length > 0 && (
         <div className="mt-8">
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
             {extraPhotos
               .filter((photo) => photo)
               .map((photo, index) => (
@@ -600,7 +608,7 @@ const EmployerJobPostEditView: React.FC<EmployerJobPostEditViewProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
-      <div className="max-w-6xl mx-auto px-5 lg:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-5 lg:px-6 overflow-hidden">
         <JobHeader
           jobData={jobData}
           showEditButtons={showEditButtons}

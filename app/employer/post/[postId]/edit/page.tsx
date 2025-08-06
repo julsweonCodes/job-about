@@ -17,7 +17,6 @@ import { JobPostPayload } from "@/types/employer";
 import { apiGetData } from "@/utils/client/API";
 import { showErrorToast } from "@/utils/client/toastUtils";
 import { JobPostData } from "@/types/jobPost";
-import { param } from "ts-interface-checker";
 
 const JobPostEditPage: React.FC = () => {
   const router = useRouter();
@@ -32,6 +31,9 @@ const JobPostEditPage: React.FC = () => {
   // Job data state
   const [jobData, setJobData] = useState<any>(null);
   const [jobStatus, setJobStatus] = useState<string>("published");
+  const [selectedVersion, setSelectedVersion] = useState<"manual" | "struct1" | "struct2">(
+    "manual"
+  );
 
   // Job Data Payload for Gemini and Publishing
   const [jobPostPayload, setJobPostPayload] = useState<JobPostPayload>();
@@ -72,7 +74,7 @@ const JobPostEditPage: React.FC = () => {
       }
       const data = await res.json();
 
-      // Gemini 응답을 jobData에 추가하여 화면에 표시
+      // Gemini 응답을 jobData에 추가하여 화면에 표시 (새로고침 없이)
       setJobData((prev: any) => ({
         ...prev,
         geminiRes: data.data,
@@ -82,6 +84,7 @@ const JobPostEditPage: React.FC = () => {
           struct2: data.data[1],
         },
         useAI: true, // Gemini 응답이 있음을 표시
+        selectedVersion: "manual", // 기본값으로 manual 선택
       }));
     } catch (error) {
       console.error("Gemini API failed:", error);
@@ -111,7 +114,6 @@ const JobPostEditPage: React.FC = () => {
         const data = await apiGetData(API_URLS.EMPLOYER.POST.DETAIL(postId, status));
         setJobData(data);
         setJobPostPayload(mapToFormData(data));
-        console.log("*****data: ", data);
       } catch (error) {
         console.error("Error fetching job data:", error);
         showErrorToast(error instanceof Error ? error.message : "Failed to fetch job data");
@@ -127,20 +129,17 @@ const JobPostEditPage: React.FC = () => {
     };
 
     fetchJobData();
-  }, []);
+  }, [router]);
 
-  useEffect(() => {
-    console.log(jobData);
-  }, [jobData]);
+  useEffect(() => {}, [jobData]);
   const handleEdit = (section: string, initialData?: any) => {
-    console.log("Edit section:", section, "Data:", initialData);
-
     // 섹션과 항목을 분리 (예: "jobDetails.hourlyWage")
     const [mainSection, subItem] = section.split(".");
 
     if (subItem) {
-      // 개별 항목 수정
-      setTempEditData({ [subItem]: initialData[subItem] });
+      // 개별 항목 수정 - tempEditData를 완전히 새로 설정
+      const editData = { [subItem]: initialData[subItem] };
+      setTempEditData(editData);
       setEditingSection(section);
     } else {
       // 전체 섹션 수정
@@ -292,8 +291,9 @@ const JobPostEditPage: React.FC = () => {
         useAI={jobData?.useAI}
         geminiRes={jobData?.geminiRes}
         jobDescriptions={jobData?.jobDescriptions}
-        selectedVersion={jobData?.selectedVersion}
+        selectedVersion={selectedVersion}
         onSelectVersion={(version) => {
+          setSelectedVersion(version);
           setJobData((prev: any) => ({
             ...prev,
             selectedVersion: version,
@@ -485,7 +485,10 @@ const JobPostEditPage: React.FC = () => {
           <BaseDialog
             type="bottomSheet"
             open={editingSection === "jobDetails.hourlyWage"}
-            onClose={() => setEditingSection(null)}
+            onClose={() => {
+              setEditingSection(null);
+              setTempEditData({});
+            }}
             title="Edit Hourly Wage"
             actions={
               <>
@@ -503,10 +506,10 @@ const JobPostEditPage: React.FC = () => {
               <div>
                 <span className="text-sm md:text-base text-gray-500 mb-2 block">Hourly Wage</span>
                 <Input
-                  value={tempEditData.hourlyWage || jobData?.hourlyWage || ""}
-                  onChange={(e) =>
-                    setTempEditData((prev: any) => ({ ...prev, hourlyWage: e.target.value }))
-                  }
+                  value={tempEditData.hourlyWage ?? jobData?.hourlyWage ?? ""}
+                  onChange={(e) => {
+                    setTempEditData((prev: any) => ({ ...prev, hourlyWage: e.target.value }));
+                  }}
                   className="w-full"
                   placeholder="e.g., 25"
                 />
@@ -518,7 +521,10 @@ const JobPostEditPage: React.FC = () => {
           <BaseDialog
             type="bottomSheet"
             open={editingSection === "jobDetails.workSchedule"}
-            onClose={() => setEditingSection(null)}
+            onClose={() => {
+              setEditingSection(null);
+              setTempEditData({});
+            }}
             title="Edit Work Schedule"
             actions={
               <>
@@ -536,10 +542,10 @@ const JobPostEditPage: React.FC = () => {
               <div>
                 <span className="text-sm md:text-base text-gray-500 mb-2 block">Work Schedule</span>
                 <Input
-                  value={tempEditData.workSchedule || jobData?.workSchedule || ""}
-                  onChange={(e) =>
-                    setTempEditData((prev: any) => ({ ...prev, workSchedule: e.target.value }))
-                  }
+                  value={tempEditData.workSchedule ?? jobData?.workSchedule ?? ""}
+                  onChange={(e) => {
+                    setTempEditData((prev: any) => ({ ...prev, workSchedule: e.target.value }));
+                  }}
                   className="w-full"
                   placeholder="e.g., Monday to Friday, 9 AM - 5 PM"
                 />
@@ -551,7 +557,10 @@ const JobPostEditPage: React.FC = () => {
           <BaseDialog
             type="bottomSheet"
             open={editingSection === "jobDetails.languageLevel"}
-            onClose={() => setEditingSection(null)}
+            onClose={() => {
+              setEditingSection(null);
+              setTempEditData({});
+            }}
             title="Select Language Level"
             actions={
               <>
@@ -567,7 +576,7 @@ const JobPostEditPage: React.FC = () => {
           >
             <div className="flex flex-col gap-4 py-5">
               <LanguageLevelSelector
-                value={tempEditData.languageLevel || jobData?.languageLevel}
+                value={tempEditData.languageLevel ?? jobData?.languageLevel}
                 onChange={(level) => {
                   setTempEditData((prev: any) => ({ ...prev, languageLevel: level }));
                 }}
@@ -578,7 +587,10 @@ const JobPostEditPage: React.FC = () => {
           {/* Application Deadline DatePicker Dialog */}
           <DatePickerDialog
             open={editingSection === "jobDetails.deadline"}
-            onClose={() => setEditingSection(null)}
+            onClose={() => {
+              setEditingSection(null);
+              setTempEditData({});
+            }}
             value={
               tempEditData.deadline
                 ? new Date(tempEditData.deadline)
@@ -604,7 +616,10 @@ const JobPostEditPage: React.FC = () => {
           <JobTypesDialog
             title="Select Job Type"
             open={editingSection === "jobDetails.jobType"}
-            onClose={() => setEditingSection(null)}
+            onClose={() => {
+              setEditingSection(null);
+              setTempEditData({});
+            }}
             selectedJobTypes={
               tempEditData.jobType
                 ? [tempEditData.jobType]

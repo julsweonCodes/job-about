@@ -4,14 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { PAGE_URLS } from "@/constants/api";
 import { STATIC_ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { useCommonDataStore } from "@/stores/useCommonDataStore";
 
 export default function AuthProvider() {
-  const { authState, initializeAuth } = useAuth();
-  const { profileStatus } = useAuthStore();
-  const { fetchCommonData } = useCommonDataStore();
   const router = useRouter();
+  const { authState, profileStatus, initializeAuth } = useAuth();
+  const { fetchCommonData } = useCommonDataStore();
 
   // 앱 시작 시점에 enum 데이터 미리 로드
   useEffect(() => {
@@ -34,6 +32,7 @@ export default function AuthProvider() {
 
       // Employer routes
       /^\/employer\/post\/[\w-]+$/, // /employer/post/[id]
+      /^\/employer\/post\/[\w-]+\/edit$/, // /employer/post/[id]/edit
       /^\/employer\/post\/preview\/[\w-]+$/, // /employer/post/preview/[id]
       /^\/employer\/post\/[\w-]+\/applicants$/, // /employer/post/[id]/applicants
       /^\/employer\/post\/[\w-]+\/applicants\/[\w-]+$/, // /employer/post/[id]/applicants/[applicationId]
@@ -41,12 +40,6 @@ export default function AuthProvider() {
 
     return dynamicRoutePatterns.some((pattern) => pattern.test(pathname));
   };
-
-  // 404(존재하지 않는 경로)에서는 AuthProvider 자체를 렌더하지 않음
-  if (typeof window !== "undefined" && !isExistingRoute(window.location.pathname)) {
-    console.log("AuthProvider routing disabled for 404");
-    return null;
-  }
 
   // 인증 초기화
   useEffect(() => {
@@ -56,6 +49,12 @@ export default function AuthProvider() {
 
   // 중앙화된 인증 체크 및 라우팅 처리
   useEffect(() => {
+    // 404(존재하지 않는 경로)에서는 AuthProvider 자체를 렌더하지 않음
+    if (typeof window !== "undefined" && !isExistingRoute(window.location.pathname)) {
+      console.log("AuthProvider routing disabled for 404");
+      return;
+    }
+
     const isRoutingDisabled = process.env.NEXT_PUBLIC_DISABLE_MIDDLEWARE === "true";
     if (isRoutingDisabled) {
       console.log("AuthProvider routing disabled for development");
@@ -130,6 +129,12 @@ export default function AuthProvider() {
     // 온보딩이 모두 끝난 경우에는 추가 라우팅 없음
     console.log("Onboarding completed, no redirect needed");
   }, [authState, profileStatus, router]);
+
+  // 404(존재하지 않는 경로)에서는 AuthProvider 자체를 렌더하지 않음
+  if (typeof window !== "undefined" && !isExistingRoute(window.location.pathname)) {
+    console.log("AuthProvider routing disabled for 404");
+    return null;
+  }
 
   return null;
 }
