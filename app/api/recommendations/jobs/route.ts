@@ -44,8 +44,22 @@ export async function GET(req: NextRequest) {
       return errorResponse("User not found.", 404);
     }
 
+    // URL 쿼리 파라미터 처리
+    const url = new URL(req.url);
+    const limitParam = url.searchParams.get("limit");
+    const pageParam = url.searchParams.get("page");
+    const minScoreParam = url.searchParams.get("minScore");
+    const locationParam = url.searchParams.get("location");
+    const jobTypeParam = url.searchParams.get("jobType");
+    const workTypeParam = url.searchParams.get("workType");
+
+    const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
+    const page = pageParam ? parseInt(pageParam) : 1; // 기본 1페이지
+    const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
+    const offset = (page - 1) * limit;
+
+    // 성향 프로필이 없는 경우
     if (!user.personality_profile_id) {
-      console.log(`사용자의 성향이 설정되지 않음: userId=${userId}`);
       return successResponse(
         {
           user: {
@@ -81,20 +95,6 @@ export async function GET(req: NextRequest) {
 
     const personalityId = Number(user.personality_profile_id);
     console.log(`구직자 추천: userId=${userId}, personalityId=${personalityId}`);
-
-    // URL 쿼리 파라미터 처리
-    const url = new URL(req.url);
-    const limitParam = url.searchParams.get("limit");
-    const pageParam = url.searchParams.get("page");
-    const minScoreParam = url.searchParams.get("minScore");
-    const locationParam = url.searchParams.get("location");
-    const jobTypeParam = url.searchParams.get("jobType");
-    const workTypeParam = url.searchParams.get("workType");
-
-    const limit = limitParam ? parseInt(limitParam) : 10; // 기본 10개
-    const page = pageParam ? parseInt(pageParam) : 1; // 기본 1페이지
-    const minScore = minScoreParam ? parseFloat(minScoreParam) : 0; // 기본 최소 점수 0
-    const offset = (page - 1) * limit;
 
     // 채용공고 조회 (work style이 설정된 공고만)
     const whereConditions: any = {
@@ -271,10 +271,12 @@ export async function GET(req: NextRequest) {
     console.log(
       `추천 완료: 페이지 ${page}/${Math.ceil(filteredTotalCount / limit)} - ${filteredRecommendations.length}개 공고 추천 (전체 ${filteredTotalCount}개, 최고 점수: ${filteredRecommendations[0]?.matchScore || 0})`
     );
-    
+
     // Required skills 정보 로그 출력
     filteredRecommendations.forEach((job: any, index: number) => {
-      console.log(`Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map((s: any) => s.name_ko).join(', ')}`);
+      console.log(
+        `Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map((s: any) => s.name_ko).join(", ")}`
+      );
     });
 
     // 페이지네이션 메타데이터 계산

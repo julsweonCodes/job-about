@@ -50,10 +50,10 @@ const JobPostEditPage: React.FC = () => {
       jobDescription: data.jobDescription,
       languageLevel: data.languageLevel,
       selectedWorkType: data.workType,
-      useAI: false // 기본값 또는 URL 쿼리 파라미터에서 추출 가능
+      useAI: false, // 기본값 또는 URL 쿼리 파라미터에서 추출 가능
     };
     return payload;
-  }
+  };
 
   const onGeminiClicked = async (): Promise<void> => {
     if (!jobPostPayload) return;
@@ -72,6 +72,7 @@ const JobPostEditPage: React.FC = () => {
       }
       const data = await res.json();
 
+      // Gemini 응답을 jobData에 추가하여 화면에 표시
       setJobData((prev: any) => ({
         ...prev,
         geminiRes: data.data,
@@ -80,8 +81,8 @@ const JobPostEditPage: React.FC = () => {
           struct1: data.data[0],
           struct2: data.data[1],
         },
-      }
-      ));
+        useAI: true, // Gemini 응답이 있음을 표시
+      }));
     } catch (error) {
       console.error("Gemini API failed:", error);
       showErrorToast("Failed to fetch AI-generated descriptions");
@@ -111,7 +112,6 @@ const JobPostEditPage: React.FC = () => {
         setJobData(data);
         setJobPostPayload(mapToFormData(data));
         console.log("*****data: ", data);
-
       } catch (error) {
         console.error("Error fetching job data:", error);
         showErrorToast(error instanceof Error ? error.message : "Failed to fetch job data");
@@ -194,9 +194,18 @@ const JobPostEditPage: React.FC = () => {
             };
             break;
           case "description":
+            // description 수정 시 jobDescriptions도 함께 업데이트
+            const selectedVersion = data.selectedVersion || "manual";
+            const updatedJobDescriptions = {
+              ...updatedData.jobDescriptions,
+              [selectedVersion]: data.description,
+            };
+
             updatedData = {
               ...updatedData,
-              jobDescription: data.jobDescription,
+              jobDescription: data.description,
+              jobDescriptions: updatedJobDescriptions,
+              selectedVersion: selectedVersion,
             };
             break;
           case "business":
@@ -280,6 +289,16 @@ const JobPostEditPage: React.FC = () => {
         isDraft={jobStatus === "draft"}
         editableSections={["header", "description", "business", "jobDetails", "skillsAndStyles"]}
         onGeminiClicked={onGeminiClicked}
+        useAI={jobData?.useAI}
+        geminiRes={jobData?.geminiRes}
+        jobDescriptions={jobData?.jobDescriptions}
+        selectedVersion={jobData?.selectedVersion}
+        onSelectVersion={(version) => {
+          setJobData((prev: any) => ({
+            ...prev,
+            selectedVersion: version,
+          }));
+        }}
       />
 
       {/* Cancel Confirmation Dialog */}
@@ -372,9 +391,19 @@ const JobPostEditPage: React.FC = () => {
               </span>
               <TextArea
                 rows={6}
-                value={tempEditData.jobDescription || jobData?.jobDescription || ""}
+                value={
+                  tempEditData.description ||
+                  (jobData?.selectedVersion &&
+                    jobData?.jobDescriptions?.[jobData.selectedVersion]) ||
+                  jobData?.jobDescription ||
+                  ""
+                }
                 onChange={(e) =>
-                  setTempEditData((prev: any) => ({ ...prev, jobDescription: e.target.value }))
+                  setTempEditData((prev: any) => ({
+                    ...prev,
+                    description: e.target.value,
+                    selectedVersion: jobData?.selectedVersion || "manual",
+                  }))
                 }
                 className="w-full pt-3 pb-1 scrollbar-none"
                 placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
