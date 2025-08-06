@@ -49,10 +49,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
   if (!isMounted) {
     return (
       <div className={`relative ${className} flex-shrink-0`}>
-        <div className="flex items-center text-gray-600 gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm">
-          <span className="text-sm font-medium text-gray-600">{filter.label}</span>
-          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse ml-2" />
-        </div>
+        <div className="w-32 h-12 bg-gray-200 rounded-xl animate-pulse" />
       </div>
     );
   }
