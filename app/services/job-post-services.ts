@@ -11,6 +11,8 @@ import {
   toPrismaJobStatus,
   toLocation,
   fromPrismaLocation,
+  toWorkType,
+  fromPrismaWorkType,
 } from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
@@ -249,7 +251,17 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
       id: Number(jobPostId),
       status: toPrismaJobStatus(jobPostStatus),
     },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      wage: true,
+      work_schedule: true,
+      deadline: true,
+      job_type: true,
+      work_type: true,
+      language_level: true,
+      status: true,
       bookmarked_jobs: {
         where: userId ? { user_id: userId } : { id: -1 },
         select: { id: true },
@@ -314,7 +326,14 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
 
   const jobPostData: JobPostData = {
     businessLocInfo: bizLocInfo,
-    deadline: formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline),
+    deadline: (() => {
+      try {
+        return formatYYYYMMDDtoMonthDayYear(jobPostRes.deadline);
+      } catch (error) {
+        console.warn("Invalid deadline format in job-post-services:", jobPostRes.deadline);
+        return jobPostRes.deadline; // 원본 값 반환
+      }
+    })(),
     jobDescription: safeJsonParse(jobPostRes.description),
     hourlyWage: jobPostRes.wage,
     id: jobPostRes.id.toString(),
@@ -323,11 +342,12 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     requiredWorkStyles: requiredWorkStyles,
     requiredSkills: requiredSkills,
     workSchedule: jobPostRes.work_schedule,
+    workType: jobPostRes.work_type ? fromPrismaWorkType(jobPostRes.work_type) : undefined,
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
     isBookmarked,
   };
-  console.log(jobPostData);
+
   return jobPostData;
 }
 

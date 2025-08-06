@@ -6,7 +6,7 @@ import {
   AvailableDay,
   AvailableHour,
   WorkPeriod,
-  ApplicantStatus
+  ApplicantStatus,
 } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
 import { Location } from "@/constants/location";

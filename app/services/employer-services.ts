@@ -6,9 +6,13 @@ import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@
 import { STORAGE_URLS } from "@/constants/storage";
 import {
   fromPrismaAppStatus,
-  fromPrismaWorkPeriod, fromPrismaWorkType,
-  toPrismaJobStatus, toPrismaJobType, toPrismaLanguageLevel,
-  toPrismaLocationStrict, toPrismaWorkType,
+  fromPrismaWorkPeriod,
+  fromPrismaWorkType,
+  toPrismaJobStatus,
+  toPrismaJobType,
+  toPrismaLanguageLevel,
+  toPrismaLocationStrict,
+  toPrismaWorkType,
 } from "@/types/enumMapper";
 import { Applicant } from "@/types/job";
 import { Prisma } from "@prisma/client";
@@ -93,10 +97,12 @@ export async function updateJobPost(postId: string, payload: JobPostPayload, use
       user_id: userId,
     },
     data: {
-      deadline: "20240808", //payload.deadline,
+      deadline: payload.deadline,
       description: payload.jobDescription,
       job_type: toPrismaJobType(payload.selectedJobType),
-      language_level: payload.languageLevel ? toPrismaLanguageLevel(payload.languageLevel) : "NOT_REQUIRED",
+      language_level: payload.languageLevel
+        ? toPrismaLanguageLevel(payload.languageLevel)
+        : "NOT_REQUIRED",
       status: "PUBLISHED",
       title: payload.jobTitle,
       updated_at: new Date(),
@@ -110,7 +116,7 @@ export async function updateJobPost(postId: string, payload: JobPostPayload, use
       id: true,
       business_loc_id: true,
       status: true,
-    }
+    },
   });
   return parseBigInt(res);
 }

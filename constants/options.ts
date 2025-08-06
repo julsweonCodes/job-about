@@ -30,8 +30,8 @@ export const AVAILABLE_HOUR_OPTIONS = [
 ] as const;
 
 export const LANGUAGE_LEVEL_OPTIONS = [
+  { value: LanguageLevel.NOT_REQUIRED, label: "Not Required" },
   { value: LanguageLevel.BEGINNER, label: "Beginner" },
   { value: LanguageLevel.INTERMEDIATE, label: "Intermediate" },
   { value: LanguageLevel.FLUENT, label: "Fluent" },
-  { value: LanguageLevel.NOT_REQUIRED, label: "Not Required" },
 ] as const;

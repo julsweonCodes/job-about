@@ -37,7 +37,7 @@ const JobPostViewSkeleton: React.FC = () => (
           <div className="h-6 bg-gray-200 rounded animate-pulse w-24" />
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <div className="flex items-start space-x-4">
                 <div className="w-11 h-11 bg-gray-200 rounded-xl animate-pulse flex-shrink-0" />

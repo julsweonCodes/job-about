@@ -11,13 +11,14 @@ import DatePickerDialog from "@/app/employer/components/DatePickerDialog";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
 import RequiredPersonalitiesDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
-import LanguageLevelSelector from "@/components/ui/LanguageLevelSelector";
+import OptionSelector from "@/components/ui/OptionSelector";
 import { API_URLS } from "@/constants/api";
 import { JobPostPayload } from "@/types/employer";
-import { apiGetData } from "@/utils/client/API";
+import { LANGUAGE_LEVEL_OPTIONS, WORK_TYPE_OPTIONS } from "@/constants/options";
+import { apiGetData, apiPostData } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { JobPostData } from "@/types/jobPost";
-import { formatDate } from "@/utils/shared/dateUtils";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import { formatDateYYYYMMDD } from "@/lib/utils";
 
 const JobPostEditPage: React.FC = () => {
@@ -46,7 +47,7 @@ const JobPostEditPage: React.FC = () => {
     const payload: JobPostPayload = {
       jobTitle: data.title,
       selectedJobType: data.jobType,
-      deadline: data.deadline, // 날짜 포맷 확인 필요
+      deadline: formatDateYYYYMMDD(data.deadline), // 날짜 포맷 확인 필요
       workSchedule: data.workSchedule,
       requiredSkills: data.requiredSkills,
       requiredWorkStyles: data.requiredWorkStyles,
@@ -64,30 +65,22 @@ const JobPostEditPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const res = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jobPostPayload),
-      });
+      const response = await apiPostData(API_URLS.EMPLOYER.POST.DETAIL(postId), jobPostPayload);
 
-      if (!res.ok) {
-        showErrorToast("Failed to create job post.");
-        return;
+      if (response && response.data) {
+        // Gemini 응답을 jobData에 추가하여 화면에 표시 (새로고침 없이)
+        setJobData((prev: any) => ({
+          ...prev,
+          geminiRes: response.data,
+          jobDescriptions: {
+            manual: prev?.jobDescription,
+            struct1: response.data[0],
+            struct2: response.data[1],
+          },
+          useAI: true, // Gemini 응답이 있음을 표시
+          selectedVersion: "manual", // 기본값으로 manual 선택
+        }));
       }
-      const data = await res.json();
-
-      // Gemini 응답을 jobData에 추가하여 화면에 표시 (새로고침 없이)
-      setJobData((prev: any) => ({
-        ...prev,
-        geminiRes: data.data,
-        jobDescriptions: {
-          manual: prev?.jobDescription,
-          struct1: data.data[0],
-          struct2: data.data[1],
-        },
-        useAI: true, // Gemini 응답이 있음을 표시
-        selectedVersion: "manual", // 기본값으로 manual 선택
-      }));
     } catch (error) {
       console.error("Gemini API failed:", error);
       showErrorToast("Failed to fetch AI-generated descriptions");
@@ -133,9 +126,6 @@ const JobPostEditPage: React.FC = () => {
     fetchJobData();
   }, [router]);
 
-  useEffect(() => {
-    console.log(jobData);
-  }, [jobData]);
   const handleEdit = (section: string, initialData?: any) => {
     // 섹션과 항목을 분리 (예: "jobDetails.hourlyWage")
     const [mainSection, subItem] = section.split(".");
@@ -231,6 +221,7 @@ const JobPostEditPage: React.FC = () => {
               languageLevel: data.languageLevel || updatedData.languageLevel,
               deadline: data.deadline || updatedData.deadline,
               jobType: data.jobType || updatedData.jobType,
+              workType: data.workType || updatedData.workType,
             };
             break;
           case "skillsAndStyles":
@@ -253,28 +244,62 @@ const JobPostEditPage: React.FC = () => {
     }
   };
 
-  // TODO: api call to server
+  // Save Edit
   const handleSaveEdit = async () => {
-    console.log("save changes to server", jobData);
+    if (!jobData) {
+      showErrorToast("No job data to save");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = mapToFormData(jobData);
+      console.log(payload);
+      const response = await apiPostData(API_URLS.EMPLOYER.POST.UPDATE(postId), payload);
+
+      if (response) {
+        showSuccessToast("Job post updated successfully");
+        // 업데이트된 데이터로 상태 갱신
+        setJobData((prev: any) => ({
+          ...prev,
+          ...response,
+        }));
+      }
+    } catch (error) {
+      console.error("Error saving job post:", error);
+      showErrorToast("Failed to save job post changes");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handlePublish = async () => {
-    setJobPostPayload(mapToFormData(jobData));
+    if (!jobData) {
+      showErrorToast("No job data to publish");
+      return;
+    }
+
+    setIsSaving(true);
     try {
-      const res = await fetch(API_URLS.EMPLOYER.POST.DETAIL(postId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jobPostPayload),
-      });
-      const data = await res.json();
-      if (res.ok && data.data.status === "PUBLISHED") {
+      const payload = mapToFormData(jobData);
+      const response = await apiPostData(API_URLS.EMPLOYER.POST.DETAIL(postId), payload);
+
+      if (response && response.status === "PUBLISHED") {
         showSuccessToast("Job Post published successfully");
+        setJobStatus("published");
+        // 업데이트된 데이터로 상태 갱신
+        setJobData((prev: any) => ({
+          ...prev,
+          ...response,
+        }));
       } else {
-        showErrorToast("Something went wrong publishing job post :<.");
+        showErrorToast("Something went wrong publishing job post");
       }
-    } catch (e) {
-      console.error("Error publishing job post");
-      showErrorToast((e as Error).message || "Something went wrong publishing job post :<.");
+    } catch (error) {
+      console.error("Error publishing job post:", error);
+      showErrorToast("Failed to publish job post");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -319,6 +344,17 @@ const JobPostEditPage: React.FC = () => {
           }));
         }}
       />
+
+      {/* Saving Screen - Only show when updating */}
+      {isSaving && (
+        <LoadingScreen
+          message="Saving changes..."
+          overlay={true}
+          spinnerSize="lg"
+          spinnerColor="purple-circle"
+          opacity="medium"
+        />
+      )}
 
       {/* Cancel Confirmation Dialog */}
       <BaseDialog
@@ -594,7 +630,8 @@ const JobPostEditPage: React.FC = () => {
             }
           >
             <div className="flex flex-col gap-4 py-5">
-              <LanguageLevelSelector
+              <OptionSelector
+                options={LANGUAGE_LEVEL_OPTIONS}
                 value={tempEditData.languageLevel ?? jobData?.languageLevel}
                 onChange={(level) => {
                   setTempEditData((prev: any) => ({ ...prev, languageLevel: level }));
@@ -654,6 +691,38 @@ const JobPostEditPage: React.FC = () => {
             }}
             maxSelected={1}
           />
+
+          {/* Work Type Dialog */}
+          <BaseDialog
+            type="bottomSheet"
+            open={editingSection === "jobDetails.workType"}
+            onClose={() => {
+              setEditingSection(null);
+              setTempEditData({});
+            }}
+            title="Select Work Type"
+            actions={
+              <>
+                <Button
+                  onClick={() => handleSave("jobDetails.workType", tempEditData)}
+                  size="lg"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+              </>
+            }
+          >
+            <div className="flex flex-col gap-4 py-5">
+              <OptionSelector
+                options={WORK_TYPE_OPTIONS}
+                value={tempEditData.workType ?? jobData?.workType ?? ""}
+                onChange={(workType) => {
+                  setTempEditData((prev: any) => ({ ...prev, workType: workType }));
+                }}
+              />
+            </div>
+          </BaseDialog>
 
           {/* Individual Skills & Work Styles Edit Dialogs */}
 
