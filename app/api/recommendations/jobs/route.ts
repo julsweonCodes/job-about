@@ -271,7 +271,7 @@ export async function GET(req: NextRequest) {
     console.log(
       `추천 완료: 페이지 ${page}/${Math.ceil(filteredTotalCount / limit)} - ${filteredRecommendations.length}개 공고 추천 (전체 ${filteredTotalCount}개, 최고 점수: ${filteredRecommendations[0]?.matchScore || 0})`
     );
-    
+
     // Required skills 정보 로그 출력
     filteredRecommendations.forEach((job: any, index: number) => {
       console.log(`Job ${index + 1} (${job.title}): ${job.requiredSkills.length}개 필요 기술 - ${job.requiredSkills.map((s: any) => s.name_ko).join(', ')}`);

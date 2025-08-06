@@ -20,6 +20,7 @@ const convertFiltersToPrisma = (filters: {
     convertedFilters.workType = toPrismaWorkType(filters.workType as WorkType);
   }
 
+  // TODO 
   // jobType 변환
   if (filters.jobType && filters.jobType !== "all") {
     convertedFilters.jobType = filters.jobType;
