@@ -25,6 +25,27 @@ export const workTypeFilter: FilterDefinition = {
   ],
 };
 
+// Job Type 필터 옵션
+export const jobTypeFilter: FilterDefinition = {
+  id: "jobType",
+  label: "Job Type",
+  iconType: "workType", // 임시로 workType 아이콘 사용
+  options: [
+    { key: "all", label: "All" },
+    { key: "KITCHEN", label: "Kitchen" },
+    { key: "SERVER", label: "Server" },
+    { key: "DRIVER", label: "Driver" },
+    { key: "SECURITY", label: "Security" },
+    { key: "JANITOR", label: "Janitor" },
+    { key: "CASHIER", label: "Cashier" },
+    { key: "WAREHOUSE", label: "Warehouse" },
+    { key: "CONSTRUCTION", label: "Construction" },
+    { key: "OFFICE", label: "Office" },
+    { key: "SALES", label: "Sales" },
+    { key: "OTHER", label: "Other" },
+  ],
+};
+
 // Location 필터 옵션 (기본)
 export const locationFilter: FilterDefinition = {
   id: "location",
@@ -92,6 +113,7 @@ export const createLocationFilterFromData = (locations: any[]): FilterDefinition
 // 모든 필터 정의를 한 곳에서 관리
 export const filterDefinitions = {
   workType: workTypeFilter,
+  jobType: jobTypeFilter,
   location: locationFilter,
   locationLimited: locationFilterLimited,
 } as const;

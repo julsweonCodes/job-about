@@ -25,10 +25,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
   const [isMounted, setIsMounted] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // 디버깅용 로그
-  console.log("FilterDropdown received filter:", filter);
-  console.log("Filter options:", filter.options);
-
   // 표시 값을 가져오는 함수
   const getDisplayValue = (value: string) => {
     const option = filter.options.find((opt) => opt.key === value);
@@ -97,7 +93,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ filter, className = "" 
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
           <div className="py-2">
             {filter.options.map((option) => (
               <button

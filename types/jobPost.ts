@@ -139,12 +139,23 @@ export interface ApiRecommendedJobResponse {
     };
   };
   recommendations: ApiRecommendedJobPost[];
-  totalCount: number;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
   searchParams: {
     limit: number;
+    page: number;
     minScore: number;
     location?: string;
     jobType?: string;
+    workType?: string;
   };
 }
 
@@ -152,6 +163,7 @@ export interface ApiRecommendedJobPost {
   id: number;
   title: string;
   jobType: string;
+  workType: string;
   wage: string;
   workSchedule: string;
   description: string;
@@ -337,7 +349,7 @@ export class JobPostMapper {
       return {
         id: apiJobPost.id.toString(),
         title: apiJobPost.title,
-        workType: "on-site" as WorkType, // Recommended jobs에는 workType이 없으므로 기본값
+        workType: fromPrismaWorkType(apiJobPost.workType),
         jobType: fromPrismaJobType(apiJobPost.jobType),
         status: "PUBLISHED" as JobStatus, // Recommended jobs는 항상 published
         businessLocInfo: this.mapRecommendedJobBusinessLocInfo(apiJobPost.company),
@@ -563,7 +575,7 @@ export class JobPostMapper {
     return {
       id: recommendedJob.id.toString(),
       title: recommendedJob.title,
-      workType: recommendedJob.jobType as WorkType,
+      workType: fromPrismaWorkType(recommendedJob.workType),
       wage: recommendedJob.wage,
       location: recommendedJob.company.address,
       workSchedule: recommendedJob.workSchedule,

@@ -1,77 +1,117 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback, useEffect, useRef, useState } from "react";
 import FilterDropdown from "@/app/seeker/components/FilterDropdown";
 import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPostCard";
-import { WorkType } from "@/constants/enums";
 import { useRouter } from "next/navigation";
-import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
+import { useRecommendedJobsInfinite } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { JobPostMapper } from "@/types/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
-import { workTypeFilter, locationFilterLimited } from "@/constants/filterOptions";
+import { workTypeFilter, jobTypeFilter, locationFilter } from "@/constants/filterOptions";
+import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { Briefcase } from "lucide-react";
 
 function RecommendedJobsPage() {
   const router = useRouter();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // 필터 상태 관리
   const { filters } = useFilterStore();
 
-  // 추천 공고
+  // 추천 공고 (무한 스크롤)
   const {
-    recommendedJobs,
-    loading: recommendedLoading,
+    jobs: recommendedJobs,
+    isLoading: recommendedLoading,
+    hasMore: recommendedHasMore,
+    loadMore: loadMoreRecommended,
     error: recommendedError,
-    refresh: refreshRecommended,
-    isInitialized: recommendedInitialized,
-  } = useRecommendedJobs(filters, 10);
+    isLoadMoreLoading: isFetchingNextPage,
+    user,
+  } = useRecommendedJobsInfinite(filters, 10);
 
-  // 필터링된 추천 공고
-  const filteredRecommendedJobs = useMemo(() => {
+  // 클라이언트 사이드 렌더링 확인
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  // 필터 변경 시 로그
+  useEffect(() => {
+    if (filters) {
+      // 필터 변경 시 추가 로직이 필요하면 여기에 작성
+    }
+  }, [filters]);
+
+  // API에서 받은 데이터를 JobPostCard로 변환
+  const recommendedJobCards = useMemo(() => {
     if (!Array.isArray(recommendedJobs)) return [];
 
-    return recommendedJobs
-      .filter((job) => {
-        // Work Type filter
-        if (filters.workType !== "all") {
-          const workTypeMap: Record<string, WorkType> = {
-            Remote: WorkType.REMOTE,
-            "On-Site": WorkType.ON_SITE,
-            Hybrid: WorkType.HYBRID,
-          };
-          // RecommendedJobPost에는 workType이 없으므로 jobType으로 비교
-          const jobTypeToWorkType: Record<string, WorkType> = {
-            REMOTE: WorkType.REMOTE,
-            ON_SITE: WorkType.ON_SITE,
-            HYBRID: WorkType.HYBRID,
-          };
-          if (jobTypeToWorkType[job.jobType] !== workTypeMap[filters.workType]) {
-            return false;
-          }
-        }
+    const cards = recommendedJobs
+      .map((job) => JobPostMapper.convertRecommendedToJobPostCard(job))
+      .filter((job) => job !== null);
 
-        // Search query filter
-        if (
-          filters.searchQuery &&
-          !job.title.toLowerCase().includes(filters.searchQuery.toLowerCase())
-        ) {
-          return false;
-        }
+    return cards;
+  }, [recommendedJobs]);
 
-        return true;
-      })
-      .map((job) => JobPostMapper.convertRecommendedToJobPostCard(job));
-  }, [recommendedJobs, filters]);
+  // Intersection Observer 콜백
+  const handleIntersection = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (
+        entry.isIntersecting &&
+        recommendedHasMore &&
+        !recommendedLoading &&
+        !isLoadingRef.current
+      ) {
+        isLoadingRef.current = true;
+        loadMoreRecommended().finally(() => {
+          isLoadingRef.current = false;
+        });
+      }
+    },
+    [recommendedHasMore, recommendedLoading, loadMoreRecommended]
+  );
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
+    if (loadingRef.current && recommendedHasMore && !recommendedLoading && !isLoadingRef.current) {
+      observerRef.current = new IntersectionObserver(handleIntersection, {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0.1,
+      });
+      observerRef.current.observe(loadingRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, [recommendedHasMore, recommendedLoading, handleIntersection]);
 
   const handleViewJob = (id: string) => {
     router.push(PAGE_URLS.SEEKER.POST.DETAIL(id));
   };
 
   const handleRefresh = () => {
-    refreshRecommended();
+    window.location.reload();
   };
 
-  const showSkeleton =
-    !recommendedInitialized || (recommendedLoading && recommendedJobs.length === 0);
+  const showSkeleton = recommendedLoading && recommendedJobs.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -79,7 +119,7 @@ function RecommendedJobsPage() {
 
       <main className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
             AI-powered job recommendations based on your profile
           </h1>
@@ -89,17 +129,18 @@ function RecommendedJobsPage() {
         </div>
 
         {/* Filters */}
-        <div className="py-5 md:py-8 md:mb-8">
+        <div className="py-5 md:py-8">
           <div className="flex flex-wrap gap-2 md:gap-4">
             <FilterDropdown filter={workTypeFilter} />
-            <FilterDropdown filter={locationFilterLimited} />
+            <FilterDropdown filter={jobTypeFilter} />
+            <FilterDropdown filter={locationFilter} />
           </div>
         </div>
 
         {/* Error Display */}
         {recommendedError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{recommendedError}</p>
+            <p className="text-red-700">{recommendedError?.message || String(recommendedError)}</p>
             <button
               onClick={handleRefresh}
               className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
@@ -115,7 +156,7 @@ function RecommendedJobsPage() {
             ? // 초기 로딩 스켈레톤
               [...Array(6)].map((_, i) => <JobPostCardSkeleton key={i} />)
             : // 실제 데이터
-              filteredRecommendedJobs.map((job, index) => (
+              recommendedJobCards.map((job, index) => (
                 <JobPostCard
                   key={`recommendations-${job.id}-${index}`}
                   job={job}
@@ -125,19 +166,33 @@ function RecommendedJobsPage() {
               ))}
         </div>
 
+        {/* 무한 스크롤 로딩 인디케이터 */}
+        {isFetchingNextPage && <InfiniteScrollLoader />}
+
+        {/* 무한 스크롤 트리거 요소 */}
+        {recommendedHasMore && recommendedJobs.length > 0 && (
+          <div ref={loadingRef} className="h-10" />
+        )}
+
         {/* 결과가 없을 때 */}
-        {!showSkeleton && filteredRecommendedJobs.length === 0 && !recommendedLoading && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              No recommended jobs found matching your criteria.
-            </p>
-            <button
-              onClick={handleRefresh}
-              className="mt-4 text-purple-600 hover:text-purple-800 underline"
-            >
-              Clear filters
-            </button>
-          </div>
+        {!showSkeleton && recommendedJobCards.length === 0 && !recommendedLoading && (
+          <EmptyState
+            icon={Briefcase}
+            title="No recommended jobs found"
+            description="We couldn't find any recommended jobs matching your current filters. Try adjusting your search criteria or clear all filters to see more opportunities."
+            primaryAction={{
+              label: "Clear All Filters",
+              onClick: () => {
+                useFilterStore.getState().resetFilters();
+                window.location.reload();
+              },
+            }}
+            secondaryAction={{
+              label: "Refresh Results",
+              onClick: handleRefresh,
+            }}
+            size="lg"
+          />
         )}
       </main>
     </div>
