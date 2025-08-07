@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useLatestJobs } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useRecommendedJobs } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPostMapper } from "@/types/jobPost";
+import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import {
   workTypeFilter,
@@ -90,7 +90,7 @@ function SeekerPage() {
       .slice(0, MAX_RECOMMENDED_JOBS)
       .map((recommendedJob) => {
         try {
-          return JobPostMapper.convertRecommendedToJobPostCard(recommendedJob);
+          return JobPostCardMapper.fromRecommendedJobPost(recommendedJob);
         } catch (error) {
           console.warn("Failed to convert recommended job:", error);
           return null;
@@ -108,8 +108,8 @@ function SeekerPage() {
       .map((apiJobPost) => {
         try {
           // API 응답을 JobPostData로 변환
-          const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
-          return JobPostMapper.convertJobPostDataToCard(jobPostData);
+          const jobPostData = JobPostMapper.fromJobPost(apiJobPost);
+          return JobPostCardMapper.fromJobPostData(jobPostData);
         } catch (error) {
           console.warn("Failed to convert latest job:", error);
           return null;

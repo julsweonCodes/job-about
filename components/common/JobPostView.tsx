@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
 import SeekerJobPostView from "./JobPostView/SeekerJobPostView";
 import EmployerJobPostView from "./JobPostView/EmployerJobPostView";
 import EmployerJobPostEditView from "./JobPostView/EmployerJobPostEditView";

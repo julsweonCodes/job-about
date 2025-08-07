@@ -4,7 +4,7 @@ import PostHeader from "@/components/common/PostHeader";
 import BaseDialog from "@/components/common/BaseDialog";
 import TextArea from "@/components/ui/TextArea";
 import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
 import { useSearchParams } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { API_URLS, PAGE_URLS } from "@/constants/api";

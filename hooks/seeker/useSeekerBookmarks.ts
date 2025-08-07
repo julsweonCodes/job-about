@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { JobPostData, JobPostMapper, ApiBookmarkedJobResponse } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiBookmarkedJobResponse } from "@/types/client/jobPost";
 import { apiGetData } from "@/utils/client/API";
 
 interface UseSeekerBookmarksOptions {
@@ -31,7 +31,27 @@ const fetchBookmarkedJobs = async (pageParam: number, limit: number) => {
       throw new Error("No response received from API");
     }
 
-    if (Array.isArray(response)) {
+    // apiGetData는 response.data를 반환하므로, response.items와 response.pagination에 접근
+    if (response && response.items && Array.isArray(response.items)) {
+      const jobs = response.items
+        .map((data: ApiBookmarkedJobResponse) => {
+          try {
+            return JobPostMapper.fromBookmarkedJobResponse(data);
+          } catch (error) {
+            console.warn("Failed to transform bookmarked job data:", error, data);
+            return null;
+          }
+        })
+        .filter((job: JobPostData | null): job is JobPostData => job !== null);
+
+      return {
+        jobs,
+        currentPage: pageParam,
+        hasMore: response.pagination?.hasNextPage || false,
+        totalCount: response.pagination?.total || 0,
+      };
+    } else if (Array.isArray(response)) {
+      // 이전 구조와의 호환성을 위해 배열인 경우도 처리
       const jobs = response
         .map((data: ApiBookmarkedJobResponse) => {
           try {
@@ -41,7 +61,7 @@ const fetchBookmarkedJobs = async (pageParam: number, limit: number) => {
             return null;
           }
         })
-        .filter((job): job is JobPostData => job !== null);
+        .filter((job: JobPostData | null): job is JobPostData => job !== null);
 
       return {
         jobs,

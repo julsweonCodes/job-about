@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
-import { ApiRecommendedJobResponse } from "@/types/jobPost";
+import { ApiRecommendedJobResponse } from "@/types/client/jobPost";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { toPrismaJobType, toPrismaLocation, toPrismaWorkType } from "@/types/enumMapper";

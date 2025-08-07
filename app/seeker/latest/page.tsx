@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { useRouter } from "next/navigation";
 import { useLatestJobsInfinite } from "@/hooks/seeker/useSeekerLatestJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPostMapper } from "@/types/jobPost";
+import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -52,8 +52,8 @@ function LatestJobsPage() {
       .map((apiJobPost) => {
         try {
           // API 응답을 JobPostData로 변환
-          const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
-          return JobPostMapper.convertJobPostDataToCard(jobPostData);
+          const jobPostData = JobPostMapper.fromJobPost(apiJobPost);
+          return JobPostCardMapper.fromJobPostData(jobPostData);
         } catch (error) {
           console.warn("Failed to convert latest job:", error);
           return null;

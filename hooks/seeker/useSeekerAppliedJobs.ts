@@ -1,13 +1,18 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { JobPostData, JobPostMapper, ApiJobPostWithBusinessLoc } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiAppliedJobResponse } from "@/types/client/jobPost";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { apiGetData } from "@/utils/client/API";
+import { ApplicantStatus } from "@/constants/enums";
+import { toPrismaAppStatus, toPrismaJobType } from "@/types/enumMapper";
+import { JobType } from "@/constants/jobTypes";
 
 interface UseSeekerAppliedJobsOptions {
   limit?: number;
   autoFetch?: boolean;
+  status?: string;
+  jobType?: string;
 }
 
 interface UseSeekerAppliedJobsReturn {
@@ -21,28 +26,63 @@ interface UseSeekerAppliedJobsReturn {
 }
 
 // API 함수
-const fetchAppliedJobs = async (pageParam: number, limit: number) => {
+const fetchAppliedJobs = async (
+  pageParam: number,
+  limit: number,
+  status?: string,
+  jobType?: string
+) => {
   try {
-    const response = await apiGetData(API_URLS.SEEKER.APPLY, {
+    const params: any = {
       page: pageParam,
       limit,
-    });
+    };
+
+    // 필터 파라미터 추가
+    if (status && status !== "all") {
+      params.status = toPrismaAppStatus(status as ApplicantStatus);
+    }
+    if (jobType) {
+      params.job_type = toPrismaJobType(jobType as JobType);
+    }
+
+    const response = await apiGetData(API_URLS.SEEKER.APPLY, params);
 
     if (!response) {
       throw new Error("No response received from API");
     }
 
-    if (Array.isArray(response)) {
-      const jobs = response
-        .map((data: ApiJobPostWithBusinessLoc) => {
+    // apiGetData는 response.data를 반환하므로, response.items와 response.pagination에 접근
+    if (response && response.items && Array.isArray(response.items)) {
+      const jobs = response.items
+        .map((data: ApiAppliedJobResponse) => {
           try {
-            return JobPostMapper.fromAppliedJobPost(data);
+            return JobPostMapper.fromAppliedJobResponse(data);
           } catch (error) {
             console.warn("Failed to transform applied job data:", error, data);
             return null;
           }
         })
-        .filter((job): job is JobPostData => job !== null);
+        .filter((job: JobPostData | null): job is JobPostData => job !== null);
+
+      return {
+        jobs,
+        currentPage: pageParam,
+        hasMore: response.pagination?.hasNextPage || false,
+        totalCount: response.pagination?.total || 0,
+      };
+    } else if (Array.isArray(response)) {
+      // 이전 구조와의 호환성을 위해 배열인 경우도 처리
+      const jobs = response
+        .map((data: ApiAppliedJobResponse) => {
+          try {
+            return JobPostMapper.fromAppliedJobResponse(data);
+          } catch (error) {
+            console.warn("Failed to transform applied job data:", error, data);
+            return null;
+          }
+        })
+        .filter((job: JobPostData | null): job is JobPostData => job !== null);
 
       return {
         jobs,
@@ -68,13 +108,12 @@ const fetchAppliedJobs = async (pageParam: number, limit: number) => {
 export const useSeekerAppliedJobs = (
   options: UseSeekerAppliedJobsOptions = {}
 ): UseSeekerAppliedJobsReturn => {
-  const { limit = 20, autoFetch = true } = options;
-  const { filters } = useFilterStore();
+  const { limit = 20, autoFetch = true, status, jobType } = options;
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useInfiniteQuery({
-      queryKey: SEEKER_QUERY_KEYS.APPLIED_JOBS(limit),
-      queryFn: ({ pageParam }) => fetchAppliedJobs(pageParam, limit),
+      queryKey: SEEKER_QUERY_KEYS.APPLIED_JOBS(limit, status, jobType),
+      queryFn: ({ pageParam }) => fetchAppliedJobs(pageParam, limit, status, jobType),
       getNextPageParam: (lastPage, allPages) =>
         lastPage.hasMore ? allPages.length + 1 : undefined,
       initialPageParam: 1,

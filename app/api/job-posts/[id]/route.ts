@@ -3,7 +3,7 @@ import { errorResponse, successResponse } from "@/app/lib/server/commonResponse"
 import { getJobPostView } from "@/app/services/job-post-services";
 import { JobStatus } from "@/constants/enums";
 import { HttpError } from "@/app/lib/server/commonResponse";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
 import { getUserIdFromSession } from "@/utils/auth";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
