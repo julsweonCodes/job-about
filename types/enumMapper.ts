@@ -158,6 +158,17 @@ export function toPrismaLocationStrict(value: string): $Enums.Location {
   return map[value] || value;
 }
 
+export function toPrismaAppStatus(value: ApplicantStatus): $Enums.ApplicationStatus {
+  const map: Record<ApplicantStatus, $Enums.ApplicationStatus> = {
+    [ApplicantStatus.APPLIED]: "APPLIED",
+    [ApplicantStatus.IN_REVIEW]: "IN_REVIEW",
+    [ApplicantStatus.REJECTED]: "REJECTED",
+    [ApplicantStatus.WITHDRAWN]: "WITHDRAWN",
+    [ApplicantStatus.HIRED]: "HIRED",
+  };
+  return map[value] || ApplicantStatus.APPLIED;
+}
+
 // Prisma enum to enum
 export function fromPrismaWorkType(value: string): WorkType {
   const map: Record<string, WorkType> = {

@@ -8,9 +8,9 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import { useRouter } from "next/navigation";
 import { useSeekerAppliedJobs } from "@/hooks/seeker/useSeekerAppliedJobs";
-import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
+import { JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
-import { JobPostCard as JobPostCardType } from "@/types/job";
+import { ApplicantStatus, JobPostCard as JobPostCardType } from "@/types/job";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SCROLL_IDS } from "@/constants/scrollIds";
 import { Chip } from "@/components/ui/Chip";
@@ -19,15 +19,15 @@ import { applicantStatusFilter } from "@/constants/filterOptions";
 // getApplicationStatusConfig와 동일한 스타일 함수
 const getStatusFilterStyle = (status: string) => {
   switch (status) {
-    case "applied":
+    case ApplicantStatus.APPLIED:
       return "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200";
-    case "in_review":
+    case ApplicantStatus.IN_REVIEW:
       return "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200";
-    case "hired":
+    case ApplicantStatus.HIRED:
       return "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200";
-    case "rejected":
+    case ApplicantStatus.REJECTED:
       return "bg-red-100 text-red-700 border-red-200 hover:bg-red-200";
-    case "withdrawn":
+    case ApplicantStatus.WITHDRAWN:
       return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
     default:
       return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
@@ -48,6 +48,7 @@ function SeekerAppliedPage() {
     useSeekerAppliedJobs({
       limit: 10,
       autoFetch: true,
+      status: selectedStatus === "all" ? undefined : (selectedStatus as ApplicantStatus),
     });
 
   // 스크롤 복원 훅 사용
@@ -57,19 +58,12 @@ function SeekerAppliedPage() {
     delay: 100,
   });
 
-  const filteredAppliedJobs = useMemo(() => {
+  const convertedJobs = useMemo(() => {
     if (!appliedJobs || appliedJobs.length === 0) return [];
 
-    // 먼저 JobPostCard로 변환
-    const convertedJobs = appliedJobs.map(JobPostCardMapper.fromJobPostData);
-
-    // 상태별 필터링
-    if (selectedStatus === "all") {
-      return convertedJobs;
-    }
-
-    return convertedJobs.filter((job) => job.applicationStatus === selectedStatus);
-  }, [appliedJobs, selectedStatus]);
+    // JobPostCard로 변환
+    return appliedJobs.map(JobPostCardMapper.fromJobPostData);
+  }, [appliedJobs]);
 
   const handleViewJob = useCallback(
     (id: string) => {
@@ -87,6 +81,10 @@ function SeekerAppliedPage() {
   const handleBrowseJobs = useCallback(() => {
     router.push(PAGE_URLS.SEEKER.ROOT);
   }, [router]);
+
+  const handleStatusFilterChange = useCallback((status: string) => {
+    setSelectedStatus(status);
+  }, []);
 
   // 클라이언트 사이드 렌더링 확인
   useEffect(() => {
@@ -159,6 +157,29 @@ function SeekerAppliedPage() {
               </div>
             </div>
           </div>
+
+          {/* 필터 섹션 - 스켈레톤 상태에서는 비활성화 */}
+          <div className="mt-4 mb-6">
+            <div className="flex flex-wrap gap-2">
+              {applicantStatusFilter.map((option) => (
+                <Chip
+                  key={option.key}
+                  size="md"
+                  className={`transition-all duration-200 opacity-50 ${
+                    selectedStatus === option.key
+                      ? option.key === "all"
+                        ? "bg-blue-100 text-blue-700 border-blue-200"
+                        : getStatusFilterStyle(option.key)
+                      : "bg-gray-100 text-gray-700 border-gray-200"
+                  }`}
+                  disabled
+                >
+                  {option.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <JobPostCardSkeleton key={index} />
@@ -211,42 +232,37 @@ function SeekerAppliedPage() {
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 Check My Applications
               </h1>
-              {appliedJobs && appliedJobs.length > 0 && (
-                <p className="text-slate-600 mt-1">you can check your applications here</p>
-              )}
             </div>
           </div>
+        </div>
 
-          {/* 필터 섹션 */}
-          {appliedJobs && appliedJobs.length > 0 && (
-            <div className="mt-4">
-              <div className="flex flex-wrap gap-2">
-                {applicantStatusFilter.map((option) => (
-                  <Chip
-                    key={option.key}
-                    size="md"
-                    className={`cursor-pointer transition-all duration-200 ${
-                      selectedStatus === option.key
-                        ? option.key === "all"
-                          ? "bg-blue-100 text-blue-700 border-blue-200"
-                          : getStatusFilterStyle(option.key)
-                        : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
-                    }`}
-                    onClick={() => setSelectedStatus(option.key)}
-                  >
-                    {option.label}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* 필터 섹션 - 항상 표시 */}
+        <div className="mt-4 mb-6">
+          <div className="flex flex-wrap gap-2">
+            {applicantStatusFilter.map((option) => (
+              <Chip
+                key={option.key}
+                size="md"
+                className={`cursor-pointer transition-all duration-200 ${
+                  selectedStatus === option.key
+                    ? option.key === "all"
+                      ? "bg-blue-100 text-blue-700 border-blue-200"
+                      : getStatusFilterStyle(option.key)
+                    : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+                }`}
+                onClick={() => handleStatusFilterChange(option.key)}
+              >
+                {option.label}
+              </Chip>
+            ))}
+          </div>
         </div>
 
         {/* 데이터가 있는 경우 */}
-        {filteredAppliedJobs.length > 0 ? (
+        {convertedJobs.length > 0 ? (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {filteredAppliedJobs.map((job: JobPostCardType, index) => (
+              {convertedJobs.map((job: JobPostCardType, index) => (
                 <JobPostCard
                   key={`applied-${job.id}-${index}`}
                   job={job}
@@ -267,7 +283,7 @@ function SeekerAppliedPage() {
             description={`You don't have any ${selectedStatus.replace("_", " ")} applications. Try selecting a different filter.`}
             primaryAction={{
               label: "Show All",
-              onClick: () => setSelectedStatus("all"),
+              onClick: () => handleStatusFilterChange("all"),
             }}
             size="md"
           />
