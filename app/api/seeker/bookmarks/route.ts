@@ -8,6 +8,8 @@ export async function GET(
     req: NextRequest) {
     try {
         const searchParams = req.nextUrl.searchParams;
+        const jobType = searchParams.get("job_type");
+
         const page = parseInt(searchParams.get("page") ?? "1");
         const limit = parseInt(searchParams.get("limit") ?? "10");
 
@@ -20,7 +22,9 @@ export async function GET(
             return errorResponse('Invalid User ID format.', 400);
         }
 
-        const bookmarkLists = await getbookmarkedJobPosts(userId, page, limit);
+        const bookmarkLists = await getbookmarkedJobPosts({
+            userId, jobType: jobType as any, page, limit
+        });
         return successResponse(parseBigInt(bookmarkLists), 200, "Bookmarked job post list fetched");
     } catch (err: any) {
         if (err instanceof HttpError) {

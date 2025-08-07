@@ -5,6 +5,7 @@ import { Skill, WorkStyle } from "@/types/profile";
 import { fromPrismaWorkType, fromPrismaJobType, fromPrismaAppStatus } from "@/types/enumMapper";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
+import { JobType as JobTypeEnum, LanguageLevel as LanguageLevelEnum, JobStatus as JobStatusEnum, Location as LocationEnum, WorkType as WorkTypeEnum, ApplicationStatus } from "@prisma/client";
 
 export interface JobPostData {
   id: string;
@@ -593,3 +594,53 @@ export class JobPostMapper {
     };
   }
 }
+
+/*JobPost API 공통 응답*/
+export type PaginatedJobPostResponse = {
+  items: JobPostItem[];
+  pagination: Pagination;
+};
+
+export type Pagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export type JobPostItem = {
+  id: string;
+  business_loc_id: string;
+  user_id: string;
+  title: string;
+  job_type: JobTypeEnum;
+  deadline: string;
+  work_schedule: string;
+  wage: string;
+  description: string;
+  status: JobStatusEnum;
+  created_at: string;
+  deleted_at: string | null;
+  updated_at: string;
+  work_type: WorkTypeEnum | null;
+  language_level: LanguageLevelEnum | null;
+  business_loc: {
+    logo_url: string | null;
+    location: LocationEnum;
+    name: string;
+  };
+  daysAgo: number;
+  applicantCount: number;
+  requiredSkills: SkillType[];
+  applicationStatus?: ApplicationStatus;
+};
+
+type SkillType = {
+  id: number;
+  name_ko: string;
+  name_en: string;
+  category_ko: string;
+  category_en: string;
+};
