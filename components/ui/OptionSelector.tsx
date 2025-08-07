@@ -1,26 +1,32 @@
 import React from "react";
-import { LANGUAGE_LEVEL_OPTIONS } from "@/constants/options";
 
-interface LanguageLevelSelectorProps {
-  value: string | null;
-  onChange: (level: string) => void;
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface OptionSelectorProps {
+  options: readonly Option[];
+  value: string | null | undefined;
+  onChange: (value: string) => void;
   className?: string;
 }
 
-const LanguageLevelSelector: React.FC<LanguageLevelSelectorProps> = ({
+const OptionSelector: React.FC<OptionSelectorProps> = ({
+  options,
   value,
   onChange,
   className = "",
 }) => {
   return (
     <div className={`grid grid-cols-1 gap-3 ${className}`}>
-      {LANGUAGE_LEVEL_OPTIONS.map((option) => {
-        const isSelected = value === option.label;
+      {options.map((option) => {
+        const isSelected = value === option.value;
 
         return (
           <button
             key={option.value}
-            onClick={() => onChange(option.label)}
+            onClick={() => onChange(option.value)}
             className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
               isSelected
                 ? "border-purple-500 bg-gradient-to-r from-purple-50 to-indigo-50 shadow-md"
@@ -60,4 +66,4 @@ const LanguageLevelSelector: React.FC<LanguageLevelSelectorProps> = ({
   );
 };
 
-export default LanguageLevelSelector;
+export default OptionSelector;

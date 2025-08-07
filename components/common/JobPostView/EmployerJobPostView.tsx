@@ -5,16 +5,18 @@ import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/t
 import { getJobTypeName } from "@/constants/jobTypes";
 import {
   MapPin,
+  MapPinCheckInside,
   DollarSign,
   Clock,
   Calendar,
-  Heart,
   Building2,
   Globe,
   Users,
   CheckCircle,
   Edit3,
 } from "lucide-react";
+import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { getWorkTypeLabel } from "@/utils/client/enumDisplayUtils";
 
 // Constants
 const JOB_DETAIL_ITEMS = [
@@ -47,6 +49,12 @@ const JOB_DETAIL_ITEMS = [
     label: "Job Type",
     color: "text-indigo-500",
     bgColor: "bg-indigo-50",
+  },
+  {
+    icon: MapPinCheckInside,
+    label: "Work Type",
+    color: "text-amber-500",
+    bgColor: "bg-amber-50",
   },
 ];
 
@@ -284,6 +292,10 @@ const JobDetails: React.FC<{
                             case "Job Type":
                               editData.jobType = jobData.jobType;
                               sectionName = "jobDetails.jobType";
+                              break;
+                            case "Work Type":
+                              editData.workType = jobData.workType;
+                              sectionName = "jobDetails.workType";
                               break;
                           }
                           onEdit(sectionName, editData);
@@ -557,6 +569,7 @@ const getJobDetailValue = (jobData: JobPostData, label: string): string | undefi
     "Language Level": jobData.languageLevel,
     "Application Deadline": jobData.deadline,
     "Job Type": jobData.jobType ? getJobTypeName(jobData.jobType) : undefined,
+    "Work Type": jobData.workType ? getWorkTypeLabel(jobData.workType) : undefined,
   };
   return valueMap[label];
 };

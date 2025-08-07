@@ -3,17 +3,8 @@ import React from "react";
 import { JobPostData } from "@/types/jobPost";
 import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/textUtils";
 import { getJobTypeName } from "@/constants/jobTypes";
-import {
-  MapPin,
-  DollarSign,
-  Clock,
-  Calendar,
-  Heart,
-  Building2,
-  Globe,
-  Users,
-  CheckCircle,
-} from "lucide-react";
+import { MapPin, DollarSign, Clock, Calendar, Heart, Building2, Globe, Users } from "lucide-react";
+import { getWorkTypeLabel } from "@/utils/client/enumDisplayUtils";
 
 // Constants
 const JOB_DETAIL_ITEMS = [
@@ -46,6 +37,12 @@ const JOB_DETAIL_ITEMS = [
     label: "Job Type",
     color: "text-indigo-500",
     bgColor: "bg-indigo-50",
+  },
+  {
+    icon: MapPin,
+    label: "Work Type",
+    color: "text-amber-500",
+    bgColor: "bg-amber-50",
   },
 ];
 
@@ -319,16 +316,12 @@ const getJobDetailValue = (jobData: JobPostData, label: string): string | undefi
     "Language Level": jobData.languageLevel,
     "Application Deadline": jobData.deadline,
     "Job Type": jobData.jobType ? getJobTypeName(jobData.jobType) : undefined,
+    "Work Type": jobData.workType ? getWorkTypeLabel(jobData.workType) : undefined,
   };
   return valueMap[label];
 };
 
-const SeekerJobPostView: React.FC<SeekerJobPostViewProps> = ({
-  jobData,
-  onApply,
-  onBookmark,
-  isBookmarked,
-}) => {
+const SeekerJobPostView: React.FC<SeekerJobPostViewProps> = ({ jobData, onApply }) => {
   const extraPhotos =
     jobData.businessLocInfo.extraPhotos && jobData.businessLocInfo.extraPhotos.length > 0
       ? jobData.businessLocInfo.extraPhotos

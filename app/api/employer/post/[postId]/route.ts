@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 import { getJobPostView } from "@/app/services/job-post-services";
 import { JobStatus } from "@/constants/enums";
 import { getUserIdFromSession } from "@/utils/auth";
+import { JobPostPayload } from "@/types/employer";
+import { updateJobPost } from "@/app/services/employer-services";
 
 /**
  * GET : Preview, View 화면에서 상태에 따른 Job Post 조회
@@ -58,5 +60,29 @@ export async function GET(req: NextRequest, { params }: { params: { postId: stri
   } catch (e) {
     console.error("check failed", e);
     return errorResponse("error", 500);
+  }
+}
+
+/**
+ * POST
+ */
+export async function POST(req: NextRequest, { params }: { params: { postId: string } }) {
+  const body = (await req.json()) as JobPostPayload;
+  const userId = await getUserIdFromSession();
+
+  if (!userId) {
+    errorResponse("no userId", 500);
+  }
+  try {
+    const res = await updateJobPost(params.postId, body, userId);
+    if (res) {
+      console.log(res);
+      return successResponse(res, 200);
+    } else {
+      console.error("no data");
+      return errorResponse("No data to save(Job post)", 500);
+    }
+  } catch (e) {
+    return errorResponse("Failed to save changes to Job Post - ", 500);
   }
 }

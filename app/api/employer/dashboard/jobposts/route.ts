@@ -1,6 +1,7 @@
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
-import { getActiveJobPostsList } from "@/app/services/employer-services";
+import { getActiveJobPostsList, updateJobPostStatus } from "@/app/services/employer-dash-services";
 import { getUserIdFromSession } from "@/utils/auth";
+import { NextRequest } from "next/server";
 
 export async function GET() {
   console.log("GET API - /employer/dashboard/jobposts");
@@ -16,5 +17,26 @@ export async function GET() {
   } catch (e) {
     console.error("Error in fetching active job post lists:", e);
     return errorResponse("An internal server error occurred.", 500);
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  const body = await req.json();
+  const userId = await getUserIdFromSession(); // get current user
+
+  if (!userId) {
+    return errorResponse("Unauthorized", 401);
+  }
+
+  try {
+    const res = await updateJobPostStatus(body.postId, body.status, userId);
+    if (res) {
+      return successResponse(res, 200);
+    } else {
+      console.error("no data");
+      return errorResponse("No data updated(status)", 500);
+    }
+  } catch (e) {
+    return errorResponse("Failed to update job post status", 500);
   }
 }
