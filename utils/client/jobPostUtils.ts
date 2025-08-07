@@ -3,10 +3,11 @@
 import { JobPost as ApiJobPost, JobPostCard as JobPostCardType } from "@/types/job";
 import { WorkType } from "@/constants/enums";
 import { STORAGE_URLS } from "@/constants/storage";
+import { Location } from "@/constants/location";
 
 // 상수 분리
 const DEFAULT_VALUES = {
-  LOCATION: "Location not specified",
+  LOCATION: Location.TORONTO,
   BUSINESS_NAME: "Company",
   VIEWS: 0,
 } as const;

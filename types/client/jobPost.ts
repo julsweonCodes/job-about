@@ -49,6 +49,7 @@ export interface BizLocInfo {
   extraPhotos: string[];
   location: Location;
   workingHours: string;
+  address?: string;
 }
 
 /**
@@ -433,6 +434,7 @@ export class JobPostMapper {
           extraPhotos: apiJobPost.businessLocInfo.extraPhotos,
           location: apiJobPost.businessLocInfo.location as Location,
           workingHours: apiJobPost.businessLocInfo.workingHours,
+          address: apiJobPost.businessLocInfo.address,
         },
         deadline: apiJobPost.deadline,
         workSchedule: apiJobPost.workSchedule,
@@ -490,7 +492,7 @@ export class JobPostCardMapper {
       title: jobPost.title,
       workType: jobPost.workType || DEFAULT_VALUES.WORK_TYPE,
       wage: jobPost.hourlyWage,
-      location: jobPost.businessLocInfo.location,
+      location: jobPost.businessLocInfo.location as Location,
       workSchedule: jobPost.workSchedule,
       businessName: jobPost.businessLocInfo.name,
       description: jobPost.jobDescription,
