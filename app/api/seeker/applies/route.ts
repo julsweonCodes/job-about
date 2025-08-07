@@ -3,12 +3,16 @@ import { getAppliedJobPosts, getbookmarkedJobPosts, getJobPostById, getJobPosts 
 import { getSeekerProfile } from "@/app/services/seeker-services";
 import { parseBigInt } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
+import { ApplicationStatus } from "@prisma/client";
 import { NextRequest } from "next/server";
 
 export async function GET(
     req: NextRequest) {
     try {
         const searchParams = req.nextUrl.searchParams;
+        const jobType = searchParams.get("job_type");
+        const status = searchParams.get("status");
+
         const page = parseInt(searchParams.get("page") ?? "1");
         const limit = parseInt(searchParams.get("limit") ?? "10");
 
@@ -23,7 +27,14 @@ export async function GET(
 
         const profile = await getSeekerProfile(userId);
 
-        const appliedList = await getAppliedJobPosts(userId, Number(profile.id), page, limit);
+        const appliedList = await getAppliedJobPosts({
+            userId,
+            profileId: Number(profile.id),
+            jobType: jobType as any,
+            status: status as any,
+            page,
+            limit
+        });
         return successResponse(parseBigInt(appliedList), 200, "Applied job post list fetched");
     } catch (err: any) {
         if (err instanceof HttpError) {
