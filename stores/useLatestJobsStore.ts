@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
 
 // Latest Jobs 데이터 타입 정의
 export interface LatestJobsData {

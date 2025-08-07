@@ -1,7 +1,13 @@
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
-import { Role, WorkType, JobType as JobTypeEnum, Location as LocationEnum, ApplicationStatus } from "@prisma/client";
+import {
+  Role,
+  WorkType,
+  JobType as JobTypeEnum,
+  Location as LocationEnum,
+  ApplicationStatus,
+} from "@prisma/client";
 import { JobPostPayload } from "@/types/employer";
 import { Skill, WorkStyle } from "@/types/profile";
 import { Location } from "@/constants/location";
@@ -16,7 +22,8 @@ import {
   toWorkType,
   fromPrismaWorkType,
 } from "@/types/enumMapper";
-import { BizLocInfo, JobPostData, JobPostItem, PaginatedJobPostResponse, Pagination } from "@/types/jobPost";
+import { BizLocInfo, JobPostData } from "@/types/client/jobPost";
+import { JobPostItem, PaginatedJobPostResponse, Pagination } from "@/types/server/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { STORAGE_URLS } from "@/constants/storage";
 import { HttpError } from "../lib/server/commonResponse";
@@ -376,7 +383,7 @@ export async function getJobPosts(params: GetJobPostsParams) {
         },
       }),
       ...(workType && { work_type: workType }),
-      ...(jobType && { job_type: jobType })
+      ...(jobType && { job_type: jobType }),
     },
     orderBy: {
       created_at: "desc",
@@ -388,7 +395,7 @@ export async function getJobPosts(params: GetJobPostsParams) {
         select: {
           logo_url: true,
           location: true,
-          name: true
+          name: true,
         },
       },
       job_practical_skills: {
@@ -420,7 +427,7 @@ export async function getJobPosts(params: GetJobPostsParams) {
         },
       }),
       ...(workType && { work_type: workType }),
-      ...(jobType && { job_type: jobType })
+      ...(jobType && { job_type: jobType }),
     },
   });
 
@@ -441,13 +448,9 @@ export async function getJobPosts(params: GetJobPostsParams) {
       description: rest.description,
       status: rest.status,
       created_at:
-        typeof rest.created_at === "string"
-          ? rest.created_at
-          : rest.created_at.toISOString(),
+        typeof rest.created_at === "string" ? rest.created_at : rest.created_at.toISOString(),
       updated_at:
-        typeof rest.updated_at === "string"
-          ? rest.updated_at
-          : rest.updated_at.toISOString(),
+        typeof rest.updated_at === "string" ? rest.updated_at : rest.updated_at.toISOString(),
       deleted_at: rest.deleted_at
         ? typeof rest.deleted_at === "string"
           ? rest.deleted_at
@@ -468,7 +471,7 @@ export async function getJobPosts(params: GetJobPostsParams) {
         name_en: jps.practical_skill.name_en,
         category_ko: jps.practical_skill.category_ko,
         category_en: jps.practical_skill.category_en,
-      }))
+      })),
     };
   });
 
@@ -478,15 +481,14 @@ export async function getJobPosts(params: GetJobPostsParams) {
     limit,
     totalPages: Math.ceil(totalCount / limit),
     hasNextPage: page < Math.ceil(totalCount / limit),
-    hasPrevPage: page > 1
-  }
+    hasPrevPage: page > 1,
+  };
 
   return {
     items: jobPostsWithExtras,
-    pagination
+    pagination,
   } as PaginatedJobPostResponse;
 }
-
 
 export async function getJobPostById(jobPostId: number) {
   const jobPost = await prisma.job_posts.findUnique({
@@ -526,9 +528,9 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
       user_id: userId,
       ...(jobType && {
         job_post: {
-          job_type: jobType
-        }
-      })
+          job_type: jobType,
+        },
+      }),
     },
     skip,
     take: limit,
@@ -539,8 +541,8 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
             select: {
               logo_url: true,
               location: true,
-              name: true
-            }
+              name: true,
+            },
           },
           _count: {
             select: { applications: true },
@@ -555,7 +557,7 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
                   category_ko: true,
                   category_en: true,
                 },
-              }
+              },
             },
           },
         },
@@ -568,10 +570,10 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
       user_id: userId,
       ...(jobType && {
         job_post: {
-          job_type: jobType
-        }
-      })
-    }
+          job_type: jobType,
+        },
+      }),
+    },
   });
 
   const jobPostsWithExtras: JobPostItem[] = bookmarks.map(({ job_post }) => {
@@ -619,7 +621,7 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
         name_en: jps.practical_skill.name_en,
         category_ko: jps.practical_skill.category_ko,
         category_en: jps.practical_skill.category_en,
-      }))
+      })),
     };
   });
 
@@ -629,12 +631,12 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
     limit,
     totalPages: Math.ceil(totalCount / limit),
     hasNextPage: page < Math.ceil(totalCount / limit),
-    hasPrevPage: page > 1
-  }
+    hasPrevPage: page > 1,
+  };
 
   return {
     items: jobPostsWithExtras,
-    pagination
+    pagination,
   } as PaginatedJobPostResponse;
 }
 
@@ -647,9 +649,7 @@ type GetAppliedJobPostsParams = {
   status?: ApplicationStatus;
 };
 
-export async function getAppliedJobPosts(
-  params: GetAppliedJobPostsParams
-) {
+export async function getAppliedJobPosts(params: GetAppliedJobPostsParams) {
   const { userId, profileId, status, jobType, page, limit } = params;
 
   const user = await prisma.users.findUnique({
@@ -667,7 +667,7 @@ export async function getAppliedJobPosts(
       ...(status && { status: status }),
       ...(jobType && {
         job_post: {
-          job_type: jobType
+          job_type: jobType,
         },
       }),
     },
@@ -680,8 +680,8 @@ export async function getAppliedJobPosts(
             select: {
               logo_url: true,
               location: true,
-              name: true
-            }
+              name: true,
+            },
           },
           _count: {
             select: { applications: true },
@@ -696,7 +696,7 @@ export async function getAppliedJobPosts(
                   category_ko: true,
                   category_en: true,
                 },
-              }
+              },
             },
           },
         },
@@ -713,7 +713,7 @@ export async function getAppliedJobPosts(
       ...(status && { status: status }),
       ...(jobType && {
         job_post: {
-          job_type: jobType
+          job_type: jobType,
         },
       }),
     },
@@ -765,7 +765,7 @@ export async function getAppliedJobPosts(
         category_ko: jps.practical_skill.category_ko,
         category_en: jps.practical_skill.category_en,
       })),
-      applicationStatus: status
+      applicationStatus: status,
     };
   });
 
@@ -775,11 +775,11 @@ export async function getAppliedJobPosts(
     limit,
     totalPages: Math.ceil(totalCount / limit),
     hasNextPage: page < Math.ceil(totalCount / limit),
-    hasPrevPage: page > 1
-  }
+    hasPrevPage: page > 1,
+  };
 
   return {
     items: jobPostsWithExtras,
-    pagination
+    pagination,
   } as PaginatedJobPostResponse;
 }

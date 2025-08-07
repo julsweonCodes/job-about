@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/client/jobPost";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { apiGetData } from "@/utils/client/API";

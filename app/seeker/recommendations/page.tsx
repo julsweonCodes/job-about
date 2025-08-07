@@ -6,7 +6,7 @@ import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPos
 import { useRouter } from "next/navigation";
 import { useRecommendedJobsInfinite } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPostMapper } from "@/types/jobPost";
+import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
 import { workTypeFilter, jobTypeFilter, locationFilter } from "@/constants/filterOptions";
@@ -46,7 +46,7 @@ function RecommendedJobsPage() {
     if (!Array.isArray(recommendedJobs)) return [];
 
     const cards = recommendedJobs
-      .map((job) => JobPostMapper.convertRecommendedToJobPostCard(job))
+      .map((job) => JobPostCardMapper.fromRecommendedJobPost(job))
       .filter((job) => job !== null);
 
     return cards;

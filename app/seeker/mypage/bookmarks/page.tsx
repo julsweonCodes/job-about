@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import { useRouter } from "next/navigation";
 import { useSeekerBookmarks } from "@/hooks/seeker/useSeekerBookmarks";
-import { JobPostMapper } from "@/types/jobPost";
+import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -40,7 +40,7 @@ function SeekerBookmarksPage() {
     }
 
     // JobPostCard 형태로 변환
-    return bookmarkedJobs.map(JobPostMapper.convertJobPostDataToCard);
+    return bookmarkedJobs.map(JobPostCardMapper.fromJobPostData);
   }, [bookmarkedJobs]);
 
   const handleViewJob = useCallback(

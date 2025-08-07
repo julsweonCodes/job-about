@@ -17,7 +17,7 @@ import { JobPostPayload } from "@/types/employer";
 import { LANGUAGE_LEVEL_OPTIONS, WORK_TYPE_OPTIONS } from "@/constants/options";
 import { apiGetData, apiPostData } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { formatDateYYYYMMDD } from "@/lib/utils";
 
@@ -354,7 +354,9 @@ const JobPostEditPage: React.FC = () => {
           opacity="medium"
         />
       )}
-      {loading && geminiClicked && <LoadingScreen message="Generating AI-powered job description..." />}
+      {loading && geminiClicked && (
+        <LoadingScreen message="Generating AI-powered job description..." />
+      )}
 
       {/* Cancel Confirmation Dialog */}
       <BaseDialog

@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { JobPostData, JobPostMapper, ApiBookmarkedJobResponse } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiBookmarkedJobResponse } from "@/types/client/jobPost";
 import { apiGetData } from "@/utils/client/API";
 
 interface UseSeekerBookmarksOptions {

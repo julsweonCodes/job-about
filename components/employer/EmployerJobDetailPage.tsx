@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
 import PostHeader from "@/components/common/PostHeader";
-import { ApiJobPostDetailData, JobPostData, JobPostMapper } from "@/types/jobPost";
+import { ApiJobPostDetailData, JobPostData, JobPostMapper } from "@/types/client/jobPost";
 import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EllipsisVertical } from "lucide-react";
@@ -114,7 +114,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
       const res = await fetch(API_URLS.EMPLOYER.POST.STATUS, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({postId, status}),
+        body: JSON.stringify({ postId, status }),
       });
       if (res.ok) {
         showSuccessToast(`Job Status updated to ${status}.`);
@@ -130,7 +130,7 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
       console.error("Error updating job status", e);
       showErrorToast((e as Error).message || "Error updating job status");
     }
-  }
+  };
   // Effects
   useEffect(() => {
     if (postId) {

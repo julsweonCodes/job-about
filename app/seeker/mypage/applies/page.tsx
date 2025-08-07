@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { InfiniteScrollLoader } from "@/components/common/InfiniteScrollLoader";
 import { useRouter } from "next/navigation";
 import { useSeekerAppliedJobs } from "@/hooks/seeker/useSeekerAppliedJobs";
-import { JobPostMapper } from "@/types/jobPost";
+import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -28,7 +28,7 @@ const getStatusFilterStyle = (status: string) => {
     case "rejected":
       return "bg-red-100 text-red-700 border-red-200 hover:bg-red-200";
     case "withdrawn":
-        return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
+      return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
     default:
       return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
   }
@@ -61,7 +61,7 @@ function SeekerAppliedPage() {
     if (!appliedJobs || appliedJobs.length === 0) return [];
 
     // 먼저 JobPostCard로 변환
-    const convertedJobs = appliedJobs.map(JobPostMapper.convertJobPostDataToCard);
+    const convertedJobs = appliedJobs.map(JobPostCardMapper.fromJobPostData);
 
     // 상태별 필터링
     if (selectedStatus === "all") {

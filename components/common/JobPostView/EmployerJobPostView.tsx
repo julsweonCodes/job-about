@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { JobPostData } from "@/types/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
 import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/textUtils";
 import { getJobTypeName } from "@/constants/jobTypes";
 import {
