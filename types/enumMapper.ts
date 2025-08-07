@@ -231,8 +231,8 @@ export function fromPrismaJobType(value: string): JobType {
   return map[value] || JobType.SERVER;
 }
 
-export function fromPrismaLocation(value: string): string {
-  const map: Record<string, string> = {
+export function fromPrismaLocation(value: string): Location {
+  const map: Record<string, Location> = {
     TORONTO: Location.TORONTO,
     NORTH_YORK: Location.NORTH_YORK,
     SCARBOROUGH: Location.SCARBOROUGH,

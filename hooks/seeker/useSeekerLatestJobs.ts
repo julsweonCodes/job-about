@@ -2,9 +2,10 @@ import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { toPrismaLocation, toPrismaWorkType } from "@/types/enumMapper";
+import { toPrismaLocation, toPrismaWorkType, toPrismaJobType } from "@/types/enumMapper";
 import { WorkType } from "@/constants/enums";
 import { Location } from "@/constants/location";
+import { JobType } from "@/constants/jobTypes";
 
 // 필터를 Prisma 타입으로 변환
 const convertFiltersToPrisma = (filters: {
@@ -25,7 +26,7 @@ const convertFiltersToPrisma = (filters: {
 
   // jobType 변환
   if (filters.jobType && filters.jobType !== "all") {
-    convertedFilters.job_type = filters.jobType;
+    convertedFilters.job_type = toPrismaJobType(filters.jobType as JobType);
   }
 
   // location 변환 (location은 그대로 사용)
@@ -50,12 +51,19 @@ const fetchLatestJobs = async (
       limit,
       ...prismaFilters,
     });
-    if (Array.isArray(response)) {
+
+    // apiGetData는 response.data를 반환하므로, response.items에 접근
+    if (response && response.items && Array.isArray(response.items)) {
+      return response.items;
+    } else if (Array.isArray(response)) {
+      // 이전 구조와의 호환성을 위해 배열인 경우도 처리
       return response;
     } else {
+      console.warn("Unexpected API response structure:", response);
       return [];
     }
   } catch (error) {
+    console.error("Error fetching latest jobs:", error);
     throw error;
   }
 };
@@ -105,16 +113,30 @@ export const useLatestJobsInfinite = (
           ...prismaFilters,
         })
           .then((res) => {
-            // API 응답이 배열인지 확인하고 안전하게 처리
-            const jobs = Array.isArray(res) ? res : [];
-            const hasMore = jobs.length === 10;
+            // apiGetData는 response.data를 반환하므로, res.items와 res.pagination에 접근
+            let jobs = [];
+            let hasMore = false;
+            let totalCount = 0;
+
+            if (res && res.items && Array.isArray(res.items)) {
+              jobs = res.items;
+              hasMore = res.pagination?.hasNextPage || false;
+              totalCount = res.pagination?.total || 0;
+            } else if (Array.isArray(res)) {
+              // 이전 구조와의 호환성을 위해 배열인 경우도 처리
+              jobs = res;
+              hasMore = jobs.length === 10;
+              totalCount = jobs.length;
+            } else {
+              console.warn("Unexpected API response structure in infinite query:", res);
+            }
 
             // 항상 일관된 객체 구조 반환
             return {
               jobs: jobs || [],
               currentPage: pageParam || 1,
               hasMore: Boolean(hasMore),
-              totalCount: jobs.length || 0,
+              totalCount: totalCount || 0,
             };
           })
           .catch((error) => {

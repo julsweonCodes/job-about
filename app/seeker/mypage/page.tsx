@@ -205,14 +205,14 @@ function SeekerMypage() {
                     See Recommended Jobs
                   </Button>
 
-                  <Button
+                  {/* <Button
                     onClick={() => router.push(PAGE_URLS.ONBOARDING.SEEKER.QUIZ)}
                     variant="secondary"
                     size="lg"
                     className="flex-1"
                   >
                     Retake Quiz
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>

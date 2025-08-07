@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
-import { JobPostData, JobPostMapper, ApiJobPostWithBusinessLoc } from "@/types/jobPost";
+import { JobPostData, JobPostMapper, ApiAppliedJobResponse } from "@/types/jobPost";
 import { useFilterStore } from "@/stores/useFilterStore";
 import { apiGetData } from "@/utils/client/API";
 
@@ -32,17 +32,37 @@ const fetchAppliedJobs = async (pageParam: number, limit: number) => {
       throw new Error("No response received from API");
     }
 
-    if (Array.isArray(response)) {
-      const jobs = response
-        .map((data: ApiJobPostWithBusinessLoc) => {
+    // apiGetData는 response.data를 반환하므로, response.items와 response.pagination에 접근
+    if (response && response.items && Array.isArray(response.items)) {
+      const jobs = response.items
+        .map((data: ApiAppliedJobResponse) => {
           try {
-            return JobPostMapper.fromAppliedJobPost(data);
+            return JobPostMapper.fromAppliedJobResponse(data);
           } catch (error) {
             console.warn("Failed to transform applied job data:", error, data);
             return null;
           }
         })
-        .filter((job): job is JobPostData => job !== null);
+        .filter((job: JobPostData | null): job is JobPostData => job !== null);
+
+      return {
+        jobs,
+        currentPage: pageParam,
+        hasMore: response.pagination?.hasNextPage || false,
+        totalCount: response.pagination?.total || 0,
+      };
+    } else if (Array.isArray(response)) {
+      // 이전 구조와의 호환성을 위해 배열인 경우도 처리
+      const jobs = response
+        .map((data: ApiAppliedJobResponse) => {
+          try {
+            return JobPostMapper.fromAppliedJobResponse(data);
+          } catch (error) {
+            console.warn("Failed to transform applied job data:", error, data);
+            return null;
+          }
+        })
+        .filter((job: JobPostData | null): job is JobPostData => job !== null);
 
       return {
         jobs,

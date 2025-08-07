@@ -52,7 +52,7 @@ function LatestJobsPage() {
       .map((apiJobPost) => {
         try {
           // API 응답을 JobPostData로 변환
-          const jobPostData = JobPostMapper.fromLatestJobPost(apiJobPost);
+          const jobPostData = JobPostMapper.fromJobPost(apiJobPost);
           return JobPostMapper.convertJobPostDataToCard(jobPostData);
         } catch (error) {
           console.warn("Failed to convert latest job:", error);
