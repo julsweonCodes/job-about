@@ -283,6 +283,7 @@ export async function getJobPostApplicantProfile(postId: string, appId: string, 
       job_post_id: number;
       application_status: string;
       applicant_name: string;
+      profile_img_url: string;
       profile_description: string;
       applied_date: string; // formatted as YYYYMMDD
       personality_profile_id: number | null;
@@ -299,6 +300,7 @@ export async function getJobPostApplicantProfile(postId: string, appId: string, 
       a.job_post_id,
       a.status AS application_status,
       c.name AS applicant_name,
+      c.img_url AS profile_img_url,
       b.description AS profile_description,
       TO_CHAR(a.created_at, 'YYYYMMDD') AS applied_date,
       c.personality_profile_id,
@@ -324,7 +326,7 @@ export async function getJobPostApplicantProfile(postId: string, appId: string, 
           applicant_name: result[0].applicant_name || undefined,
           profile_description: result[0].profile_description || undefined,
           applied_date: result[0].applied_date || undefined,
-          profile_image_url: undefined, // You can add this if it's part of users table or another join
+          profile_image_url: result[0].profile_img_url, // You can add this if it's part of users table or another join
           personality_profile_id: Number(result[0].personality_profile_id),
           work_experiences: workExperiences,
           profile_skills: profileSkills, // add workStyles if you fetch them elsewhere
