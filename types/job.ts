@@ -1,5 +1,5 @@
 import { ApplicantStatus, JobStatus, WorkType, WorkPeriod } from "@/constants/enums";
-import { WorkStyle } from "@/types/profile";
+import { Skill, WorkExperience, WorkStyle } from "@/types/profile";
 
 // API에서 반환되는 실제 채용 공고 정보
 export interface JobPost {
@@ -116,20 +116,6 @@ export interface JobPostCard {
     category_en: string;
   }>;
   daysAgo?: number;
-}
-
-export interface WorkExperience {
-  id: number;
-  profile_id: number;
-  company_name: string;
-  job_type: string;
-  start_year: number;
-  // start_month: number;
-  work_period: WorkPeriod;
-  work_type: WorkType;
-  description: string;
-  // created_at?: string;
-  // updated_at?: string;
 }
 
 export interface Applicant {

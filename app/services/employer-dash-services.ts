@@ -3,10 +3,18 @@ import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { JobPost } from "@/types/employer";
 import { STORAGE_URLS } from "@/constants/storage";
 import { Applicant } from "@/types/job";
+import { ApplicantDetail, WorkExperience } from "@/types/profile";
 import { Prisma } from "@prisma/client";
-import { fromPrismaAppStatus, fromPrismaWorkPeriod, fromPrismaWorkType, toPrismaJobStatus } from "@/types/enumMapper";
+import {
+  fromPrismaAppStatus,
+  fromPrismaJobType,
+  fromPrismaWorkPeriod,
+  fromPrismaWorkType,
+  toPrismaJobStatus,
+} from "@/types/enumMapper";
 import { getEmployerBizLoc } from "@/app/services/employer-services";
 import { JobStatus } from "@/constants/enums";
+import { Skill } from "@/types/profile";
 
 // GET - Select cnt values for employer dashboard
 export async function getActiveJobPostsCnt(userId: number, bizLocId: number): Promise<number> {
@@ -156,7 +164,8 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
 }
 
 /**
- * Dashboard - applicants
+ * GET Applicants List for Job post
+ * @param postId
  */
 export async function getApplicantsList(postId: string): Promise<Applicant[]> {
   console.log("start - service");
@@ -216,11 +225,9 @@ export async function getApplicantsList(postId: string): Promise<Applicant[]> {
           description: applicant.description,
           applied_date: applicant.applied_at ? formatDateYYYYMMDD(applicant.applied_at) : "",
           work_experiences: workExperience.map((w) => ({
-            id: Number(w.id),
-            profile_id: Number(w.profile_id),
             company_name: w.company_name,
             job_type: w.job_type,
-            start_year: Number(w.start_year),
+            start_year: w.start_year,
             work_period: fromPrismaWorkPeriod(w.work_period),
             work_type: fromPrismaWorkType(w.work_type),
             description: w.description,
@@ -235,6 +242,107 @@ export async function getApplicantsList(postId: string): Promise<Applicant[]> {
   }
 }
 
+/**
+ * GET Applicant Profile for the Job Post Application
+ * @param postId
+ * @param profileId
+ * @param userId
+ */
+export async function getJobPostApplicantProfile(postId: string, appId: string, userId: number) {
+  // validate if userId is the owner of the post
+  const bigIntAppId = BigInt(appId);
+  const valid = await prisma.job_posts.findFirst({
+    where: {
+      id: Number(postId),
+      user_id: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!valid) {
+    console.error("No job post found for job post id:", postId);
+    return [];
+  }
+
+  // get profile id
+  const profileId = await getProfileUserId(Number(appId));
+  if (!profileId) {
+    console.error("No profile found for the application:", appId);
+    return [];
+  }
+
+  const workExperiences = await getProfileWorkExperiences(profileId);
+  const profileSkills = await getProfilePracSkills(profileId);
+
+  const result = await prisma.$queryRaw<
+    Array<{
+      application_id: number;
+      profile_id: number;
+      user_id: number;
+      job_post_id: number;
+      application_status: string;
+      applicant_name: string;
+      profile_description: string;
+      applied_date: string; // formatted as YYYYMMDD
+      personality_profile_id: number | null;
+      quiz_type_name_ko: string;
+      quiz_type_name_en: string;
+      quiz_type_desc_ko: string;
+      quiz_type_desc_en: string;
+    }>
+  >(Prisma.sql`
+    SELECT
+      a.id AS application_id,
+      b.id AS profile_id,
+      c.id AS user_id,
+      a.job_post_id,
+      a.status AS application_status,
+      c.name AS applicant_name,
+      b.description AS profile_description,
+      TO_CHAR(a.created_at, 'YYYYMMDD') AS applied_date,
+      c.personality_profile_id,
+      d.name_ko "quiz_type_name_ko",
+      d.name_en "quiz_type_name_en",
+      d.description_ko "quiz_type_desc_ko",
+      d.description_en "quiz_type_desc_en"
+    FROM applications a
+    JOIN applicant_profiles b ON a.profile_id = b.id AND b.deleted_at IS NULL
+    JOIN users c ON b.user_id = c.id AND c.deleted_at IS NULL AND c.role = 'APPLICANT'
+    JOIN personality_profiles d ON c.personality_profile_id = d.id
+    WHERE a.id = ${bigIntAppId}
+    LIMIT 1;
+  `);
+  const formatted: ApplicantDetail | null =
+    result.length > 0
+      ? {
+          application_id: Number(result[0].application_id),
+          profile_id: Number(result[0].profile_id),
+          user_id: Number(result[0].user_id),
+          job_post_id: Number(result[0].job_post_id),
+          application_status: fromPrismaAppStatus(result[0].application_status),
+          applicant_name: result[0].applicant_name || undefined,
+          profile_description: result[0].profile_description || undefined,
+          applied_date: result[0].applied_date || undefined,
+          profile_image_url: undefined, // You can add this if it's part of users table or another join
+          personality_profile_id: Number(result[0].personality_profile_id),
+          work_experiences: workExperiences,
+          profile_skills: profileSkills, // add workStyles if you fetch them elsewhere
+          quiz_type_name_ko: result[0].quiz_type_name_ko,
+          quiz_type_name_en: result[0].quiz_type_name_en,
+          quiz_type_desc_ko: result[0].quiz_type_desc_ko,
+          quiz_type_desc_en: result[0].quiz_type_desc_en,
+        }
+      : null;
+  return formatted;
+}
+
+/**
+ * POST update job post status
+ * @param postId
+ * @param status
+ * @param userId
+ */
 export async function updateJobPostStatus(postId: string, status: JobStatus, userId: number) {
   const res = await prisma.job_posts.update({
     where: {
@@ -246,4 +354,78 @@ export async function updateJobPostStatus(postId: string, status: JobStatus, use
     },
   });
   return res.id.toString();
+}
+
+export async function getProfileUserId(appId: number) {
+  const res = await prisma.applications.findFirst({
+    where: {
+      id: appId,
+      deleted_at: null,
+    },
+    select: {
+      profile_id: true,
+    },
+  });
+  if (res) {
+    return Number(res.profile_id);
+  } else {
+    return null;
+  }
+}
+
+export async function getProfileWorkExperiences(profileId: number) {
+  const workExperience = await prisma.work_experiences.findMany({
+    where: {
+      profile_id: profileId,
+      deleted_at: null,
+    },
+    select: {
+      company_name: true,
+      job_type: true,
+      start_year: true,
+      work_period: true,
+      work_type: true,
+      description: true,
+    },
+    orderBy: {
+      start_year: "asc",
+    },
+  });
+
+  const res: WorkExperience[] = workExperience.map((w) => ({
+    company_name: w.company_name,
+    job_type: fromPrismaJobType(w.job_type),
+    start_year: w.start_year,
+    work_period: fromPrismaWorkPeriod(w.work_period), // enum 매핑 함수 필요
+    work_type: fromPrismaWorkType(w.work_type), // enum 매핑 함수 필요
+    description: w.description,
+  }));
+  return res;
+}
+
+export async function getProfilePracSkills(profileId: number) {
+  const skills = await prisma.profile_practical_skills.findMany({
+    where: {
+      profile_id: BigInt(profileId),
+    },
+    select: {
+      practical_skill: {
+        select: {
+          id: true,
+          category_ko: true,
+          category_en: true,
+          name_ko: true,
+          name_en: true,
+        },
+      },
+    },
+  });
+  const practicalSkills: Skill[] = skills.map((s) => ({
+    id: Number(s.practical_skill.id),
+    category_ko: s.practical_skill.category_ko,
+    category_en: s.practical_skill.category_en,
+    name_ko: s.practical_skill.name_ko,
+    name_en: s.practical_skill.name_en,
+  }));
+  return practicalSkills;
 }

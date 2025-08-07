@@ -4,6 +4,7 @@ import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { Dashboard, JobPost } from "@/types/employer";
 import { API_URLS } from "@/constants/api";
 import { Applicant } from "@/types/job";
+import { ApplicantDetail } from "@/types/profile";
 
 // API 함수들
 const fetchDashboard = async (): Promise<Dashboard> => {
@@ -19,6 +20,13 @@ const fetchActiveJobPosts = async (): Promise<JobPost[]> => {
 const fetchJobPostAppList = async (postId: string): Promise<Applicant[]> => {
   const data = await apiGetData<Applicant[]>(API_URLS.EMPLOYER.DASHBOARD.APPLICANT_LIST(postId));
   return Array.isArray(data) ? data : [];
+};
+
+const fetchApplicationDetail = async (postId: string, appId: string): Promise<ApplicantDetail> => {
+  const data = await apiGetData<ApplicantDetail>(
+    API_URLS.EMPLOYER.DASHBOARD.APPLICANT_DETAIL(postId, appId)
+  );
+  return data || ({} as ApplicantDetail);
 };
 
 interface UseEmployerDashboardReturn {
@@ -44,6 +52,18 @@ interface UseEmployerJobPostAppListReturn {
   isInitialized: boolean;
   refreshAll: () => Promise<void>;
   invalidateJobPostAllList: () => void;
+  queryClient: QueryClient;
+}
+
+interface UseApplicantDetailReturn {
+  appDetail: ApplicantDetail | undefined;
+  loadingStates: {
+    appDetail: boolean;
+  };
+  error: string | null;
+  isInitialized: boolean;
+  refreshAll: () => Promise<void>;
+  invalidateAppDetail: () => void;
   queryClient: QueryClient;
 }
 
@@ -166,6 +186,56 @@ export function useEmployerJobPostAppList(postId: string): UseEmployerJobPostApp
     isInitialized: !jobPostAppListLoading,
     refreshAll,
     invalidateJobPostAllList,
+    queryClient,
+  };
+}
+
+export function useApplicationDetail(postId: string, appId: string): UseApplicantDetailReturn {
+  const queryClient = useQueryClient();
+
+  // Dashboard 데이터 쿼리
+  const {
+    data: appDetail,
+    isLoading: appDetailLoading,
+    error: appDetailError,
+    refetch: refetchAppDetail,
+  } = useQuery({
+    queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, appId),
+    queryFn: () => fetchApplicationDetail(postId, appId),
+    staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    refetchOnWindowFocus: false,
+  });
+
+  // 전체 새로고침 함수
+  const refreshAll = async () => {
+    const result = await Promise.allSettled([refetchAppDetail()]);
+    result.forEach((r) => {
+      if (r.status === "rejected") {
+        console.error("❌ Failed during refreshAll:", r.reason);
+      }
+    });
+  };
+
+  // Job Posts 캐시 무효화 함수 (publish 시 사용)
+  const invalidateAppDetail = () => {
+    queryClient.invalidateQueries({
+      queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, appId),
+    });
+  };
+
+  // 에러 처리
+  const error = appDetailError?.message || null;
+
+  return {
+    appDetail,
+    loadingStates: {
+      appDetail: appDetailLoading,
+    },
+    error,
+    isInitialized: !appDetailLoading,
+    refreshAll,
+    invalidateAppDetail,
     queryClient,
   };
 }
