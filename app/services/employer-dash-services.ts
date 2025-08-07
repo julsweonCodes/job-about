@@ -318,7 +318,7 @@ export async function getJobPostApplicantProfile(postId: string, appId: string, 
     FROM applications a
     JOIN applicant_profiles b ON a.profile_id = b.id AND b.deleted_at IS NULL
     JOIN users c ON b.user_id = c.id AND c.deleted_at IS NULL AND c.role = 'APPLICANT'
-    JOIN personality_profiles d ON c.personality_profile_id = d.id
+    LEFT JOIN personality_profiles d ON c.personality_profile_id = d.id
     WHERE a.id = ${bigIntAppId}
     LIMIT 1;
   `);

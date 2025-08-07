@@ -1,8 +1,8 @@
-import { getEmployerBizLoc } from "@/app/services/employer-services";
 import { getUserIdFromSession } from "@/utils/auth";
 import { getActiveJobPostsCnt, getAllApplicationsCnt, getStatusUpdateCnt} from "@/app/services/employer-dash-services";
 import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
 import { Dashboard } from "@/types/employer";
+import { getBusinessLocId } from "@/app/services/job-post-services";
 
 export async function GET() {
   try {
@@ -10,8 +10,8 @@ export async function GET() {
     const userId = await getUserIdFromSession();
     console.log(userId);
 
-    const bizLocInfo = await getEmployerBizLoc(userId);
-    if (!bizLocInfo) {
+    const bizLocId = await getBusinessLocId(userId);
+    if (!bizLocId) {
       console.log("No business location found for user:", userId);
       // business location이 없으면 기본값으로 dashboard 반환
       const dashboard: Dashboard = {
@@ -26,7 +26,6 @@ export async function GET() {
       );
     }
 
-    const bizLocId = Number(bizLocInfo.id);
     const [activeJobPostsCnt, allAppsCnt, needsUpdateCnt] = await Promise.all([
       getActiveJobPostsCnt(userId, bizLocId),
       getAllApplicationsCnt(userId, bizLocId),
