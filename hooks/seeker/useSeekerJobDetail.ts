@@ -12,7 +12,11 @@ export const useSeekerJobDetail = (postId: string) => {
       if (!data) {
         throw new Error("No data received from API");
       }
-      return JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
+
+      const jobPostData = JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
+
+      console.log("jobPostData", jobPostData);
+      return jobPostData;
     },
     enabled: !!postId,
     staleTime: 5 * 60 * 1000, // 5분

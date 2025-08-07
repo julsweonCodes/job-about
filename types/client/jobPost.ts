@@ -227,13 +227,13 @@ export interface ApiJobPostDetailData {
   jobDescription: string;
   hourlyWage: string;
   id: string;
-  jobType: string;
+  jobType: JobType;
   languageLevel: string;
   requiredWorkStyles: WorkStyleType[];
   requiredSkills: SkillType[];
   workSchedule: string;
-  workType: string;
-  status: string;
+  workType: WorkType;
+  status: JobStatus;
   title: string;
   isBookmarked: boolean;
 }
@@ -423,9 +423,9 @@ export class JobPostMapper {
       () => ({
         id: apiJobPost.id,
         title: apiJobPost.title,
-        workType: fromPrismaWorkType(apiJobPost.workType),
-        jobType: fromPrismaJobType(apiJobPost.jobType),
-        status: apiJobPost.status as JobStatus,
+        workType: apiJobPost.workType,
+        jobType: apiJobPost.jobType,
+        status: apiJobPost.status,
         businessLocInfo: {
           bizLocId: apiJobPost.businessLocInfo.bizLocId,
           name: apiJobPost.businessLocInfo.name,
