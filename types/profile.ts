@@ -22,6 +22,7 @@ import {
   AvailableHour as ClientAvailableHour,
   LanguageLevel as ClientLanguageLevel,
   WorkPeriod as ClientWorkPeriod,
+  ApplicantStatus,
 } from "@/constants/enums";
 
 export interface applicantProfile {
@@ -35,7 +36,7 @@ export interface applicantProfile {
   language_level: string;
   description: string;
   profile_practical_skills: profile_practical_skill[];
-  work_experiences: workExperience[];
+  work_experiences: WorkExperience[];
 }
 
 export interface updateApplicantProfile {
@@ -49,13 +50,13 @@ export interface updateApplicantProfile {
   language_level?: ClientLanguageLevel;
   description?: string;
   profile_practical_skills?: profile_practical_skill[];
-  work_experiences?: workExperience[];
+  work_experiences?: WorkExperience[];
 }
 export interface profile_practical_skill {
   practical_skill_id: number;
 }
 
-export interface workExperience {
+export interface WorkExperience {
   company_name: string;
   job_type: string;
   start_year: string;
@@ -135,7 +136,8 @@ export class ApplicantProfileMapper {
       location: fromPrismaLocation(apiData.location as any) as ClientLocation,
       englishLevel: fromPrismaLanguageLevel(apiData.language_level) as ClientLanguageLevel,
       description: apiData.description,
-      skillIds: apiData.profile_practical_skills?.map((skill) => Number(skill.practical_skill_id)) || [],
+      skillIds:
+        apiData.profile_practical_skills?.map((skill) => Number(skill.practical_skill_id)) || [],
       experiences:
         apiData.work_experiences?.map((exp) => ({
           company: exp.company_name,
@@ -230,4 +232,24 @@ export interface WorkStyle {
   id: number;
   name_ko: string;
   name_en: string;
+}
+
+export interface ApplicantDetail {
+  application_id: number;
+  profile_id: number;
+  user_id: number;
+  job_post_id: number;
+  application_status: ApplicantStatus;
+  applicant_name?: string;
+  profile_image_url?: string;
+  profile_description?: string;
+  applied_date?: string;
+  workStyles?: WorkStyle[];
+  work_experiences?: WorkExperience[] | null;
+  profile_skills?: Skill[] | null;
+  personality_profile_id: number;
+  quiz_type_name_ko: string;
+  quiz_type_name_en: string;
+  quiz_type_desc_ko: string;
+  quiz_type_desc_en: string;
 }

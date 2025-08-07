@@ -1,14 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { MapPin, Clock, Globe, Calendar, User } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { Button } from "@/components/ui/Button";
+import { useApplicationDetail } from "@/hooks/employer/useEmployerDashboard";
+import { useParams, useRouter } from "next/navigation";
 
 function ApplicantDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const postId = params?.postId as string;
+  const appId = params?.appId as string;
+
   const workStyleTags = ["#QuietEnvironment", "#Teamwork", "#FastPacedPreferred"];
   const skillsTags = ["Customer Service", "Photoshop", "Barista"];
-
+  const { appDetail, loadingStates, queryClient } = useApplicationDetail(postId, appId);
   const experiences = [
     {
       title: "Barista at Café Latte",
@@ -21,6 +28,9 @@ function ApplicantDetailPage() {
       duration: "1 year",
     },
   ];
+  useEffect(() => {
+    console.log(appDetail);
+  }, [appDetail]);
 
   const preferences = [
     {
