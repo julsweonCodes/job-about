@@ -14,8 +14,6 @@ export const useSeekerJobDetail = (postId: string) => {
       }
 
       const jobPostData = JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
-
-      console.log("jobPostData", jobPostData);
       return jobPostData;
     },
     enabled: !!postId,
