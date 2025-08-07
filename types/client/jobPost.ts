@@ -1,6 +1,6 @@
 import { JobStatus, LanguageLevel, WorkType, ApplicantStatus } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
-import { getLocationDisplayName, Location } from "@/constants/location";
+import { Location } from "@/constants/location";
 import { Skill, WorkStyle } from "@/types/profile";
 import {
   fromPrismaWorkType,
@@ -48,7 +48,6 @@ export interface BizLocInfo {
   logoImg: string;
   extraPhotos: string[];
   location: Location;
-  address: string;
   workingHours: string;
 }
 
@@ -190,7 +189,7 @@ export interface ApiRecommendedJobPost {
   deadline: string;
   company: {
     name: string;
-    address: string;
+    location: string;
     logoUrl?: string;
   };
   employer: {
@@ -304,7 +303,6 @@ function mapBusinessLocation(
     location: businessLoc?.location
       ? fromPrismaLocation(businessLoc.location as Location) || defaultLocation
       : defaultLocation,
-    address: "",
     workingHours: "",
   };
 }
@@ -394,12 +392,13 @@ export class JobPostMapper {
         status: DEFAULT_VALUES.STATUS,
         businessLocInfo: {
           bizLocId: DEFAULT_VALUES.BIZ_LOC_ID,
-          name: apiJobPost.company.name,
+          name: apiJobPost.company?.name || DEFAULT_VALUES.COMPANY_NAME,
           bizDescription: "",
-          logoImg: apiJobPost.company.logoUrl || "",
+          logoImg: apiJobPost.company?.logoUrl || "",
           extraPhotos: [],
-          location: Location.TORONTO, // 기본값
-          address: apiJobPost.company.address,
+          location: apiJobPost.company?.location
+            ? fromPrismaLocation(apiJobPost.company.location as Location)
+            : DEFAULT_VALUES.LOCATION,
           workingHours: "",
         },
         deadline: apiJobPost.deadline,
@@ -433,7 +432,6 @@ export class JobPostMapper {
           logoImg: apiJobPost.businessLocInfo.logoImg,
           extraPhotos: apiJobPost.businessLocInfo.extraPhotos,
           location: apiJobPost.businessLocInfo.location as Location,
-          address: apiJobPost.businessLocInfo.address,
           workingHours: apiJobPost.businessLocInfo.workingHours,
         },
         deadline: apiJobPost.deadline,
@@ -492,9 +490,7 @@ export class JobPostCardMapper {
       title: jobPost.title,
       workType: jobPost.workType || DEFAULT_VALUES.WORK_TYPE,
       wage: jobPost.hourlyWage,
-      // TODO 나중에 바꾸기 
-      location:
-        getLocationDisplayName(jobPost.businessLocInfo.location) || "Location not specified",
+      location: jobPost.businessLocInfo.location,
       workSchedule: jobPost.workSchedule,
       businessName: jobPost.businessLocInfo.name,
       description: jobPost.jobDescription,
@@ -506,28 +502,6 @@ export class JobPostCardMapper {
       requiredSkills: jobPost.requiredSkills,
       applicationStatus: jobPost.applicationStatus,
       daysAgo: jobPost.daysAgo,
-    };
-  }
-
-  /**
-   * RecommendedJobPost를 JobPostCard 타입으로 변환
-   */
-  static fromRecommendedJobPost(recommendedJob: ApiRecommendedJobPost): JobPostCardType {
-    return {
-      id: recommendedJob.id.toString(),
-      title: recommendedJob.title,
-      workType: fromPrismaWorkType(recommendedJob.workType),
-      wage: recommendedJob.wage,
-      location: recommendedJob.company.address,
-      workSchedule: recommendedJob.workSchedule,
-      businessName: recommendedJob.company.name,
-      description: recommendedJob.description,
-      applicants: recommendedJob.applicantCount,
-      views: DEFAULT_VALUES.VIEWS,
-      logoImage: recommendedJob.company.logoUrl
-        ? `${STORAGE_URLS.BIZ_LOC.PHOTO}${recommendedJob.company.logoUrl}`
-        : undefined,
-      requiredSkills: recommendedJob.requiredSkills,
     };
   }
 }

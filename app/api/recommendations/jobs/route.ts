@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
         business_loc: {
           select: {
             name: true,
-            address: true,
+            location: true,
             logo_url: true,
           },
         },

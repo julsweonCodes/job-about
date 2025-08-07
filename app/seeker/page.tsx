@@ -88,9 +88,9 @@ function SeekerPage() {
 
     return recommendedJobs
       .slice(0, MAX_RECOMMENDED_JOBS)
-      .map((recommendedJob) => {
+      .map((jobPostData) => {
         try {
-          return JobPostCardMapper.fromRecommendedJobPost(recommendedJob);
+          return JobPostCardMapper.fromJobPostData(jobPostData);
         } catch (error) {
           console.warn("Failed to convert recommended job:", error);
           return null;
