@@ -106,8 +106,9 @@ export async function GET(req: NextRequest) {
 
     // 필터 조건 추가
     if (locationParam) {
+      console.log(`location 필터 적용: ${locationParam}`);
       whereConditions.business_loc = {
-        // location 필드가 있다면 추가
+        location: locationParam
       };
     }
 
@@ -115,15 +116,14 @@ export async function GET(req: NextRequest) {
       whereConditions.job_type = jobTypeParam;
     }
 
-    if (workTypeParam) {
+    if (workTypeParam && workTypeParam !== 'all') {
       console.log(`workType 필터 적용: ${workTypeParam}`);
       whereConditions.work_type = workTypeParam;
     }
+    
 
-    // 전체 개수 조회 (페이지네이션용)
-    const totalCount = await prisma.job_posts.count({
-      where: whereConditions,
-    });
+    // 전체 개수 조회는 필요 시 추후 구현
+    // const totalCount = await prisma.job_posts.count({ where: whereConditions });
 
     const jobPosts = await prisma.job_posts.findMany({
       where: whereConditions,
@@ -174,6 +174,7 @@ export async function GET(req: NextRequest) {
     });
 
     console.log(`전체 채용공고 ${jobPosts.length}개 조회`);
+    
 
     // jobPosts가 비어있으면 빈 결과 반환
     if (jobPosts.length === 0) {
@@ -230,7 +231,7 @@ export async function GET(req: NextRequest) {
         deadline: jobPost.deadline,
         company: {
           name: jobPost.business_loc.name,
-          address: jobPost.business_loc.address,
+          location: jobPost.business_loc.location,
           logoUrl: jobPost.business_loc.logo_url,
         },
         employer: {
