@@ -1,13 +1,8 @@
 import { JobStatus, LanguageLevel, WorkType } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
-import { convertLocationKeyToValue, getLocationDisplayName, Location } from "@/constants/location";
+import { getLocationDisplayName, Location } from "@/constants/location";
 import { Skill, WorkStyle } from "@/types/profile";
-import {
-  fromPrismaWorkType,
-  fromPrismaJobType,
-  fromPrismaAppStatus,
-  fromPrismaLocation,
-} from "@/types/enumMapper";
+import { fromPrismaWorkType, fromPrismaJobType, fromPrismaLocation } from "@/types/enumMapper";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
 import {
@@ -94,47 +89,6 @@ export interface ApiJobPostsResponse {
     hasNextPage: boolean;
     hasPrevPage: boolean;
   };
-}
-
-// 공통 Job Post 타입 (Applied와 Bookmarked에서 공통으로 사용)
-export interface ApiJobPostWithBusinessLoc {
-  id: string;
-  business_loc_id: string;
-  user_id: string;
-  title: string;
-  job_type: string;
-  deadline: string;
-  work_schedule: string;
-  wage: string;
-  description: string;
-  status: JobStatus;
-  work_type: string;
-  language_level?: string;
-  created_at?: string;
-  updated_at?: string;
-  daysAgo?: number;
-  applicantCount?: number;
-  business_loc?: {
-    id: string;
-    name: string;
-    description: string;
-    logo_url?: string;
-    address: string;
-    operating_start: string;
-    operating_end: string;
-    location: string;
-  };
-  requiredSkills?: Array<{
-    id: number;
-    name_ko: string;
-    name_en: string;
-    category_ko: string;
-    category_en: string;
-  }>;
-  _count?: {
-    applications: number;
-  };
-  applicationStatus?: string; // 지원 상태 추가
 }
 
 // Applied Jobs API 응답 타입 (ApiJobPost와 동일하지만 applicationStatus 포함)
@@ -248,6 +202,7 @@ export interface ApiJobPostDetailData {
     name_en: string;
   }>;
   workSchedule: string;
+  workType: string;
   status: string;
   title: string;
   isBookmarked: boolean;
@@ -338,7 +293,7 @@ export class JobPostMapper {
       return {
         id: apiJobPost.id,
         title: apiJobPost.title,
-        workType: "on-site" as WorkType, // Detail API에는 workType이 없으므로 기본값
+        workType: fromPrismaWorkType(apiJobPost.workType),
         jobType: fromPrismaJobType(apiJobPost.jobType),
         status: apiJobPost.status as JobStatus,
         businessLocInfo: {
@@ -383,50 +338,6 @@ export class JobPostMapper {
       location: fromPrismaLocation(businessLoc.location as Location) || Location.TORONTO,
       address: "",
       workingHours: "",
-    };
-  }
-
-  /**
-   * Applied Jobs Business Location 정보 매핑
-   */
-  private static mapAppliedJobBusinessLocInfo(
-    businessLoc?: ApiJobPostWithBusinessLoc["business_loc"]
-  ): BizLocInfo {
-    if (!businessLoc) {
-      throw new Error("Business location information is required");
-    }
-
-    return {
-      bizLocId: businessLoc.id,
-      name: businessLoc.name,
-      bizDescription: businessLoc.description,
-      logoImg: businessLoc.logo_url || "",
-      extraPhotos: [], // API에서 제공되지 않는 경우 빈 배열
-      location: businessLoc.location as Location,
-      address: businessLoc.address,
-      workingHours: `${businessLoc.operating_start} - ${businessLoc.operating_end}`,
-    };
-  }
-
-  /**
-   * Bookmarked Jobs Business Location 정보 매핑
-   */
-  private static mapBookmarkedJobBusinessLocInfo(
-    businessLoc?: ApiJobPostWithBusinessLoc["business_loc"]
-  ): BizLocInfo {
-    if (!businessLoc) {
-      throw new Error("Business location information is required");
-    }
-
-    return {
-      bizLocId: businessLoc.id,
-      name: businessLoc.name,
-      bizDescription: businessLoc.description,
-      logoImg: businessLoc.logo_url || "",
-      extraPhotos: [], // API에서 제공되지 않는 경우 빈 배열
-      location: businessLoc.location as Location,
-      address: businessLoc.address,
-      workingHours: `${businessLoc.operating_start} - ${businessLoc.operating_end}`,
     };
   }
 
