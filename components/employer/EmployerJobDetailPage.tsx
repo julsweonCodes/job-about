@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import JobPostView, { JobPostViewSkeleton } from "@/components/common/JobPostView";
 import PostHeader from "@/components/common/PostHeader";
-import { JobPostData, JobPostMapper, ApiJobPostDetailData } from "@/types/jobPost";
+import { ApiJobPostDetailData, JobPostData, JobPostMapper } from "@/types/jobPost";
 import { JobStatus } from "@/constants/enums";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EllipsisVertical } from "lucide-react";
-import { apiGetData, ApiError } from "@/utils/client/API";
+import { apiGetData } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 
 interface Props {
@@ -45,7 +45,6 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
   }, []);
 
   const handleEdit = useCallback(() => {
-    console.log("handleEdit", postId, status);
     router.push(`${PAGE_URLS.EMPLOYER.POST.EDIT(postId)}?status=${status}`);
   }, [router, postId, status]);
 
@@ -111,7 +110,6 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
   }, [postId, status, router]);
 
   const updateStatus = async (postId: string, status: JobStatus) => {
-    console.log("Let's update job status -",status);
     try {
       const res = await fetch(API_URLS.EMPLOYER.POST.STATUS, {
         method: "PATCH",
@@ -119,7 +117,12 @@ const EmployerJobDetailPage: React.FC<Props> = ({ postId, status = "published" }
         body: JSON.stringify({postId, status}),
       });
       if (res.ok) {
-        showSuccessToast("Job Status updated successfully.");
+        showSuccessToast(`Job Status updated to ${status}.`);
+        if (status === JobStatus.CLOSED) {
+          setTimeout(() => {
+            router.back();
+          }, 2000);
+        }
       } else {
         showErrorToast("Error updating job status");
       }

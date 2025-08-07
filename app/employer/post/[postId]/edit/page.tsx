@@ -30,7 +30,7 @@ const JobPostEditPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-
+  const [geminiClicked, setGeminiClicked] = useState(false);
   // Job data state
   const [jobData, setJobData] = useState<any>(null);
   const [jobStatus, setJobStatus] = useState<string>("published");
@@ -65,6 +65,7 @@ const JobPostEditPage: React.FC = () => {
 
     try {
       setLoading(true);
+      setGeminiClicked(true);
       const response = await apiPostData(API_URLS.EMPLOYER.POST.EDIT(postId), jobPostPayload);
 
       // Gemini 응답을 jobData에 추가하여 화면에 표시 (새로고침 없이)
@@ -252,7 +253,6 @@ const JobPostEditPage: React.FC = () => {
     setIsSaving(true);
     try {
       const payload = mapToFormData(jobData);
-      console.log(payload);
       const response = await apiPostData(API_URLS.EMPLOYER.POST.UPDATE(postId), payload);
 
       if (response) {
@@ -290,6 +290,7 @@ const JobPostEditPage: React.FC = () => {
           ...prev,
           ...response,
         }));
+        router.push(`/employer/post/${postId}`);
       } else {
         showErrorToast("Something went wrong publishing job post");
       }
@@ -353,6 +354,7 @@ const JobPostEditPage: React.FC = () => {
           opacity="medium"
         />
       )}
+      {loading && geminiClicked && <LoadingScreen message="Generating AI-powered job description..." />}
 
       {/* Cancel Confirmation Dialog */}
       <BaseDialog

@@ -17,7 +17,11 @@ import {
 import { Applicant } from "@/types/job";
 import { Prisma } from "@prisma/client";
 import { toISOString } from "@/utils/shared/dateUtils";
-import { getBusinessLocId } from "@/app/services/job-post-services";
+import {
+  deleteAndInsertPracticalSkills,
+  deleteAndInsertWorkStyles,
+  getBusinessLocId,
+} from "@/app/services/job-post-services";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -118,5 +122,18 @@ export async function updateJobPost(postId: string, payload: JobPostPayload, use
       status: true,
     },
   });
-  return parseBigInt(res);
+
+  const resPracSkills = await deleteAndInsertPracticalSkills(
+    Number(postId),
+    payload.requiredSkills
+  );
+  const recWorkStyles = await deleteAndInsertWorkStyles(
+    Number(postId),
+    payload.requiredWorkStyles
+  );
+
+  let skillCntFlag: boolean = resPracSkills === payload.requiredSkills.length;
+  let workstyleCntFlag: boolean = recWorkStyles === payload.requiredWorkStyles.length;
+
+  return parseBigInt({...res, skillCntFlag, workstyleCntFlag});
 }

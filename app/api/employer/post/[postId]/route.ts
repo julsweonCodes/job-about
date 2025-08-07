@@ -74,7 +74,6 @@ export async function POST(req: NextRequest, { params }: { params: { postId: str
     errorResponse("no userId", 500);
   }
   try {
-    console.log("route.ts");
     const res = await updateJobPost(params.postId, body, userId);
     if (res) {
       console.log(res);
