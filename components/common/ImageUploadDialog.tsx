@@ -69,21 +69,6 @@ const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
   return (
     <BaseDialog open={open} onClose={handleClose} title={title} size="md" type="bottomSheet">
       <div className="space-y-4">
-        {/* Current Images Display */}
-        {currentImage && (
-          <div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              <div className="relative flex-shrink-0">
-                <img
-                  src={currentImage}
-                  alt={`Current ${type}`}
-                  className="w-16 h-16 rounded-lg object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Upload Section */}
         <div className="space-y-3 flex flex-col items-center w-full">
           <div className="flex flex-col items-start w-full">

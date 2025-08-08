@@ -23,27 +23,74 @@ import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { BizLocInfo } from "@/types/client/jobPost";
-import { apiGetData } from "@/utils/client/API";
+import { apiGetData, apiPostData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { STORAGE_URLS } from "@/constants/storage";
 import { Location } from "@/constants/location";
+import { getLocationDisplayName } from "@/constants/location";
+
 const emptyBizLocInfo: BizLocInfo = {
   bizLocId: "",
   name: "",
   bizDescription: "",
   logoImg: "",
   extraPhotos: [],
-  location: Location.BURLINGTON, // adjust to your Location type
+  location: Location.BURLINGTON,
   address: "",
   workingHours: "",
   startTime: "",
   endTime: "",
   created_at: "",
-  phone: "", // if your BizLocInfo actually uses phone_number
+  phone: "",
 };
+
+// 스켈레톤 컴포넌트들
+const InfoSectionSkeleton = () => (
+  <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
+    <div className="p-5 sm:p-8">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-xl animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-48" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+      </div>
+    </div>
+  </div>
+);
+
+const ProfileSkeleton = () => (
+  <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50">
+    <div className="p-5 sm:p-8">
+      <div className="flex flex-col items-center text-center sm:flex-row sm:text-left gap-4 sm:gap-6">
+        <div className="relative flex-shrink-0">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden bg-gray-200 animate-pulse" />
+        </div>
+        <div className="flex-1 space-y-3">
+          <div className="h-8 bg-gray-200 rounded animate-pulse w-48" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 function EmployerMypage() {
   const [isEditing, setIsEditing] = useState({
@@ -51,13 +98,15 @@ function EmployerMypage() {
     address: false,
     hours: false,
     contact: false,
+    location: false,
     workplaceAttributes: false,
   });
   const img_base_url = STORAGE_URLS.BIZ_LOC.PHOTO;
   const [bizLocData, setBizLocData] = useState<BizLocInfo>(emptyBizLocInfo);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [isUpdating, setIsUpdating] = useState(false);
+
   // GET initial bizLocData
   useEffect(() => {
     const fetchProfile = async () => {
@@ -77,12 +126,13 @@ function EmployerMypage() {
   useEffect(() => {
     console.log(bizLocData);
   }, [bizLocData]);
-  // 원본 workplace photos
-  const [originalImages, setOriginalImages] = useState<string[]>([
-    "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
-  ]);
+
+  // 원본 workplace photos (서버에서 가져온 이미지들)
+  const [originalImages, setOriginalImages] = useState<string[]>([]);
   // 새로 추가된 workplace photos
   const [extraPhotos, setExtraPhotos] = useState<string[]>([]);
+  // 삭제된 이미지 인덱스 추적
+  const [deletedImageIndexes, setDeletedImageIndexes] = useState<Set<number>>(new Set());
 
   // 변경사항 감지
   const [isWorkplacePhotoChanged, setIsWorkplacePhotoChanged] = useState(false);
@@ -94,19 +144,32 @@ function EmployerMypage() {
   // 임시 데이터
   const [tempData, setTempData] = useState<BizLocInfo>({} as BizLocInfo);
 
+  // bizLocData가 변경될 때 originalImages 업데이트 (초기 로드 시에만)
+  useEffect(() => {
+    if (bizLocData?.extraPhotos && originalImages.length === 0) {
+      setOriginalImages(bizLocData.extraPhotos.filter((img) => img !== ""));
+    }
+  }, [bizLocData, originalImages.length]);
+
   // 변경사항 감지
   React.useEffect(() => {
-    const currentImages =
-      extraPhotos.length > 0 ? [...originalImages, ...extraPhotos] : originalImages;
-    const hasImageChanges = JSON.stringify(currentImages) !== JSON.stringify(originalImages);
+    // 삭제된 이미지를 제외한 현재 이미지들
+    const currentImages = originalImages
+      .filter((_, index) => !deletedImageIndexes.has(index))
+      .concat(extraPhotos);
+
+    // 변경사항이 있는지 확인 (추가, 삭제, 순서 변경 등)
+    const hasImageChanges = extraPhotos.length > 0 || deletedImageIndexes.size > 0;
     setIsWorkplacePhotoChanged(hasImageChanges);
 
-    // bizLocData의 detailImages 업데이트
-    setBizLocData((prev) => ({
-      ...prev,
-      extraPhotos: currentImages,
-    }));
-  }, [extraPhotos, originalImages]);
+    // bizLocData의 extraPhotos 업데이트 (무한 루프 방지)
+    if (JSON.stringify(bizLocData.extraPhotos) !== JSON.stringify(currentImages)) {
+      setBizLocData((prev) => ({
+        ...prev,
+        extraPhotos: currentImages,
+      }));
+    }
+  }, [extraPhotos, originalImages, deletedImageIndexes]);
 
   const tagOptions = [
     {
@@ -163,8 +226,8 @@ function EmployerMypage() {
   const handleRemoveImage = (index: number) => {
     // 원본 이미지에서 제거된 것인지 새로 추가된 이미지에서 제거된 것인지 확인
     if (index < originalImages.length) {
-      // 원본 이미지에서 제거된 경우
-      setOriginalImages(originalImages.filter((_, i) => i !== index));
+      // 원본 이미지에서 제거된 경우 - 삭제된 인덱스로 추적
+      setDeletedImageIndexes((prev) => new Set(Array.from(prev).concat(index)));
     } else {
       // 새로 추가된 이미지에서 제거된 경우
       const newImageIndex = index - originalImages.length;
@@ -174,40 +237,59 @@ function EmployerMypage() {
 
   const handleSaveImages = async () => {
     try {
+      setIsUpdating(true);
       // 여기서 서버에 이미지 변경사항을 전송
-      const currentImages = [...originalImages, ...extraPhotos];
+      const currentImages = originalImages
+        .filter((_, index) => !deletedImageIndexes.has(index))
+        .concat(extraPhotos);
       console.log("Saving images to server:", currentImages);
+
+      // TODO: API 호출로 이미지 저장
+      // const response = await apiPostData(API_URLS.EMPLOYER.PROFILE, {
+      //   extraPhotos: currentImages
+      // });
 
       // 성공 시 원본 이미지 업데이트
       setOriginalImages(currentImages);
       setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
+      setDeletedImageIndexes(new Set()); // 삭제된 이미지 인덱스 초기화
       setIsWorkplacePhotoChanged(false);
 
       console.log("Images saved successfully");
     } catch (error) {
       console.error("Failed to save images:", error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleCancelImages = () => {
     // 변경사항을 취소하고 원본 상태로 되돌리기
     setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
+    setDeletedImageIndexes(new Set()); // 삭제된 이미지 인덱스 초기화
     setIsWorkplacePhotoChanged(false);
     console.log("Image changes cancelled");
   };
 
   const handleLogoSave = async (file: File) => {
     try {
+      setIsUpdating(true);
       // 파일을 읽어서 이미지 URL로 변환
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
         // 로고 이미지 상태 업데이트 (실제로는 서버에 저장)
+        setBizLocData((prev) => ({
+          ...prev,
+          logoImg: imageUrl,
+        }));
         console.log("Saving logo image:", imageUrl);
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error updating logo:", error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -238,18 +320,43 @@ function EmployerMypage() {
   };
 
   // update address, hours, contact
-  const handleOptionsSave = (section: string) => {
-    // 저장 시 tempData를 bizLocData에 적용
-    setBizLocData(tempData);
-    setIsEditing((prev) => ({ ...prev, [section]: false }));
+  const handleOptionsSave = async (section: string) => {
+    try {
+      setIsUpdating(true);
+      // TODO: API 호출로 데이터 저장
+      // const response = await apiPostData(API_URLS.EMPLOYER.PROFILE, {
+      //   [section]: tempData[section as keyof BizLocInfo]
+      // });
+
+      // 저장 시 tempData를 bizLocData에 적용
+      setBizLocData(tempData);
+      setIsEditing((prev) => ({ ...prev, [section]: false }));
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // update title, description
-  const handleProfileSave = () => {
-    // 저장 시 tempData를 bizLocData에 적용
-    setBizLocData(tempData);
-    console.log("Saving basic information:", tempData);
-    handleCloseProfileDialog();
+  const handleProfileSave = async () => {
+    try {
+      setIsUpdating(true);
+      // TODO: API 호출로 데이터 저장
+      // const response = await apiPostData(API_URLS.EMPLOYER.PROFILE, {
+      //   name: tempData.name,
+      //   bizDescription: tempData.bizDescription
+      // });
+
+      // 저장 시 tempData를 bizLocData에 적용
+      setBizLocData(tempData);
+      console.log("Saving basic information:", tempData);
+      handleCloseProfileDialog();
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // update field
@@ -257,11 +364,41 @@ function EmployerMypage() {
     setTempData((prev) => ({ ...prev, [field]: value }));
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <BackHeader title="My Business Profile" />
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Basic Information</h3>
+          <ProfileSkeleton />
+
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Business Information</h3>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <InfoSectionSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <BackHeader title="My Business Profile" />
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-700">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
       <BackHeader title="My Business Profile" />
-      {isLoading && <LoadingScreen overlay={true} opacity="light" />}
+      {isUpdating && <LoadingScreen overlay={true} opacity="light" />}
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
         <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
           <span>Basic Information</span>
@@ -280,9 +417,18 @@ function EmployerMypage() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={`${STORAGE_URLS.BIZ_LOC.PHOTO}${bizLocData?.logoImg}`}
+                    src={
+                      bizLocData?.logoImg?.startsWith("data:")
+                        ? bizLocData.logoImg
+                        : `${STORAGE_URLS.BIZ_LOC.PHOTO}${bizLocData?.logoImg}`
+                    }
                     alt={bizLocData?.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // 이미지 로드 실패 시 기본 이미지로 대체
+                      const target = e.target as HTMLImageElement;
+                      target.src = `${STORAGE_URLS.BIZ_LOC.PHOTO}bizLoc_default.png`;
+                    }}
                   />
                 </div>
                 <button
@@ -322,12 +468,49 @@ function EmployerMypage() {
           <span>Business Information</span>
         </h3>
 
+        <InfoSection
+          iconClassName="bg-gradient-to-br from-indigo-100 to-blue-100"
+          icon={<MapPin size={18} className="text-indigo-600" />}
+          title="Business Location"
+          subtitle="Your business location"
+          onEdit={() => handleEdit("location")}
+          isEditing={isEditing.location}
+          onSave={() => handleOptionsSave("location")}
+          onCancel={() => handleCancel("location")}
+        >
+          {isEditing.location ? (
+            <div>
+              <Select
+                value={tempData.location}
+                onValueChange={(value) =>
+                  setTempData((prev) => ({ ...prev, location: value as Location }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select your location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(Location).map((location) => (
+                    <SelectItem key={location} value={location}>
+                      {getLocationDisplayName(location)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <span className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+              {getLocationDisplayName(bizLocData?.location) || "Not specified"}
+            </span>
+          )}
+        </InfoSection>
+
         {/* 2️⃣ Address Section */}
         <InfoSection
           iconClassName="bg-gradient-to-br from-green-100 to-emerald-100"
           icon={<MapPin size={18} className="text-emerald-600" />}
           title="Business Address"
-          subtitle="Your business location"
+          subtitle="Your business address"
           onEdit={() => handleEdit("address")}
           isEditing={isEditing.address}
           onSave={() => handleOptionsSave("address")}
@@ -428,26 +611,36 @@ function EmployerMypage() {
             <div>
               <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-4 scrollbar-hide px-2">
                 {bizLocData?.extraPhotos.map((image, index) => {
-                  if (image == "") return null;
+                  if (image == "" || deletedImageIndexes.has(index)) return null;
                   return (
-                  <div key={index} className="relative flex-shrink-0 group p-2">
-                <div
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
-                  <img
-                    src={`${STORAGE_URLS.BIZ_LOC.PHOTO}${image}`}
-                    alt={`Workplace ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                  />
-                </div>
-                <button
-                  onClick={() => handleRemoveImage(index)}
-                  className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
-                >
-                  <X size={12} />
-                </button>
-              </div>)}
-                )}
-                {bizLocData.extraPhotos.length < 5 && (
+                    <div key={index} className="relative flex-shrink-0 group p-2">
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
+                        <img
+                          src={
+                            image.startsWith("data:")
+                              ? image
+                              : `${STORAGE_URLS.BIZ_LOC.PHOTO}${image}`
+                          }
+                          alt={`Workplace ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          onError={(e) => {
+                            // 이미지 로드 실패 시 기본 이미지로 대체
+                            const target = e.target as HTMLImageElement;
+                            target.src = `${STORAGE_URLS.BIZ_LOC.PHOTO}bizLoc_default.png`;
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {bizLocData?.extraPhotos.filter((_, index) => !deletedImageIndexes.has(index))
+                  .length < 5 && (
                   <div className="flex-shrink-0 p-2">
                     <button
                       onClick={handleAddPhotoClick}
@@ -471,16 +664,23 @@ function EmployerMypage() {
               </div>
               <div className="flex items-center justify-between mt-3 mb-6 sm:">
                 <span className="text-xs text-slate-500">
-                  {bizLocData?.extraPhotos.length} of 5 photos
+                  {
+                    bizLocData?.extraPhotos.filter((_, index) => !deletedImageIndexes.has(index))
+                      .length
+                  }{" "}
+                  of 5 photos
                 </span>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
                       className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                         i < bizLocData.extraPhotos.length
-                            ? "bg-indigo-400"
-                            : "bg-slate-200"
+                        i <
+                        bizLocData?.extraPhotos.filter(
+                          (_, index) => !deletedImageIndexes.has(index)
+                        ).length
+                          ? "bg-indigo-400"
+                          : "bg-slate-200"
                       }`}
                     />
                   ))}
@@ -522,7 +722,7 @@ function EmployerMypage() {
               label="Description"
               value={tempData.bizDescription}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                handleTempInputChange("description", e.target.value)
+                handleTempInputChange("bizDescription", e.target.value)
               }
               rows={3}
             />
