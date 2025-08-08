@@ -4,8 +4,8 @@ import { Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BackHeader from "@/components/common/BackHeader";
 import { useEmployerUrgentJobPosts } from "@/hooks/employer/useEmployerDashboard";
-import LoadingScreen from "@/components/common/LoadingScreen";
 import UrgentJobPostCard from "./components/UrgentJobPostCard";
+import UrgentJobPostCardSkeleton from "./components/UrgentJobPostCardSkeleton";
 import { PAGE_URLS } from "@/constants/api";
 
 function ReviewPostsPage() {
@@ -37,7 +37,6 @@ function ReviewPostsPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
-      {loadingStates.urgentJobPosts && <LoadingScreen overlay={true} opacity="light" />}
       <BackHeader title="Update Application Status" />
 
       {/* Status Banner */}
@@ -86,18 +85,24 @@ function ReviewPostsPage() {
       {/* Job Posts List */}
       <div className="max-w-6xl mx-auto px-4 lg:px-6 pb-6">
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
-          {filteredJobPosts.map((jobPost) => (
-            <UrgentJobPostCard
-              key={jobPost.id}
-              jobPost={jobPost}
-              onViewDetail={handleViewDetail}
-              onViewApplicants={handleViewApplicants}
-            />
-          ))}
+          {loadingStates.urgentJobPosts
+            ? // 스켈레톤 로딩 상태
+              Array.from({ length: 4 }).map((_, index) => (
+                <UrgentJobPostCardSkeleton key={`skeleton-${index}`} />
+              ))
+            : // 실제 데이터
+              filteredJobPosts.map((jobPost) => (
+                <UrgentJobPostCard
+                  key={jobPost.id}
+                  jobPost={jobPost}
+                  onViewDetail={handleViewDetail}
+                  onViewApplicants={handleViewApplicants}
+                />
+              ))}
         </div>
 
         {/* Empty State */}
-        {filteredJobPosts.length === 0 && (
+        {!loadingStates.urgentJobPosts && filteredJobPosts.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No job posts found</h3>
@@ -110,7 +115,7 @@ function ReviewPostsPage() {
         )}
 
         {/* All Caught Up State */}
-        {totalPending === 0 && filteredJobPosts.length > 0 && (
+        {!loadingStates.urgentJobPosts && totalPending === 0 && filteredJobPosts.length > 0 && (
           <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center mt-6">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-green-600" />
