@@ -27,22 +27,21 @@ function ApplicantDetailSkeleton() {
                 <div className="relative">
                   <div className="w-20 lg:w-24 h-20 lg:h-24 rounded-full bg-gray-200 animate-pulse" />
                 </div>
-                <div className="flex-1 lg:flex-none w-full lg:w-56">
-                  <div className="h-6 bg-gray-200 rounded w-40 lg:w-full animate-pulse mb-2" />
-                  <div className="h-4 bg-gray-200 rounded w-32 lg:w-40 animate-pulse" />
+                <div className="flex-1 lg:flex-none lg:text-center">
+                  <div className="h-6 lg:h-8 bg-gray-200 rounded w-32 lg:w-48 animate-pulse mb-2 lg:mx-auto" />
+                  <div className="h-4 lg:h-5 bg-gray-200 rounded w-24 lg:w-40 animate-pulse lg:mx-auto" />
                 </div>
               </div>
-              <div className="hidden lg:flex gap-4 mt-8">
+              <div className="hidden lg:flex gap-4 mt-8 justify-center">
                 <div className="h-10 bg-gray-200 rounded w-24 animate-pulse" />
                 <div className="h-10 bg-gray-200 rounded w-24 animate-pulse" />
               </div>
             </section>
 
             <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
-              <div className="h-5 bg-gray-200 rounded w-48 animate-pulse mb-4" />
-              <div className="flex flex-wrap gap-2 mb-5">
-                <div className="h-8 bg-gray-200 rounded-full w-24 animate-pulse" />
-                <div className="h-8 bg-gray-200 rounded-full w-28 animate-pulse" />
+              <div className="h-5 lg:h-6 bg-gray-200 rounded w-48 animate-pulse mb-4 lg:mb-6" />
+              <div className="flex flex-wrap gap-2 lg:gap-3 mb-5 lg:mb-6">
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-24 lg:w-32 animate-pulse" />
               </div>
               <div className="space-y-2">
                 <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
@@ -54,25 +53,26 @@ function ApplicantDetailSkeleton() {
 
           <div className="lg:col-span-2 space-y-6">
             <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
-              <div className="h-5 bg-gray-200 rounded w-48 animate-pulse mb-4" />
-              <div className="flex flex-wrap gap-2 mb-6">
-                <div className="h-8 bg-gray-200 rounded-full w-24 animate-pulse" />
-                <div className="h-8 bg-gray-200 rounded-full w-28 animate-pulse" />
-                <div className="h-8 bg-gray-200 rounded-full w-20 animate-pulse" />
+              <div className="h-5 lg:h-6 bg-gray-200 rounded w-48 animate-pulse mb-4 lg:mb-6" />
+              <div className="flex flex-wrap gap-2 lg:gap-3 mb-6 lg:mb-8">
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-24 lg:w-32 animate-pulse" />
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-28 lg:w-36 animate-pulse" />
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-20 lg:w-28 animate-pulse" />
               </div>
-              <div className="space-y-6">
+              <div className="space-y-5 lg:space-y-6">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="relative pl-8 lg:pl-10">
                     <div className="absolute left-0 top-1.5 lg:top-2 w-4 h-4 lg:w-5 lg:h-5 bg-gray-200 rounded-full" />
-                    <div className="h-4 bg-gray-200 rounded w-56 animate-pulse mb-2" />
-                    <div className="h-3 bg-gray-100 rounded w-40 animate-pulse" />
+                    <div className="h-4 lg:h-5 bg-gray-200 rounded w-32 lg:w-40 animate-pulse mb-1 lg:mb-2" />
+                    <div className="h-3 lg:h-4 bg-gray-100 rounded w-24 lg:w-32 animate-pulse mb-1" />
+                    <div className="h-3 lg:h-4 bg-gray-100 rounded w-20 lg:w-28 animate-pulse" />
                   </div>
                 ))}
               </div>
             </section>
 
             <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
-              <div className="h-5 bg-gray-200 rounded w-40 animate-pulse mb-4" />
+              <div className="h-5 lg:h-6 bg-gray-200 rounded w-40 animate-pulse mb-5 lg:mb-6" />
               <div className="space-y-2">
                 <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
                 <div className="h-4 bg-gray-100 rounded w-11/12 animate-pulse" />
@@ -120,6 +120,15 @@ function ApplicantDetailPage() {
     [appDetail?.work_experiences]
   );
 
+  // TODO 정연
+  const onClickAccept = () => {
+    console.log("accept");
+  };
+
+  const onClickDeny = () => {
+    console.log("deny");
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {loadingStates.appDetail && <ApplicantDetailSkeleton />}
@@ -148,7 +157,7 @@ function ApplicantDetailPage() {
                         />
                       </div>
                     </div>
-                    <div className="flex-1 lg:flex-none">
+                    <div className="flex-1 lg:flex-none lg:text-center">
                       <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 tracking-tight">
                         {displayName}
                       </h2>
@@ -161,9 +170,13 @@ function ApplicantDetailPage() {
                     </div>
                   </div>
                   {/* 데스크탑용 버튼 */}
-                  <div className="hidden lg:flex gap-4 mt-8">
-                    <Button variant="black">Deny</Button>
-                    <Button variant="default">Accept</Button>
+                  <div className="hidden lg:flex gap-4 mt-8 justify-center">
+                    <Button variant="black" onClick={onClickDeny}>
+                      Deny
+                    </Button>
+                    <Button variant="default" onClick={onClickAccept}>
+                      Accept
+                    </Button>
                   </div>
                 </section>
 
@@ -253,10 +266,10 @@ function ApplicantDetailPage() {
 
           {/* 모바일 하단 고정 버튼 */}
           <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl flex gap-4 lg:hidden">
-            <Button variant="black" size="xl">
+            <Button variant="black" size="xl" onClick={onClickDeny}>
               Deny
             </Button>
-            <Button variant="default" size="xl">
+            <Button variant="default" size="xl" onClick={onClickAccept}>
               Accept
             </Button>
           </div>
