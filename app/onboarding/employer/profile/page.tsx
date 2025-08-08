@@ -10,16 +10,18 @@ import PhotoComponent from "@/components/ui/PhotoComponent";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
 import ProgressHeader from "@/components/common/ProgressHeader";
 import { deleteSingleEmployerImage } from "@/app/services/employer-services";
-import { Chip } from "@/components/ui/Chip";
-import { FormSection } from "@/components/common/FormSection";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import {
-  convertLocationKeyToValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import {
   getAllLocationsWithDisplayNames,
-  getLocationDisplayName, Location,
+  getLocationDisplayName,
+  Location,
 } from "@/constants/location";
-import { toPrismaLocation } from "@/types/enumMapper";
-import { router } from "next/client";
 import { PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
 
@@ -27,7 +29,7 @@ interface EmployerFormData {
   businessName: string;
   phoneNumber: string;
   address: string;
-  location: (Location | null);
+  location: Location | null;
   startTime: string;
   endTime: string;
   description: string;
@@ -40,7 +42,6 @@ type LocationOption = {
   value: Location; // enum type
   label: string;
 };
-
 
 function EmployerProfileHeader() {
   return (
@@ -113,12 +114,12 @@ export default function EmployerProfilePage() {
     photos: [],
   });
   // get locations
-  const getCities= ():LocationOption[] => {
+  const getCities = (): LocationOption[] => {
     return getAllLocationsWithDisplayNames().map((item) => ({
       value: item.value as Location, // casting string → enum
       label: item.label,
     }));
-  }
+  };
 
   const [photos, setPhotos] = useState<(File | string)[]>([]);
   const [logoImg, setLogoImg] = useState<(File | string)[]>([]);
@@ -128,16 +129,6 @@ export default function EmployerProfilePage() {
     setProfileFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const handleTagChange = (tag: keyof EmployerFormData["optionalTags"]) => {
-    setProfileFormData((prev) => ({
-      ...prev,
-      optionalTags: {
-        ...prev.optionalTags,
-        [tag]: !prev.optionalTags[tag],
-      },
     }));
   };
 
@@ -303,30 +294,34 @@ export default function EmployerProfilePage() {
                   >
                     Location <span className="text-red-500">*</span>
                   </Typography>
-                    <Select
-                      value={profileFormData.location || ""}
-                      onValueChange={(value) => handleInputChange("location", value)}
-                    >
-                      <SelectTrigger className="w-full px-4 py-4 rounded-2xl border border-gray-200/80 bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 outline-none text-gray-900 font-medium shadow-sm hover:shadow-md hover:border-gray-300 appearance-none">
-                        <SelectValue placeholder="Select preferred city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.isArray(cities) && cities.length > 0 ? (
-                          cities.map((city) => {
-                            const displayName = getLocationDisplayName(city.value);
-                            return (
-                              <SelectItem key={city.value} value={city.value} selectedValue={profileFormData.location || ""}>
-                                {displayName}
-                              </SelectItem>
-                            );
-                          })
-                        ) : (
-                          <SelectItem value="" disabled>
-                            No cities available
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                  <Select
+                    value={profileFormData.location || ""}
+                    onValueChange={(value) => handleInputChange("location", value)}
+                  >
+                    <SelectTrigger className="w-full px-4 py-4 rounded-2xl border border-gray-200/80 bg-gray-50/50 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 transition-all duration-300 outline-none text-gray-900 font-medium shadow-sm hover:shadow-md hover:border-gray-300 appearance-none">
+                      <SelectValue placeholder="Select preferred city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.isArray(cities) && cities.length > 0 ? (
+                        cities.map((city) => {
+                          const displayName = getLocationDisplayName(city.value);
+                          return (
+                            <SelectItem
+                              key={city.value}
+                              value={city.value}
+                              selectedValue={profileFormData.location || ""}
+                            >
+                              {displayName}
+                            </SelectItem>
+                          );
+                        })
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No cities available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Operating Hours */}

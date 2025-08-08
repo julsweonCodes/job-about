@@ -1,6 +1,5 @@
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
-import { getUserIdFromSession } from "@/utils/auth";
 import {
   Role,
   WorkType,
@@ -19,7 +18,6 @@ import {
   toPrismaJobStatus,
   toLocation,
   fromPrismaLocation,
-  toWorkType,
   fromPrismaWorkType,
 } from "@/types/enumMapper";
 import { BizLocInfo, JobPostData } from "@/types/client/jobPost";
@@ -30,8 +28,7 @@ import { HttpError } from "../lib/server/commonResponse";
 import { JobType } from "@/constants/jobTypes";
 
 // Create Job Post
-export async function createJobPost(payload: JobPostPayload) {
-  const userId = await getUserIdFromSession();
+export async function createJobPost(payload: JobPostPayload, userId: number) {
   const bizLocId = await getBusinessLocId(userId);
 
   const createdPost = await prisma.job_posts.create({
