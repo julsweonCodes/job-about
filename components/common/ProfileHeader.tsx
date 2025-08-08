@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { PAGE_URLS } from "@/constants/api";
+import { DEFAULT_PROFILE_IMAGE, DEFAULT_BUSINESS_IMAGE } from "@/constants/storage";
 
 interface HeaderProps {
   showProfileImage?: boolean;
@@ -14,7 +15,6 @@ interface HeaderProps {
 
 // 상수 정의
 const DROPDOWN_TIMEOUT_DELAY = 100;
-const DEFAULT_PROFILE_IMAGE = "/images/img-default-profile.png";
 
 export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }) => {
   const router = useRouter();
@@ -30,8 +30,9 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ showProfileImage = true }
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 프로필 이미지 URL
-  const displayImage = getUserProfileImageUrl() || DEFAULT_PROFILE_IMAGE;
+  // 프로필 이미지 URL - role에 따라 다른 기본 이미지 사용
+  const displayImage =
+    getUserProfileImageUrl() || (isEmployer() ? DEFAULT_BUSINESS_IMAGE : DEFAULT_PROFILE_IMAGE);
 
   const mypagePath = useMemo(() => {
     // 인증 상태가 아직 초기화되지 않았으면 기본값 사용하지 않음
@@ -248,7 +249,7 @@ const AuthenticatedUserUI: React.FC<{
           src={displayImage}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-purple-300 transition-colors duration-200"
-          fallbackSrc={DEFAULT_PROFILE_IMAGE}
+          fallbackSrc={isEmployer() ? DEFAULT_BUSINESS_IMAGE : DEFAULT_PROFILE_IMAGE}
         />
       </div>
 
