@@ -50,6 +50,10 @@ export interface BizLocInfo {
   location: Location;
   workingHours: string;
   address?: string;
+  startTime?: string;
+  endTime?: string;
+  created_at?: string;
+  phone?: string;
 }
 
 /**
