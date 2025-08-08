@@ -12,7 +12,7 @@ import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
-import { apiGetData, apiPatchData, ApiError } from "@/utils/client/API";
+import { apiGetData, apiPatchData } from "@/utils/client/API";
 import { Button } from "../ui/Button";
 
 // Types
@@ -20,11 +20,6 @@ type DescriptionVersion = "manual" | "struct1" | "struct2";
 
 interface Props {
   postId: string;
-}
-
-interface LoadingStates {
-  jobDetails: boolean;
-  publish: boolean;
 }
 
 interface TempEditData {
@@ -38,6 +33,11 @@ interface EditDialogData {
   description: string;
 }
 
+interface PreviewJobPostResponse {
+  postData: JobPostData;
+  geminiRes?: string;
+}
+
 // Constants
 const DESCRIPTION_LABELS: Record<DescriptionVersion, string> = {
   manual: "Manual Description",
@@ -45,58 +45,13 @@ const DESCRIPTION_LABELS: Record<DescriptionVersion, string> = {
   struct2: "AI Structure 2",
 };
 
-const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
-  const useAI = searchParams.get("useAI") === "true";
-
-  // Core state
-  const [jobPostData, setJobPostData] = useState<JobPostData>();
+// Custom Hooks
+const usePreviewJobPost = (postId: string) => {
+  const [jobPostData, setJobPostData] = useState<JobPostData | null>(null);
   const [geminiRes, setGeminiRes] = useState<string[]>([]);
-  const [selectedVersion, setSelectedVersion] = useState<DescriptionVersion>("manual");
-  const [newJobDesc, setNewJobDesc] = useState<string>();
-
-  // Loading states
-  const [loadingStates, setLoadingStates] = useState<LoadingStates>({
-    jobDetails: true,
-    publish: false,
-  });
-
-  // Edit dialog state
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingVersion, setEditingVersion] = useState<DescriptionVersion>("manual");
-  const [dialogContent, setDialogContent] = useState("");
-
-  // Temp edit data - stores edited versions of descriptions
-  const [tempEditData, setTempEditData] = useState<TempEditData>({
-    manual: "",
-    struct1: "",
-    struct2: "",
-  });
-
-  // Initialization flag to prevent duplicate calls
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const isInitializingRef = useRef(false);
-
-  // Utility functions
-  const handlePageError = useCallback(
-    (errorMessage: string) => {
-      console.error(`JobPreviewEditPage Error: ${errorMessage}`);
-
-      if (errorMessage.includes("Unauthorized")) {
-        showErrorToast("Please log in again to access this page.");
-        window.location.href = "/auth/signin";
-      } else if (errorMessage.includes("not found") || errorMessage.includes("access denied")) {
-        showErrorToast("Job post not found or access denied.");
-        router.replace(PAGE_URLS.EMPLOYER.ROOT);
-      } else {
-        showErrorToast("This page is no longer accessible.");
-        router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
-      }
-    },
-    [postId, router]
-  );
 
   const processGeminiResponse = useCallback((rawGemini: string): string[] => {
     try {
@@ -118,126 +73,219 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     }
   }, []);
 
+  const fetchData = useCallback(async () => {
+    if (isInitializingRef.current) return;
+    isInitializingRef.current = true;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await apiGetData<PreviewJobPostResponse>(
+        `${API_URLS.EMPLOYER.POST.PUBLISH(postId)}`
+      );
+
+      // Handle string response (e.g., "no data")
+      if (typeof data === "string") {
+        throw new Error("Invalid job post status");
+      }
+
+      // Handle object response
+      if (data?.postData?.status !== "draft") {
+        throw new Error("Invalid job post status");
+      }
+
+      setJobPostData(data.postData);
+
+      if (data.geminiRes) {
+        const processedGemini = processGeminiResponse(data.geminiRes);
+        setGeminiRes(processedGemini);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch job post";
+      setError(errorMessage);
+      console.error("Failed to fetch job post:", error);
+    } finally {
+      setLoading(false);
+      isInitializingRef.current = false;
+    }
+  }, [postId, processGeminiResponse]);
+
+  useEffect(() => {
+    if (postId) {
+      fetchData();
+    }
+  }, [postId, fetchData]);
+
+  return {
+    jobPostData,
+    geminiRes,
+    loading,
+    error,
+    refetch: fetchData,
+  };
+};
+
+const useDescriptionManagement = (jobPostData: JobPostData | null, geminiRes: string[]) => {
+  const [selectedVersion, setSelectedVersion] = useState<DescriptionVersion>("manual");
+  const [tempEditData, setTempEditData] = useState<TempEditData>({
+    manual: "",
+    struct1: "",
+    struct2: "",
+  });
+
   const initializeTempEditData = useCallback((jobData: JobPostData, gemini: string[]) => {
     const newTempEditData: TempEditData = {
-      manual: jobData.jobDescription || "",
+      manual: String(jobData.jobDescription || ""),
       struct1: gemini[0] || "",
       struct2: gemini[1] || "",
     };
     setTempEditData(newTempEditData);
   }, []);
 
-  // Data fetching
-  const fetchPreviewJobPost = useCallback(async () => {
-    try {
-      const data = await apiGetData(`${API_URLS.EMPLOYER.POST.PUBLISH(postId)}`);
-
-      // Handle string response (e.g., "no data")
-      if (typeof data === "string") {
-        handlePageError("Invalid job post status");
-        return;
-      }
-
-      // Handle object response
-      if (data?.postData?.status !== "draft") {
-        handlePageError("Invalid job post status");
-        return;
-      }
-
-      const postData = data.postData;
-      setJobPostData(postData);
-      setNewJobDesc(postData.jobDescription);
-
-      const rawGemini = data.geminiRes;
-      if (rawGemini) {
-        const processedGemini = processGeminiResponse(rawGemini);
-        setGeminiRes(processedGemini);
-      }
-    } catch (error) {
-      console.error("Failed to fetch job post:", error);
-
-      showErrorToast(error instanceof Error ? error.message : "Failed to fetch job post");
-
-      // 토스트가 보이도록 2초 후에 페이지 이동
-      setTimeout(() => {
-        router.back();
-      }, 2000);
-    } finally {
-      setIsInitialized(true);
-    }
-  }, [postId, handlePageError, processGeminiResponse]);
-
-  const initializeData = useCallback(async () => {
-    if (isInitialized || isInitializingRef.current) return;
-
-    isInitializingRef.current = true;
-
-    try {
-      setLoadingStates((prev) => ({ ...prev, jobDetails: true }));
-      await fetchPreviewJobPost();
-    } catch (error) {
-      console.error("Error initializing data:", error);
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, jobDetails: false }));
-      isInitializingRef.current = false;
-    }
-  }, [fetchPreviewJobPost, isInitialized]);
-
-  // Initialize tempEditData when data is available
   useEffect(() => {
-    if (jobPostData && geminiRes && !isInitialized) {
+    if (jobPostData) {
       initializeTempEditData(jobPostData, geminiRes);
     }
-  }, [jobPostData, geminiRes, isInitialized, initializeTempEditData]);
+  }, [jobPostData, geminiRes, initializeTempEditData]);
 
-  // Initialize data on mount
-  useEffect(() => {
-    if (postId && !isInitialized) {
-      initializeData();
-    }
-  }, [postId, initializeData, isInitialized]);
-
-  // Edit handlers
-  const handleEdit = useCallback((section: string, data: EditDialogData) => {
-    if (section === "description") {
-      const { selectedVersion: version, description: content } = data;
-
-      setEditingVersion(version);
-      setDialogContent(content);
-      setIsDialogOpen(true);
-    }
-  }, []);
-
-  const handleSave = useCallback(() => {
-    // Update tempEditData with edited content
+  const updateTempEditData = useCallback((version: DescriptionVersion, content: string) => {
     setTempEditData((prev) => ({
       ...prev,
-      [editingVersion]: dialogContent,
+      [version]: content,
     }));
+  }, []);
 
-    // Update newJobDesc with selected version content
-    const updatedTempData = {
-      ...tempEditData,
-      [editingVersion]: dialogContent,
-    };
+  const getSelectedDescription = useCallback(() => {
+    return tempEditData[selectedVersion] || "";
+  }, [tempEditData, selectedVersion]);
 
-    if (selectedVersion) {
-      setNewJobDesc(updatedTempData[selectedVersion]);
-    }
+  return {
+    selectedVersion,
+    setSelectedVersion,
+    tempEditData,
+    updateTempEditData,
+    getSelectedDescription,
+  };
+};
 
+const useEditDialog = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingVersion, setEditingVersion] = useState<DescriptionVersion>("manual");
+  const [dialogContent, setDialogContent] = useState("");
+
+  const openDialog = useCallback((version: DescriptionVersion, content: string) => {
+    setEditingVersion(version);
+    setDialogContent(content);
+    setIsDialogOpen(true);
+  }, []);
+
+  const closeDialog = useCallback(() => {
     setIsDialogOpen(false);
-  }, [editingVersion, dialogContent, tempEditData, selectedVersion]);
+  }, []);
+
+  const updateDialogContent = useCallback((content: string) => {
+    setDialogContent(content);
+  }, []);
+
+  return {
+    isDialogOpen,
+    editingVersion,
+    dialogContent,
+    openDialog,
+    closeDialog,
+    updateDialogContent,
+  };
+};
+
+const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const useAI = searchParams.get("useAI") === "true";
+
+  // Custom hooks
+  const { jobPostData, geminiRes, loading, error } = usePreviewJobPost(postId);
+  const {
+    selectedVersion,
+    setSelectedVersion,
+    tempEditData,
+    updateTempEditData,
+    getSelectedDescription,
+  } = useDescriptionManagement(jobPostData, geminiRes);
+  const {
+    isDialogOpen,
+    editingVersion,
+    dialogContent,
+    openDialog,
+    closeDialog,
+    updateDialogContent,
+  } = useEditDialog();
+
+  // Loading states
+  const [publishLoading, setPublishLoading] = useState(false);
+
+  // Error handling
+  const handlePageError = useCallback(
+    (errorMessage: string) => {
+      console.error(`JobPreviewEditPage Error: ${errorMessage}`);
+
+      if (errorMessage.includes("Unauthorized")) {
+        showErrorToast("Please log in again to access this page.");
+        window.location.href = "/auth/signin";
+      } else if (errorMessage.includes("not found") || errorMessage.includes("access denied")) {
+        showErrorToast("Job post not found or access denied.");
+        router.replace(PAGE_URLS.EMPLOYER.ROOT);
+      } else {
+        showErrorToast("This page is no longer accessible.");
+        router.replace(PAGE_URLS.EMPLOYER.POST.DETAIL(postId));
+      }
+    },
+    [postId, router]
+  );
+
+  // Handle error from custom hook
+  useEffect(() => {
+    if (error) {
+      handlePageError(error);
+    }
+  }, [error, handlePageError]);
+
+  // Edit handlers
+  const handleEdit = useCallback(
+    (section: string, data: EditDialogData) => {
+      if (section === "description") {
+        const { selectedVersion: version, description: content } = data;
+
+        // useAI 조건에 따른 수정 가능 여부 확인
+        if (!useAI && version !== "manual") {
+          showErrorToast("AI descriptions are not available in this mode.");
+          return;
+        }
+
+        openDialog(version, content);
+      }
+    },
+    [useAI, openDialog]
+  );
+
+  const handleSave = useCallback(() => {
+    updateTempEditData(editingVersion, dialogContent);
+    closeDialog();
+  }, [editingVersion, dialogContent, updateTempEditData, closeDialog]);
 
   const handlePublish = useCallback(async () => {
     try {
-      setLoadingStates((prev) => ({ ...prev, publish: true }));
+      setPublishLoading(true);
+
+      const descriptionToPublish = getSelectedDescription();
 
       await apiPatchData(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
         postId,
-        newJobDesc,
+        newJobDesc: descriptionToPublish,
       });
 
-      // Job posts 캐시 무효화 (job post가 publish되었으므로)
+      // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.ACTIVE_JOB_POSTS });
       queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DRAFT_JOB_POSTS });
       queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.DASHBOARD });
@@ -248,16 +296,16 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
       console.error("Publish error:", error);
       showErrorToast(error instanceof Error ? error.message : "Failed to publish job post");
     } finally {
-      setLoadingStates((prev) => ({ ...prev, publish: false }));
+      setPublishLoading(false);
     }
-  }, [postId, newJobDesc, router, queryClient]);
+  }, [postId, getSelectedDescription, router, queryClient]);
 
   const getDialogTitle = useCallback((version: DescriptionVersion): string => {
     return `Edit ${DESCRIPTION_LABELS[version]}`;
   }, []);
 
   // Loading state
-  if (loadingStates.jobDetails) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 font-pretendard">
         <PostHeader previewMode />
@@ -266,36 +314,47 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     );
   }
 
+  // Error state
+  if (error || !jobPostData) {
+    return (
+      <div className="min-h-screen bg-gray-50 font-pretendard">
+        <PostHeader previewMode />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to load job post</h2>
+            <p className="text-gray-600">Please try again later.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-pretendard">
       <PostHeader previewMode />
 
-      {jobPostData && (
-        <JobPostView
-          jobData={jobPostData}
-          mode="preview"
-          onEdit={handleEdit}
-          onPublish={handlePublish}
-          showEditButtons={true}
-          showPublishButton
-          editableSections={["description"]}
-          useAI={useAI}
-          geminiRes={geminiRes}
-          selectedVersion={selectedVersion}
-          onSelectVersion={setSelectedVersion}
-          jobDescriptions={tempEditData}
-        />
-      )}
+      <JobPostView
+        jobData={jobPostData}
+        mode="preview"
+        onEdit={handleEdit}
+        onPublish={handlePublish}
+        showEditButtons={true}
+        showPublishButton
+        editableSections={["description"]}
+        useAI={useAI}
+        geminiRes={geminiRes}
+        selectedVersion={selectedVersion}
+        onSelectVersion={setSelectedVersion}
+        jobDescriptions={tempEditData}
+      />
 
       {/* Publish loading overlay */}
-      {loadingStates.publish && (
-        <LoadingScreen overlay={true} opacity="light" message="Publishing..." />
-      )}
+      {publishLoading && <LoadingScreen overlay={true} opacity="light" message="Publishing..." />}
 
       {/* Edit dialog */}
       <BaseDialog
         open={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        onClose={closeDialog}
         title={getDialogTitle(editingVersion)}
         size="lg"
         actions={
@@ -309,7 +368,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
         <TextArea
           rows={6}
           value={dialogContent}
-          onChange={(e) => setDialogContent(e.target.value)}
+          onChange={(e) => updateDialogContent(e.target.value)}
           className="w-full pt-3 pb-1 scrollbar-none"
           placeholder="Describe the role, responsibilities, and what makes this opportunity special..."
         />
