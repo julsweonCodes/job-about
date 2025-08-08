@@ -59,11 +59,12 @@ const InfoSectionSkeleton = () => (
   <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden">
     <div className="p-5 sm:p-8">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-xl animate-pulse" />
-        <div className="space-y-2">
-          <div className="h-5 bg-gray-200 rounded animate-pulse w-32" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-48" />
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl animate-pulse" />
+        <div className="flex-1 space-y-2">
+          <div className="h-5 bg-gray-200 rounded animate-pulse w-32 sm:w-40" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-48 sm:w-56" />
         </div>
+        <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse" />
       </div>
       <div className="space-y-3">
         <div className="h-4 bg-gray-200 rounded animate-pulse" />
@@ -79,14 +80,41 @@ const ProfileSkeleton = () => (
     <div className="p-5 sm:p-8">
       <div className="flex flex-col items-center text-center sm:flex-row sm:text-left gap-4 sm:gap-6">
         <div className="relative flex-shrink-0">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden bg-gray-200 animate-pulse" />
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
         </div>
         <div className="flex-1 space-y-3">
-          <div className="h-8 bg-gray-200 rounded animate-pulse w-48" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+          <div className="h-8 bg-gray-200 rounded animate-pulse w-32 sm:w-48" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-full max-w-xs" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4 max-w-sm" />
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="h-3 bg-gray-200 rounded animate-pulse w-24" />
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+);
+
+const WorkplacePhotosSkeleton = () => (
+  <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 p-5 sm:p-6">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
+        <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
+      </div>
+      <div className="flex-1">
+        <div className="h-5 bg-gray-200 rounded animate-pulse w-32 mb-1" />
+        <div className="h-3 bg-gray-200 rounded animate-pulse w-48" />
+      </div>
+    </div>
+    <div className="flex gap-2 overflow-x-auto pb-4">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="flex-shrink-0">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-gray-200 animate-pulse" />
+        </div>
+      ))}
+      <div className="flex-shrink-0">
+        <div className="w-24 h-24 sm:w-28 sm:h-28 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 animate-pulse" />
       </div>
     </div>
   </div>
@@ -368,14 +396,23 @@ function EmployerMypage() {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
         <BackHeader title="My Business Profile" />
-        <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Basic Information</h3>
-          <ProfileSkeleton />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-5">
+          <div className="px-1">
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-4" />
+            <ProfileSkeleton />
+          </div>
 
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Business Information</h3>
-          {Array.from({ length: 3 }).map((_, index) => (
-            <InfoSectionSkeleton key={index} />
-          ))}
+          <div className="px-1">
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-40 mb-4" />
+            {Array.from({ length: 4 }).map((_, index) => (
+              <InfoSectionSkeleton key={index} />
+            ))}
+          </div>
+
+          <div className="px-1">
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-36 mb-4" />
+            <WorkplacePhotosSkeleton />
+          </div>
         </div>
       </div>
     );
@@ -399,16 +436,18 @@ function EmployerMypage() {
       {/* Header */}
       <BackHeader title="My Business Profile" />
       {isUpdating && <LoadingScreen overlay={true} opacity="light" />}
-      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
-        <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
-          <span>Basic Information</span>
-          <button
-            onClick={handleProfileEdit}
-            className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
-          >
-            <Edit3 size={16} className="text-slate-600" />
-          </button>
-        </h3>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-5">
+        <div className="px-1">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center justify-between">
+            <span>Basic Information</span>
+            <button
+              onClick={handleProfileEdit}
+              className="p-2 sm:p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 touch-manipulation"
+            >
+              <Edit3 size={16} className="text-slate-600" />
+            </button>
+          </h3>
+        </div>
 
         {/* Business Profile */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50">
@@ -464,9 +503,9 @@ function EmployerMypage() {
           </div>
         </div>
 
-        <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
-          <span>Business Information</span>
-        </h3>
+        <div className="px-1">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900">Business Information</h3>
+        </div>
 
         <InfoSection
           iconClassName="bg-gradient-to-br from-indigo-100 to-blue-100"
@@ -590,9 +629,11 @@ function EmployerMypage() {
 
         {/* Workplace Photos */}
         <div className="space-y-4 sm:space-y-5">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1">Workplace Photos</h3>
+          <div className="px-1">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900">Workplace Photos</h3>
+          </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 p-5 sm:p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
                 <ImageIcon size={18} className="sm:w-6 sm:h-6 text-purple-600" />
@@ -609,12 +650,12 @@ function EmployerMypage() {
 
             {/* workplace photos */}
             <div>
-              <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-4 scrollbar-hide px-2">
+              <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide px-1 sm:px-2">
                 {bizLocData?.extraPhotos.map((image, index) => {
                   if (image == "" || deletedImageIndexes.has(index)) return null;
                   return (
-                    <div key={index} className="relative flex-shrink-0 group p-2">
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
+                    <div key={index} className="relative flex-shrink-0 group p-1 sm:p-2">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
                         <img
                           src={
                             image.startsWith("data:")
@@ -641,12 +682,15 @@ function EmployerMypage() {
                 })}
                 {bizLocData?.extraPhotos.filter((_, index) => !deletedImageIndexes.has(index))
                   .length < 5 && (
-                  <div className="flex-shrink-0 p-2">
+                  <div className="flex-shrink-0 p-1 sm:p-2">
                     <button
                       onClick={handleAddPhotoClick}
-                      className="w-24 h-24 sm:w-28 sm:h-28 border-2 border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-xl flex flex-col items-center justify-center transition-all duration-200 touch-manipulation group"
+                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 border-2 border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-xl flex flex-col items-center justify-center transition-all duration-200 touch-manipulation group"
                     >
-                      <Plus size={18} className="text-slate-400 group-hover:text-indigo-500 mb-1" />
+                      <Plus
+                        size={16}
+                        className="sm:w-[18px] sm:h-[18px] text-slate-400 group-hover:text-indigo-500 mb-1"
+                      />
                       <span className="text-xs text-slate-400 group-hover:text-indigo-500 font-medium">
                         Add Photo
                       </span>
@@ -662,7 +706,7 @@ function EmployerMypage() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-between mt-3 mb-6 sm:">
+              <div className="flex items-center justify-between mt-3 mb-4 sm:mb-6">
                 <span className="text-xs text-slate-500">
                   {
                     bizLocData?.extraPhotos.filter((_, index) => !deletedImageIndexes.has(index))
@@ -674,7 +718,7 @@ function EmployerMypage() {
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors duration-200 ${
                         i <
                         bizLocData?.extraPhotos.filter(
                           (_, index) => !deletedImageIndexes.has(index)
@@ -700,6 +744,10 @@ function EmployerMypage() {
           </div>
         </div>
       </div>
+
+      {/* Bottom Spacing for Mobile */}
+      <div className="h-4 sm:h-0"></div>
+
       {/* Profile Edit Dialog */}
       <BaseDialog
         open={showProfileDialog}
