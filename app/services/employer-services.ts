@@ -1,6 +1,6 @@
 // 📁 services/employer-service.ts
 import { supabaseClient } from "@/utils/supabase/client";
-import { EmployerProfilePayload, JobPost, JobPostPayload } from "@/types/employer";
+import { EmployerProfilePayload, JobPost, JobPostPayload } from "@/types/server/employer";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";

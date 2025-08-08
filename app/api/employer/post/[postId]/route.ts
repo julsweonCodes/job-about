@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { getJobPostView } from "@/app/services/job-post-services";
 import { JobStatus } from "@/constants/enums";
 import { getUserIdFromSession } from "@/utils/auth";
-import { JobPostPayload } from "@/types/employer";
+import { JobPostPayload } from "@/types/server/employer";
 import { updateJobPost } from "@/app/services/employer-services";
 
 /**

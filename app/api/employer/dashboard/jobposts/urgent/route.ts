@@ -2,7 +2,7 @@ import { successResponse, errorResponse } from "@/app/lib/server/commonResponse"
 import { NextRequest } from "next/server";
 import { getUrgentJobPosts } from "@/app/services/employer-dash-services";
 import { getUserIdFromSession } from "@/utils/auth";
-import { JobPost } from "@/types/employer";
+import { JobPost } from "@/types/server/employer";
 
 export async function GET() {
   try {

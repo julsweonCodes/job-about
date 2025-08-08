@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
-import { JobPostPayload } from "@/types/employer";
+import { JobPostPayload } from "@/types/server/employer";
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -43,8 +43,7 @@ export async function geminiTest(payload: JobPostPayload) {
   requiredSkills: "${payload.requiredSkills}", requiredWorkStyles: "${payload.requiredWorkStyles}",
   wage: "${payload.wage}", languageLevel: "${payload.languageLevel}"
   Job Description (in Korean):
-  "${payload.jobDescription}"`
-
+  "${payload.jobDescription}"`;
 
   const result = await model.generateContent(prompt);
 

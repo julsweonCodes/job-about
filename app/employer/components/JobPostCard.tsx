@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { MapPin, Calendar, CircleDollarSign, Tag, Users } from "lucide-react";
+import { Calendar, Users } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
-import { JobPost } from "@/types/employer";
-import { $Enums } from "@prisma/client";
+import { ClientJobPost } from "@/types/client/employer";
+import { WorkType } from "@/constants/enums";
+import { getWorkTypeConfig } from "@/utils/client/styleUtils";
 
 // D-day 계산 함수
 const calculateDDay = (deadlineDate: string): number => {
@@ -19,7 +20,7 @@ const calculateDDay = (deadlineDate: string): number => {
 };
 
 interface JobPostCardProps {
-  job: JobPost;
+  job: ClientJobPost;
   onView: (id: string) => void;
   onViewApplicants?: (id: string) => void;
   isDraft?: boolean;
@@ -85,30 +86,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  // WorkType 설정
-  const getWorkTypeConfig = (workType: $Enums.WorkType) => {
-    switch (workType) {
-      case $Enums.WorkType.ON_SITE:
-        return {
-          label: "On-Site",
-          className: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
-        };
-      case $Enums.WorkType.REMOTE:
-        return {
-          label: "Remote",
-          className: "bg-green-100 text-green-800 hover:bg-green-100/80",
-        };
-      default:
-        return {
-          label: "Hybrid",
-          className: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white",
-        };
-    }
-  };
-
-  const { label: typeLabel, className: typeClass } = getWorkTypeConfig(
-    job.type || $Enums.WorkType.ON_SITE
-  );
+  const { label: typeLabel, className: typeClass } = getWorkTypeConfig(job.type);
 
   const defaultImage = "/images/img-default-part-time-work.png";
 

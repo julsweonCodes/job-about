@@ -1,6 +1,6 @@
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@/lib/utils";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { JobPost, UrgentJobPost } from "@/types/employer";
+import { JobPost, UrgentJobPost } from "@/types/server/employer";
 import { STORAGE_URLS } from "@/constants/storage";
 import { Applicant, ApplicantStatus } from "@/types/job";
 import { ApplicantDetail, WorkExperience } from "@/types/profile";
@@ -9,7 +9,8 @@ import {
   fromPrismaAppStatus,
   fromPrismaJobType,
   fromPrismaWorkPeriod,
-  fromPrismaWorkType, toPrismaAppStatus,
+  fromPrismaWorkType,
+  toPrismaAppStatus,
   toPrismaJobStatus,
 } from "@/types/enumMapper";
 import { getEmployerBizLoc } from "@/app/services/employer-services";
@@ -141,6 +142,7 @@ export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> 
     needsUpdate: post.deadline === tomorrowDateStr || post.deadline === currDateStr,
     strt_date: formatYYYYMMDDtoMonthDayYear(formatDateYYYYMMDD(post.created_at)),
     type: post.work_type,
+    jobType: post.job_type,
     views: 0,
     wage: post.wage,
     status: post.status,
@@ -478,6 +480,7 @@ export async function getUrgentJobPosts(userId: number) {
     needsUpdate: post.deadline === tomorrowDateStr || post.deadline === currDateStr,
     strt_date: formatYYYYMMDDtoMonthDayYear(formatDateYYYYMMDD(post.created_at)),
     type: post.work_type,
+    jobType: post.job_type,
     views: 0,
     wage: post.wage,
     status: post.status,
@@ -489,7 +492,12 @@ export async function getUrgentJobPosts(userId: number) {
   return formattedUrgentJobPosts.filter((jobPost) => jobPost.pendingReviewCnt > 0);
 }
 
-export async function updateAppStatus(postId: string, appId: string, newStatus: ApplicantStatus, userId: number) {
+export async function updateAppStatus(
+  postId: string,
+  appId: string,
+  newStatus: ApplicantStatus,
+  userId: number
+) {
   // Check if the user is the owner of the post
   const valid = await prisma.job_posts.findFirst({
     where: {

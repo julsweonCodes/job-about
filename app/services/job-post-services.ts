@@ -7,7 +7,7 @@ import {
   Location as LocationEnum,
   ApplicationStatus,
 } from "@prisma/client";
-import { JobPostPayload } from "@/types/employer";
+import { JobPostPayload } from "@/types/server/employer";
 import { Skill, WorkStyle } from "@/types/profile";
 import { Location } from "@/constants/location";
 

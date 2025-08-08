@@ -7,7 +7,7 @@ import {
 } from "@/app/services/employer-services";
 import { getUserIdFromSession } from "@/utils/auth";
 import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
-import { EmployerProfilePayload } from "@/types/employer";
+import { EmployerProfilePayload } from "@/types/server/employer";
 
 export async function GET() {
   const userId = await getUserIdFromSession();

@@ -1,20 +1,30 @@
 import { useQuery, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
-import { Dashboard, JobPost, UrgentJobPost } from "@/types/employer";
+import { Dashboard } from "@/types/server/employer";
 import { API_URLS } from "@/constants/api";
 import { Applicant, ApplicantStatus } from "@/types/job";
 import { ApplicantDetail } from "@/types/profile";
+import {
+  ClientJobPost,
+  UrgentClientJobPost,
+  EmployerMapper,
+  ApiJobPost,
+  ApiUrgentJobPost,
+  ApiDashboard,
+} from "@/types/client/employer";
+import { JobStatus } from "@/constants/enums";
 
 // API 함수들
 const fetchDashboard = async (): Promise<Dashboard> => {
-  const data = await apiGetData<Dashboard>(API_URLS.EMPLOYER.DASHBOARD.ROOT);
-  return data || ({} as Dashboard);
+  const data = await apiGetData<ApiDashboard>(API_URLS.EMPLOYER.DASHBOARD.ROOT);
+  return data ? EmployerMapper.fromDashboard(data) : ({} as Dashboard);
 };
 
-const fetchActiveJobPosts = async (): Promise<JobPost[]> => {
-  const data = await apiGetData<JobPost[]>(API_URLS.EMPLOYER.DASHBOARD.JOBPOSTS);
-  return Array.isArray(data) ? data : [];
+const fetchActiveJobPosts = async (): Promise<ClientJobPost[]> => {
+  const data = await apiGetData<ApiJobPost[]>(API_URLS.EMPLOYER.DASHBOARD.JOBPOSTS);
+  const mappedData = Array.isArray(data) ? EmployerMapper.fromJobPostArray(data) : [];
+  return mappedData;
 };
 
 const fetchJobPostAppList = async (postId: string): Promise<Applicant[]> => {
@@ -29,12 +39,16 @@ const fetchApplicationDetail = async (postId: string, appId: string): Promise<Ap
   return data || ({} as ApplicantDetail);
 };
 
-const fetchUrgentJobPosts = async (): Promise<UrgentJobPost[]> => {
-  const data = await apiGetData<UrgentJobPost[]>(API_URLS.EMPLOYER.DASHBOARD.URGENT);
-  return Array.isArray(data) ? data : [];
-}
+const fetchUrgentJobPosts = async (): Promise<UrgentClientJobPost[]> => {
+  const data = await apiGetData<ApiUrgentJobPost[]>(API_URLS.EMPLOYER.DASHBOARD.URGENT);
+  return Array.isArray(data) ? EmployerMapper.fromUrgentJobPostArray(data) : [];
+};
 
-export const updateApplicantStatus = async (postId: string, appId: string, status: ApplicantStatus): Promise<number> => {
+export const updateApplicantStatus = async (
+  postId: string,
+  appId: string,
+  status: ApplicantStatus
+): Promise<number> => {
   const response = await fetch(API_URLS.EMPLOYER.DASHBOARD.APPLICANT_DETAIL(postId, appId), {
     method: "PATCH",
     headers: {
@@ -51,8 +65,8 @@ export const updateApplicantStatus = async (postId: string, appId: string, statu
 
 interface UseEmployerDashboardReturn {
   dashboard: Dashboard | undefined;
-  activeJobPostList: JobPost[];
-  draftJobPostList: JobPost[];
+  activeJobPostList: ClientJobPost[];
+  draftJobPostList: ClientJobPost[];
   loadingStates: {
     dashboard: boolean;
     allJobPostList: boolean;
@@ -88,7 +102,7 @@ interface UseApplicantDetailReturn {
 }
 
 interface UseEmployerUrgentJobPostsReturn {
-  urgentJobPosts: UrgentJobPost[];
+  urgentJobPosts: UrgentClientJobPost[];
   loadingStates: {
     urgentJobPosts: boolean;
   };
@@ -98,7 +112,6 @@ interface UseEmployerUrgentJobPostsReturn {
   invalidateUrgentJobPostsList: () => void;
   queryClient: QueryClient;
 }
-
 
 export function useEmployerUrgentJobPosts(): UseEmployerUrgentJobPostsReturn {
   const queryClient = useQueryClient();
@@ -138,7 +151,8 @@ export function useEmployerUrgentJobPosts(): UseEmployerUrgentJobPostsReturn {
     error,
     isInitialized: !urgentJobPostsLoading,
     refreshAll,
-    invalidateUrgentJobPostsList: () => queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.URGENT_JOB_POSTS }),
+    invalidateUrgentJobPostsList: () =>
+      queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.URGENT_JOB_POSTS }),
     queryClient,
   };
 }
@@ -171,11 +185,12 @@ export function useEmployerDashboard(): UseEmployerDashboardReturn {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    select: (data: JobPost[]) => {
-      return {
-        draft: data.filter((p) => p.status === "DRAFT"),
-        active: data.filter((p) => p.status === "PUBLISHED"),
+    select: (data: ClientJobPost[]) => {
+      const result = {
+        draft: data.filter((p) => p.status === JobStatus.DRAFT),
+        active: data.filter((p) => p.status === JobStatus.PUBLISHED),
       };
+      return result;
     },
   });
 
