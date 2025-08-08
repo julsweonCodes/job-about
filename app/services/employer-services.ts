@@ -5,7 +5,8 @@ import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
 import {
-  fromPrismaAppStatus, fromPrismaLocation,
+  fromPrismaAppStatus,
+  fromPrismaLocation,
   fromPrismaWorkPeriod,
   fromPrismaWorkType,
   toPrismaJobStatus,
@@ -22,7 +23,7 @@ import {
   deleteAndInsertWorkStyles,
   getBusinessLocId,
 } from "@/app/services/job-post-services";
-import { BizLocInfo } from "@/types/client/jobPost";
+import { BizLocInfo } from "@/types/client/employer";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -102,26 +103,59 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
  * @param payload
  */
 
-export async function updateEmployerProfile(payload: EmployerProfilePayload) {
-  const bizLocId = await getBusinessLocId(payload.user_id);
+export async function updateEmployerProfile(payload: Partial<EmployerProfilePayload>) {
+  try {
+    const bizLocId = await getBusinessLocId(payload.user_id!);
+    console.log("Business location ID:", bizLocId);
 
-  const safePayload = {
-    ...payload,
-    description: payload.description ?? "",
-    user_id: Number(payload.user_id),
-    location: toPrismaLocationStrict(payload.location),
-  };
-  console.log(safePayload);
-  const res = await prisma.business_loc.update({
-    where: {
-      id: bizLocId,
-    },
-    data: {
-      ...safePayload,
+    // 필드 매핑 정의
+    const fieldMappings = {
+      name: "name",
+      description: "description",
+      phone_number: "phone_number",
+      address: "address",
+      location: "location",
+      operating_start: "operating_start",
+      operating_end: "operating_end",
+      logo_url: "logo_url",
+      img_url1: "img_url1",
+      img_url2: "img_url2",
+      img_url3: "img_url3",
+      img_url4: "img_url4",
+      img_url5: "img_url5",
+    };
+
+    // 부분 업데이트를 위한 데이터 준비
+    const updateData = {
       updated_at: new Date(),
-    },
-  });
-  return parseBigInt(res);
+      ...Object.entries(payload)
+        .filter(
+          ([key]) =>
+            key in fieldMappings &&
+            (payload[key as keyof typeof payload] !== undefined ||
+              payload[key as keyof typeof payload] === null)
+        )
+        .reduce(
+          (acc, [key, value]) => ({
+            ...acc,
+            [fieldMappings[key as keyof typeof fieldMappings]]:
+              key === "location" ? toPrismaLocationStrict(value as string) : value,
+          }),
+          {}
+        ),
+    };
+
+    console.log("Safe payload (partial):", updateData);
+
+    const res = await prisma.business_loc.update({
+      where: { id: bizLocId },
+      data: updateData,
+    });
+    return parseBigInt(res);
+  } catch (error) {
+    console.error("updateEmployerProfile error:", error);
+    throw error;
+  }
 }
 
 export async function updateJobPost(postId: string, payload: JobPostPayload, userId: number) {
@@ -159,15 +193,12 @@ export async function updateJobPost(postId: string, payload: JobPostPayload, use
     Number(postId),
     payload.requiredSkills
   );
-  const recWorkStyles = await deleteAndInsertWorkStyles(
-    Number(postId),
-    payload.requiredWorkStyles
-  );
+  const recWorkStyles = await deleteAndInsertWorkStyles(Number(postId), payload.requiredWorkStyles);
 
   let skillCntFlag: boolean = resPracSkills === payload.requiredSkills.length;
   let workstyleCntFlag: boolean = recWorkStyles === payload.requiredWorkStyles.length;
 
-  return parseBigInt({...res, skillCntFlag, workstyleCntFlag});
+  return parseBigInt({ ...res, skillCntFlag, workstyleCntFlag });
 }
 
 // GET business loc profile

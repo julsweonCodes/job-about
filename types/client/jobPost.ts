@@ -10,6 +10,7 @@ import {
 } from "@/types/enumMapper";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { STORAGE_URLS } from "@/constants/storage";
+import { BizLocInfo } from "@/types/client/employer";
 
 // ============================================================================
 // CLIENT TYPES - 클라이언트 전용 타입 정의
@@ -36,24 +37,6 @@ export interface JobPostData {
   applicantCount?: number;
   daysAgo?: number;
   applicationStatus?: ApplicantStatus;
-}
-
-/**
- * 비즈니스 위치 정보
- */
-export interface BizLocInfo {
-  bizLocId: string;
-  name: string;
-  bizDescription: string;
-  logoImg: string;
-  extraPhotos: string[];
-  location: Location;
-  workingHours: string;
-  address?: string;
-  startTime?: string;
-  endTime?: string;
-  created_at?: string;
-  phone?: string;
 }
 
 /**

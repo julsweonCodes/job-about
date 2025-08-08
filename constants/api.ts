@@ -28,7 +28,12 @@ export const API_URLS = {
 
   // 구인자 관련
   EMPLOYER: {
-    PROFILE: "/api/employer/profile",
+    PROFILE: {
+      ROOT: "/api/employer/profile",
+      LOGO: "/api/employer/profile/logo",
+      PHOTOS: "/api/employer/profile/photos",
+      PHOTOS_UPLOAD: "/api/employer/profile/photos/upload",
+    },
     DASHBOARD: {
       ROOT: "/api/employer/dashboard",
       JOBPOSTS: "/api/employer/dashboard/jobposts",

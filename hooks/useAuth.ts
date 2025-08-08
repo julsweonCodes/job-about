@@ -78,8 +78,6 @@ export function useAuth() {
       // 만료 5분 전에 갱신 시도
       const refreshTime = Math.max(timeUntilExpiry - 300, 0);
 
-      console.log(`Session expires in ${timeUntilExpiry}s, scheduling refresh in ${refreshTime}s`);
-
       sessionRefreshRef.current = setTimeout(async () => {
         const success = await refreshSession();
         if (!success) {
