@@ -140,7 +140,7 @@ function EmployerMypage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const profileData = await apiGetData<BizLocInfo>(API_URLS.EMPLOYER.PROFILE);
+        const profileData = await apiGetData<BizLocInfo>(API_URLS.EMPLOYER.PROFILE.ROOT);
         setBizLocData(profileData ?? emptyBizLocInfo);
       } catch (e) {
         console.error("Failed to load business profile", e);
@@ -158,6 +158,11 @@ function EmployerMypage() {
   const [extraPhotos, setExtraPhotos] = useState<string[]>([]);
   // 삭제된 이미지 인덱스 추적
   const [deletedImageIndexes, setDeletedImageIndexes] = useState<Set<number>>(new Set());
+
+  // 드래그 앤 드롭을 위한 상태
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isOrderChanged, setIsOrderChanged] = useState(false);
 
   // 변경사항 감지
   const [isWorkplacePhotoChanged, setIsWorkplacePhotoChanged] = useState(false);
@@ -184,7 +189,8 @@ function EmployerMypage() {
       .concat(extraPhotos);
 
     // 변경사항이 있는지 확인 (추가, 삭제, 순서 변경 등)
-    const hasImageChanges = extraPhotos.length > 0 || deletedImageIndexes.size > 0;
+    const hasImageChanges =
+      extraPhotos.length > 0 || deletedImageIndexes.size > 0 || isOrderChanged;
     setIsWorkplacePhotoChanged(hasImageChanges);
 
     // bizLocData의 extraPhotos 업데이트 (무한 루프 방지)
@@ -194,7 +200,7 @@ function EmployerMypage() {
         extraPhotos: currentImages,
       }));
     }
-  }, [extraPhotos, originalImages, deletedImageIndexes]);
+  }, [extraPhotos, originalImages, deletedImageIndexes, isOrderChanged]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -238,6 +244,79 @@ function EmployerMypage() {
     }
   };
 
+  // 드래그 시작 핸들러
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  // 드래그 오버 핸들러
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  // 드래그 리브 핸들러
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  // 드롭 핸들러
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    // 현재 표시되는 이미지들의 배열 생성
+    const visibleOriginalImages = originalImages
+      .map((image, originalIndex) => ({ image, originalIndex, type: "original" as const }))
+      .filter(({ originalIndex }) => !deletedImageIndexes.has(originalIndex));
+
+    const visibleExtraImages = extraPhotos.map((image, index) => ({
+      image,
+      originalIndex: originalImages.length + index,
+      type: "extra" as const,
+    }));
+
+    const allVisibleImages = [...visibleOriginalImages, ...visibleExtraImages];
+
+    // 드래그된 아이템과 드롭 위치에 따라 순서 변경
+    const draggedItem = allVisibleImages[draggedIndex];
+    const newOrder = [...allVisibleImages];
+    newOrder.splice(draggedIndex, 1);
+    newOrder.splice(dropIndex, 0, draggedItem);
+
+    // 새로운 순서를 originalImages와 extraPhotos로 분리
+    const newOriginalImages: string[] = [];
+    const newExtraPhotos: string[] = [];
+    const newDeletedIndexes = new Set<number>();
+
+    newOrder.forEach((item) => {
+      if (item.type === "original") {
+        newOriginalImages.push(item.image);
+      } else {
+        newExtraPhotos.push(item.image);
+      }
+    });
+
+    // 삭제된 인덱스 재계산
+    originalImages.forEach((_, originalIndex) => {
+      if (!newOriginalImages.includes(originalImages[originalIndex])) {
+        newDeletedIndexes.add(originalIndex);
+      }
+    });
+
+    setOriginalImages(newOriginalImages);
+    setExtraPhotos(newExtraPhotos);
+    setDeletedImageIndexes(newDeletedIndexes);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    setIsOrderChanged(true); // 순서가 변경되었음을 표시
+  };
+
   const handleSaveImages = async () => {
     try {
       setIsUpdating(true);
@@ -261,7 +340,7 @@ function EmployerMypage() {
         const formData = new FormData();
         files.forEach((file) => formData.append("photos", file));
 
-        const uploadResponse = await apiPostData(API_URLS.EMPLOYER.PROFILE_PHOTOS_UPLOAD, formData);
+        const uploadResponse = await apiPostData(API_URLS.EMPLOYER.PROFILE.PHOTOS_UPLOAD, formData);
         newPhotoUrls = uploadResponse.photoUrls || [];
       }
 
@@ -271,7 +350,7 @@ function EmployerMypage() {
         .concat(newPhotoUrls);
 
       // 3단계: 최종 이미지 배열로 데이터베이스 업데이트
-      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE_PHOTOS, {
+      await apiPatchData(API_URLS.EMPLOYER.PROFILE.PHOTOS, {
         photoUrls: currentImages,
       });
 
@@ -280,6 +359,7 @@ function EmployerMypage() {
       setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
       setDeletedImageIndexes(new Set()); // 삭제된 이미지 인덱스 초기화
       setIsWorkplacePhotoChanged(false);
+      setIsOrderChanged(false); // 순서 변경 상태 초기화
 
       showSuccessToast("Images updated successfully");
     } catch (error) {
@@ -295,6 +375,7 @@ function EmployerMypage() {
     setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
     setDeletedImageIndexes(new Set()); // 삭제된 이미지 인덱스 초기화
     setIsWorkplacePhotoChanged(false);
+    setIsOrderChanged(false); // 순서 변경 상태 초기화
   };
 
   const handleLogoSave = async (file: File) => {
@@ -306,20 +387,18 @@ function EmployerMypage() {
       formData.append("logo", file);
 
       // 새로운 PATCH API 사용
-      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE_LOGO, formData);
+      const responseData = await apiPatchData(API_URLS.EMPLOYER.PROFILE.LOGO, formData);
 
-      // 파일을 읽어서 이미지 URL로 변환 (로컬 미리보기용)
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        // 로고 이미지 상태 업데이트
+      // 서버 응답에서 실제 업로드된 파일명 사용
+      if (responseData.logo_url) {
         setBizLocData((prev) => ({
           ...prev,
-          logoImg: imageUrl,
+          logoImg: responseData.logo_url,
         }));
         showSuccessToast("Logo updated successfully");
-      };
-      reader.readAsDataURL(file);
+      } else {
+        showErrorToast("Failed to get uploaded logo URL");
+      }
     } catch (error) {
       console.error("Error updating logo:", error);
       showErrorToast("Failed to update logo. Please try again.");
@@ -376,7 +455,7 @@ function EmployerMypage() {
       );
 
       // 새로운 PATCH API 사용
-      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE, updateData);
+      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE.ROOT, updateData);
 
       // 저장 시 tempData를 bizLocData에 적용
       setBizLocData(tempData);
@@ -402,7 +481,7 @@ function EmployerMypage() {
       };
 
       // 새로운 PATCH API 사용
-      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE, updateData);
+      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE.ROOT, updateData);
 
       // 저장 시 tempData를 bizLocData에 적용
       setBizLocData(tempData);
@@ -693,7 +772,14 @@ function EmployerMypage() {
                   .map(({ image, originalIndex }, displayIndex) => (
                     <div
                       key={`original-${originalIndex}`}
-                      className="relative flex-shrink-0 group p-1 sm:p-2"
+                      className={`relative flex-shrink-0 group p-1 sm:p-2 cursor-move ${
+                        draggedIndex === displayIndex ? "opacity-50" : ""
+                      } ${dragOverIndex === displayIndex ? "ring-2 ring-indigo-400" : ""}`}
+                      draggable
+                      onDragStart={() => handleDragStart(displayIndex)}
+                      onDragOver={(e) => handleDragOver(e, displayIndex)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, displayIndex)}
                     >
                       <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
                         <img
@@ -721,28 +807,42 @@ function EmployerMypage() {
                   ))}
 
                 {/* 새로 추가된 이미지들 */}
-                {extraPhotos.map((image, index) => (
-                  <div key={`new-${index}`} className="relative flex-shrink-0 group p-1 sm:p-2">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
-                      <img
-                        src={image}
-                        alt={`New Workplace ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                        onError={(e) => {
-                          // 이미지 로드 실패 시 기본 이미지로 대체
-                          const target = e.target as HTMLImageElement;
-                          target.src = `${STORAGE_URLS.BIZ_LOC.PHOTO}bizLoc_default.png`;
-                        }}
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleRemoveImage(originalImages.length + index)}
-                      className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
+                {extraPhotos.map((image, index) => {
+                  const displayIndex =
+                    originalImages.filter((_, idx) => !deletedImageIndexes.has(idx)).length + index;
+                  return (
+                    <div
+                      key={`new-${index}`}
+                      className={`relative flex-shrink-0 group p-1 sm:p-2 cursor-move ${
+                        draggedIndex === displayIndex ? "opacity-50" : ""
+                      } ${dragOverIndex === displayIndex ? "ring-2 ring-indigo-400" : ""}`}
+                      draggable
+                      onDragStart={() => handleDragStart(displayIndex)}
+                      onDragOver={(e) => handleDragOver(e, displayIndex)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, displayIndex)}
                     >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
+                        <img
+                          src={image}
+                          alt={`New Workplace ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          onError={(e) => {
+                            // 이미지 로드 실패 시 기본 이미지로 대체
+                            const target = e.target as HTMLImageElement;
+                            target.src = `${STORAGE_URLS.BIZ_LOC.PHOTO}bizLoc_default.png`;
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleRemoveImage(originalImages.length + index)}
+                        className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
                 {originalImages.filter((_, index) => !deletedImageIndexes.has(index)).length +
                   extraPhotos.length <
                   5 && (

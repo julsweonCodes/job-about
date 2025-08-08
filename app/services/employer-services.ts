@@ -117,7 +117,7 @@ export async function updateEmployerProfile(payload: Partial<EmployerProfilePayl
       location: "location",
       operating_start: "operating_start",
       operating_end: "operating_end",
-      logo_img: "logo_url",
+      logo_url: "logo_url",
       img_url1: "img_url1",
       img_url2: "img_url2",
       img_url3: "img_url3",
