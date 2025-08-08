@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BackHeader from "@/components/common/BackHeader";
-import { WorkType } from "@/constants/enums";
 import { useEmployerUrgentJobPosts } from "@/hooks/employer/useEmployerDashboard";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import UrgentJobPostCard from "./components/UrgentJobPostCard";

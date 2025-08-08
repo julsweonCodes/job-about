@@ -48,7 +48,7 @@ export default function UrgentJobPostCard({
       )}
 
       {/* 칩들 - 왼쪽 상단 */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         {/* D-day 칩 */}
         {jobPost.deadline_date &&
           (() => {
@@ -63,34 +63,36 @@ export default function UrgentJobPostCard({
         <Chip size="sm" className={`${typeClass} font-semibold`}>
           {typeLabel}
         </Chip>
-
-        {jobPost.jobType && (
-          <Chip size="sm" className="bg-gray-100 text-gray-800 hover:bg-gray-100/80 font-semibold">
-            {getJobTypeName(jobPost.jobType)}
-          </Chip>
-        )}
       </div>
 
       {/* 상단: 제목/급여 + 이미지 */}
-      <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
-        <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">
-              {jobPost.title}
+      <div className="flex flex-col gap-3 mb-4 min-w-0 flex-shrink-0">
+        {/* 제목과 JobType */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-gray-900 text-md text-lg sm:text-xl font-bold break-words">
+                {jobPost.title}
+              </span>
+              {jobPost.jobType && (
+                <span className="text-sm text-gray-500 font-medium flex-shrink-0">
+                  • {getJobTypeName(jobPost.jobType)}
+                </span>
+              )}
+            </div>
+            <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
+              <span className="text-gray-700 font-bold">${jobPost.wage}</span>/hour
             </span>
           </div>
-          <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
-            <span className="text-gray-700 font-bold">${jobPost.wage}</span>/hour
-          </span>
-        </div>
 
-        <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 bg-gray-100 shadow-sm">
-          <img
-            src={getImageSrc()}
-            alt={jobPost.title}
-            className="w-full h-full object-cover rounded-xl border border-gray-100"
-            onError={handleImageError}
-          />
+          <div className="relative w-12 h-12 lg:w-16 lg:h-16 rounded-xl flex-shrink-0 bg-gray-100 shadow-sm">
+            <img
+              src={getImageSrc()}
+              alt={jobPost.title}
+              className="w-full h-full object-cover rounded-xl border border-gray-100"
+              onError={handleImageError}
+            />
+          </div>
         </div>
       </div>
 
