@@ -205,7 +205,7 @@ export default function EmployerProfilePage() {
       }
     });
 
-    const res = await fetch("/api/employer/profile", {
+    const res = await fetch("/api/employer/profile?isUpdate=false", {
       method: "POST",
       body: formData,
     });
