@@ -3,21 +3,8 @@ import { Calendar, Users } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import { ClientJobPost } from "@/types/client/employer";
-import { WorkType } from "@/constants/enums";
 import { getWorkTypeConfig } from "@/utils/client/styleUtils";
-
-// D-day 계산 함수
-const calculateDDay = (deadlineDate: string): number => {
-  const deadline = new Date(deadlineDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  deadline.setHours(0, 0, 0, 0);
-
-  const diffTime = deadline.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays;
-};
+import { getDDayConfig } from "@/utils/client/dateUtils";
 
 interface JobPostCardProps {
   job: ClientJobPost;
@@ -116,27 +103,10 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
         {!isDraft &&
           job.deadline_date &&
           (() => {
-            const dDay = calculateDDay(job.deadline_date);
-            let chipStyle = "";
-            let dDayText = "";
-
-            if (dDay < 0) {
-              chipStyle = "bg-red-100 text-red-800 hover:bg-red-100/80";
-              dDayText = "마감";
-            } else if (dDay === 0) {
-              chipStyle = "bg-red-100 text-red-800 hover:bg-red-100/80";
-              dDayText = "D-day";
-            } else if (dDay <= 3) {
-              chipStyle = "bg-orange-100 text-orange-800 hover:bg-orange-100/80";
-              dDayText = `D-${dDay}`;
-            } else {
-              chipStyle = "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-              dDayText = `D-${dDay}`;
-            }
-
+            const dDayConfig = getDDayConfig(job.deadline_date);
             return (
-              <Chip size="sm" className={`${chipStyle} font-semibold`}>
-                {dDayText}
+              <Chip size="sm" className={`${dDayConfig.className} font-semibold`}>
+                {dDayConfig.text}
               </Chip>
             );
           })()}

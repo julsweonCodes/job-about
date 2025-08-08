@@ -1,8 +1,11 @@
-import { Building2, MapPin, Calendar, Users } from "lucide-react";
+import React, { useState } from "react";
+import { Calendar, Users } from "lucide-react";
+import { Chip } from "@/components/ui/Chip";
+import { Button } from "@/components/ui/Button";
 import { UrgentClientJobPost } from "@/types/client/employer";
 import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
-import { getLocationDisplayName } from "@/constants/location";
 import { getWorkTypeConfig } from "@/utils/client/styleUtils";
+import { getDDayConfig } from "@/utils/client/dateUtils";
 
 interface UrgentJobPostCardProps {
   jobPost: UrgentClientJobPost;
@@ -15,88 +18,146 @@ export default function UrgentJobPostCard({
   onViewDetail,
   onViewApplicants,
 }: UrgentJobPostCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  const { label: typeLabel, className: typeClass } = getWorkTypeConfig(jobPost.type);
+
+  const defaultImage = "/images/img-default-part-time-work.png";
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  const getImageSrc = () => {
+    if (imageError || !jobPost.coverImage) {
+      return defaultImage;
+    }
+    return jobPost.coverImage;
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4 lg:mb-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02]">
-      {/* Job Header */}
-      <div className="p-5 lg:p-6">
-        <div className="flex items-start gap-4 mb-4">
-          <img
-            src={jobPost.coverImage}
-            alt={jobPost.title}
-            className="w-16 h-16 lg:w-20 lg:h-20 rounded-xl object-cover shadow-sm flex-shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-2 truncate">
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col p-5 lg:p-8 relative">
+      {/* 지원자 수 - 카드 우측 상단 */}
+      {jobPost.totalApplicationsCnt > 0 && (
+        <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm border border-gray-200 z-10">
+          <Users className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+          <span className="text-xs sm:text-sm font-medium text-gray-700">
+            {jobPost.totalApplicationsCnt}
+          </span>
+        </div>
+      )}
+
+      {/* 칩들 - 왼쪽 상단 */}
+      <div className="flex items-center gap-2 mb-4">
+        {/* D-day 칩 */}
+        {jobPost.deadline_date &&
+          (() => {
+            const dDayConfig = getDDayConfig(jobPost.deadline_date);
+            return (
+              <Chip size="sm" className={`${dDayConfig.className} font-semibold`}>
+                {dDayConfig.text}
+              </Chip>
+            );
+          })()}
+
+        <Chip size="sm" className={`${typeClass} font-semibold`}>
+          {typeLabel}
+        </Chip>
+
+        {jobPost.jobType && (
+          <Chip size="sm" className="bg-gray-100 text-gray-800 hover:bg-gray-100/80 font-semibold">
+            {getJobTypeName(jobPost.jobType)}
+          </Chip>
+        )}
+      </div>
+
+      {/* 상단: 제목/급여 + 이미지 */}
+      <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
+        <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">
               {jobPost.title}
-            </h3>
-            <div className="flex items-center gap-2 mb-2">
-              {jobPost.type && (
-                <span
-                  className={`px-3 py-1 rounded-full text-xs lg:text-sm font-medium ${getWorkTypeConfig(jobPost.type).className}`}
-                >
-                  {getWorkTypeConfig(jobPost.type).label}
-                </span>
-              )}
-              {jobPost.jobType && (
-                <span className="px-3 py-1 rounded-full text-xs lg:text-sm font-medium bg-gray-100 text-gray-700">
-                  {getJobTypeName(jobPost.jobType)}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Job Details */}
-        <div className="space-y-3 mb-5">
-          <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600">
-            <Building2 className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-            <span className="font-medium">{jobPost.businessName}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600">
-            <MapPin className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-            <span>{getLocationDisplayName(jobPost.location)}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600">
-            <Calendar className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-            <span>
-              {jobPost.strt_date} - {jobPost.deadline_date}
             </span>
           </div>
+          <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
+            <span className="text-gray-700 font-bold">${jobPost.wage}</span>/hour
+          </span>
         </div>
 
-        {/* Applicant Stats */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-5">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-gray-500" />
-            <span className="text-sm lg:text-base font-medium text-gray-700">
-              {jobPost.totalApplicationsCnt} Total Applications
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-            <span className="text-sm lg:text-base font-semibold text-amber-700">
-              {jobPost.pendingReviewCnt} Pending
-            </span>
-          </div>
+        <div className="relative w-14 h-14 lg:w-20 lg:h-20 rounded-xl flex-shrink-0 bg-gray-100 shadow-sm">
+          <img
+            src={getImageSrc()}
+            alt={jobPost.title}
+            className="w-full h-full object-cover rounded-xl border border-gray-100"
+            onError={handleImageError}
+          />
         </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => onViewDetail(jobPost.id)}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 py-3 lg:py-4 px-4 rounded-xl font-semibold text-sm lg:text-base transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-          >
-            <span>View Details</span>
-          </button>
-          <button
-            onClick={() => onViewApplicants(jobPost.id)}
-            className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] active:bg-[#5B21B6] text-white py-3 lg:py-4 px-4 rounded-xl font-semibold text-sm lg:text-base transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-          >
-            <span>View Applicants</span>
-          </button>
+      {/* 위치, 기간 */}
+      <div className="space-y-2 mb-5 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600" />
+          <span className="text-gray-600 text-xs sm:text-sm font-medium">
+            {jobPost.strt_date} - {jobPost.deadline_date}
+          </span>
         </div>
+      </div>
+
+      {/* Description - 1줄만 표시 */}
+      <div className="flex flex-col gap-4 flex-1">
+        {jobPost.description && (
+          <div className="flex-1 mb-6 min-h-0">
+            <p
+              className="text-sm lg:text-base text-gray-700 leading-relaxed mb-3"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                minHeight: "20px",
+              }}
+            >
+              {jobPost.description}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Urgent 특화 섹션 - Applicant Stats */}
+      <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl mb-5 border border-amber-200">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-amber-600" />
+          <span className="text-sm font-medium text-amber-800">
+            {jobPost.totalApplicationsCnt} Total Applications
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+          <span className="text-sm font-semibold text-amber-700">
+            {jobPost.pendingReviewCnt} Pending
+          </span>
+        </div>
+      </div>
+
+      {/* 버튼 */}
+      <div className="flex space-x-3 flex-shrink-0">
+        <Button
+          variant="secondary"
+          className="h-12 md:h-14"
+          onClick={() => onViewDetail(jobPost.id)}
+        >
+          View Details
+        </Button>
+        <Button
+          variant="default"
+          className="h-12 md:h-14"
+          onClick={() => onViewApplicants(jobPost.id)}
+          disabled={jobPost.totalApplicationsCnt === 0}
+        >
+          View Applicants
+        </Button>
       </div>
     </div>
   );
