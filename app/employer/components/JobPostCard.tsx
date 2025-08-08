@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ClientJobPost } from "@/types/client/employer";
 import { getWorkTypeConfig } from "@/utils/client/styleUtils";
 import { getDDayConfig } from "@/utils/client/dateUtils";
+import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
 
 interface JobPostCardProps {
   job: ClientJobPost;
@@ -33,7 +34,10 @@ export const JobPostCardSkeleton: React.FC = () => {
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
         <div className="flex flex-col gap-1 flex-1 min-w-0 pr-4">
-          <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+          </div>
           <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
         </div>
         <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl bg-gray-200 animate-pulse flex-shrink-0 shadow-sm"></div>
@@ -123,8 +127,15 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
         <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">{job.title}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold break-words">
+              {job.title}
+            </span>
+            {job.jobType && (
+              <span className="text-sm text-gray-500 font-medium flex-shrink-0">
+                • {getJobTypeName(job.jobType)}
+              </span>
+            )}
           </div>
           <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
             <span className="text-gray-700 font-bold">${job.wage}</span>/hour
