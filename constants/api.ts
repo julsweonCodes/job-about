@@ -40,6 +40,7 @@ export const API_URLS = {
       APPLICANT_LIST: (postId: string) => `/api/employer/dashboard/${postId}/applicants`,
       APPLICANT_DETAIL: (postId: string, appId: string) =>
         `/api/employer/dashboard/${postId}/applicants/${appId}`,
+      URGENT: "/api/employer/dashboard/jobposts/urgent",
     },
     POST: {
       CREATE: "/api/employer/post/create",

@@ -142,7 +142,7 @@ export default function EmployerDashboard() {
         {dashboard && dashboard.needsUpdateCnt > 0 && (
           <div className="mb-8">
             <AlertBanner
-              message={`${dashboard.needsUpdateCnt} job posts need status updates`}
+              message={`${dashboard.needsUpdateCnt} applications need status updates`}
               onClick={() => {
                 router.push(PAGE_URLS.EMPLOYER.PENDING_UPDATES);
               }}

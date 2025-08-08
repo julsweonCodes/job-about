@@ -1,6 +1,6 @@
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
-import { JobPost } from "@/types/employer";
+import { JobPost, UrgentJobPost } from "@/types/employer";
 import { STORAGE_URLS } from "@/constants/storage";
 import { Applicant } from "@/types/job";
 import { ApplicantDetail, WorkExperience } from "@/types/profile";
@@ -43,67 +43,55 @@ export async function getStatusUpdateCnt(userId: number, bizLocId: number): Prom
   tomorrow.setDate(currDate.getDate() + 1);
   const currDateStr = formatDateYYYYMMDD(currDate);
   const tomorrowDateStr = formatDateYYYYMMDD(tomorrow);
-  const urgentJobPosts = await prisma.job_posts.findMany({
+
+  // Step 1: Get relevant job post IDs
+  const jobPosts = await prisma.job_posts.findMany({
     where: {
-      created_at: {
-        lte: currDate,
-      },
-      business_loc_id: bizLocId,
       user_id: userId,
       status: "PUBLISHED",
-      OR: [{ deadline: currDateStr }, { deadline: tomorrowDateStr }],
+      business_loc_id: bizLocId,
+      created_at: { lte: new Date() },
+      OR: [
+        { deadline: currDateStr },
+        { deadline: tomorrowDateStr }
+      ],
     },
-    select: {
-      id: true,
-    },
+    select: { id: true },
   });
 
-  const validJobPostIds = urgentJobPosts.map((post) => post.id);
+  const jobPostIds = jobPosts.map(j => j.id);
+  if (jobPostIds.length === 0) return 0;
 
-  // 2. count applications
-  const applicationCnt = await prisma.applications.count({
+  // Step 2: Count applications for those job posts with the required statuses
+  const urgentCnt = await prisma.applications.count({
     where: {
-      job_post_id: {
-        in: validJobPostIds,
-      },
+      status: { in: ["APPLIED", "IN_REVIEW"] },
+      job_post_id: { in: jobPostIds },
     },
   });
 
-  return applicationCnt;
+  return urgentCnt;
 }
 
 export async function getAllApplicationsCnt(userId: number, bizLocId: number): Promise<number> {
   const currDate = new Date();
   const currDateStr = formatDateYYYYMMDD(currDate);
-
-  const allJobPosts = await prisma.job_posts.findMany({
+  const allAppsCnt = await prisma.applications.count({
     where: {
-      created_at: {
-        lte: currDate,
-      },
-      deadline: {
-        gte: currDateStr,
-      },
-      user_id: userId,
-      status: "PUBLISHED",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  const validJobPostIds = allJobPosts.map((post) => post.id);
-
-  // 2. count applications
-  const applicationCnt = await prisma.applications.count({
-    where: {
-      job_post_id: {
-        in: validJobPostIds,
+      job_post: {
+        user_id: userId,
+        status: "PUBLISHED",
+        business_loc_id: bizLocId,
+        created_at: {
+          lte: currDate,
+        },
+        deadline: {
+          gte: currDateStr,
+        },
       },
     },
   });
-
-  return applicationCnt;
+  return allAppsCnt;
 }
 
 export async function getActiveJobPostsList(userId: number): Promise<JobPost[]> {
@@ -437,4 +425,67 @@ export async function getProfilePracSkills(profileId: number) {
     name_en: s.practical_skill.name_en,
   }));
   return practicalSkills;
+}
+
+// 1. GET all job_posts that are urgent
+export async function getUrgentJobPosts(userId: number) {
+  const currDate = new Date();
+  const tomorrow = new Date(currDate);
+  tomorrow.setDate(currDate.getDate() + 1);
+  const currDateStr = formatDateYYYYMMDD(currDate);
+  const tomorrowDateStr = formatDateYYYYMMDD(tomorrow);
+
+  const bizLocInfo = await getEmployerBizLoc(userId);
+  if (!bizLocInfo) {
+    console.log("No business location found for user:", userId);
+    return [];
+  }
+
+  const urgentJobPosts = await prisma.job_posts.findMany({
+    where: {
+      business_loc_id: bizLocInfo.id,
+      user_id: userId,
+      status: "PUBLISHED",
+      deadline: {
+        lte: tomorrowDateStr,
+        gte: currDateStr,
+      },
+    },
+    include: {
+      applications: {
+        select: {
+          status: true,
+        },
+      },
+      _count: {
+        select: {
+          applications: true,
+        },
+      },
+    },
+    orderBy: {
+      deadline: "asc",
+    },
+  });
+
+  const img_base_url = `${STORAGE_URLS.BIZ_LOC.PHOTO}`;
+  const formattedUrgentJobPosts: UrgentJobPost[] = urgentJobPosts.map((post) => ({
+    id: post.id.toString(),
+    title: post.title,
+    applicants: post._count.applications,
+    businessName: bizLocInfo.name,
+    coverImage: img_base_url.concat(bizLocInfo.logo_url ?? ""),
+    deadline_date: formatYYYYMMDDtoMonthDayYear(post.deadline),
+    description: post.description,
+    location: bizLocInfo.address,
+    needsUpdate: post.deadline === tomorrowDateStr || post.deadline === currDateStr,
+    strt_date: formatYYYYMMDDtoMonthDayYear(formatDateYYYYMMDD(post.created_at)),
+    type: post.work_type,
+    views: 0,
+    wage: post.wage,
+    status: post.status,
+    pendingReviewCnt: post.applications.filter((app) => app.status === "APPLIED" || app.status === "IN_REVIEW").length,
+    totalApplicationsCnt: post.applications.filter((app) => app.status !== "WITHDRAWN").length,
+  }));
+  return formattedUrgentJobPosts.filter((jobPost) => jobPost.pendingReviewCnt > 0);
 }
