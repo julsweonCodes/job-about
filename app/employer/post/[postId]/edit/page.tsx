@@ -371,7 +371,6 @@ const JobPostEditPage: React.FC = () => {
         jobDescriptions={jobData?.jobDescriptions}
         selectedVersion={selectedVersion}
         onSelectVersion={(version) => {
-          console.log("version", version);
           setSelectedVersion(version);
           setJobData((prev: any) => ({
             ...prev,
