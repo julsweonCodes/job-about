@@ -155,19 +155,25 @@ const JobPostEditPage: React.FC = () => {
           case "jobDetails":
             updatedData = {
               ...updatedData,
-              [subItem]: data[subItem] || updatedData[subItem],
+              [subItem]: data[subItem] !== undefined ? data[subItem] : updatedData[subItem],
             };
             break;
           case "skillsAndStyles":
             if (subItem === "requiredSkills") {
               updatedData = {
                 ...updatedData,
-                requiredSkills: data.requiredSkills || updatedData.requiredSkills,
+                requiredSkills:
+                  data.requiredSkills !== undefined
+                    ? data.requiredSkills
+                    : updatedData.requiredSkills,
               };
             } else if (subItem === "requiredWorkStyles") {
               updatedData = {
                 ...updatedData,
-                requiredWorkStyles: data.requiredWorkStyles || updatedData.requiredWorkStyles,
+                requiredWorkStyles:
+                  data.requiredWorkStyles !== undefined
+                    ? data.requiredWorkStyles
+                    : updatedData.requiredWorkStyles,
               };
             }
             break;
@@ -178,10 +184,13 @@ const JobPostEditPage: React.FC = () => {
           case "header":
             updatedData = {
               ...updatedData,
-              title: data.title,
+              title: data.title !== undefined ? data.title : updatedData.title,
               businessLocInfo: {
                 ...updatedData.businessLocInfo,
-                name: data.business?.name || updatedData.businessLocInfo.name,
+                name:
+                  data.business?.name !== undefined
+                    ? data.business.name
+                    : updatedData.businessLocInfo.name,
               },
             };
             break;
@@ -190,12 +199,16 @@ const JobPostEditPage: React.FC = () => {
             const selectedVersion = data.selectedVersion || "manual";
             const updatedJobDescriptions = {
               ...updatedData.jobDescriptions,
-              [selectedVersion]: data.description,
+              [selectedVersion]:
+                data.description !== undefined
+                  ? data.description
+                  : updatedData.jobDescriptions?.[selectedVersion] || updatedData.jobDescription,
             };
 
             updatedData = {
               ...updatedData,
-              jobDescription: data.description,
+              jobDescription:
+                data.description !== undefined ? data.description : updatedData.jobDescription,
               jobDescriptions: updatedJobDescriptions,
               selectedVersion: selectedVersion,
             };
@@ -205,29 +218,45 @@ const JobPostEditPage: React.FC = () => {
               ...updatedData,
               businessLocInfo: {
                 ...updatedData.businessLocInfo,
-                name: data.business?.name || updatedData.businessLocInfo.name,
-                address: data.business?.location || updatedData.businessLocInfo.address,
+                name:
+                  data.business?.name !== undefined
+                    ? data.business.name
+                    : updatedData.businessLocInfo.name,
+                address:
+                  data.business?.location !== undefined
+                    ? data.business.location
+                    : updatedData.businessLocInfo.address,
                 bizDescription:
-                  data.business?.description || updatedData.businessLocInfo.bizDescription,
+                  data.business?.description !== undefined
+                    ? data.business.description
+                    : updatedData.businessLocInfo.bizDescription,
               },
             };
             break;
           case "jobDetails":
             updatedData = {
               ...updatedData,
-              hourlyWage: data.hourlyWage || updatedData.hourlyWage,
-              workSchedule: data.workSchedule || updatedData.workSchedule,
-              languageLevel: data.languageLevel || updatedData.languageLevel,
-              deadline: data.deadline || updatedData.deadline,
-              jobType: data.jobType || updatedData.jobType,
-              workType: data.workType || updatedData.workType,
+              hourlyWage: data.hourlyWage !== undefined ? data.hourlyWage : updatedData.hourlyWage,
+              workSchedule:
+                data.workSchedule !== undefined ? data.workSchedule : updatedData.workSchedule,
+              languageLevel:
+                data.languageLevel !== undefined ? data.languageLevel : updatedData.languageLevel,
+              deadline: data.deadline !== undefined ? data.deadline : updatedData.deadline,
+              jobType: data.jobType !== undefined ? data.jobType : updatedData.jobType,
+              workType: data.workType !== undefined ? data.workType : updatedData.workType,
             };
             break;
           case "skillsAndStyles":
             updatedData = {
               ...updatedData,
-              requiredSkills: data.requiredSkills || updatedData.requiredSkills,
-              requiredWorkStyles: data.requiredWorkStyles || updatedData.requiredWorkStyles,
+              requiredSkills:
+                data.requiredSkills !== undefined
+                  ? data.requiredSkills
+                  : updatedData.requiredSkills,
+              requiredWorkStyles:
+                data.requiredWorkStyles !== undefined
+                  ? data.requiredWorkStyles
+                  : updatedData.requiredWorkStyles,
             };
             break;
         }
@@ -403,7 +432,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("header", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.title}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
@@ -415,11 +444,12 @@ const JobPostEditPage: React.FC = () => {
                 You can edit the job title here
               </span>
               <Input
-                value={tempEditData.title || jobData?.title || ""}
+                value={tempEditData.title !== undefined ? tempEditData.title : jobData?.title || ""}
                 onChange={(e) =>
                   setTempEditData((prev: any) => ({ ...prev, title: e.target.value }))
                 }
                 className="w-full pt-3 pb-1"
+                placeholder="Enter job title"
               />
             </div>
           </BaseDialog>
@@ -435,7 +465,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("description", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.description}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
@@ -449,11 +479,12 @@ const JobPostEditPage: React.FC = () => {
               <TextArea
                 rows={6}
                 value={
-                  tempEditData.description ||
-                  (jobData?.selectedVersion &&
-                    jobData?.jobDescriptions?.[jobData.selectedVersion]) ||
-                  jobData?.jobDescription ||
-                  ""
+                  tempEditData.description !== undefined
+                    ? tempEditData.description
+                    : (jobData?.selectedVersion &&
+                        jobData?.jobDescriptions?.[jobData.selectedVersion]) ||
+                      jobData?.jobDescription ||
+                      ""
                 }
                 onChange={(e) =>
                   setTempEditData((prev: any) => ({
@@ -489,7 +520,11 @@ const JobPostEditPage: React.FC = () => {
               <div>
                 <span className="text-sm md:text-base text-gray-500 mb-2 block">Business Name</span>
                 <Input
-                  value={tempEditData.business?.name || jobData?.businessLocInfo?.name || ""}
+                  value={
+                    tempEditData.business?.name !== undefined
+                      ? tempEditData.business.name
+                      : jobData?.businessLocInfo?.name || ""
+                  }
                   onChange={(e) =>
                     setTempEditData((prev: any) => ({
                       ...prev,
@@ -502,7 +537,11 @@ const JobPostEditPage: React.FC = () => {
               <div>
                 <span className="text-sm md:text-base text-gray-500 mb-2 block">Location</span>
                 <Input
-                  value={tempEditData.business?.location || jobData?.businessLocInfo?.address || ""}
+                  value={
+                    tempEditData.business?.location !== undefined
+                      ? tempEditData.business.location
+                      : jobData?.businessLocInfo?.address || ""
+                  }
                   onChange={(e) =>
                     setTempEditData((prev: any) => ({
                       ...prev,
@@ -519,9 +558,9 @@ const JobPostEditPage: React.FC = () => {
                 <TextArea
                   rows={4}
                   value={
-                    tempEditData.business?.description ||
-                    jobData?.businessLocInfo?.bizDescription ||
-                    ""
+                    tempEditData.business?.description !== undefined
+                      ? tempEditData.business.description
+                      : jobData?.businessLocInfo?.bizDescription || ""
                   }
                   onChange={(e) =>
                     setTempEditData((prev: any) => ({
@@ -552,7 +591,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("jobDetails.hourlyWage", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.hourlyWage}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
@@ -588,7 +627,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("jobDetails.workSchedule", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.workSchedule}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
