@@ -3,11 +3,11 @@ import { Dialog } from "@/components/common/Dialog";
 import { Button } from "@/components/ui/Button";
 import { ApplicantStatus } from "@/constants/enums";
 import { Eye, XCircle, CheckCircle } from "lucide-react";
-import Typography from "@/components/ui/Typography";
 
 interface ApplicantStatusDialogProps {
   open: boolean;
   selectedStatus: ApplicantStatus | null;
+  currentStatus?: ApplicantStatus | null;
   onSelect: (status: ApplicantStatus) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -47,6 +47,7 @@ const statusList = [
 const ApplicantStatusDialog: React.FC<ApplicantStatusDialogProps> = ({
   open,
   selectedStatus,
+  currentStatus,
   onSelect,
   onSave,
   onCancel,
@@ -54,29 +55,58 @@ const ApplicantStatusDialog: React.FC<ApplicantStatusDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onClose={onCancel} type="bottomSheet">
-      <div className="flex flex-col items-start  w-full max-w-md">
-        <Typography as="h2" variant="headlineMd" className="mb-2 text-left sm:text-center">
-          Update Status
-        </Typography>
-        <Typography as="p" variant="bodySm" className="text-gray-500 text-center mb-6">
-          Select the new status of the application.
-        </Typography>
-        <div className="grid grid-cols-3 gap-3 mb-6 w-full">
+      <div className="flex flex-col w-full max-w-md mx-auto">
+        {/* Header */}
+        <div className="text-left mb-8">
+          <h2 className="mb-3 text-gray-900 font-bold text-xl sm:text-2xl">Update Status</h2>
+          <p className="text-gray-500 text-sm sm:text-base">
+            Select the new status of the application.
+          </p>
+        </div>
+
+        {/* Status Options */}
+        <div className="grid grid-cols-3 gap-4 mb-8 w-full">
           {statusList.map((status) => {
             const Icon = status.icon;
+            const isSelected = selectedStatus === status.value;
             return (
               <button
                 key={status.value}
                 type="button"
-                className={`w-full aspect-square flex flex-col items-center justify-center px-4 py-5 rounded-xl border transition-all
-                  ${selectedStatus === status.value ? `${status.selectedBg} ${status.color} border-2 font-semibold` : "bg-white border-gray-200 hover:bg-gray-50"}`}
+                className={`group relative w-full aspect-square flex flex-col items-center justify-center px-3 py-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                  isSelected
+                    ? `${status.selectedBg} ${status.color} shadow-lg scale-105`
+                    : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-md"
+                }`}
                 onClick={() => onSelect(status.value)}
               >
-                <Icon
-                  className={`w-5 h-5 ${selectedStatus === status.value ? status.iconColor : "text-gray-300"}`}
-                />
+                {/* Background glow effect for selected */}
+                {isSelected && (
+                  <div
+                    className={`absolute inset-0 rounded-2xl ${status.selectedBg} opacity-20`}
+                  ></div>
+                )}
+
+                {/* Icon */}
+                <div
+                  className={`relative z-10 p-3 rounded-full transition-all duration-300 ${
+                    isSelected
+                      ? `${status.selectedBg} shadow-sm`
+                      : "bg-gray-50 group-hover:bg-gray-100"
+                  }`}
+                >
+                  <Icon
+                    className={`w-6 h-6 transition-all duration-300 ${
+                      isSelected ? status.iconColor : "text-gray-400 group-hover:text-gray-600"
+                    }`}
+                  />
+                </div>
+
+                {/* Label */}
                 <span
-                  className={`mt-4 text-sm sm:text-base font-medium ${selectedStatus === status.value ? `${status.selectedColor} font-semibold` : "text-gray-500"}`}
+                  className={`relative z-10 mt-3 text-sm font-semibold transition-all duration-300 ${
+                    isSelected ? status.selectedColor : "text-gray-600 group-hover:text-gray-800"
+                  }`}
                 >
                   {status.label}
                 </span>
@@ -84,15 +114,24 @@ const ApplicantStatusDialog: React.FC<ApplicantStatusDialogProps> = ({
             );
           })}
         </div>
+
+        {/* Action Buttons */}
         <div className="flex gap-3 w-full">
-          <Button variant="secondary" size="lg" onClick={onCancel} disabled={isLoading}>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="flex-1 h-12 font-semibold"
+          >
             Cancel
           </Button>
           <Button
-            variant="black"
+            variant="gradient"
             size="lg"
             onClick={onSave}
-            disabled={!selectedStatus || isLoading}
+            disabled={!selectedStatus || isLoading || selectedStatus === currentStatus}
+            className="flex-1 h-12 font-semibold"
           >
             {isLoading ? "Saving..." : "Save"}
           </Button>

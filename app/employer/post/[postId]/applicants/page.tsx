@@ -10,8 +10,11 @@ import ApplicantStatusDialog from "@/app/employer/components/ApplicantStatusDial
 import ApplicantFilterTabs from "@/components/employer/ApplicantFilterTabs";
 import ApplicantCardSkeleton from "@/components/employer/ApplicantCardSkeleton";
 import { useParams } from "next/navigation";
-import { useEmployerJobPostAppList, updateApplicantStatus } from "@/hooks/employer/useEmployerDashboard";
-import { API_URLS, PAGE_URLS } from "@/constants/api";
+import {
+  useEmployerJobPostAppList,
+  updateApplicantStatus,
+} from "@/hooks/employer/useEmployerDashboard";
+import { PAGE_URLS } from "@/constants/api";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,19 +34,52 @@ function ReviewApplicantsPage() {
   const handleReviewApplicant = (applicantId: string) => {
     setSelectedApplicantId(applicantId);
     setDialogOpen(true);
-    setSelectedStatus(null);
+
+    // 현재 applicant의 status를 찾아서 초기 선택 상태 설정
+    const applicant = jobPostAppList?.find((app) => app.application_id.toString() === applicantId);
+
+    if (applicant) {
+      // status에 따른 초기 선택 로직
+      switch (applicant.status) {
+        case ApplicantStatus.APPLIED:
+        case ApplicantStatus.IN_REVIEW:
+          setSelectedStatus(ApplicantStatus.IN_REVIEW);
+          break;
+        case ApplicantStatus.HIRED:
+          setSelectedStatus(ApplicantStatus.HIRED);
+          break;
+        case ApplicantStatus.REJECTED:
+          setSelectedStatus(ApplicantStatus.REJECTED);
+          break;
+        default:
+          setSelectedStatus(null);
+      }
+    } else {
+      setSelectedStatus(null);
+    }
+  };
+
+  // 현재 선택된 applicant의 status 가져오기
+  const getCurrentApplicantStatus = (): ApplicantStatus | null => {
+    if (!selectedApplicantId || !jobPostAppList) return null;
+    const applicant = jobPostAppList.find(
+      (app) => app.application_id.toString() === selectedApplicantId
+    );
+    return applicant?.status || null;
   };
 
   const handleSaveStatus = async () => {
     if (!selectedApplicantId || !selectedStatus) return;
     setIsUpdatingStatus(true);
-    
+
     try {
       // PATCH request to update applicant status
       const res = await updateApplicantStatus(postId, selectedApplicantId, selectedStatus);
       if (res) {
         showSuccessToast("Applicant status updated successfully");
-        singleQueryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, selectedApplicantId) });
+        singleQueryClient.invalidateQueries({
+          queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, selectedApplicantId),
+        });
       } else {
         showErrorToast("No changes made to applicant status");
       }
@@ -190,6 +226,7 @@ function ReviewApplicantsPage() {
       <ApplicantStatusDialog
         open={dialogOpen}
         selectedStatus={selectedStatus}
+        currentStatus={getCurrentApplicantStatus()}
         onSelect={(status) => setSelectedStatus(status as ApplicantStatus)}
         onSave={handleSaveStatus}
         onCancel={() => setDialogOpen(false)}
