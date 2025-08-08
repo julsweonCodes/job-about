@@ -29,8 +29,8 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
     <div className="bg-white rounded-lg border border-slate-200 p-4 space-y-3">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h4 className="font-semibold text-slate-900">{experience.company}</h4>
-          <p className="text-sm text-slate-600">{getJobTypeName(experience.jobType)}</p>
+          <h4 className="font-semibold text-slate-900">{getJobTypeName(experience.jobType)}</h4>
+          <p className="text-sm text-slate-600">{experience.company}</p>
           <p className="text-xs text-slate-500">
             {experience.startYear} ~ {getWorkPeriodLabel(experience.workedPeriod)}
           </p>

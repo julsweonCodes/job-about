@@ -9,9 +9,7 @@ export async function GET(
 ) {
   try {
     const userId = await getUserIdFromSession();
-    console.log(userId);
     const applicantDetail = await getJobPostApplicantProfile(params.postId, params.appId, userId);
-    console.log(applicantDetail);
 
     return successResponse(
       applicantDetail,

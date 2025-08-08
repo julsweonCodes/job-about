@@ -397,7 +397,7 @@ export async function getProfileWorkExperiences(profileId: number) {
       description: true,
     },
     orderBy: {
-      start_year: "asc",
+      start_year: "desc",
     },
   });
 
