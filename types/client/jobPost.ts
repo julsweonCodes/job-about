@@ -491,6 +491,7 @@ export class JobPostCardMapper {
       requiredSkills: jobPost.requiredSkills,
       applicationStatus: jobPost.applicationStatus,
       daysAgo: jobPost.daysAgo,
+      jobType: jobPost.jobType,
     };
   }
 }
