@@ -810,6 +810,7 @@ function EmployerMypage() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 handleTempInputChange("name", e.target.value)
               }
+              placeholder="Enter your business name..."
             />
 
             <TextArea
@@ -818,6 +819,7 @@ function EmployerMypage() {
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 handleTempInputChange("bizDescription", e.target.value)
               }
+              placeholder="Enter your business description..."
               rows={3}
             />
           </div>
