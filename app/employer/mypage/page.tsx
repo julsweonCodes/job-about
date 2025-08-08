@@ -38,6 +38,8 @@ import LoadingScreen from "@/components/common/LoadingScreen";
 import { STORAGE_URLS } from "@/constants/storage";
 import { Location } from "@/constants/location";
 import { getLocationDisplayName } from "@/constants/location";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { apiPostData, apiPatchData } from "@/utils/client/API";
 
 const emptyBizLocInfo: BizLocInfo = {
   bizLocId: "",
@@ -204,21 +206,13 @@ function EmployerMypage() {
       const remainingSlots = 5 - currentImageCount;
       const filesToProcess = Array.from(files).slice(0, remainingSlots);
 
-      console.log("Uploading images:", {
-        currentImageCount,
-        remainingSlots,
-        filesToProcess: filesToProcess.length,
-      });
-
       filesToProcess.forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
             const imageUrl = e.target!.result as string;
-            console.log("New image added:", imageUrl.substring(0, 50) + "...");
             setExtraPhotos((prev) => {
               const newPhotos = [...prev, imageUrl];
-              console.log("Updated extraPhotos:", newPhotos.length);
               return newPhotos;
             });
           }
@@ -247,16 +241,39 @@ function EmployerMypage() {
   const handleSaveImages = async () => {
     try {
       setIsUpdating(true);
-      // 여기서 서버에 이미지 변경사항을 전송
+
+      // 새로 추가된 이미지들을 File 객체로 변환
+      const files: File[] = [];
+      for (let i = 0; i < extraPhotos.length; i++) {
+        const imageUrl = extraPhotos[i];
+        if (imageUrl.startsWith("data:")) {
+          // data URL을 File 객체로 변환
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const file = new File([blob], `photo_${i}.jpg`, { type: "image/jpeg" });
+          files.push(file);
+        }
+      }
+
+      // 1단계: 새 이미지들 업로드
+      let newPhotoUrls: string[] = [];
+      if (files.length > 0) {
+        const formData = new FormData();
+        files.forEach((file) => formData.append("photos", file));
+
+        const uploadResponse = await apiPostData(API_URLS.EMPLOYER.PROFILE_PHOTOS_UPLOAD, formData);
+        newPhotoUrls = uploadResponse.photoUrls || [];
+      }
+
+      // 2단계: 최종 이미지 배열 생성
       const currentImages = originalImages
         .filter((_, index) => !deletedImageIndexes.has(index))
-        .concat(extraPhotos);
-      console.log("Saving images to server:", currentImages);
+        .concat(newPhotoUrls);
 
-      // TODO: API 호출로 이미지 저장
-      // const response = await apiPostData(API_URLS.EMPLOYER.PROFILE, {
-      //   extraPhotos: currentImages
-      // });
+      // 3단계: 최종 이미지 배열로 데이터베이스 업데이트
+      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE_PHOTOS, {
+        photoUrls: currentImages,
+      });
 
       // 성공 시 원본 이미지 업데이트
       setOriginalImages(currentImages);
@@ -264,9 +281,10 @@ function EmployerMypage() {
       setDeletedImageIndexes(new Set()); // 삭제된 이미지 인덱스 초기화
       setIsWorkplacePhotoChanged(false);
 
-      console.log("Images saved successfully");
+      showSuccessToast("Images updated successfully");
     } catch (error) {
       console.error("Failed to save images:", error);
+      showErrorToast("Failed to save images. Please try again.");
     } finally {
       setIsUpdating(false);
     }
@@ -277,26 +295,34 @@ function EmployerMypage() {
     setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
     setDeletedImageIndexes(new Set()); // 삭제된 이미지 인덱스 초기화
     setIsWorkplacePhotoChanged(false);
-    console.log("Image changes cancelled");
   };
 
   const handleLogoSave = async (file: File) => {
     try {
       setIsUpdating(true);
-      // 파일을 읽어서 이미지 URL로 변환
+
+      // FormData 생성
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      // 새로운 PATCH API 사용
+      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE_LOGO, formData);
+
+      // 파일을 읽어서 이미지 URL로 변환 (로컬 미리보기용)
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
-        // 로고 이미지 상태 업데이트 (실제로는 서버에 저장)
+        // 로고 이미지 상태 업데이트
         setBizLocData((prev) => ({
           ...prev,
           logoImg: imageUrl,
         }));
-        console.log("Saving logo image:", imageUrl);
+        showSuccessToast("Logo updated successfully");
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error updating logo:", error);
+      showErrorToast("Failed to update logo. Please try again.");
     } finally {
       setIsUpdating(false);
     }
@@ -332,16 +358,33 @@ function EmployerMypage() {
   const handleOptionsSave = async (section: string) => {
     try {
       setIsUpdating(true);
-      // TODO: API 호출로 데이터 저장
-      // const response = await apiPostData(API_URLS.EMPLOYER.PROFILE, {
-      //   [section]: tempData[section as keyof BizLocInfo]
-      // });
+
+      // 섹션별 필드 매핑
+      const sectionFields = {
+        address: ["address"],
+        hours: ["startTime", "endTime"],
+        contact: ["phone"],
+        location: ["location"],
+      };
+
+      // 수정된 섹션 데이터만 전송
+      const updateData = Object.fromEntries(
+        sectionFields[section as keyof typeof sectionFields]?.map((field) => [
+          field,
+          tempData[field as keyof BizLocInfo],
+        ]) || []
+      );
+
+      // 새로운 PATCH API 사용
+      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE, updateData);
 
       // 저장 시 tempData를 bizLocData에 적용
       setBizLocData(tempData);
       setIsEditing((prev) => ({ ...prev, [section]: false }));
+      showSuccessToast(`${section} updated successfully`);
     } catch (error) {
       console.error("Failed to save changes:", error);
+      showErrorToast(`Failed to save ${section}. Please try again.`);
     } finally {
       setIsUpdating(false);
     }
@@ -351,18 +394,23 @@ function EmployerMypage() {
   const handleProfileSave = async () => {
     try {
       setIsUpdating(true);
-      // TODO: API 호출로 데이터 저장
-      // const response = await apiPostData(API_URLS.EMPLOYER.PROFILE, {
-      //   name: tempData.name,
-      //   bizDescription: tempData.bizDescription
-      // });
+
+      // 수정된 기본 정보만 전송
+      const updateData = {
+        name: tempData.name,
+        bizDescription: tempData.bizDescription,
+      };
+
+      // 새로운 PATCH API 사용
+      const response = await apiPatchData(API_URLS.EMPLOYER.PROFILE, updateData);
 
       // 저장 시 tempData를 bizLocData에 적용
       setBizLocData(tempData);
-      console.log("Saving basic information:", tempData);
       handleCloseProfileDialog();
+      showSuccessToast("Information updated successfully");
     } catch (error) {
       console.error("Failed to save profile:", error);
+      showErrorToast("Failed to save profile. Please try again.");
     } finally {
       setIsUpdating(false);
     }
@@ -384,10 +432,12 @@ function EmployerMypage() {
           </div>
 
           <div className="px-1">
-            <div className="h-6 bg-gray-200 rounded animate-pulse w-40 mb-4" />
-            {Array.from({ length: 4 }).map((_, index) => (
-              <InfoSectionSkeleton key={index} />
-            ))}
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-40 mb-4 flex" />
+            <div className="space-y-4 sm:space-y-5">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <InfoSectionSkeleton key={index} />
+              ))}
+            </div>
           </div>
 
           <div className="px-1">
@@ -638,10 +688,11 @@ function EmployerMypage() {
               <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide px-1 sm:px-2">
                 {/* 원본 이미지들 (삭제되지 않은 것들만) */}
                 {originalImages
-                  .filter((_, index) => !deletedImageIndexes.has(index))
-                  .map((image, index) => (
+                  .map((image, originalIndex) => ({ image, originalIndex }))
+                  .filter(({ originalIndex }) => !deletedImageIndexes.has(originalIndex))
+                  .map(({ image, originalIndex }, displayIndex) => (
                     <div
-                      key={`original-${index}`}
+                      key={`original-${originalIndex}`}
                       className="relative flex-shrink-0 group p-1 sm:p-2"
                     >
                       <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
@@ -651,7 +702,7 @@ function EmployerMypage() {
                               ? image
                               : `${STORAGE_URLS.BIZ_LOC.PHOTO}${image}`
                           }
-                          alt={`Workplace ${index + 1}`}
+                          alt={`Workplace ${displayIndex + 1}`}
                           className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                           onError={(e) => {
                             // 이미지 로드 실패 시 기본 이미지로 대체
@@ -661,7 +712,7 @@ function EmployerMypage() {
                         />
                       </div>
                       <button
-                        onClick={() => handleRemoveImage(index)}
+                        onClick={() => handleRemoveImage(originalIndex)}
                         className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
                       >
                         <X size={12} />

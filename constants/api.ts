@@ -29,25 +29,13 @@ export const API_URLS = {
   // 구인자 관련
   EMPLOYER: {
     PROFILE: "/api/employer/profile",
-    DASHBOARD: {
-      ROOT: "/api/employer/dashboard",
-      JOBPOSTS: "/api/employer/dashboard/jobposts",
-      APPLICANT_LIST: (postId: string) => `/api/employer/dashboard/${postId}/applicants`,
-      APPLICANT_DETAIL: (postId: string, appId: string) =>
-        `/api/employer/dashboard/${postId}/applicants/${appId}`,
-    },
-    POST: {
-      CREATE: "/api/employer/post/create",
-      PUBLISH: (id: string) => `/api/employer/post/preview/${id}`,
-      DETAIL: (id: string, status?: string) =>
-        status ? `/api/employer/post/${id}?status=${status}` : `/api/employer/post/${id}`,
-      EDIT: (id: string) => `/api/employer/post/${id}/edit`,
-      STATUS: "/api/employer/dashboard/jobposts",
-      UPDATE: (id: string) => `/api/employer/post/${id}`,
-    },
-    APPLICANTS: {
-      UPDATE_STATUS: "/api/employer/applicants/update-status",
-    },
+    PROFILE_LOGO: "/api/employer/profile/logo",
+    PROFILE_PHOTOS: "/api/employer/profile/photos",
+    PROFILE_PHOTOS_UPLOAD: "/api/employer/profile/photos/upload",
+    DASHBOARD: "/api/employer/dashboard",
+    POST: "/api/employer/post",
+    APPLICANTS: "/api/employer/applicants",
+    APPLICANTS_DETAIL: "/api/employer/applicants/detail",
   },
 
   // 구직자 관련
