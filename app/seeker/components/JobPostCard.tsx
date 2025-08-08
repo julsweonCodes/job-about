@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Tag, Users } from "lucide-react";
-import { ApplicantStatus, WorkType } from "@/constants/enums";
 import { Chip } from "@/components/ui/Chip";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { getLocationDisplayName } from "@/constants/location";
+import { getApplicationStatusConfig, getWorkTypeConfig } from "@/utils/client/styleUtils";
+import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
 
 interface JobPostCardProps {
   job: JobPostCardType;
@@ -29,7 +30,10 @@ export const JobPostCardSkeleton: React.FC = () => {
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
         <div className="flex flex-col gap-1 flex-1 min-w-0 pr-4">
-          <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+          </div>
           <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
         </div>
         <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl bg-gray-200 animate-pulse flex-shrink-0 shadow-sm"></div>
@@ -80,66 +84,6 @@ export const JobPostCardSkeleton: React.FC = () => {
 
 export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, onView }) => {
   const [imageError, setImageError] = useState(false);
-
-  // 지원 상태에 따른 스타일 설정
-  // 지원 상태 설정
-  const getApplicationStatusConfig = (status?: string) => {
-    if (!status) return null;
-
-    switch (status) {
-      case ApplicantStatus.APPLIED:
-        return {
-          text: "Applied",
-          style: "bg-amber-100 text-amber-700 border-amber-200",
-        };
-      case ApplicantStatus.IN_REVIEW:
-        return {
-          text: "In Review",
-          style: "bg-blue-100 text-blue-700 border-blue-200",
-        };
-      case ApplicantStatus.HIRED:
-        return {
-          text: "Hired",
-          style: "bg-emerald-100 text-emerald-700 border-emerald-200",
-        };
-      case ApplicantStatus.REJECTED:
-        return {
-          text: "Rejected",
-          style: "bg-red-100 text-red-700 border-red-200",
-        };
-      case ApplicantStatus.WITHDRAWN:
-        return {
-          text: "Withdrawn",
-          style: "bg-gray-100 text-gray-700 border-gray-200",
-        };
-      default:
-        return {
-          text: "Applied",
-          style: "bg-gray-100 text-gray-700 border-gray-200",
-        };
-    }
-  };
-
-  // WorkType 설정
-  const getWorkTypeConfig = (workType: WorkType) => {
-    switch (workType) {
-      case WorkType.REMOTE:
-        return {
-          label: "Remote",
-          className: "bg-green-100 text-green-800 hover:bg-green-100/80",
-        };
-      case WorkType.HYBRID:
-        return {
-          label: "Hybrid",
-          className: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white ",
-        };
-      default:
-        return {
-          label: "On-Site",
-          className: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
-        };
-    }
-  };
 
   const { label: typeLabel, className: typeClass } = getWorkTypeConfig(job.workType);
 
@@ -201,8 +145,15 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
         <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">{job.title}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold break-words">
+              {job.title}
+            </span>
+            {job.jobType && (
+              <span className="text-sm text-gray-500 font-medium flex-shrink-0">
+                • {getJobTypeName(job.jobType)}
+              </span>
+            )}
           </div>
           <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
             <span className="text-gray-700 font-bold">${job.wage}</span>/hour

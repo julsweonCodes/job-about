@@ -100,6 +100,7 @@ export interface JobPostCard {
   id: string;
   title: string;
   workType: WorkType;
+  jobType?: string; // JobType 추가
   wage: string;
   location: Location;
   workSchedule: string;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
-import { JobPostPayload } from "@/types/employer";
+import { JobPostPayload } from "@/types/server/employer";
 import { geminiTest } from "@/app/services/gemini-services";
 import { setCache } from "@/utils/cache";
 

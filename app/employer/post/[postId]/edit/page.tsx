@@ -13,7 +13,7 @@ import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog
 import RequiredPersonalitiesDialog from "@/app/employer/components/RequiredPersonalitiesDialog";
 import OptionSelector from "@/components/ui/OptionSelector";
 import { API_URLS } from "@/constants/api";
-import { JobPostPayload } from "@/types/employer";
+import { JobPostPayload } from "@/types/server/employer";
 import { LANGUAGE_LEVEL_OPTIONS, WORK_TYPE_OPTIONS } from "@/constants/options";
 import { apiGetData, apiPostData } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";

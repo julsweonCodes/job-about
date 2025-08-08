@@ -293,6 +293,15 @@ export function fromPrismaAppStatus(value: string): ApplicantStatus {
   return map[value] || ApplicantStatus.APPLIED;
 }
 
+export function fromPrismaJobStatus(value: string): JobStatus {
+  const map: Record<string, JobStatus> = {
+    DRAFT: JobStatus.DRAFT,
+    PUBLISHED: JobStatus.PUBLISHED,
+    CLOSED: JobStatus.CLOSED,
+  };
+  return map[value] || JobStatus.DRAFT;
+}
+
 export function toWorkType(value: string | null): WorkType | undefined {
   if (!value) return undefined;
   if (Object.values(WorkType).includes(value as WorkType)) return value as WorkType;

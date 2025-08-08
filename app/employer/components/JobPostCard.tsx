@@ -1,25 +1,14 @@
 import React, { useState } from "react";
-import { MapPin, Calendar, CircleDollarSign, Tag, Users } from "lucide-react";
+import { Calendar, Users } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
-import { JobPost } from "@/types/employer";
-import { $Enums } from "@prisma/client";
-
-// D-day 계산 함수
-const calculateDDay = (deadlineDate: string): number => {
-  const deadline = new Date(deadlineDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  deadline.setHours(0, 0, 0, 0);
-
-  const diffTime = deadline.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays;
-};
+import { ClientJobPost } from "@/types/client/employer";
+import { getWorkTypeConfig } from "@/utils/client/styleUtils";
+import { getDDayConfig } from "@/utils/client/dateUtils";
+import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
 
 interface JobPostCardProps {
-  job: JobPost;
+  job: ClientJobPost;
   onView: (id: string) => void;
   onViewApplicants?: (id: string) => void;
   isDraft?: boolean;
@@ -45,7 +34,10 @@ export const JobPostCardSkeleton: React.FC = () => {
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
         <div className="flex flex-col gap-1 flex-1 min-w-0 pr-4">
-          <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+          </div>
           <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
         </div>
         <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl bg-gray-200 animate-pulse flex-shrink-0 shadow-sm"></div>
@@ -85,30 +77,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  // WorkType 설정
-  const getWorkTypeConfig = (workType: $Enums.WorkType) => {
-    switch (workType) {
-      case $Enums.WorkType.ON_SITE:
-        return {
-          label: "On-Site",
-          className: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
-        };
-      case $Enums.WorkType.REMOTE:
-        return {
-          label: "Remote",
-          className: "bg-green-100 text-green-800 hover:bg-green-100/80",
-        };
-      default:
-        return {
-          label: "Hybrid",
-          className: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white",
-        };
-    }
-  };
-
-  const { label: typeLabel, className: typeClass } = getWorkTypeConfig(
-    job.type || $Enums.WorkType.ON_SITE
-  );
+  const { label: typeLabel, className: typeClass } = getWorkTypeConfig(job.type);
 
   const defaultImage = "/images/img-default-part-time-work.png";
 
@@ -138,27 +107,10 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
         {!isDraft &&
           job.deadline_date &&
           (() => {
-            const dDay = calculateDDay(job.deadline_date);
-            let chipStyle = "";
-            let dDayText = "";
-
-            if (dDay < 0) {
-              chipStyle = "bg-red-100 text-red-800 hover:bg-red-100/80";
-              dDayText = "마감";
-            } else if (dDay === 0) {
-              chipStyle = "bg-red-100 text-red-800 hover:bg-red-100/80";
-              dDayText = "D-day";
-            } else if (dDay <= 3) {
-              chipStyle = "bg-orange-100 text-orange-800 hover:bg-orange-100/80";
-              dDayText = `D-${dDay}`;
-            } else {
-              chipStyle = "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-              dDayText = `D-${dDay}`;
-            }
-
+            const dDayConfig = getDDayConfig(job.deadline_date);
             return (
-              <Chip size="sm" className={`${chipStyle} font-semibold`}>
-                {dDayText}
+              <Chip size="sm" className={`${dDayConfig.className} font-semibold`}>
+                {dDayConfig.text}
               </Chip>
             );
           })()}
@@ -175,8 +127,15 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
         <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold">{job.title}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-gray-900 text-md text-lg sm:text-xl font-bold break-words">
+              {job.title}
+            </span>
+            {job.jobType && (
+              <span className="text-sm text-gray-500 font-medium flex-shrink-0">
+                • {getJobTypeName(job.jobType)}
+              </span>
+            )}
           </div>
           <span className="text-gray-500 text-md text-sm sm:text-base font-medium">
             <span className="text-gray-700 font-bold">${job.wage}</span>/hour

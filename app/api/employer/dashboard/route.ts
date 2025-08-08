@@ -1,7 +1,11 @@
 import { getUserIdFromSession } from "@/utils/auth";
-import { getActiveJobPostsCnt, getAllApplicationsCnt, getStatusUpdateCnt} from "@/app/services/employer-dash-services";
+import {
+  getActiveJobPostsCnt,
+  getAllApplicationsCnt,
+  getStatusUpdateCnt,
+} from "@/app/services/employer-dash-services";
 import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
-import { Dashboard } from "@/types/employer";
+import { Dashboard } from "@/types/server/employer";
 import { getBusinessLocId } from "@/app/services/job-post-services";
 
 export async function GET() {
