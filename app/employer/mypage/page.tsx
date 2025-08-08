@@ -270,51 +270,58 @@ function EmployerMypage() {
       return;
     }
 
-    // 현재 표시되는 이미지들의 배열 생성
-    const visibleOriginalImages = originalImages
-      .map((image, originalIndex) => ({ image, originalIndex, type: "original" as const }))
-      .filter(({ originalIndex }) => !deletedImageIndexes.has(originalIndex));
+    try {
+      // 현재 표시되는 모든 이미지들을 하나의 배열로 통합
+      const visibleOriginalImages = originalImages
+        .map((image, originalIndex) => ({ image, originalIndex, type: "original" as const }))
+        .filter(({ originalIndex }) => !deletedImageIndexes.has(originalIndex));
 
-    const visibleExtraImages = extraPhotos.map((image, index) => ({
-      image,
-      originalIndex: originalImages.length + index,
-      type: "extra" as const,
-    }));
+      const visibleExtraImages = extraPhotos.map((image, index) => ({
+        image,
+        originalIndex: originalImages.length + index,
+        type: "extra" as const,
+      }));
 
-    const allVisibleImages = [...visibleOriginalImages, ...visibleExtraImages];
+      const allVisibleImages = [...visibleOriginalImages, ...visibleExtraImages];
 
-    // 드래그된 아이템과 드롭 위치에 따라 순서 변경
-    const draggedItem = allVisibleImages[draggedIndex];
-    const newOrder = [...allVisibleImages];
-    newOrder.splice(draggedIndex, 1);
-    newOrder.splice(dropIndex, 0, draggedItem);
-
-    // 새로운 순서를 originalImages와 extraPhotos로 분리
-    const newOriginalImages: string[] = [];
-    const newExtraPhotos: string[] = [];
-    const newDeletedIndexes = new Set<number>();
-
-    newOrder.forEach((item) => {
-      if (item.type === "original") {
-        newOriginalImages.push(item.image);
-      } else {
-        newExtraPhotos.push(item.image);
+      // 드래그된 이미지 가져오기
+      const draggedItem = allVisibleImages[draggedIndex];
+      if (!draggedItem) {
+        console.error("Invalid dragged index:", draggedIndex);
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+        return;
       }
-    });
 
-    // 삭제된 인덱스 재계산
-    originalImages.forEach((_, originalIndex) => {
-      if (!newOriginalImages.includes(originalImages[originalIndex])) {
-        newDeletedIndexes.add(originalIndex);
-      }
-    });
+      // 새로운 순서 계산
+      const newVisibleImages = [...allVisibleImages];
+      newVisibleImages.splice(draggedIndex, 1);
+      newVisibleImages.splice(dropIndex, 0, draggedItem);
 
-    setOriginalImages(newOriginalImages);
-    setExtraPhotos(newExtraPhotos);
-    setDeletedImageIndexes(newDeletedIndexes);
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-    setIsOrderChanged(true); // 순서가 변경되었음을 표시
+      // 새로운 순서를 originalImages와 extraPhotos로 분리
+      const newOriginalImages: string[] = [];
+      const newExtraImages: string[] = [];
+
+      newVisibleImages.forEach((item) => {
+        if (item.type === "original") {
+          newOriginalImages.push(item.image);
+        } else {
+          newExtraImages.push(item.image);
+        }
+      });
+
+      // 상태 업데이트 - deletedImageIndexes 초기화
+      setOriginalImages(newOriginalImages);
+      setExtraPhotos(newExtraImages);
+      setDeletedImageIndexes(new Set()); // 삭제된 인덱스 초기화
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      setIsOrderChanged(true);
+    } catch (error) {
+      console.error("Error in handleDrop:", error);
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+    }
   };
 
   const handleSaveImages = async () => {
@@ -765,13 +772,27 @@ function EmployerMypage() {
             {/* workplace photos */}
             <div>
               <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide px-1 sm:px-2">
-                {/* 원본 이미지들 (삭제되지 않은 것들만) */}
-                {originalImages
-                  .map((image, originalIndex) => ({ image, originalIndex }))
-                  .filter(({ originalIndex }) => !deletedImageIndexes.has(originalIndex))
-                  .map(({ image, originalIndex }, displayIndex) => (
+                {/* 현재 표시되는 모든 이미지들을 하나의 배열로 통합 */}
+                {(() => {
+                  const visibleOriginalImages = originalImages
+                    .map((image, originalIndex) => ({
+                      image,
+                      originalIndex,
+                      type: "original" as const,
+                    }))
+                    .filter(({ originalIndex }) => !deletedImageIndexes.has(originalIndex));
+
+                  const visibleExtraImages = extraPhotos.map((image, index) => ({
+                    image,
+                    originalIndex: originalImages.length + index,
+                    type: "extra" as const,
+                  }));
+
+                  const allVisibleImages = [...visibleOriginalImages, ...visibleExtraImages];
+
+                  return allVisibleImages.map((item, displayIndex) => (
                     <div
-                      key={`original-${originalIndex}`}
+                      key={`${item.type}-${item.originalIndex}`}
                       className={`relative flex-shrink-0 group p-1 sm:p-2 cursor-move ${
                         draggedIndex === displayIndex ? "opacity-50" : ""
                       } ${dragOverIndex === displayIndex ? "ring-2 ring-indigo-400" : ""}`}
@@ -784,9 +805,9 @@ function EmployerMypage() {
                       <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
                         <img
                           src={
-                            image.startsWith("data:")
-                              ? image
-                              : `${STORAGE_URLS.BIZ_LOC.PHOTO}${image}`
+                            item.image.startsWith("data:")
+                              ? item.image
+                              : `${STORAGE_URLS.BIZ_LOC.PHOTO}${item.image}`
                           }
                           alt={`Workplace ${displayIndex + 1}`}
                           className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
@@ -798,51 +819,16 @@ function EmployerMypage() {
                         />
                       </div>
                       <button
-                        onClick={() => handleRemoveImage(originalIndex)}
+                        onClick={() => handleRemoveImage(item.originalIndex)}
                         className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
                       >
                         <X size={12} />
                       </button>
                     </div>
-                  ))}
+                  ));
+                })()}
 
-                {/* 새로 추가된 이미지들 */}
-                {extraPhotos.map((image, index) => {
-                  const displayIndex =
-                    originalImages.filter((_, idx) => !deletedImageIndexes.has(idx)).length + index;
-                  return (
-                    <div
-                      key={`new-${index}`}
-                      className={`relative flex-shrink-0 group p-1 sm:p-2 cursor-move ${
-                        draggedIndex === displayIndex ? "opacity-50" : ""
-                      } ${dragOverIndex === displayIndex ? "ring-2 ring-indigo-400" : ""}`}
-                      draggable
-                      onDragStart={() => handleDragStart(displayIndex)}
-                      onDragOver={(e) => handleDragOver(e, displayIndex)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, displayIndex)}
-                    >
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
-                        <img
-                          src={image}
-                          alt={`New Workplace ${index + 1}`}
-                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                          onError={(e) => {
-                            // 이미지 로드 실패 시 기본 이미지로 대체
-                            const target = e.target as HTMLImageElement;
-                            target.src = `${STORAGE_URLS.BIZ_LOC.PHOTO}bizLoc_default.png`;
-                          }}
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleRemoveImage(originalImages.length + index)}
-                        className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  );
-                })}
+                {/* 추가 버튼 */}
                 {originalImages.filter((_, index) => !deletedImageIndexes.has(index)).length +
                   extraPhotos.length <
                   5 && (
