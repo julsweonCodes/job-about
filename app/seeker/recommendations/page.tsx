@@ -6,7 +6,7 @@ import { JobPostCard, JobPostCardSkeleton } from "@/app/seeker/components/JobPos
 import { useRouter } from "next/navigation";
 import { useRecommendedJobsInfinite } from "@/hooks/seeker/useSeekerRecommendedJobs";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { JobPostMapper, JobPostCardMapper } from "@/types/client/jobPost";
+import { JobPostCardMapper } from "@/types/client/jobPost";
 import { PAGE_URLS } from "@/constants/api";
 import BackHeader from "@/components/common/BackHeader";
 import { workTypeFilter, jobTypeFilter, locationFilter } from "@/constants/filterOptions";
@@ -46,8 +46,15 @@ function RecommendedJobsPage() {
     if (!Array.isArray(recommendedJobs)) return [];
 
     const cards = recommendedJobs
-      .map((job) => JobPostCardMapper.fromRecommendedJobPost(job))
-      .filter((job) => job !== null);
+      .map((jobPostData) => {
+        try {
+          return JobPostCardMapper.fromJobPostData(jobPostData);
+        } catch (error) {
+          console.warn("Failed to convert recommended job:", error);
+          return null;
+        }
+      })
+      .filter((job): job is NonNullable<typeof job> => job !== null);
 
     return cards;
   }, [recommendedJobs]);

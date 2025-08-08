@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
-import { ApiRecommendedJobResponse } from "@/types/client/jobPost";
+import { ApiRecommendedJobResponse, JobPostMapper } from "@/types/client/jobPost";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { toPrismaJobType, toPrismaLocation, toPrismaWorkType } from "@/types/enumMapper";
@@ -52,8 +52,11 @@ const fetchRecommendedJobs = async (
     });
 
     if (response && response.recommendations && Array.isArray(response.recommendations)) {
+      // JobPostMapper를 사용하여 데이터 변환
+      const transformedJobs = JobPostMapper.fromRecommendedJobPostArray(response.recommendations);
+
       return {
-        jobs: response.recommendations,
+        jobs: transformedJobs,
         pagination: response.pagination,
         user: response.user,
         searchParams: response.searchParams,
@@ -149,8 +152,13 @@ export const useRecommendedJobsInfinite = (
         })
           .then((response) => {
             if (response && response.recommendations && Array.isArray(response.recommendations)) {
+              // JobPostMapper를 사용하여 데이터 변환
+              const transformedJobs = JobPostMapper.fromRecommendedJobPostArray(
+                response.recommendations
+              );
+
               return {
-                jobs: response.recommendations,
+                jobs: transformedJobs,
                 currentPage: pageParam || 1,
                 hasMore: response.pagination?.hasNextPage || false,
                 totalCount: response.pagination?.totalCount || 0,
