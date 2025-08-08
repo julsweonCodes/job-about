@@ -432,7 +432,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("header", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.title}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
@@ -465,7 +465,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("description", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.description}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
@@ -591,7 +591,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("jobDetails.hourlyWage", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.hourlyWage}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
@@ -627,7 +627,7 @@ const JobPostEditPage: React.FC = () => {
                 <Button
                   onClick={() => handleSave("jobDetails.workSchedule", tempEditData)}
                   size="lg"
-                  disabled={isSaving}
+                  disabled={isSaving || !tempEditData.workSchedule}
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
