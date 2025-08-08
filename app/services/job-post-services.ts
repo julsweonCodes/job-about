@@ -84,7 +84,7 @@ export async function updateJobDesc(userId: number, postId: string, jobDesc: str
 // Edit Job Post
 export async function getBusinessLocId(userId: number) {
   const bizLocId = await prisma.business_loc.findFirst({
-    where: { user_id: userId },
+    where: { user_id: userId, deleted_at: null },
     select: { id: true, name: true },
   });
 

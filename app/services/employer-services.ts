@@ -76,7 +76,11 @@ export async function getCurrJobPost(bizLocId: number, userId: number) {
   });
   return res;
 }
-// POST - Create business loc
+
+/**
+ * POST create employer profile
+ * @param payload
+ */
 export async function saveEmployerProfile(payload: EmployerProfilePayload) {
   const safePayload = {
     ...payload,
@@ -91,6 +95,33 @@ export async function saveEmployerProfile(payload: EmployerProfilePayload) {
     throw error;
   }
   return data;
+}
+
+/**
+ * POST update employer profile
+ * @param payload
+ */
+
+export async function updateEmployerProfile(payload: EmployerProfilePayload) {
+  const bizLocId = await getBusinessLocId(payload.user_id);
+
+  const safePayload = {
+    ...payload,
+    description: payload.description ?? "",
+    user_id: Number(payload.user_id),
+    location: toPrismaLocationStrict(payload.location),
+  };
+  console.log(safePayload);
+  const res = await prisma.business_loc.update({
+    where: {
+      id: bizLocId,
+    },
+    data: {
+      ...safePayload,
+      updated_at: new Date(),
+    },
+  });
+  return parseBigInt(res);
 }
 
 export async function updateJobPost(postId: string, payload: JobPostPayload, userId: number) {
