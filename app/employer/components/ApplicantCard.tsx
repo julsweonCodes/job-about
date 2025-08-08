@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
+import { estimateExperienceMonths, getExperienceBandEn } from "@/utils/shared/experienceUtils";
 
 interface ApplicantCardProps {
   applicant: Applicant;
@@ -38,6 +39,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onReview, onVi
   };
 
   const currentStatus = statusConfig[applicant.status as ApplicantStatus];
+
+  const experienceBandLabel = React.useMemo(() => {
+    if (applicant.work_experiences && applicant.work_experiences.length > 0) {
+      const totalMonths = estimateExperienceMonths(applicant.work_experiences);
+      return getExperienceBandEn(totalMonths);
+    }
+    return undefined;
+  }, [applicant.work_experiences]);
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:p-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 lg:hover:scale-[1.02] h-full flex flex-col">
       {/* Applicant Header */}
@@ -73,14 +82,13 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onReview, onVi
         </p>
 
         <div className="flex items-center gap-2 mb-3">
-          <Calendar className="w-4 h-4 text-gray-400" />
           <Typography as="span" variant="bodyXs" className="text-gray-500">
             Applied{" "}
             {applicant.applied_date ? formatYYYYMMDDtoMonthDayYear(applicant.applied_date) : ""}
           </Typography>
           <span className="text-gray-300">•</span>
           <Typography as="span" variant="bodyXs" className="text-gray-500">
-            {applicant.experience} experience
+            {experienceBandLabel ?? applicant.experience ?? ""} {"experience"}
           </Typography>
         </div>
 

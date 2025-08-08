@@ -32,6 +32,7 @@ function ReviewApplicantsPage() {
   };
 
   // TODO api call
+  // 정연 
   const handleSaveStatus = async () => {
     if (!selectedApplicantId || !selectedStatus) return;
 
@@ -49,8 +50,6 @@ function ReviewApplicantsPage() {
 
       // React Query 캐시 업데이트
       queryClient.setQueryData(EMPLOYER_QUERY_KEYS.APPLICANTS_LIST(postId), updatedList);
-
-      console.log(`Applicant ${selectedApplicantId} status updated to ${selectedStatus}`);
 
       // 다이얼로그 닫기
       setSelectedApplicantId(null);

@@ -424,7 +424,7 @@ function SeekerProfilePage() {
                 onClick={addExperience}
                 className="w-full flex items-center gap-2 sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-200 hover:shadow-xl touch-manipulation active:scale-[0.98]"
               >
-                <Plus size={16} />
+                <Plus size={16} className="hidden sm:block" />
                 <span className="text-sm sm:text-base">Add Experience</span>
               </button>
               <button

@@ -1,224 +1,280 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { MapPin, Clock, Globe, Calendar, User } from "lucide-react";
+import React, { useMemo } from "react";
+import { Clock } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { Button } from "@/components/ui/Button";
 import { useApplicationDetail } from "@/hooks/employer/useEmployerDashboard";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { STORAGE_URLS } from "@/constants/storage";
+import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
+import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import {
+  getJobTypeName,
+  getWorkPeriodLabel,
+  getWorkTypeLabel,
+} from "@/utils/client/enumDisplayUtils";
 
-function ApplicantDetailPage() {
-  const router = useRouter();
-  const params = useParams();
-  const postId = params?.postId as string;
-  const appId = params?.appId as string;
-
-  const workStyleTags = ["#QuietEnvironment", "#Teamwork", "#FastPacedPreferred"];
-  const skillsTags = ["Customer Service", "Photoshop", "Barista"];
-  const { appDetail, loadingStates, queryClient } = useApplicationDetail(postId, appId);
-  const experiences = [
-    {
-      title: "Barista at Café Latte",
-      period: "2022–2023",
-      duration: "1 year",
-    },
-    {
-      title: "Customer Service at Retail Store",
-      period: "2021–2022",
-      duration: "1 year",
-    },
-  ];
-  useEffect(() => {
-    console.log(appDetail);
-  }, [appDetail]);
-
-  const preferences = [
-    {
-      icon: Calendar,
-      label: "Preferred Schedule",
-      value: "Weekends",
-      color: "emerald",
-    },
-    {
-      icon: MapPin,
-      label: "Preferred Location",
-      value: "Toronto",
-      color: "blue",
-    },
-    {
-      icon: Globe,
-      label: "Language Comfort",
-      value: "Basic English only",
-      color: "amber",
-    },
-  ];
-
-  const getColorClasses = (color: string) => {
-    const colors = {
-      emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
-      blue: "bg-blue-50 text-blue-700 border-blue-100",
-      amber: "bg-amber-50 text-amber-700 border-amber-100",
-    };
-    return colors[color as keyof typeof colors] || colors.blue;
-  };
-
-  const getIconBgClasses = (color: string) => {
-    const colors = {
-      emerald: "bg-emerald-100 text-emerald-600",
-      blue: "bg-blue-100 text-blue-600",
-      amber: "bg-amber-100 text-amber-600",
-    };
-    return colors[color as keyof typeof colors] || colors.blue;
-  };
-
+function ApplicantDetailSkeleton() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Header */}
       <BackHeader title="Applicant Profile" />
-
-      {/* Main Content */}
       <main className="pb-32 lg:pb-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Desktop Grid Layout */}
         <div className="lg:grid lg:grid-cols-3 lg:gap-8 lg:mt-10">
-          {/* Left Column - Applicant Info & Work Style (Desktop) */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Applicant Info */}
             <section className="bg-white backdrop-blur-sm mt-6 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
               <div className="flex lg:flex-col lg:items-center lg:text-center items-center space-x-4 lg:space-x-0 lg:space-y-4">
                 <div className="relative">
-                  <div className="w-20 lg:w-24 h-20 lg:h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-rose-400 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white/50">
-                    <User className="w-10 lg:w-12 h-10 lg:h-12 text-white" />
-                  </div>
+                  <div className="w-20 lg:w-24 h-20 lg:h-24 rounded-full bg-gray-200 animate-pulse" />
                 </div>
-                <div className="flex-1 lg:flex-none">
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-                    Sophia Chen
-                  </h2>
-                  <p className="text-gray-500 flex items-center lg:justify-center text-sm lg:text-base">
-                    <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
-                    Applied 2 days ago
-                  </p>
+                <div className="flex-1 lg:flex-none lg:text-center">
+                  <div className="h-6 lg:h-8 bg-gray-200 rounded w-32 lg:w-48 animate-pulse mb-2 lg:mx-auto" />
+                  <div className="h-4 lg:h-5 bg-gray-200 rounded w-24 lg:w-40 animate-pulse lg:mx-auto" />
                 </div>
               </div>
-              {/* 데스크탑용 버튼 */}
-              <div className="hidden lg:flex gap-4 mt-8">
-                <Button variant="black">Deny</Button>
-                <Button variant="default">Accept</Button>
+              <div className="hidden lg:flex gap-4 mt-8 justify-center">
+                <div className="h-10 bg-gray-200 rounded w-24 animate-pulse" />
+                <div className="h-10 bg-gray-200 rounded w-24 animate-pulse" />
               </div>
             </section>
 
-            {/* Work Style Summary */}
             <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
-              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 lg:mb-6 tracking-tight">
-                Work Style Summary
-              </h3>
-
+              <div className="h-5 lg:h-6 bg-gray-200 rounded w-48 animate-pulse mb-4 lg:mb-6" />
               <div className="flex flex-wrap gap-2 lg:gap-3 mb-5 lg:mb-6">
-                {workStyleTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-4 py-2 lg:px-5 lg:py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 rounded-full text-sm lg:text-base font-medium border border-purple-100/50 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 cursor-default shadow-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-24 lg:w-32 animate-pulse" />
               </div>
-
-              <p className="text-gray-600 leading-relaxed text-sm lg:text-base">
-                This applicant thrives in friendly, high-paced environments where collaboration and
-                focus blend seamlessly together.
-              </p>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded w-11/12 animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded w-10/12 animate-pulse" />
+              </div>
             </section>
           </div>
 
-          {/* Right Column - Skills, Experience & Preferences (Desktop) */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Skills & Experience */}
             <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
-              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 lg:mb-6 tracking-tight">
-                Skills & Experience
-              </h3>
-
+              <div className="h-5 lg:h-6 bg-gray-200 rounded w-48 animate-pulse mb-4 lg:mb-6" />
               <div className="flex flex-wrap gap-2 lg:gap-3 mb-6 lg:mb-8">
-                {skillsTags.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-4 py-2 lg:px-5 lg:py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 rounded-full text-sm lg:text-base font-medium border border-blue-100/50 hover:from-blue-100 hover:to-cyan-100 transition-all duration-200 cursor-default shadow-sm"
-                  >
-                    {skill}
-                  </span>
-                ))}
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-24 lg:w-32 animate-pulse" />
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-28 lg:w-36 animate-pulse" />
+                <div className="h-8 lg:h-10 bg-gray-200 rounded-full w-20 lg:w-28 animate-pulse" />
               </div>
-
               <div className="space-y-5 lg:space-y-6">
-                {experiences.map((exp, index) => (
-                  <div key={index} className="relative pl-8 lg:pl-10">
-                    {/* Timeline dot */}
-                    <div className="absolute left-0 top-1.5 lg:top-2 w-4 h-4 lg:w-5 lg:h-5 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full shadow-sm ring-2 ring-white"></div>
-
-                    {/* Timeline line */}
-                    {index < experiences.length - 1 && (
-                      <div className="absolute left-2 lg:left-2.5 top-6 lg:top-7 w-0.5 h-8 lg:h-10 bg-gradient-to-b from-purple-200 to-transparent"></div>
-                    )}
-
-                    <div className="pb-2">
-                      <h4 className="font-semibold text-gray-900 mb-1 lg:mb-2 text-sm lg:text-base tracking-tight">
-                        {exp.title}
-                      </h4>
-                      <div className="text-xs lg:text-sm text-gray-500 space-y-0.5 lg:space-y-1">
-                        <p className="font-medium">{exp.period}</p>
-                        <p className="text-gray-400">{exp.duration}</p>
-                      </div>
-                    </div>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="relative pl-8 lg:pl-10">
+                    <div className="absolute left-0 top-1.5 lg:top-2 w-4 h-4 lg:w-5 lg:h-5 bg-gray-200 rounded-full" />
+                    <div className="h-4 lg:h-5 bg-gray-200 rounded w-32 lg:w-40 animate-pulse mb-1 lg:mb-2" />
+                    <div className="h-3 lg:h-4 bg-gray-100 rounded w-24 lg:w-32 animate-pulse mb-1" />
+                    <div className="h-3 lg:h-4 bg-gray-100 rounded w-20 lg:w-28 animate-pulse" />
                   </div>
                 ))}
               </div>
             </section>
 
-            {/* Job Preferences */}
             <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
-              <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-5 lg:mb-6 tracking-tight">
-                Job Preferences
-              </h3>
-
-              <div className="space-y-4 lg:space-y-5">
-                {preferences.map((pref, index) => {
-                  const IconComponent = pref.icon;
-                  return (
-                    <div key={index} className="flex items-start space-x-4 lg:space-x-5 group">
-                      <div
-                        className={`w-10 h-10 lg:w-12 lg:h-12 ${getIconBgClasses(pref.color)} rounded-xl flex items-center justify-center mt-0.5 shadow-sm group-hover:scale-105 transition-transform duration-200`}
-                      >
-                        <IconComponent className="w-4 h-4 lg:w-5 lg:h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm lg:text-base tracking-tight">
-                          {pref.label}
-                        </p>
-                        <p
-                          className={`text-sm lg:text-base mt-1 lg:mt-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg inline-block ${getColorClasses(pref.color)} border font-medium`}
-                        >
-                          {pref.value}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="h-5 lg:h-6 bg-gray-200 rounded w-40 animate-pulse mb-5 lg:mb-6" />
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded w-11/12 animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded w-10/12 animate-pulse" />
               </div>
             </section>
           </div>
         </div>
       </main>
-
-      {/* 모바일 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl flex gap-4 lg:hidden">
-        <Button variant="black" size="xl">
-          Deny
-        </Button>
-        <Button variant="default" size="xl">
-          Accept
-        </Button>
+        <div className="h-12 bg-gray-200 rounded w-full animate-pulse" />
+        <div className="h-12 bg-gray-200 rounded w-full animate-pulse" />
       </div>
+    </div>
+  );
+}
+
+function ApplicantDetailPage() {
+  const params = useParams();
+  const postId = params?.postId as string;
+  const appId = params?.appId as string;
+  const { appDetail, loadingStates } = useApplicationDetail(postId, appId);
+
+  const displayName = appDetail?.applicant_name || "Applicant";
+  const appliedOn = appDetail?.applied_date
+    ? `Applied ${formatYYYYMMDDtoMonthDayYear(appDetail.applied_date)}`
+    : "";
+  const profileImage = appDetail?.profile_image_url
+    ? `${STORAGE_URLS.USER.PROFILE_IMG}${appDetail.profile_image_url}`
+    : "/images/img-default-profile.png";
+
+  const skillsTags = useMemo(() => {
+    return appDetail?.profile_skills?.map((s) => s.name_en) || [];
+  }, [appDetail?.profile_skills]);
+
+  const experiences = useMemo(
+    () =>
+      (appDetail?.work_experiences || []).map((exp) => ({
+        jobTypeName: getJobTypeName(exp.job_type),
+        companyName: exp.company_name,
+        period: exp.start_year,
+        duration: getWorkPeriodLabel(exp.work_period),
+        workType: getWorkTypeLabel(exp.work_type),
+      })),
+    [appDetail?.work_experiences]
+  );
+
+  // TODO 정연
+  const onClickAccept = () => {
+    console.log("accept");
+  };
+
+  const onClickDeny = () => {
+    console.log("deny");
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA]">
+      {loadingStates.appDetail && <ApplicantDetailSkeleton />}
+      {!loadingStates.appDetail && (
+        <>
+          {/* Header */}
+          <BackHeader title="Applicant Profile" />
+
+          {/* Main Content */}
+          <main className="pb-32 lg:pb-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Desktop Grid Layout */}
+            <div className="lg:grid lg:grid-cols-3 lg:gap-8 lg:mt-10">
+              {/* Left Column - Applicant Info & Work Style (Desktop) */}
+              <div className="lg:col-span-1 space-y-6">
+                {/* Applicant Info */}
+                <section className="bg-white backdrop-blur-sm mt-6 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+                  <div className="flex lg:flex-col lg:items-center lg:text-center items-center space-x-4 lg:space-x-0 lg:space-y-4">
+                    <div className="relative">
+                      <div className="w-20 lg:w-24 h-20 lg:h-24 rounded-full overflow-hidden">
+                        <ImageWithSkeleton
+                          src={profileImage}
+                          alt={displayName}
+                          className="w-full h-full object-cover"
+                          fallbackSrc="/images/img-default-profile.png"
+                          skeletonClassName="bg-gray-200 animate-pulse rounded-full"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex-1 lg:flex-none lg:text-center">
+                      <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 tracking-tight">
+                        {displayName}
+                      </h2>
+                      {appliedOn && (
+                        <p className="text-gray-500 flex items-center lg:justify-center text-sm lg:text-base">
+                          <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
+                          {appliedOn}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {/* 데스크탑용 버튼 */}
+                  <div className="hidden lg:flex gap-4 mt-8 justify-center">
+                    <Button variant="black" onClick={onClickDeny}>
+                      Deny
+                    </Button>
+                    <Button variant="default" onClick={onClickAccept}>
+                      Accept
+                    </Button>
+                  </div>
+                </section>
+
+                {/* Work Style Summary */}
+                <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+                  <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 lg:mb-6 tracking-tight">
+                    Personality Summary
+                  </h3>
+
+                  {appDetail?.quiz_type_name_en && (
+                    <div className="flex flex-wrap gap-2 lg:gap-3 mb-5 lg:mb-6">
+                      <span className="px-4 py-2 lg:px-5 lg:py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 rounded-full text-sm lg:text-base font-medium border border-purple-100/50">
+                        #{appDetail.quiz_type_name_en}
+                      </span>
+                    </div>
+                  )}
+
+                  {appDetail?.quiz_type_desc_en && (
+                    <p className="text-gray-600 leading-relaxed text-sm lg:text-base">
+                      {appDetail.quiz_type_desc_en}
+                    </p>
+                  )}
+                </section>
+              </div>
+
+              {/* Right Column - Skills, Experience & Preferences (Desktop) */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Skills & Experience */}
+                <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+                  <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4 lg:mb-6 tracking-tight">
+                    Skills & Experience
+                  </h3>
+
+                  <div className="flex flex-wrap gap-2 lg:gap-3 mb-6 lg:mb-8">
+                    {skillsTags.map((skill, index) => (
+                      <span
+                        key={index}
+                        className="px-4 py-2 lg:px-5 lg:py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 rounded-full text-sm lg:text-base font-medium border border-blue-100/50 hover:from-blue-100 hover:to-cyan-100 transition-all duration-200 cursor-default shadow-sm"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="space-y-5 lg:space-y-6">
+                    {experiences.map((exp, index) => (
+                      <div key={index} className="relative pl-8 lg:pl-10">
+                        {/* Timeline dot */}
+                        <div className="absolute left-0 top-1.5 lg:top-2 w-4 h-4 lg:w-5 lg:h-5 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full shadow-sm ring-2 ring-white"></div>
+
+                        {/* Timeline line */}
+                        {index < experiences.length - 1 && (
+                          <div className="absolute left-2 lg:left-2.5 top-6 lg:top-7 w-0.5 h-8 lg:h-10 bg-gradient-to-b from-purple-200 to-transparent"></div>
+                        )}
+
+                        <div className="pb-2">
+                          <h4 className="font-semibold text-gray-900 mb-1 lg:mb-2 text-sm lg:text-base tracking-tight">
+                            {exp.jobTypeName}
+                          </h4>
+                          <div className="text-xs lg:text-sm text-gray-500 space-y-0.5 lg:space-y-1">
+                            <p className="font-medium">{exp.companyName}</p>
+                            <p className="text-gray-400">
+                              {exp.period}
+                              {exp.duration ? ` · ${exp.duration}` : ""}
+                              {exp.workType ? ` · ${exp.workType}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+                {/* About Applicant */}
+                {appDetail?.profile_description && (
+                  <section className="bg-white backdrop-blur-sm mt-4 lg:mt-0 rounded-2xl p-6 lg:p-8 shadow-sm border border-white/50">
+                    <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-5 lg:mb-6 tracking-tight">
+                      About Applicant
+                    </h3>
+                    <p className="text-gray-700 whitespace-pre-wrap text-sm lg:text-base">
+                      {appDetail.profile_description}
+                    </p>
+                  </section>
+                )}
+              </div>
+            </div>
+          </main>
+
+          {/* 모바일 하단 고정 버튼 */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl flex gap-4 lg:hidden">
+            <Button variant="black" size="xl" onClick={onClickDeny}>
+              Deny
+            </Button>
+            <Button variant="default" size="xl" onClick={onClickAccept}>
+              Accept
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

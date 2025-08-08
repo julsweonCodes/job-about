@@ -22,7 +22,11 @@ export async function getSeekerProfile(userId: string | number) {
       deleted_at: null,
     },
     include: {
-      work_experiences: true,
+      work_experiences: {
+        orderBy: {
+          start_year: "desc",
+        },
+      },
       profile_practical_skills: true,
     },
   });
