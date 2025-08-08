@@ -5,7 +5,7 @@ import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
 import {
-  fromPrismaAppStatus,
+  fromPrismaAppStatus, fromPrismaLocation,
   fromPrismaWorkPeriod,
   fromPrismaWorkType,
   toPrismaJobStatus,
@@ -22,6 +22,7 @@ import {
   deleteAndInsertWorkStyles,
   getBusinessLocId,
 } from "@/app/services/job-post-services";
+import { BizLocInfo } from "@/types/client/jobPost";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
@@ -136,4 +137,39 @@ export async function updateJobPost(postId: string, payload: JobPostPayload, use
   let workstyleCntFlag: boolean = recWorkStyles === payload.requiredWorkStyles.length;
 
   return parseBigInt({...res, skillCntFlag, workstyleCntFlag});
+}
+
+// GET business loc profile
+export async function getEmployerProfile(userId: number) {
+  const bizLocRes = await prisma.business_loc.findFirst({
+    where: {
+      user_id: userId,
+    },
+  });
+  if (!bizLocRes) {
+    console.error("No business location profile returned.");
+    return null;
+  }
+  const extraPhotos = [
+    bizLocRes.img_url1 ?? "",
+    bizLocRes.img_url2 ?? "",
+    bizLocRes.img_url3 ?? "",
+    bizLocRes.img_url4 ?? "",
+    bizLocRes.img_url5 ?? "",
+  ];
+  const mapBizLocInfo: BizLocInfo = {
+    bizLocId: bizLocRes.id.toString(),
+    name: bizLocRes.name,
+    bizDescription: bizLocRes.description,
+    logoImg: bizLocRes.logo_url ?? "bizLoc_default.png",
+    extraPhotos: extraPhotos,
+    location: fromPrismaLocation(bizLocRes.location),
+    address: bizLocRes.address,
+    workingHours: bizLocRes.operating_start.concat(" - ", bizLocRes.operating_end),
+    startTime: bizLocRes.operating_start,
+    endTime: bizLocRes.operating_end,
+    created_at: formatDateYYYYMMDD(bizLocRes.created_at),
+    phone: bizLocRes.phone_number,
+  };
+  return mapBizLocInfo;
 }
