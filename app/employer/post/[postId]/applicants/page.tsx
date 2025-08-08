@@ -10,13 +10,16 @@ import ApplicantStatusDialog from "@/app/employer/components/ApplicantStatusDial
 import ApplicantFilterTabs from "@/components/employer/ApplicantFilterTabs";
 import ApplicantCardSkeleton from "@/components/employer/ApplicantCardSkeleton";
 import { useParams } from "next/navigation";
-import { useEmployerJobPostAppList } from "@/hooks/employer/useEmployerDashboard";
-import { PAGE_URLS } from "@/constants/api";
+import { useEmployerJobPostAppList, updateApplicantStatus } from "@/hooks/employer/useEmployerDashboard";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { useQueryClient } from "@tanstack/react-query";
 
 function ReviewApplicantsPage() {
   const router = useRouter();
   const params = useParams();
+  const singleQueryClient = useQueryClient();
   const postId = params?.postId as string;
   const { jobPostAppList, loadingStates, queryClient } = useEmployerJobPostAppList(postId);
   const [activeTab, setActiveTab] = useState("all");
@@ -31,10 +34,25 @@ function ReviewApplicantsPage() {
     setSelectedStatus(null);
   };
 
-  // TODO api call
-  // 정연 
   const handleSaveStatus = async () => {
     if (!selectedApplicantId || !selectedStatus) return;
+    setIsUpdatingStatus(true);
+    
+    try {
+      // PATCH request to update applicant status
+      const res = await updateApplicantStatus(postId, selectedApplicantId, selectedStatus);
+      if (res) {
+        showSuccessToast("Applicant status updated successfully");
+        singleQueryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, selectedApplicantId) });
+      } else {
+        showErrorToast("No changes made to applicant status");
+      }
+    } catch (e) {
+      console.log("Error updating applicant status:", e);
+      showErrorToast("Failed to update applicant status");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
 
     // 페이지에서만 상태 업데이트
     if (jobPostAppList && queryClient) {

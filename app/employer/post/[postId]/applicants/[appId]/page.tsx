@@ -4,8 +4,8 @@ import React, { useMemo } from "react";
 import { Clock } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import { Button } from "@/components/ui/Button";
-import { useApplicationDetail } from "@/hooks/employer/useEmployerDashboard";
-import { useParams } from "next/navigation";
+import { updateApplicantStatus, useApplicationDetail } from "@/hooks/employer/useEmployerDashboard";
+import { useParams, useRouter } from "next/navigation";
 import { STORAGE_URLS } from "@/constants/storage";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
@@ -14,6 +14,10 @@ import {
   getWorkPeriodLabel,
   getWorkTypeLabel,
 } from "@/utils/client/enumDisplayUtils";
+import { ApplicantStatus } from "@/constants/enums";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import { useQueryClient } from "@tanstack/react-query";
+import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 
 function ApplicantDetailSkeleton() {
   return (
@@ -91,7 +95,9 @@ function ApplicantDetailSkeleton() {
 }
 
 function ApplicantDetailPage() {
+  const router = useRouter();
   const params = useParams();
+  const queryClient = useQueryClient();
   const postId = params?.postId as string;
   const appId = params?.appId as string;
   const { appDetail, loadingStates } = useApplicationDetail(postId, appId);
@@ -120,13 +126,31 @@ function ApplicantDetailPage() {
     [appDetail?.work_experiences]
   );
 
-  // TODO 정연
+  const handleApplicantStatusUpdate = async (status: ApplicantStatus) => {
+    console.log(postId, appId, status);
+    try {
+      const res = await updateApplicantStatus(postId, appId, status);
+      if (res) {
+        showSuccessToast("Applicant status updated to " + status + ".");
+        queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_LIST(postId) });
+        await new Promise((resolve) => setTimeout(resolve, 800)); // 1 second delay
+        router.back();
+      } else {
+        showErrorToast("No changes made to applicant status.");
+      }
+    } catch (e) {
+      showErrorToast("Error updating applicant status: " + (e as Error).message);
+    }
+  };
+
   const onClickAccept = () => {
     console.log("accept");
+    handleApplicantStatusUpdate(ApplicantStatus.HIRED);
   };
 
   const onClickDeny = () => {
     console.log("deny");
+    handleApplicantStatusUpdate(ApplicantStatus.REJECTED);
   };
 
   return (

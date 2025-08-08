@@ -3,7 +3,7 @@ import { apiGetData } from "@/utils/client/API";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
 import { Dashboard, JobPost, UrgentJobPost } from "@/types/employer";
 import { API_URLS } from "@/constants/api";
-import { Applicant } from "@/types/job";
+import { Applicant, ApplicantStatus } from "@/types/job";
 import { ApplicantDetail } from "@/types/profile";
 
 // API 함수들
@@ -33,6 +33,21 @@ const fetchUrgentJobPosts = async (): Promise<UrgentJobPost[]> => {
   const data = await apiGetData<UrgentJobPost[]>(API_URLS.EMPLOYER.DASHBOARD.URGENT);
   return Array.isArray(data) ? data : [];
 }
+
+export const updateApplicantStatus = async (postId: string, appId: string, status: ApplicantStatus): Promise<number> => {
+  const response = await fetch(API_URLS.EMPLOYER.DASHBOARD.APPLICANT_DETAIL(postId, appId), {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ postId, appId, status }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update applicant status: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.data.id; // 성공적으로 업데이트된 신청자의 수 반환
+};
 
 interface UseEmployerDashboardReturn {
   dashboard: Dashboard | undefined;

@@ -59,7 +59,7 @@ const ApplicantStatusDialog: React.FC<ApplicantStatusDialogProps> = ({
           Update Status
         </Typography>
         <Typography as="p" variant="bodySm" className="text-gray-500 text-center mb-6">
-          Select the current status of the applicant.
+          Select the new status of the application.
         </Typography>
         <div className="grid grid-cols-3 gap-3 mb-6 w-full">
           {statusList.map((status) => {
