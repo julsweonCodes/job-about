@@ -15,6 +15,7 @@ import {
 import { getEmployerBizLoc } from "@/app/services/employer-services";
 import { JobStatus } from "@/constants/enums";
 import { Skill } from "@/types/profile";
+import { estimateExperienceMonths, formatExperience } from "@/utils/shared/experienceUtils";
 
 // GET - Select cnt values for employer dashboard
 export async function getActiveJobPostsCnt(userId: number, bizLocId: number): Promise<number> {
@@ -214,6 +215,17 @@ export async function getApplicantsList(postId: string): Promise<Applicant[]> {
             profile_id: applicant.profile_id,
           },
         });
+        const mappedWorkExps = workExperience.map((w) => ({
+          company_name: w.company_name,
+          job_type: fromPrismaJobType(w.job_type),
+          start_year: w.start_year,
+          work_period: fromPrismaWorkPeriod(w.work_period),
+          work_type: fromPrismaWorkType(w.work_type),
+          description: w.description,
+        }));
+        const totalMonths = estimateExperienceMonths(mappedWorkExps);
+        const experienceLabel = formatExperience(totalMonths);
+
         return {
           application_id: Number(applicant.application_id),
           profile_id: Number(applicant.profile_id),
@@ -221,17 +233,12 @@ export async function getApplicantsList(postId: string): Promise<Applicant[]> {
           job_post_id: Number(applicant.job_post_id),
           status: fromPrismaAppStatus(applicant.status),
           created_at: applicant.created_at ? formatDateYYYYMMDD(applicant.created_at) : "",
+          name: applicant.name,
           profile_image_url: applicant.img_url,
           description: applicant.description,
           applied_date: applicant.applied_at ? formatDateYYYYMMDD(applicant.applied_at) : "",
-          work_experiences: workExperience.map((w) => ({
-            company_name: w.company_name,
-            job_type: w.job_type,
-            start_year: w.start_year,
-            work_period: fromPrismaWorkPeriod(w.work_period),
-            work_type: fromPrismaWorkType(w.work_type),
-            description: w.description,
-          })),
+          experience: experienceLabel,
+          work_experiences: mappedWorkExps,
         };
       })
     );

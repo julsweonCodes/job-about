@@ -111,7 +111,8 @@ function ApplicantDetailPage() {
   const experiences = useMemo(
     () =>
       (appDetail?.work_experiences || []).map((exp) => ({
-        title: `${getJobTypeName(exp.job_type)} at ${exp.company_name}`,
+        jobTypeName: getJobTypeName(exp.job_type),
+        companyName: exp.company_name,
         period: exp.start_year,
         duration: getWorkPeriodLabel(exp.work_period),
         workType: getWorkTypeLabel(exp.work_type),
@@ -220,12 +221,13 @@ function ApplicantDetailPage() {
 
                         <div className="pb-2">
                           <h4 className="font-semibold text-gray-900 mb-1 lg:mb-2 text-sm lg:text-base tracking-tight">
-                            {exp.title}
+                            {exp.jobTypeName}
                           </h4>
                           <div className="text-xs lg:text-sm text-gray-500 space-y-0.5 lg:space-y-1">
-                            <p className="font-medium">{exp.period}</p>
+                            <p className="font-medium">{exp.companyName}</p>
                             <p className="text-gray-400">
-                              {exp.duration}
+                              {exp.period}
+                              {exp.duration ? ` · ${exp.duration}` : ""}
                               {exp.workType ? ` · ${exp.workType}` : ""}
                             </p>
                           </div>
