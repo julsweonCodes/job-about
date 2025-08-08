@@ -20,7 +20,8 @@ import {
   fromPrismaLocation,
   fromPrismaWorkType,
 } from "@/types/enumMapper";
-import { BizLocInfo, JobPostData } from "@/types/client/jobPost";
+import { JobPostData } from "@/types/client/jobPost";
+import { BizLocInfo } from "@/types/client/employer";
 import { JobPostItem, PaginatedJobPostResponse, Pagination } from "@/types/server/jobPost";
 import { JobStatus, LanguageLevel } from "@/constants/enums";
 import { STORAGE_URLS } from "@/constants/storage";

@@ -23,7 +23,7 @@ import {
   deleteAndInsertWorkStyles,
   getBusinessLocId,
 } from "@/app/services/job-post-services";
-import { BizLocInfo } from "@/types/client/jobPost";
+import { BizLocInfo } from "@/types/client/employer";
 
 /** 1. Onboarding
  * Upload, Delete Images from supabase
