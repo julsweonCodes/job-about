@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/Select";
 import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { BizLocInfo } from "@/types/client/jobPost";
-import { apiGetData, apiPostData } from "@/utils/client/API";
+import { apiGetData } from "@/utils/client/API";
 import { API_URLS } from "@/constants/api";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { STORAGE_URLS } from "@/constants/storage";
@@ -129,7 +129,6 @@ function EmployerMypage() {
     location: false,
     workplaceAttributes: false,
   });
-  const img_base_url = STORAGE_URLS.BIZ_LOC.PHOTO;
   const [bizLocData, setBizLocData] = useState<BizLocInfo>(emptyBizLocInfo);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,10 +149,6 @@ function EmployerMypage() {
     };
     fetchProfile();
   }, []);
-
-  useEffect(() => {
-    console.log(bizLocData);
-  }, [bizLocData]);
 
   // 원본 workplace photos (서버에서 가져온 이미지들)
   const [originalImages, setOriginalImages] = useState<string[]>([]);
@@ -190,13 +185,6 @@ function EmployerMypage() {
     const hasImageChanges = extraPhotos.length > 0 || deletedImageIndexes.size > 0;
     setIsWorkplacePhotoChanged(hasImageChanges);
 
-    console.log("Image state update:", {
-      originalImages: originalImages.length,
-      extraPhotos: extraPhotos.length,
-      deletedImageIndexes: deletedImageIndexes.size,
-      hasImageChanges,
-    });
-
     // bizLocData의 extraPhotos 업데이트 (무한 루프 방지)
     if (JSON.stringify(bizLocData.extraPhotos) !== JSON.stringify(currentImages)) {
       setBizLocData((prev) => ({
@@ -205,33 +193,6 @@ function EmployerMypage() {
       }));
     }
   }, [extraPhotos, originalImages, deletedImageIndexes]);
-
-  const tagOptions = [
-    {
-      id: "flexible-hours",
-      label: "Flexible Hours",
-      icon: Clock,
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      id: "remote-work",
-      label: "Remote Work",
-      icon: Briefcase,
-      color: "from-green-500 to-green-600",
-    },
-    {
-      id: "team-collaboration",
-      label: "Team Collaboration",
-      icon: Heart,
-      color: "from-purple-500 to-purple-600",
-    },
-    {
-      id: "creative-environment",
-      label: "Creative Environment",
-      icon: Lightbulb,
-      color: "from-orange-500 to-orange-600",
-    },
-  ];
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -499,7 +460,7 @@ function EmployerMypage() {
               </div>
 
               <div className="flex-1">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-1">
                   {bizLocData?.name}
                 </h2>
 
@@ -586,7 +547,9 @@ function EmployerMypage() {
               rightIcon={<MapPin className="w-5 h-5" />}
             />
           ) : (
-            <p className="text-slate-700 leading-relaxed">{bizLocData?.address}</p>
+            <p className="text-slate-700 leading-relaxed text-sm sm:text-base">
+              {bizLocData?.address}
+            </p>
           )}
         </InfoSection>
 
@@ -610,7 +573,7 @@ function EmployerMypage() {
               label="Operating Hours"
             />
           ) : (
-            <p className="text-slate-700">
+            <p className="text-slate-700 text-sm sm:text-base">
               {bizLocData?.startTime} - {bizLocData?.endTime}
             </p>
           )}
@@ -642,7 +605,9 @@ function EmployerMypage() {
           ) : (
             <div className="flex items-center gap-3">
               <Phone size={16} className="text-slate-400" />
-              <span className="text-slate-700 font-medium">{bizLocData?.phone}</span>
+              <span className="text-slate-700 font-medium text-sm sm:text-base">
+                {bizLocData?.phone}
+              </span>
             </div>
           )}
         </InfoSection>
@@ -659,7 +624,7 @@ function EmployerMypage() {
                 <ImageIcon size={18} className="sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900">
                   Showcase Your Space
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -697,7 +662,7 @@ function EmployerMypage() {
                       </div>
                       <button
                         onClick={() => handleRemoveImage(index)}
-                        className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
+                        className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
                       >
                         <X size={12} />
                       </button>
@@ -721,7 +686,7 @@ function EmployerMypage() {
                     </div>
                     <button
                       onClick={() => handleRemoveImage(originalImages.length + index)}
-                      className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
+                      className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation z-10"
                     >
                       <X size={12} />
                     </button>
@@ -739,7 +704,7 @@ function EmployerMypage() {
                         size={16}
                         className="sm:w-[18px] sm:h-[18px] text-slate-400 group-hover:text-indigo-500 mb-1"
                       />
-                      <span className="text-xs text-slate-400 group-hover:text-indigo-500 font-medium">
+                      <span className="text-xs sm:text-sm text-slate-400 group-hover:text-indigo-500 font-medium">
                         Add Photo
                       </span>
                     </button>
@@ -755,7 +720,7 @@ function EmployerMypage() {
                 )}
               </div>
               <div className="flex items-center justify-between mt-3 mb-4 sm:mb-6">
-                <span className="text-xs text-slate-500">
+                <span className="text-xs sm:text-sm text-slate-500">
                   {originalImages.filter((_, index) => !deletedImageIndexes.has(index)).length +
                     extraPhotos.length}{" "}
                   of 5 photos
