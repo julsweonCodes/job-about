@@ -17,7 +17,6 @@ import { JobPostPayload } from "@/types/employer";
 import { LANGUAGE_LEVEL_OPTIONS, WORK_TYPE_OPTIONS } from "@/constants/options";
 import { apiGetData, apiPostData } from "@/utils/client/API";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
-import { JobPostData } from "@/types/client/jobPost";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { formatDateYYYYMMDD } from "@/lib/utils";
 
@@ -43,7 +42,13 @@ const JobPostEditPage: React.FC = () => {
   // 중복 실행 방지를 위한 ref
   const isInitializingRef = useRef(false);
 
-  const mapToFormData = (data: JobPostData): JobPostPayload => {
+  const mapToFormData = (data: any): JobPostPayload => {
+    // 선택된 버전의 description을 가져오기
+    let jobDescription = data.jobDescription;
+    if (data.selectedVersion && data.jobDescriptions) {
+      jobDescription = data.jobDescriptions[data.selectedVersion] || data.jobDescription;
+    }
+
     const payload: JobPostPayload = {
       jobTitle: data.title,
       selectedJobType: data.jobType,
@@ -52,10 +57,10 @@ const JobPostEditPage: React.FC = () => {
       requiredSkills: data.requiredSkills,
       requiredWorkStyles: data.requiredWorkStyles,
       wage: data.hourlyWage,
-      jobDescription: data.jobDescription,
+      jobDescription: jobDescription,
       languageLevel: data.languageLevel,
       selectedWorkType: data.workType,
-      useAI: false, // 기본값 또는 URL 쿼리 파라미터에서 추출 가능
+      useAI: data.useAI || false, // Gemini 사용 여부
     };
     return payload;
   };
@@ -282,6 +287,7 @@ const JobPostEditPage: React.FC = () => {
     setIsSaving(true);
     try {
       const payload = mapToFormData(jobData);
+      console.log("Save Edit payload:", payload);
       const response = await apiPostData(API_URLS.EMPLOYER.POST.UPDATE(postId), payload);
 
       if (response) {
@@ -365,6 +371,7 @@ const JobPostEditPage: React.FC = () => {
         jobDescriptions={jobData?.jobDescriptions}
         selectedVersion={selectedVersion}
         onSelectVersion={(version) => {
+          console.log("version", version);
           setSelectedVersion(version);
           setJobData((prev: any) => ({
             ...prev,

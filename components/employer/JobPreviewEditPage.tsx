@@ -185,10 +185,10 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
 
   // Initialize tempEditData when data is available
   useEffect(() => {
-    if (jobPostData && geminiRes && !isInitialized) {
+    if (jobPostData && geminiRes) {
       initializeTempEditData(jobPostData, geminiRes);
     }
-  }, [jobPostData, geminiRes, isInitialized, initializeTempEditData]);
+  }, [jobPostData, geminiRes, initializeTempEditData]);
 
   // Initialize data on mount
   useEffect(() => {
@@ -232,9 +232,12 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     try {
       setLoadingStates((prev) => ({ ...prev, publish: true }));
 
+      // selectedVersion에 따라 올바른 description 선택
+      const descriptionToPublish = tempEditData[selectedVersion] || newJobDesc;
+
       await apiPatchData(API_URLS.EMPLOYER.POST.PUBLISH(postId), {
         postId,
-        newJobDesc,
+        newJobDesc: descriptionToPublish,
       });
 
       // Job posts 캐시 무효화 (job post가 publish되었으므로)
@@ -250,7 +253,7 @@ const JobPreviewEditPage: React.FC<Props> = ({ postId }) => {
     } finally {
       setLoadingStates((prev) => ({ ...prev, publish: false }));
     }
-  }, [postId, newJobDesc, router, queryClient]);
+  }, [postId, newJobDesc, selectedVersion, tempEditData, router, queryClient]);
 
   const getDialogTitle = useCallback((version: DescriptionVersion): string => {
     return `Edit ${DESCRIPTION_LABELS[version]}`;
