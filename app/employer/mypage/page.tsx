@@ -190,6 +190,13 @@ function EmployerMypage() {
     const hasImageChanges = extraPhotos.length > 0 || deletedImageIndexes.size > 0;
     setIsWorkplacePhotoChanged(hasImageChanges);
 
+    console.log("Image state update:", {
+      originalImages: originalImages.length,
+      extraPhotos: extraPhotos.length,
+      deletedImageIndexes: deletedImageIndexes.size,
+      hasImageChanges,
+    });
+
     // bizLocData의 extraPhotos 업데이트 (무한 루프 방지)
     if (JSON.stringify(bizLocData.extraPhotos) !== JSON.stringify(currentImages)) {
       setBizLocData((prev) => ({
@@ -230,16 +237,29 @@ function EmployerMypage() {
     const files = event.target.files;
     if (files && files.length > 0) {
       // 최대 5개까지만 추가
-      const currentImages =
-        extraPhotos.length > 0 ? [...originalImages, ...extraPhotos] : originalImages;
-      const remainingSlots = 5 - currentImages.length;
+      const currentImageCount =
+        originalImages.filter((_, index) => !deletedImageIndexes.has(index)).length +
+        extraPhotos.length;
+      const remainingSlots = 5 - currentImageCount;
       const filesToProcess = Array.from(files).slice(0, remainingSlots);
+
+      console.log("Uploading images:", {
+        currentImageCount,
+        remainingSlots,
+        filesToProcess: filesToProcess.length,
+      });
 
       filesToProcess.forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
-            setExtraPhotos((prev) => [...prev, e.target!.result as string]);
+            const imageUrl = e.target!.result as string;
+            console.log("New image added:", imageUrl.substring(0, 50) + "...");
+            setExtraPhotos((prev) => {
+              const newPhotos = [...prev, imageUrl];
+              console.log("Updated extraPhotos:", newPhotos.length);
+              return newPhotos;
+            });
           }
         };
         reader.readAsDataURL(file);
@@ -651,10 +671,14 @@ function EmployerMypage() {
             {/* workplace photos */}
             <div>
               <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide px-1 sm:px-2">
-                {bizLocData?.extraPhotos.map((image, index) => {
-                  if (image == "" || deletedImageIndexes.has(index)) return null;
-                  return (
-                    <div key={index} className="relative flex-shrink-0 group p-1 sm:p-2">
+                {/* 원본 이미지들 (삭제되지 않은 것들만) */}
+                {originalImages
+                  .filter((_, index) => !deletedImageIndexes.has(index))
+                  .map((image, index) => (
+                    <div
+                      key={`original-${index}`}
+                      className="relative flex-shrink-0 group p-1 sm:p-2"
+                    >
                       <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
                         <img
                           src={
@@ -678,10 +702,34 @@ function EmployerMypage() {
                         <X size={12} />
                       </button>
                     </div>
-                  );
-                })}
-                {bizLocData?.extraPhotos.filter((_, index) => !deletedImageIndexes.has(index))
-                  .length < 5 && (
+                  ))}
+
+                {/* 새로 추가된 이미지들 */}
+                {extraPhotos.map((image, index) => (
+                  <div key={`new-${index}`} className="relative flex-shrink-0 group p-1 sm:p-2">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
+                      <img
+                        src={image}
+                        alt={`New Workplace ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        onError={(e) => {
+                          // 이미지 로드 실패 시 기본 이미지로 대체
+                          const target = e.target as HTMLImageElement;
+                          target.src = `${STORAGE_URLS.BIZ_LOC.PHOTO}bizLoc_default.png`;
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleRemoveImage(originalImages.length + index)}
+                      className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+                {originalImages.filter((_, index) => !deletedImageIndexes.has(index)).length +
+                  extraPhotos.length <
+                  5 && (
                   <div className="flex-shrink-0 p-1 sm:p-2">
                     <button
                       onClick={handleAddPhotoClick}
@@ -708,10 +756,8 @@ function EmployerMypage() {
               </div>
               <div className="flex items-center justify-between mt-3 mb-4 sm:mb-6">
                 <span className="text-xs text-slate-500">
-                  {
-                    bizLocData?.extraPhotos.filter((_, index) => !deletedImageIndexes.has(index))
-                      .length
-                  }{" "}
+                  {originalImages.filter((_, index) => !deletedImageIndexes.has(index)).length +
+                    extraPhotos.length}{" "}
                   of 5 photos
                 </span>
                 <div className="flex gap-1">
@@ -720,9 +766,9 @@ function EmployerMypage() {
                       key={i}
                       className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors duration-200 ${
                         i <
-                        bizLocData?.extraPhotos.filter(
-                          (_, index) => !deletedImageIndexes.has(index)
-                        ).length
+                        originalImages.filter((_, index) => !deletedImageIndexes.has(index))
+                          .length +
+                          extraPhotos.length
                           ? "bg-indigo-400"
                           : "bg-slate-200"
                       }`}
