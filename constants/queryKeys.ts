@@ -25,6 +25,7 @@ export const EMPLOYER_QUERY_KEYS = {
   APPLICANTS_LIST: (postId: string) => ["employer-applicants-list", postId] as const,
   APPLICANTS_DETAIL: (postId: string, appId: string) =>
     ["employer-applicants-detail", postId, appId] as const,
+  URGENT_JOB_POSTS: ["employer-urgent-job-posts"] as const,
 } as const;
 
 // User 관련 Query Keys

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { apiGetData } from "@/utils/client/API";
 import { EMPLOYER_QUERY_KEYS } from "@/constants/queryKeys";
-import { Dashboard, JobPost } from "@/types/employer";
+import { Dashboard, JobPost, UrgentJobPost } from "@/types/employer";
 import { API_URLS } from "@/constants/api";
 import { Applicant } from "@/types/job";
 import { ApplicantDetail } from "@/types/profile";
@@ -28,6 +28,11 @@ const fetchApplicationDetail = async (postId: string, appId: string): Promise<Ap
   );
   return data || ({} as ApplicantDetail);
 };
+
+const fetchUrgentJobPosts = async (): Promise<UrgentJobPost[]> => {
+  const data = await apiGetData<UrgentJobPost[]>(API_URLS.EMPLOYER.DASHBOARD.URGENT);
+  return Array.isArray(data) ? data : [];
+}
 
 interface UseEmployerDashboardReturn {
   dashboard: Dashboard | undefined;
@@ -67,6 +72,61 @@ interface UseApplicantDetailReturn {
   queryClient: QueryClient;
 }
 
+interface UseEmployerUrgentJobPostsReturn {
+  urgentJobPosts: UrgentJobPost[];
+  loadingStates: {
+    urgentJobPosts: boolean;
+  };
+  error: string | null;
+  isInitialized: boolean;
+  refreshAll: () => Promise<void>;
+  invalidateUrgentJobPostsList: () => void;
+  queryClient: QueryClient;
+}
+
+
+export function useEmployerUrgentJobPosts(): UseEmployerUrgentJobPostsReturn {
+  const queryClient = useQueryClient();
+
+  // Urgent Job Posts 쿼리
+  const {
+    data: urgentJobPosts = [],
+    isLoading: urgentJobPostsLoading,
+    error: urgentJobPostsError,
+    refetch: refetchUrgentJobPosts,
+  } = useQuery({
+    queryKey: EMPLOYER_QUERY_KEYS.URGENT_JOB_POSTS,
+    queryFn: fetchUrgentJobPosts,
+    staleTime: 5 * 60 * 1000, // 5분간 신선한 데이터
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    refetchOnWindowFocus: false,
+  });
+
+  // 전체 새로고침 함수
+  const refreshAll = async () => {
+    const result = await Promise.allSettled([refetchUrgentJobPosts()]);
+    result.forEach((r) => {
+      if (r.status === "rejected") {
+        console.error("❌ Failed during refreshAll:", r.reason);
+      }
+    });
+  };
+
+  // 에러 처리
+  const error = urgentJobPostsError?.message || null;
+
+  return {
+    urgentJobPosts,
+    loadingStates: {
+      urgentJobPosts: urgentJobPostsLoading,
+    },
+    error,
+    isInitialized: !urgentJobPostsLoading,
+    refreshAll,
+    invalidateUrgentJobPostsList: () => queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.URGENT_JOB_POSTS }),
+    queryClient,
+  };
+}
 export function useEmployerDashboard(): UseEmployerDashboardReturn {
   const queryClient = useQueryClient();
 

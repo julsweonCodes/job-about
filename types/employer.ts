@@ -68,3 +68,8 @@ export interface JobPost {
   deadline_date: string;
   status: $Enums.JobStatus;
 }
+
+export interface UrgentJobPost extends JobPost {
+  pendingReviewCnt: number;
+  totalApplicationsCnt: number;
+}

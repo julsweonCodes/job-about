@@ -1,82 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MapPin, Calendar, Building2, Users, Clock, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BackHeader from "@/components/common/BackHeader";
-
-interface JobPost {
-  id: string;
-  title: string;
-  employmentType: "Full-Time" | "Part-Time" | "Contract";
-  location: string;
-  dateRange: string;
-  businessName: string;
-  pendingApplicants: number;
-  totalApplicants: number;
-  coverImage: string;
-  datePosted: string;
-}
-
-const mockJobPosts: JobPost[] = [
-  {
-    id: "1",
-    title: "Server - Full Time",
-    employmentType: "Full-Time",
-    location: "Gangnam",
-    dateRange: "Dec 15 – Feb 28",
-    businessName: "Starbucks",
-    pendingApplicants: 5,
-    totalApplicants: 12,
-    coverImage:
-      "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=400",
-    datePosted: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "Kitchen Helper",
-    employmentType: "Part-Time",
-    location: "Hongdae",
-    dateRange: "Jan 10 – Mar 15",
-    businessName: "Local Bistro",
-    pendingApplicants: 3,
-    totalApplicants: 8,
-    coverImage:
-      "https://images.pexels.com/photos/2696064/pexels-photo-2696064.jpeg?auto=compress&cs=tinysrgb&w=400",
-    datePosted: "2024-01-12",
-  },
-  {
-    id: "3",
-    title: "Cashier - Weekend Shifts",
-    employmentType: "Part-Time",
-    location: "Myeongdong",
-    dateRange: "Dec 20 – Apr 30",
-    businessName: "Coffee Bean",
-    pendingApplicants: 8,
-    totalApplicants: 15,
-    coverImage:
-      "https://images.pexels.com/photos/4393021/pexels-photo-4393021.jpeg?auto=compress&cs=tinysrgb&w=400",
-    datePosted: "2024-01-18",
-  },
-  {
-    id: "4",
-    title: "Delivery Driver",
-    employmentType: "Contract",
-    location: "Itaewon",
-    dateRange: "Jan 5 – May 20",
-    businessName: "Quick Delivery Co.",
-    pendingApplicants: 2,
-    totalApplicants: 6,
-    coverImage:
-      "https://images.pexels.com/photos/4393021/pexels-photo-4393021.jpeg?auto=compress&cs=tinysrgb&w=400",
-    datePosted: "2024-01-10",
-  },
-];
+import { getLocationDisplayName } from "@/constants/location";
+import { WorkType } from "@/constants/enums";
+import { fromPrismaWorkType } from "@/types/enumMapper";
+import { useEmployerUrgentJobPosts } from "@/hooks/employer/useEmployerDashboard";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 function ReviewPostsPage() {
   const router = useRouter();
-  const [jobPosts] = useState<JobPost[]>(mockJobPosts);
+  const { urgentJobPosts, loadingStates, error } = useEmployerUrgentJobPosts();
   const [searchQuery, setSearchQuery] = useState("");
-
+  useEffect(() => {
+    console.log(urgentJobPosts);
+  }, [urgentJobPosts]);
   const handleViewApplicants = (jobId: string) => {
     router.push(`/employer/post/${jobId}/applicants`);
   };
@@ -86,10 +25,10 @@ function ReviewPostsPage() {
   };
 
   const getTotalPendingApplicants = () => {
-    return jobPosts.reduce((total, post) => total + post.pendingApplicants, 0);
+    return urgentJobPosts.reduce((total, post) => total + post.pendingReviewCnt, 0);
   };
 
-  const filteredJobPosts = jobPosts.filter(
+  const filteredJobPosts = urgentJobPosts.filter(
     (post) =>
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,13 +37,13 @@ function ReviewPostsPage() {
 
   const totalPending = getTotalPendingApplicants();
 
-  const getEmploymentTypeColor = (type: string) => {
+  const gettypeColor = (type: string) => {
     switch (type) {
-      case "Full-Time":
+      case WorkType.ON_SITE:
         return "bg-green-100 text-green-700";
-      case "Part-Time":
+      case WorkType.HYBRID:
         return "bg-blue-100 text-blue-700";
-      case "Contract":
+      case WorkType.REMOTE:
         return "bg-purple-100 text-purple-700";
       default:
         return "bg-gray-100 text-gray-700";
@@ -114,6 +53,7 @@ function ReviewPostsPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
+      {loadingStates.urgentJobPosts && <LoadingScreen overlay={true} opacity="light" />}
       <BackHeader title="Update Application Status" />
 
       {/* Status Banner */}
@@ -181,9 +121,9 @@ function ReviewPostsPage() {
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs lg:text-sm font-medium ${getEmploymentTypeColor(jobPost.employmentType)}`}
+                        className={`px-3 py-1 rounded-full text-xs lg:text-sm font-medium ${gettypeColor(jobPost.type ? fromPrismaWorkType(jobPost.type) : "")}`}
                       >
-                        {jobPost.employmentType}
+                        {jobPost.type}
                       </span>
                     </div>
                   </div>
@@ -198,12 +138,12 @@ function ReviewPostsPage() {
 
                   <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600">
                     <MapPin className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-                    <span>{jobPost.location}</span>
+                    <span>{getLocationDisplayName(jobPost.location)}</span>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600">
                     <Calendar className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-                    <span>{jobPost.dateRange}</span>
+                    <span>{jobPost.strt_date} - {jobPost.deadline_date}</span>
                   </div>
                 </div>
 
@@ -212,13 +152,13 @@ function ReviewPostsPage() {
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-gray-500" />
                     <span className="text-sm lg:text-base font-medium text-gray-700">
-                      {jobPost.totalApplicants} Total Applications
+                      {jobPost.totalApplicationsCnt} Total Applications
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                     <span className="text-sm lg:text-base font-semibold text-amber-700">
-                      {jobPost.pendingApplicants} Pending
+                      {jobPost.pendingReviewCnt} Pending
                     </span>
                   </div>
                 </div>
