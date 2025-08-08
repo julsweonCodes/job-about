@@ -1,15 +1,15 @@
-import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { formatDateYYYYMMDD, formatYYYYMMDDtoMonthDayYear, parseBigInt } from "@/lib/utils";
 import { prisma } from "@/app/lib/prisma/prisma-singleton";
 import { JobPost, UrgentJobPost } from "@/types/employer";
 import { STORAGE_URLS } from "@/constants/storage";
-import { Applicant } from "@/types/job";
+import { Applicant, ApplicantStatus } from "@/types/job";
 import { ApplicantDetail, WorkExperience } from "@/types/profile";
 import { Prisma } from "@prisma/client";
 import {
   fromPrismaAppStatus,
   fromPrismaJobType,
   fromPrismaWorkPeriod,
-  fromPrismaWorkType,
+  fromPrismaWorkType, toPrismaAppStatus,
   toPrismaJobStatus,
 } from "@/types/enumMapper";
 import { getEmployerBizLoc } from "@/app/services/employer-services";
@@ -51,15 +51,12 @@ export async function getStatusUpdateCnt(userId: number, bizLocId: number): Prom
       status: "PUBLISHED",
       business_loc_id: bizLocId,
       created_at: { lte: new Date() },
-      OR: [
-        { deadline: currDateStr },
-        { deadline: tomorrowDateStr }
-      ],
+      OR: [{ deadline: currDateStr }, { deadline: tomorrowDateStr }],
     },
     select: { id: true },
   });
 
-  const jobPostIds = jobPosts.map(j => j.id);
+  const jobPostIds = jobPosts.map((j) => j.id);
   if (jobPostIds.length === 0) return 0;
 
   // Step 2: Count applications for those job posts with the required statuses
@@ -484,8 +481,45 @@ export async function getUrgentJobPosts(userId: number) {
     views: 0,
     wage: post.wage,
     status: post.status,
-    pendingReviewCnt: post.applications.filter((app) => app.status === "APPLIED" || app.status === "IN_REVIEW").length,
+    pendingReviewCnt: post.applications.filter(
+      (app) => app.status === "APPLIED" || app.status === "IN_REVIEW"
+    ).length,
     totalApplicationsCnt: post.applications.filter((app) => app.status !== "WITHDRAWN").length,
   }));
   return formattedUrgentJobPosts.filter((jobPost) => jobPost.pendingReviewCnt > 0);
+}
+
+export async function updateAppStatus(postId: string, appId: string, newStatus: ApplicantStatus, userId: number) {
+  // Check if the user is the owner of the post
+  const valid = await prisma.job_posts.findFirst({
+    where: {
+      id: Number(postId),
+      user_id: userId,
+    },
+    select: { id: true },
+  });
+  if (!valid) {
+    console.error("No job post found for job post id:", postId);
+    return null;
+  }
+  // Update the application status
+  const updatedApp = await prisma.applications.update({
+    where: {
+      id: BigInt(appId),
+    },
+    data: {
+      status: toPrismaAppStatus(newStatus),
+    },
+    select: {
+      id: true,
+      status: true,
+      job_post_id: true,
+      profile_id: true,
+    },
+  });
+  if (!updatedApp) {
+    console.error("Failed to update application status for app id:", appId);
+    return null;
+  }
+  return parseBigInt(updatedApp);
 }
