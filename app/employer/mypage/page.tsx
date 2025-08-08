@@ -1,19 +1,18 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Briefcase,
-  Heart,
-  MapPin,
-  Edit3,
-  Lightbulb,
+  Calendar,
   Camera,
-  Phone,
   Clock,
+  Edit3,
+  Heart,
   ImageIcon,
+  Lightbulb,
+  MapPin,
+  Phone,
   Plus,
   X,
-  Star,
-  Calendar,
 } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import MypageActionButtons from "@/components/common/MypageActionButtons";
@@ -24,6 +23,27 @@ import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import TextArea from "@/components/ui/TextArea";
 import TimeRangePicker from "@/components/ui/TimeRangePicker";
+import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
+import { BizLocInfo } from "@/types/client/jobPost";
+import { apiGetData } from "@/utils/client/API";
+import { API_URLS } from "@/constants/api";
+import LoadingScreen from "@/components/common/LoadingScreen";
+import { STORAGE_URLS } from "@/constants/storage";
+import { Location } from "@/constants/location";
+const emptyBizLocInfo: BizLocInfo = {
+  bizLocId: "",
+  name: "",
+  bizDescription: "",
+  logoImg: "",
+  extraPhotos: [],
+  location: Location.BURLINGTON, // adjust to your Location type
+  address: "",
+  workingHours: "",
+  startTime: "",
+  endTime: "",
+  created_at: "",
+  phone: "", // if your BizLocInfo actually uses phone_number
+};
 
 function EmployerMypage() {
   const [isEditing, setIsEditing] = useState({
@@ -33,13 +53,36 @@ function EmployerMypage() {
     contact: false,
     workplaceAttributes: false,
   });
+  const img_base_url = STORAGE_URLS.BIZ_LOC.PHOTO;
+  const [bizLocData, setBizLocData] = useState<BizLocInfo>(emptyBizLocInfo);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // GET initial bizLocData
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profileData = await apiGetData<BizLocInfo>(API_URLS.EMPLOYER.PROFILE);
+        setBizLocData(profileData ?? emptyBizLocInfo);
+      } catch (e) {
+        console.error("Failed to load business profile", e);
+        setError("Failed to load business profile");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
+  useEffect(() => {
+    console.log(bizLocData);
+  }, [bizLocData]);
   // 원본 workplace photos
   const [originalImages, setOriginalImages] = useState<string[]>([
     "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=2",
   ]);
   // 새로 추가된 workplace photos
-  const [detailImages, setDetailImages] = useState<string[]>([]);
+  const [extraPhotos, setExtraPhotos] = useState<string[]>([]);
 
   // 변경사항 감지
   const [isWorkplacePhotoChanged, setIsWorkplacePhotoChanged] = useState(false);
@@ -48,38 +91,22 @@ function EmployerMypage() {
   const [showImageUploadDialog, setShowImageUploadDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 기존 데이터
-  const [businessLocation, setBusinessLocation] = useState({
-    name: "TechFlow Solutions",
-    description:
-      "We're a forward-thinking technology company focused on creating innovative solutions that make work more efficient and enjoyable. Our team values collaboration, creativity, and work-life balance.",
-    phone: "123-456-7890",
-    address: "123 Innovation Drive, San Francisco, CA 94105",
-    startTime: "09:00",
-    endTime: "17:00",
-    logoImageUrl: "",
-    detailImages: originalImages,
-    joinDate: "March 2024",
-    workplaceAttributes: ["Flexible Hours", "Remote Work", "Team Collaboration"],
-  });
-
   // 임시 데이터
-  const [tempData, setTempData] = useState(businessLocation);
+  const [tempData, setTempData] = useState<BizLocInfo>({} as BizLocInfo);
 
   // 변경사항 감지
   React.useEffect(() => {
     const currentImages =
-      detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages;
+      extraPhotos.length > 0 ? [...originalImages, ...extraPhotos] : originalImages;
     const hasImageChanges = JSON.stringify(currentImages) !== JSON.stringify(originalImages);
     setIsWorkplacePhotoChanged(hasImageChanges);
 
-    // businessLocation의 detailImages 업데이트
-    setBusinessLocation((prev) => ({
+    // bizLocData의 detailImages 업데이트
+    setBizLocData((prev) => ({
       ...prev,
-      detailImages: currentImages,
+      extraPhotos: currentImages,
     }));
-  }, [detailImages, originalImages]);
+  }, [extraPhotos, originalImages]);
 
   const tagOptions = [
     {
@@ -108,21 +135,12 @@ function EmployerMypage() {
     },
   ];
 
-  const toggleWorkplaceAttribute = (attribute: string) => {
-    setTempData((prev) => ({
-      ...prev,
-      workplaceAttributes: prev.workplaceAttributes.includes(attribute)
-        ? prev.workplaceAttributes.filter((attr) => attr !== attribute)
-        : [...prev.workplaceAttributes, attribute],
-    }));
-  };
-
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       // 최대 5개까지만 추가
       const currentImages =
-        detailImages.length > 0 ? [...originalImages, ...detailImages] : originalImages;
+        extraPhotos.length > 0 ? [...originalImages, ...extraPhotos] : originalImages;
       const remainingSlots = 5 - currentImages.length;
       const filesToProcess = Array.from(files).slice(0, remainingSlots);
 
@@ -130,7 +148,7 @@ function EmployerMypage() {
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
-            setDetailImages((prev) => [...prev, e.target!.result as string]);
+            setExtraPhotos((prev) => [...prev, e.target!.result as string]);
           }
         };
         reader.readAsDataURL(file);
@@ -150,19 +168,19 @@ function EmployerMypage() {
     } else {
       // 새로 추가된 이미지에서 제거된 경우
       const newImageIndex = index - originalImages.length;
-      setDetailImages(detailImages.filter((_, i) => i !== newImageIndex));
+      setExtraPhotos(extraPhotos.filter((_, i) => i !== newImageIndex));
     }
   };
 
   const handleSaveImages = async () => {
     try {
       // 여기서 서버에 이미지 변경사항을 전송
-      const currentImages = [...originalImages, ...detailImages];
+      const currentImages = [...originalImages, ...extraPhotos];
       console.log("Saving images to server:", currentImages);
 
       // 성공 시 원본 이미지 업데이트
       setOriginalImages(currentImages);
-      setDetailImages([]); // 새로 추가된 이미지 배열 초기화
+      setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
       setIsWorkplacePhotoChanged(false);
 
       console.log("Images saved successfully");
@@ -173,7 +191,7 @@ function EmployerMypage() {
 
   const handleCancelImages = () => {
     // 변경사항을 취소하고 원본 상태로 되돌리기
-    setDetailImages([]); // 새로 추가된 이미지 배열 초기화
+    setExtraPhotos([]); // 새로 추가된 이미지 배열 초기화
     setIsWorkplacePhotoChanged(false);
     console.log("Image changes cancelled");
   };
@@ -199,19 +217,19 @@ function EmployerMypage() {
 
   const handleProfileEdit = () => {
     // 다이얼로그를 열 때 현재 데이터로 임시 상태 초기화
-    setTempData(businessLocation);
+    setTempData(bizLocData);
     setShowProfileDialog(true);
   };
 
   // 수정 모드 진입 시 현재 데이터로 임시 상태 초기화
   const handleEdit = (section: string) => {
-    setTempData(businessLocation);
+    setTempData(bizLocData);
     setIsEditing((prev) => ({ ...prev, [section]: true }));
   };
 
   // 취소 시 임시 데이터를 원래 상태로 되돌리기
   const handleCancel = (section: string) => {
-    setTempData(businessLocation);
+    setTempData(bizLocData);
     setIsEditing((prev) => ({ ...prev, [section]: false }));
   };
 
@@ -221,15 +239,15 @@ function EmployerMypage() {
 
   // update address, hours, contact
   const handleOptionsSave = (section: string) => {
-    // 저장 시 tempData를 businessLocation에 적용
-    setBusinessLocation(tempData);
+    // 저장 시 tempData를 bizLocData에 적용
+    setBizLocData(tempData);
     setIsEditing((prev) => ({ ...prev, [section]: false }));
   };
 
   // update title, description
   const handleProfileSave = () => {
-    // 저장 시 tempData를 businessLocation에 적용
-    setBusinessLocation(tempData);
+    // 저장 시 tempData를 bizLocData에 적용
+    setBizLocData(tempData);
     console.log("Saving basic information:", tempData);
     handleCloseProfileDialog();
   };
@@ -243,7 +261,7 @@ function EmployerMypage() {
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
       <BackHeader title="My Business Profile" />
-
+      {isLoading && <LoadingScreen overlay={true} opacity="light" />}
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-5">
         <h3 className="text-lg sm:text-xl font-bold text-slate-900 px-1 flex items-center justify-between">
           <span>Basic Information</span>
@@ -262,10 +280,8 @@ function EmployerMypage() {
               <div className="relative flex-shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden">
                   <img
-                    src={
-                      businessLocation.logoImageUrl || "/images/img-default-business-profile.png"
-                    }
-                    alt={businessLocation.name}
+                    src={`${STORAGE_URLS.BIZ_LOC.PHOTO}${bizLocData?.logoImg}`}
+                    alt={bizLocData?.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -279,17 +295,22 @@ function EmployerMypage() {
 
               <div className="flex-1">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
-                  {businessLocation.name}
+                  {bizLocData?.name}
                 </h2>
 
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
-                  {businessLocation.description}
+                  {bizLocData?.bizDescription}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-500">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                    <span>Joined {businessLocation.joinDate}</span>
+                    <span>
+                      Joined{" "}
+                      {bizLocData?.created_at
+                        ? formatYYYYMMDDtoMonthDayYear(bizLocData.created_at)
+                        : "Unknown"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -323,7 +344,7 @@ function EmployerMypage() {
               rightIcon={<MapPin className="w-5 h-5" />}
             />
           ) : (
-            <p className="text-slate-700 leading-relaxed">{businessLocation.address}</p>
+            <p className="text-slate-700 leading-relaxed">{bizLocData?.address}</p>
           )}
         </InfoSection>
 
@@ -340,16 +361,15 @@ function EmployerMypage() {
         >
           {isEditing.hours ? (
             <TimeRangePicker
-              startTime={tempData.startTime}
-              endTime={tempData.endTime}
+              startTime={tempData.startTime!}
+              endTime={tempData.endTime!}
               onStartTimeChange={(time) => setTempData((prev) => ({ ...prev, startTime: time }))}
               onEndTimeChange={(time) => setTempData((prev) => ({ ...prev, endTime: time }))}
               label="Operating Hours"
             />
           ) : (
             <p className="text-slate-700">
-              <span className="font-medium">Monday - Friday:</span> {businessLocation.startTime} -{" "}
-              {businessLocation.endTime}
+              {bizLocData?.startTime} - {bizLocData?.endTime}
             </p>
           )}
         </InfoSection>
@@ -380,7 +400,7 @@ function EmployerMypage() {
           ) : (
             <div className="flex items-center gap-3">
               <Phone size={16} className="text-slate-400" />
-              <span className="text-slate-700 font-medium">{businessLocation.phone}</span>
+              <span className="text-slate-700 font-medium">{bizLocData?.phone}</span>
             </div>
           )}
         </InfoSection>
@@ -407,24 +427,27 @@ function EmployerMypage() {
             {/* workplace photos */}
             <div>
               <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-4 scrollbar-hide px-2">
-                {businessLocation.detailImages.map((image, index) => (
+                {bizLocData?.extraPhotos.map((image, index) => {
+                  if (image == "") return null;
+                  return (
                   <div key={index} className="relative flex-shrink-0 group p-2">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
-                      <img
-                        src={image}
-                        alt={`Workplace ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
-                {businessLocation.detailImages.length < 5 && (
+                <div
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-slate-200 bg-slate-100 shadow-sm">
+                  <img
+                    src={`${STORAGE_URLS.BIZ_LOC.PHOTO}${image}`}
+                    alt={`Workplace ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  />
+                </div>
+                <button
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute top-0 right-0 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100 touch-manipulation z-10"
+                >
+                  <X size={12} />
+                </button>
+              </div>)}
+                )}
+                {bizLocData.extraPhotos.length < 5 && (
                   <div className="flex-shrink-0 p-2">
                     <button
                       onClick={handleAddPhotoClick}
@@ -448,14 +471,16 @@ function EmployerMypage() {
               </div>
               <div className="flex items-center justify-between mt-3 mb-6 sm:">
                 <span className="text-xs text-slate-500">
-                  {businessLocation.detailImages.length} of 5 photos
+                  {bizLocData?.extraPhotos.length} of 5 photos
                 </span>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
                       className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                        i < businessLocation.detailImages.length ? "bg-indigo-400" : "bg-slate-200"
+                         i < bizLocData.extraPhotos.length
+                            ? "bg-indigo-400"
+                            : "bg-slate-200"
                       }`}
                     />
                   ))}
@@ -475,7 +500,6 @@ function EmployerMypage() {
           </div>
         </div>
       </div>
-
       {/* Profile Edit Dialog */}
       <BaseDialog
         open={showProfileDialog}
@@ -496,7 +520,7 @@ function EmployerMypage() {
 
             <TextArea
               label="Description"
-              value={tempData.description}
+              value={tempData.bizDescription}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 handleTempInputChange("description", e.target.value)
               }
@@ -509,7 +533,6 @@ function EmployerMypage() {
           Save Changes
         </Button>
       </BaseDialog>
-
       {/* Logo Image Dialog */}
       <ImageUploadDialog
         open={showImageUploadDialog}
@@ -517,7 +540,7 @@ function EmployerMypage() {
         onSave={handleLogoSave}
         title="Change Business Logo"
         type="logo"
-        currentImage={businessLocation.logoImageUrl}
+        currentImage={`${STORAGE_URLS.BIZ_LOC.PHOTO}${bizLocData?.logoImg}`}
       />
     </div>
   );

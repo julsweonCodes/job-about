@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  getEmployerProfile,
   saveEmployerProfile,
   uploadEmployerImages,
 } from "@/app/services/employer-services";
 import {getUserIdFromSession} from "@/utils/auth";
+import { errorResponse, successResponse } from "@/app/lib/server/commonResponse";
 
+export async function GET() {
+  const userId = await getUserIdFromSession();
 
+  const res = await getEmployerProfile(userId);
+  if (!res) {
+    return errorResponse("Failed to retrieve business location data", 500);
+  }
+  console.log(res);
+  return successResponse(res, 200, "Business location data retrieved");
+}
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: { userId: string, isUpdate?: boolean } }
 ) {
   const formData = await request.formData();
 
@@ -18,7 +29,7 @@ export async function POST(
   const logoImg = formData.getAll('logoImg') as File[];
 
   if (!profileRaw) {
-    return NextResponse.json({ error: 'Profile data missing' }, { status: 400 });
+    return errorResponse("Profile data missing", 400);
   }
 
   try {
@@ -52,9 +63,9 @@ export async function POST(
 
     const updated = await saveEmployerProfile(payload);
 
-    return NextResponse.json(updated);
+    return successResponse(updated, 200, "Employer business location created successfully");
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+    return errorResponse("Failed to update profile", 500);
   }
 }
