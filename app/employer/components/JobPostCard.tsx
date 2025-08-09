@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Calendar, Users } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
+import DDayChip from "@/components/ui/DDayChip";
+import WorkTypeChip from "@/components/ui/WorkTypeChip";
 import { Button } from "@/components/ui/Button";
 import { ClientJobPost } from "@/types/client/employer";
 import { getWorkTypeConfig } from "@/utils/client/styleUtils";
-import { getDDayConfig } from "@/utils/client/dateUtils";
 import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
 
 interface JobPostCardProps {
@@ -104,24 +105,13 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({
       {/* 칩들 - 왼쪽 상단 */}
       <div className="flex items-center gap-2 mb-4">
         {/* D-day 칩 */}
-        {!isDraft &&
-          job.deadline_date &&
-          (() => {
-            const dDayConfig = getDDayConfig(job.deadline_date);
-            return (
-              <Chip size="sm" className={`${dDayConfig.className} font-semibold`}>
-                {dDayConfig.text}
-              </Chip>
-            );
-          })()}
+        {!isDraft && job.deadline_date && <DDayChip deadline={job.deadline_date} />}
         {isDraft && (
           <Chip size="sm" className="bg-gray-100 text-gray-800 hover:bg-gray-100/80 font-semibold">
             Draft
           </Chip>
         )}
-        <Chip size="sm" className={`${typeClass} font-semibold`}>
-          {typeLabel}
-        </Chip>
+        <WorkTypeChip label={typeLabel} className={`${typeClass} font-semibold`} />
       </div>
 
       {/* 상단: 제목/급여 + 이미지 */}

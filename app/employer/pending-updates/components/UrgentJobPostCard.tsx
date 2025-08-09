@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Calendar, Users } from "lucide-react";
-import { Chip } from "@/components/ui/Chip";
+import DDayChip from "@/components/ui/DDayChip";
+import WorkTypeChip from "@/components/ui/WorkTypeChip";
 import { Button } from "@/components/ui/Button";
 import { UrgentClientJobPost } from "@/types/client/employer";
 import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
 import { getWorkTypeConfig } from "@/utils/client/styleUtils";
-import { getDDayConfig } from "@/utils/client/dateUtils";
 
 interface UrgentJobPostCardProps {
   jobPost: UrgentClientJobPost;
@@ -50,19 +50,9 @@ export default function UrgentJobPostCard({
       {/* 칩들 - 왼쪽 상단 */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         {/* D-day 칩 */}
-        {jobPost.deadline_date &&
-          (() => {
-            const dDayConfig = getDDayConfig(jobPost.deadline_date);
-            return (
-              <Chip size="sm" className={`${dDayConfig.className} font-semibold`}>
-                {dDayConfig.text}
-              </Chip>
-            );
-          })()}
+        {jobPost.deadline_date && <DDayChip deadline={jobPost.deadline_date} />}
 
-        <Chip size="sm" className={`${typeClass} font-semibold`}>
-          {typeLabel}
-        </Chip>
+        <WorkTypeChip label={typeLabel} className={`${typeClass} font-semibold`} />
       </div>
 
       {/* 상단: 제목/급여 + 이미지 */}

@@ -26,22 +26,22 @@ export const getDDayConfig = (deadlineDate: string) => {
   if (dDay < 0) {
     return {
       text: "Overdue",
-      className: "bg-red-100 text-red-800 hover:bg-red-100/80",
+      className: "bg-red-100 text-red-900 border border-red-200 hover:bg-red-100/80",
     };
   } else if (dDay === 0) {
     return {
       text: "D-day",
-      className: "bg-red-100 text-red-800 hover:bg-red-100/80",
+      className: "bg-red-100 text-red-900 border border-red-200 hover:bg-red-100/80",
     };
   } else if (dDay <= 3) {
     return {
       text: `D-${dDay}`,
-      className: "bg-orange-100 text-orange-800 hover:bg-orange-100/80",
+      className: "bg-amber-100 text-amber-900 border border-amber-200 hover:bg-amber-100/80",
     };
   } else {
     return {
       text: `D-${dDay}`,
-      className: "bg-gray-100 text-gray-800 hover:bg-gray-100/80",
+      className: "bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-100/80",
     };
   }
 };
