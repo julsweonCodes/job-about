@@ -141,7 +141,7 @@ export default function EmployerProfilePage() {
     endTime: false,
     description: false,
   });
-  
+
   // validation functions
   const validateRequired = (val: string, msg: string) => (!val ? msg : "");
 
@@ -211,7 +211,8 @@ export default function EmployerProfilePage() {
     const result = await res.json();
     if (res.ok) {
       showSuccessToast("Profile saved successfully!");
-      router.push(PAGE_URLS.EMPLOYER.ROOT);
+      // Force full reload to ensure fresh state across the app
+      window.location.replace(PAGE_URLS.EMPLOYER.ROOT);
     } else {
       showErrorToast(result.error || "Error saving profile");
     }
@@ -221,7 +222,7 @@ export default function EmployerProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Sticky Progress Bar */}
-      { isLoading && (<LoadingScreen message="Generating business profile..." />)}
+      {isLoading && <LoadingScreen message="Generating business profile..." />}
       <ProgressHeader completionPercentage={progress} title="Profile Setup" />
 
       {/* Main Content */}

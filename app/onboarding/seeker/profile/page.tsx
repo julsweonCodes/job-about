@@ -178,7 +178,8 @@ function JobSeekerProfile() {
 
       try {
         await apiPostData(API_URLS.SEEKER.PROFILES, profileData);
-        router.replace(PAGE_URLS.SEEKER.ROOT);
+        // Force full reload to ensure fresh session/state everywhere
+        window.location.replace(PAGE_URLS.SEEKER.ROOT);
         showSuccessToast("Profile saved successfully!");
       } catch (error) {
         console.error(error);
