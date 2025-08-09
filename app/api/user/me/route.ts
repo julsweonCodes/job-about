@@ -3,6 +3,8 @@ import { getUserWithProfileStatus } from "@/app/services/user-services";
 import { getUserUuidFromSession } from "@/utils/auth";
 import { parseBigInt } from "@/lib/utils";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     let uid: string;

@@ -8,6 +8,8 @@ import {
 } from "@/app/lib/work-style-matcher";
 import { parseBigInt } from "@/lib/utils";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET: 구직자에게 추천 채용공고를 제공하는 API
  * @description 구직자의 성향과 work style 기반으로 잘 맞는 채용공고들을 추천

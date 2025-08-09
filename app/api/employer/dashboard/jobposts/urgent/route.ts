@@ -4,6 +4,8 @@ import { getUrgentJobPosts } from "@/app/services/employer-dash-services";
 import { getUserIdFromSession } from "@/utils/auth";
 import { JobPost } from "@/types/server/employer";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const userId = await getUserIdFromSession();

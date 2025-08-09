@@ -3,6 +3,8 @@ import { getUserPersonalityProfile } from "@/app/services/quiz-services";
 import { successResponse, errorResponse } from "@/app/lib/server/commonResponse";
 import { getUserUuidFromSession } from "@/utils/auth";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET: 현재 로그인한 사용자의 성향 프로필을 가져오는 API
  * @description 사용자 대시보드에서 본인의 성향 프로필 확인

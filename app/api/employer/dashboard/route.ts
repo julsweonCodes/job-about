@@ -8,6 +8,8 @@ import { errorResponse, successResponse } from "@/app/lib/server/commonResponse"
 import { Dashboard } from "@/types/server/employer";
 import { getBusinessLocId } from "@/app/services/job-post-services";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     console.log("dashboard");
