@@ -45,6 +45,7 @@ interface AuthStoreState {
   needsOnboarding: () => boolean;
   getUserDisplayName: () => string;
   getUserEmail: () => string;
+  getUserId: () => string | undefined;
   getUserProfileImageUrl: () => string | null;
 
   // 유틸리티 셀렉터
@@ -166,6 +167,11 @@ export const useAuthStore = create<AuthStoreState>()(
         getUserEmail: () => {
           const { supabaseUser } = get();
           return SupabaseUserMapper.getEmail(supabaseUser);
+        },
+
+        getUserId: () => {
+          const { appUser } = get();
+          return appUser?.id;
         },
 
         getUserProfileImageUrl: () => {

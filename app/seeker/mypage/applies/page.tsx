@@ -15,6 +15,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SCROLL_IDS } from "@/constants/scrollIds";
 import { Chip } from "@/components/ui/Chip";
 import { applicantStatusFilter } from "@/constants/filterOptions";
+import { useAppliedFilterStore } from "@/stores/useAppliedFilterStore";
 
 // getApplicationStatusConfig와 동일한 스타일 함수
 const getStatusFilterStyle = (status: string) => {
@@ -41,8 +42,9 @@ function SeekerAppliedPage() {
   const isLoadingRef = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // 필터링 상태
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  // 필터링 상태 (Zustand store 사용)
+  const selectedStatus = useAppliedFilterStore((s) => s.status);
+  const setSelectedStatus = useAppliedFilterStore((s) => s.setStatus);
 
   const { appliedJobs, loading, error, hasMore, loadMore, refresh, isLoadMoreLoading } =
     useSeekerAppliedJobs({
@@ -82,9 +84,13 @@ function SeekerAppliedPage() {
     router.push(PAGE_URLS.SEEKER.ROOT);
   }, [router]);
 
-  const handleStatusFilterChange = useCallback((status: string) => {
-    setSelectedStatus(status);
-  }, []);
+  // 필터 클릭 시 상태 저장(스토어)
+  const handleStatusFilterChange = useCallback(
+    (status: string) => {
+      setSelectedStatus(status);
+    },
+    [setSelectedStatus]
+  );
 
   // 클라이언트 사이드 렌더링 확인
   useEffect(() => {

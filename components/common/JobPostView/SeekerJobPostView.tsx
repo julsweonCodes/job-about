@@ -5,6 +5,7 @@ import { formatDescription, formatDescriptionForPreLine } from "@/utils/client/t
 import { getJobTypeName } from "@/constants/jobTypes";
 import { MapPin, DollarSign, Clock, Calendar, Heart, Building2, Globe, Users } from "lucide-react";
 import { getWorkTypeLabel } from "@/utils/client/enumDisplayUtils";
+import { ApplicantStatus } from "@/constants/enums";
 
 // Constants
 const JOB_DETAIL_ITEMS = [
@@ -49,6 +50,7 @@ const JOB_DETAIL_ITEMS = [
 interface SeekerJobPostViewProps {
   jobData: JobPostData;
   onApply?: () => void;
+  onWithdraw?: () => void;
   onBookmark?: () => void;
   isBookmarked?: boolean;
 }
@@ -273,19 +275,41 @@ const EmployerInfo: React.FC<{ jobData: JobPostData }> = ({ jobData }) => (
 
 const ActionButtons: React.FC<{
   onApply?: () => void;
+  onWithdraw?: () => void;
   jobData?: JobPostData;
-}> = ({ onApply, jobData }) => {
-  if (!onApply) return null;
+}> = ({ onApply, onWithdraw, jobData }) => {
+  if (!onApply && !onWithdraw) return null;
+
+  const isFinalized =
+    jobData?.applicationStatus === ApplicantStatus.REJECTED ||
+    jobData?.applicationStatus === ApplicantStatus.HIRED;
+  if (isFinalized) return null;
+
+  const isAppliedOrInReview =
+    jobData?.applicationStatus === ApplicantStatus.APPLIED ||
+    jobData?.applicationStatus === ApplicantStatus.IN_REVIEW;
+  const buttonLabel = isAppliedOrInReview ? "Cancel Application" : "Apply Now";
+  const mobileBtnClass = isAppliedOrInReview
+    ? "w-full bg-gray-200 text-gray-700 py-4 rounded-2xl font-bold text-lg shadow-sm hover:shadow-md transition-all duration-200"
+    : "w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200";
+  const desktopBtnClass = isAppliedOrInReview
+    ? "w-full bg-gray-200 text-gray-700 py-5 rounded-3xl font-bold text-xl shadow-sm hover:shadow-md transition-all duration-200"
+    : "w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 rounded-3xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200";
+
+  const handleClick = () => {
+    if (isAppliedOrInReview) {
+      onWithdraw?.();
+    } else {
+      onApply?.();
+    }
+  };
 
   return (
     <>
       {/* Mobile Sticky */}
       <div className="lg:hidden px-4 py-6 bg-white border-t border-gray-100 sticky bottom-0 z-10">
-        <button
-          onClick={onApply}
-          className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200"
-        >
-          Apply Now
+        <button onClick={handleClick} className={mobileBtnClass}>
+          {buttonLabel}
         </button>
         <p className="text-center text-sm text-gray-500 mt-3">
           Application deadline: {jobData?.deadline}
@@ -294,11 +318,8 @@ const ActionButtons: React.FC<{
 
       {/* Desktop */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pb-12">
-        <button
-          onClick={onApply}
-          className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 rounded-3xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200"
-        >
-          Apply Now
+        <button onClick={handleClick} className={desktopBtnClass}>
+          {buttonLabel}
         </button>
         <p className="text-center text-base text-gray-500 mt-4">
           Application deadline: {jobData?.deadline}
@@ -321,7 +342,7 @@ const getJobDetailValue = (jobData: JobPostData, label: string): string | undefi
   return valueMap[label];
 };
 
-const SeekerJobPostView: React.FC<SeekerJobPostViewProps> = ({ jobData, onApply }) => {
+const SeekerJobPostView: React.FC<SeekerJobPostViewProps> = ({ jobData, onApply, onWithdraw }) => {
   const extraPhotos =
     jobData.businessLocInfo.extraPhotos && jobData.businessLocInfo.extraPhotos.length > 0
       ? jobData.businessLocInfo.extraPhotos
@@ -338,7 +359,7 @@ const SeekerJobPostView: React.FC<SeekerJobPostViewProps> = ({ jobData, onApply 
         <EmployerInfo jobData={jobData} />
       </div>
 
-      <ActionButtons onApply={onApply} jobData={jobData} />
+      <ActionButtons onApply={onApply} onWithdraw={onWithdraw} jobData={jobData} />
     </div>
   );
 };

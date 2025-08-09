@@ -46,7 +46,7 @@ const fetchLatestJobs = async (
   const prismaFilters = convertFiltersToPrisma(filters);
 
   try {
-    const response = await apiGetData(API_URLS.JOB_POSTS.ROOT, {
+    const response = await apiGetData(API_URLS.SEEKER.POST.LATEST, {
       page: 1,
       limit,
       ...prismaFilters,
@@ -107,7 +107,7 @@ export const useLatestJobsInfinite = (
         // 필터를 Prisma 타입으로 변환
         const prismaFilters = convertFiltersToPrisma(filters);
 
-        return apiGetData(API_URLS.JOB_POSTS.ROOT, {
+        return apiGetData(API_URLS.SEEKER.POST.LATEST, {
           page: pageParam,
           limit: 10,
           ...prismaFilters,

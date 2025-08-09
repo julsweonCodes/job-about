@@ -2,7 +2,6 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 import { JobPostData, JobPostMapper, ApiAppliedJobResponse } from "@/types/client/jobPost";
-import { useFilterStore } from "@/stores/useFilterStore";
 import { apiGetData } from "@/utils/client/API";
 import { ApplicantStatus } from "@/constants/enums";
 import { toPrismaAppStatus, toPrismaJobType } from "@/types/enumMapper";
@@ -46,7 +45,7 @@ const fetchAppliedJobs = async (
       params.job_type = toPrismaJobType(jobType as JobType);
     }
 
-    const response = await apiGetData(API_URLS.SEEKER.APPLY, params);
+    const response = await apiGetData(API_URLS.SEEKER.APPLIES, params);
 
     if (!response) {
       throw new Error("No response received from API");

@@ -13,6 +13,7 @@ interface JobPostViewProps {
   onEdit?: (section: string, data: any) => void;
   onApply?: () => void;
   onBookmark?: () => void;
+  onWithdraw?: () => void;
   onPublish?: () => void;
   onSaveEdit?: () => void;
   isBookmarked?: boolean;
@@ -41,6 +42,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
   onEdit,
   onApply,
   onBookmark,
+  onWithdraw,
   onPublish,
   onSaveEdit,
   showEditButtons = false,
@@ -67,6 +69,7 @@ const JobPostView: React.FC<JobPostViewProps> = ({
       <SeekerJobPostView
         jobData={jobData}
         onApply={onApply}
+        onWithdraw={onWithdraw}
         onBookmark={onBookmark}
         isBookmarked={isBookmarked}
       />

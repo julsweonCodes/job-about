@@ -19,6 +19,7 @@ import {
   toLocation,
   fromPrismaLocation,
   fromPrismaWorkType,
+  fromPrismaAppStatus,
 } from "@/types/enumMapper";
 import { JobPostData } from "@/types/client/jobPost";
 import { BizLocInfo } from "@/types/client/employer";
@@ -339,6 +340,9 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
 
   const isBookmarked = user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
+  const applicationStatusPrisma = (jobPostRes as any)?.applications?.[0]?.status as
+    | ApplicationStatus
+    | undefined;
 
   // 안전한 JSON 파싱을 위한 헬퍼 함수
   const safeJsonParse = (str: string) => {
@@ -372,7 +376,9 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
     isBookmarked,
-    applicationStatus: ((jobPostRes as any)?.applications?.[0]?.status as ApplicantStatus) ?? null,
+    applicationStatus: applicationStatusPrisma
+      ? fromPrismaAppStatus(applicationStatusPrisma)
+      : undefined,
   };
 
   return jobPostData;
