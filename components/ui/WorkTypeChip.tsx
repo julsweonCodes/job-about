@@ -8,7 +8,11 @@ interface WorkTypeChipProps {
 
 function extractTextColorFromClass(className?: string): string | undefined {
   if (!className) return undefined;
-  // very simple mapping for common colors used in project
+  // explicit overrides
+  if (className.includes("text-white")) return "#ffffff";
+  if (className.includes("text-black")) return "#000000";
+  // common colors used in project
+  if (className.includes("text-green")) return "#166534"; // green-800
   if (className.includes("text-emerald")) return "#065f46"; // emerald-700
   if (className.includes("text-blue")) return "#1d4ed8"; // blue-700
   if (className.includes("text-indigo")) return "#3730a3"; // indigo-700
