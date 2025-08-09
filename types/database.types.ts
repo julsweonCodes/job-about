@@ -855,6 +855,25 @@ export type Database = {
         | "ELECTRICIAN"
         | "PLUMBER"
         | "JANITOR"
+        | "HOST"
+        | "HOUSEKEEPING"
+        | "EVENT_STAFF"
+        | "PACKER"
+        | "CONSTRUCTION_WORKER"
+        | "MAINTENANCE"
+        | "LANDSCAPER"
+        | "ADMIN_ASSISTANT"
+        | "DATA_ENTRY"
+        | "CONTENT_CREATOR"
+        | "PHOTOGRAPHER"
+        | "VIDEOGRAPHER"
+        | "MECHANIC"
+        | "CARPENTER"
+        | "PAINTER"
+        | "CHILDCARE"
+        | "ELDERCARE"
+        | "PET_CARE"
+        | "TUTOR"
       LanguageLevel: "BEGINNER" | "INTERMEDIATE" | "FLUENT" | "NOT_REQUIRED"
       Location:
         | "TORONTO"
@@ -1073,6 +1092,25 @@ export const Constants = {
         "ELECTRICIAN",
         "PLUMBER",
         "JANITOR",
+        "HOST",
+        "HOUSEKEEPING",
+        "EVENT_STAFF",
+        "PACKER",
+        "CONSTRUCTION_WORKER",
+        "MAINTENANCE",
+        "LANDSCAPER",
+        "ADMIN_ASSISTANT",
+        "DATA_ENTRY",
+        "CONTENT_CREATOR",
+        "PHOTOGRAPHER",
+        "VIDEOGRAPHER",
+        "MECHANIC",
+        "CARPENTER",
+        "PAINTER",
+        "CHILDCARE",
+        "ELDERCARE",
+        "PET_CARE",
+        "TUTOR",
       ],
       LanguageLevel: ["BEGINNER", "INTERMEDIATE", "FLUENT", "NOT_REQUIRED"],
       Location: [
