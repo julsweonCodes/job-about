@@ -179,7 +179,10 @@ const SkillsAndPersonality: React.FC<{ jobData: JobPostData }> = ({ jobData }) =
 );
 
 const WorkplacePhotos: React.FC<{ extraPhotos: string[] }> = ({ extraPhotos }) => {
+  const photos = Array.isArray(extraPhotos) ? extraPhotos.filter((p) => !!p) : [];
   const [selectedPhotoIndex, setSelectedPhotoIndex] = React.useState(0);
+
+  if (photos.length === 0) return null;
 
   return (
     <div className="mb-8">
@@ -188,35 +191,33 @@ const WorkplacePhotos: React.FC<{ extraPhotos: string[] }> = ({ extraPhotos }) =
       {/* Main Photo */}
       <div className="mb-8">
         <img
-          src={extraPhotos[selectedPhotoIndex]}
+          src={photos[selectedPhotoIndex]}
           alt="Workplace"
           className="w-full h-64 lg:h-80 object-cover rounded-3xl shadow-lg"
         />
       </div>
 
       {/* Photo Thumbnails */}
-      {extraPhotos && extraPhotos.length > 0 && (
+      {photos.length > 0 && (
         <div className="mt-8">
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {extraPhotos
-              .filter((photo) => photo)
-              .map((photo, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedPhotoIndex(index)}
-                  className={`flex-shrink-0 w-24 h-24 rounded-xl transition-all ${
-                    selectedPhotoIndex === index
-                      ? "border-4 border-purple-500 shadow-lg"
-                      : "border-2 border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <img
-                    src={photo}
-                    alt={`Workplace ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </button>
-              ))}
+            {photos.map((photo, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedPhotoIndex(index)}
+                className={`flex-shrink-0 w-24 h-24 rounded-xl transition-all ${
+                  selectedPhotoIndex === index
+                    ? "border-4 border-purple-500 shadow-lg"
+                    : "border-2 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <img
+                  src={photo}
+                  alt={`Workplace ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </button>
+            ))}
           </div>
         </div>
       )}
