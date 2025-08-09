@@ -42,6 +42,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onReview, onVi
 
   const currentStatus = statusConfig[applicant.status as ApplicantStatus];
 
+  // Hooks must be at the top-level
+  const isMobile = useIsMobile();
+  const description = applicant.description ?? "";
+  const displayDescription = useMemo(
+    () => (isMobile ? description.replace(/\n+/g, " ") : description.replace(/\n/g, "\n")),
+    [isMobile, description]
+  );
+
   const experienceBandLabel = React.useMemo(() => {
     if (applicant.work_experiences && applicant.work_experiences.length > 0) {
       const totalMonths = estimateExperienceMonths(applicant.work_experiences);
@@ -79,27 +87,17 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onReview, onVi
 
       {/* Applicant Info */}
       <div className="flex-1 mb-4">
-        {(() => {
-          const isMobile = useIsMobile();
-          const displayDescription = useMemo(
-            () =>
-              isMobile ? (applicant.description || "").replace(/\n+/g, " ") : applicant.description,
-            [isMobile, applicant.description]
-          );
-          return (
-            <p
-              className={`${isMobile ? "whitespace-normal" : "whitespace-pre-line"} text-sm md:text-base text-gray-600 mb-3 leading-relaxed`}
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {displayDescription}
-            </p>
-          );
-        })()}
+        <p
+          className={`${isMobile ? "whitespace-normal" : "whitespace-pre-line"} text-sm md:text-base text-gray-600 mb-3 leading-relaxed`}
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {displayDescription}
+        </p>
 
         <div className="flex items-center gap-2 mb-3">
           <Typography as="span" variant="bodyXs" className="text-gray-500">
