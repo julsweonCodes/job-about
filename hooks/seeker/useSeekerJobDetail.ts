@@ -8,11 +8,16 @@ import { useAuthStore } from "@/stores/useAuthStore";
 export const useSeekerJobDetail = (postId: string) => {
   const userId = useAuthStore((s) => s.getUserId());
 
-  console.log("userId", userId);
   return useQuery({
     queryKey: SEEKER_QUERY_KEYS.JOB_DETAIL(postId),
     queryFn: async (): Promise<JobPostData> => {
-      const data = await apiGetData(API_URLS.SEEKER.POST.DETAIL(postId, "published", userId?.toString() ?? ""));
+      const data = await apiGetData(
+        API_URLS.SEEKER.POST.DETAIL(
+          postId,
+          "published",
+          userId != null ? String(userId) : undefined
+        )
+      );
       if (!data) {
         throw new Error("No data received from API");
       }
@@ -20,7 +25,7 @@ export const useSeekerJobDetail = (postId: string) => {
       const jobPostData = JobPostMapper.fromDetailJobPost(data as ApiJobPostDetailData);
       return jobPostData;
     },
-    enabled: !!postId,
+    enabled: !!postId && userId != null,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
   });

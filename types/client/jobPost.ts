@@ -127,7 +127,7 @@ export interface ApiAppliedJobResponse extends ApiJobPost {
 /**
  * Bookmarked Jobs API 응답 타입
  */
-export interface ApiBookmarkedJobResponse extends ApiJobPost { }
+export interface ApiBookmarkedJobResponse extends ApiJobPost {}
 
 /**
  * Recommended Jobs API 응답 타입
@@ -223,6 +223,7 @@ export interface ApiJobPostDetailData {
   status: JobStatus;
   title: string;
   isBookmarked: boolean;
+  applicationStatus?: ApplicantStatus;
 }
 
 // ============================================================================
@@ -431,6 +432,7 @@ export class JobPostMapper {
         hourlyWage: apiJobPost.hourlyWage,
         jobDescription: apiJobPost.jobDescription,
         isBookmarked: apiJobPost.isBookmarked,
+        applicationStatus: apiJobPost.applicationStatus,
       }),
       "map detail job post data"
     );
