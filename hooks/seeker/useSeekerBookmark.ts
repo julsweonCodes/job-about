@@ -30,6 +30,9 @@ export const useSeekerBookmark = (postId: string) => {
         }
         return oldData;
       });
+
+      // 북마크 목록(무한스크롤 포함) 전체 무효화
+      queryClient.invalidateQueries({ queryKey: SEEKER_QUERY_KEYS.BOOKMARKS_BASE });
     },
     onError: (error) => {
       const message = (error as Error).message || "Failed to toggle bookmark";
