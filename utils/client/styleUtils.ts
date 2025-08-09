@@ -15,6 +15,11 @@ export const getWorkTypeConfig = (workType: WorkType) => {
         label: "Hybrid",
         className: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white ",
       };
+    case WorkType.ON_SITE:
+      return {
+        label: "On-Site",
+        className: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
+      };
     default:
       return {
         label: "On-Site",
@@ -50,7 +55,7 @@ export const getApplicationStatusConfig = (status?: string) => {
     case ApplicantStatus.WITHDRAWN:
       return {
         text: "Withdrawn",
-        style: "bg-gray-100 text-gray-700 border-gray-200",
+        style: "bg-black text-white border-gray-200",
       };
     default:
       return {

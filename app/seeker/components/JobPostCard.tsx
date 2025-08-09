@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Tag, Users } from "lucide-react";
-import { Chip } from "@/components/ui/Chip";
+import WorkTypeChip from "@/components/ui/WorkTypeChip";
+import ApplicantStatusChip from "@/components/ui/ApplicantStatusChip";
 import { JobPostCard as JobPostCardType } from "@/types/job";
 import { getLocationLabel } from "@/constants/location";
 import { getApplicationStatusConfig, getWorkTypeConfig } from "@/utils/client/styleUtils";
@@ -127,20 +128,8 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
       {/* 칩들 - 왼쪽 상단 */}
       <div className="flex items-center gap-2 mb-4">
         {/* 지원 상태 표시 - WorkType chip과 나란히 */}
-        {job.applicationStatus &&
-          (() => {
-            const statusConfig = getApplicationStatusConfig(job.applicationStatus);
-            return statusConfig ? (
-              <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.style}`}
-              >
-                {statusConfig.text}
-              </span>
-            ) : null;
-          })()}
-        <Chip size="sm" className={`${typeClass} font-semibold`}>
-          {typeLabel}
-        </Chip>
+        {job.applicationStatus && <ApplicantStatusChip status={job.applicationStatus} />}
+        <WorkTypeChip label={typeLabel} className={`${typeClass} font-semibold`} />
       </div>
       {/* 상단: 제목/급여 + 이미지 */}
       <div className="flex items-start justify-between mb-4 min-w-0 flex-shrink-0">
