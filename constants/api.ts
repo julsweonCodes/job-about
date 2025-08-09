@@ -112,6 +112,7 @@ export const PAGE_URLS = {
       ROOT: "/onboarding/seeker",
       PROFILE: "/onboarding/seeker/profile",
       QUIZ: "/onboarding/seeker/quiz",
+      QUIZ_RESULT: "/onboarding/seeker/quiz/result/",
     },
     EMPLOYER: {
       ROOT: "/onboarding/employer",

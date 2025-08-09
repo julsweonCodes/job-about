@@ -178,7 +178,8 @@ function JobSeekerProfile() {
 
       try {
         await apiPostData(API_URLS.SEEKER.PROFILES, profileData);
-        router.replace(PAGE_URLS.SEEKER.ROOT);
+        // Force full reload to ensure fresh session/state everywhere
+        window.location.replace(PAGE_URLS.SEEKER.ROOT);
         showSuccessToast("Profile saved successfully!");
       } catch (error) {
         console.error(error);
@@ -193,7 +194,9 @@ function JobSeekerProfile() {
   };
 
   const workTypes = WORK_TYPES;
-  const languageLevels = LANGUAGE_LEVELS;
+  const languageLevels = LANGUAGE_LEVELS.filter(
+    (level) => level !== LanguageLevel.NOT_REQUIRED
+  ) as LanguageLevel[];
   const progress = calculateProgress();
 
   // 로딩 중일 때 LoadingScreen 표시
@@ -460,7 +463,7 @@ function JobSeekerProfile() {
             description="Select your language skill level"
             iconColor="teal"
           >
-            <div className="flex gap-2 flex-wrap sm:grid sm:grid-cols-4">
+            <div className="flex gap-2 flex-wrap sm:grid sm:grid-cols-3">
               {languageLevels.map((level) => (
                 <FullWidthChip
                   key={level}

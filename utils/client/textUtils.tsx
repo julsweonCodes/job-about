@@ -45,3 +45,44 @@ export const sanitizeText = (text: string): string => {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#x27;");
 };
+
+/**
+ * 모바일에서 애매한 줄바꿈을 피하기 위해 개행을 공백으로 정규화
+ * - API에서 오는 실제(\n) / 문자열("\\n") 모두 처리
+ */
+export const formatDescriptionForMobile = (text: string | number | null | undefined): string => {
+  if (!text) return "";
+  const normalized = String(text).replace(/\\n/g, "\n");
+  return normalized.replace(/\n+/g, " ");
+};
+
+/**
+ * 멀티라인 텍스트를 클램프해 렌더링 (기본 3줄)
+ * - isMobile 이 true면 개행을 공백으로 치환 + whitespace-normal
+ * - 데스크톱은 개행 보존 + whitespace-pre-line
+ */
+export const renderClampedText = (params: {
+  text: string | number | null | undefined;
+  isMobile?: boolean;
+  lines?: number;
+  className?: string;
+}): React.ReactNode => {
+  const { text, isMobile = false, lines = 3, className = "" } = params;
+  const base = String(text ?? "");
+  const normalized = base.replace(/\\n/g, "\n");
+  const display = isMobile ? normalized.replace(/\n+/g, " ") : normalized;
+
+  return (
+    <span
+      className={`${isMobile ? "whitespace-normal" : "whitespace-pre-line"} ${className}`}
+      style={{
+        display: "-webkit-box",
+        WebkitLineClamp: lines,
+        WebkitBoxOrient: "vertical" as any,
+        overflow: "hidden",
+      }}
+    >
+      {display}
+    </span>
+  );
+};

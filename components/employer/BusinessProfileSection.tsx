@@ -61,7 +61,7 @@ export const BusinessProfileSection: React.FC<BusinessProfileSectionProps> = ({
                 {bizLocData?.name}
               </h2>
 
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
+              <p className="whitespace-pre-line text-sm sm:text-base text-slate-600 leading-relaxed mb-4 px-2 sm:px-0">
                 {bizLocData?.bizDescription}
               </p>
 

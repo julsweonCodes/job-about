@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import ProgressHeader from "@/components/common/ProgressHeader";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/common/LoadingScreen";
+import { showErrorToast } from "@/utils/client/toastUtils";
+import { PAGE_URLS } from "@/constants/api";
 
 export interface QuestionChoice {
   label: "A" | "B";
@@ -176,18 +179,18 @@ function QuizPage() {
               sessionStorage.setItem("profileId", data.data.profileId);
               console.log("세션 스토리지에 데이터 저장 완료:", {
                 quizSubmitted: "true",
-                profileId: data.data.profileId
+                profileId: data.data.profileId,
               });
             }
-            console.log("라우터로 결과 페이지 이동:", "/onboarding/seeker/quiz/result");
-            router.push("/onboarding/seeker/quiz/result");
+            console.log("라우터로 결과 페이지 이동:", PAGE_URLS.ONBOARDING.SEEKER.QUIZ_RESULT);
+            router.push(PAGE_URLS.ONBOARDING.SEEKER.QUIZ_RESULT);
           } else {
             console.error("퀴즈 제출 실패:", data.message);
-            alert(data.message || "퀴즈 제출에 실패했습니다.");
+            showErrorToast(data.message || "Failed to submit quiz");
           }
         } catch (error) {
           console.error("퀴즈 제출 중 오류:", error);
-          alert("퀴즈 제출 중 오류가 발생했습니다.");
+          showErrorToast("Failed to submit quiz");
         }
       };
 
@@ -223,14 +226,7 @@ function QuizPage() {
 
   // 로딩 상태
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">퀴즈를 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Loading quiz questions..." />;
   }
 
   // 에러 상태
@@ -239,13 +235,15 @@ function QuizPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">퀴즈를 불러올 수 없습니다</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Failed to load quiz questions
+          </h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <Button
             onClick={() => window.location.reload()}
             className="bg-blue-500 text-white px-6 py-2 rounded-lg"
           >
-            다시 시도
+            Try again
           </Button>
         </div>
       </div>
@@ -257,7 +255,7 @@ function QuizPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">퀴즈 질문이 없습니다.</p>
+          <p className="text-gray-600">No quiz questions found.</p>
         </div>
       </div>
     );
