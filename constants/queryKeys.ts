@@ -9,8 +9,12 @@ export const SEEKER_QUERY_KEYS = {
     ["seeker-recommended-jobs", filters, limit, page] as const,
   RECOMMENDED_JOBS_INFINITE: (serializedFilters?: string, limit?: number) =>
     ["seeker-recommended-jobs-infinite", serializedFilters, limit] as const,
+  // Prefix key for invalidating all applied jobs queries regardless of params
+  APPLIED_JOBS_BASE: ["seeker-applied-jobs"] as const,
   APPLIED_JOBS: (limit?: number, status?: string, jobType?: string) =>
     ["seeker-applied-jobs", limit, status, jobType] as const,
+  // Prefix key for invalidating all bookmarks queries regardless of params
+  BOOKMARKS_BASE: ["seeker-bookmarks"] as const,
   BOOKMARKS: (limit?: number) => ["seeker-bookmarks", limit] as const,
   PROFILES: ["seeker-profiles"] as const,
   MYPAGE_MAIN: ["seeker-mypage-main"] as const,
