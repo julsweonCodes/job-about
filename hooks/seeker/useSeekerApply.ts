@@ -11,7 +11,8 @@ export const useSeekerApply = (postId: string) => {
     // 상세 화면 갱신
     queryClient.invalidateQueries({ queryKey: SEEKER_QUERY_KEYS.JOB_DETAIL(postId) });
     // 지원 리스트(무한 스크롤) 갱신 - 모든 파라미터 조합에 대해 invalidate
-    queryClient.invalidateQueries({ queryKey: ["seeker-applied-jobs"] });
+    // 부분 일치 무효화가 동작하도록 베이스 키 사용
+    queryClient.invalidateQueries({ queryKey: SEEKER_QUERY_KEYS.APPLIED_JOBS_BASE });
   };
 
   const applyMutation = useMutation({
@@ -19,7 +20,7 @@ export const useSeekerApply = (postId: string) => {
       await apiPostData(API_URLS.SEEKER.POST.APPLY(postId), {});
     },
     onSuccess: () => {
-    showSuccessToast("Application submitted successfully!");
+      showSuccessToast("Application submitted successfully!");
       invalidateDetailAndLists();
     },
     onError: (error) => {
