@@ -281,23 +281,36 @@ const ActionButtons: React.FC<{
 }> = ({ onApply, onWithdraw, jobData }) => {
   if (!onApply && !onWithdraw) return null;
 
-  const isFinalized =
-    jobData?.applicationStatus === ApplicantStatus.REJECTED ||
-    jobData?.applicationStatus === ApplicantStatus.HIRED;
-  if (isFinalized) return null;
+  const status = jobData?.applicationStatus;
+  const isFinalized = status === ApplicantStatus.REJECTED || status === ApplicantStatus.HIRED;
 
   const isAppliedOrInReview =
-    jobData?.applicationStatus === ApplicantStatus.APPLIED ||
-    jobData?.applicationStatus === ApplicantStatus.IN_REVIEW;
-  const buttonLabel = isAppliedOrInReview ? "Cancel Application" : "Apply Now";
-  const mobileBtnClass = isAppliedOrInReview
-    ? "w-full bg-gray-200 text-gray-700 py-4 rounded-2xl font-bold text-lg shadow-sm hover:shadow-md transition-all duration-200"
-    : "w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200";
-  const desktopBtnClass = isAppliedOrInReview
-    ? "w-full bg-gray-200 text-gray-700 py-5 rounded-3xl font-bold text-xl shadow-sm hover:shadow-md transition-all duration-200"
-    : "w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 rounded-3xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200";
+    status === ApplicantStatus.APPLIED || status === ApplicantStatus.IN_REVIEW;
+
+  const isDisabled = isFinalized;
+
+  const buttonLabel = isFinalized
+    ? status === ApplicantStatus.REJECTED
+      ? "Application Rejected"
+      : "Hired"
+    : isAppliedOrInReview
+      ? "Cancel Application"
+      : "Apply Now";
+
+  const mobileBtnClass = isDisabled
+    ? "w-full bg-gray-100 text-gray-400 py-4 rounded-2xl font-bold text-lg shadow-sm cursor-not-allowed"
+    : isAppliedOrInReview
+      ? "w-full bg-gray-200 text-gray-700 py-4 rounded-2xl font-bold text-lg shadow-sm hover:shadow-md transition-all duration-200"
+      : "w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200";
+
+  const desktopBtnClass = isDisabled
+    ? "w-full bg-gray-100 text-gray-400 py-5 rounded-3xl font-bold text-xl shadow-sm cursor-not-allowed"
+    : isAppliedOrInReview
+      ? "w-full bg-gray-200 text-gray-700 py-5 rounded-3xl font-bold text-xl shadow-sm hover:shadow-md transition-all duration-200"
+      : "w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-5 rounded-3xl font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200";
 
   const handleClick = () => {
+    if (isDisabled) return;
     if (isAppliedOrInReview) {
       onWithdraw?.();
     } else {
@@ -309,7 +322,7 @@ const ActionButtons: React.FC<{
     <>
       {/* Mobile Sticky */}
       <div className="lg:hidden px-4 py-6 bg-white border-t border-gray-100 sticky bottom-0 z-10">
-        <button onClick={handleClick} className={mobileBtnClass}>
+        <button onClick={handleClick} className={mobileBtnClass} disabled={isDisabled}>
           {buttonLabel}
         </button>
         <p className="text-center text-sm text-gray-500 mt-3">
@@ -319,7 +332,7 @@ const ActionButtons: React.FC<{
 
       {/* Desktop */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 pb-12">
-        <button onClick={handleClick} className={desktopBtnClass}>
+        <button onClick={handleClick} className={desktopBtnClass} disabled={isDisabled}>
           {buttonLabel}
         </button>
         <p className="text-center text-base text-gray-500 mt-4">
