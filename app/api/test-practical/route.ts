@@ -37,12 +37,18 @@ export async function GET() {
     });
     console.log("조회된 데이터:", data);
 
+    // BigInt를 Number로 변환
+    const serializedData = data.map((item: any) => ({
+      id: Number(item.id),
+      name_ko: item.name_ko,
+    }));
+
     return NextResponse.json({
       success: true,
       connection: connectionTest,
       tableExists,
       count,
-      sampleData: data,
+      sampleData: serializedData,
     });
   } catch (error) {
     console.error("=== 에러 발생 ===");

@@ -22,14 +22,21 @@ export async function GET() {
       }
     });
 
-    if (!workStyles || workStyles.length === 0) {
+    // BigInt를 Number로 변환
+    const serializedWorkStyles = workStyles.map((workStyle: any) => ({
+      id: Number(workStyle.id),
+      name_ko: workStyle.name_ko,
+      name_en: workStyle.name_en
+    }));
+
+    if (!serializedWorkStyles || serializedWorkStyles.length === 0) {
       console.error("work style 데이터가 없음");
       return errorResponse("Work styles not found.", 404);
     }
 
-    console.log(`work style ${workStyles.length}개 조회 성공`);
+    console.log(`work style ${serializedWorkStyles.length}개 조회 성공`);
     
-    return successResponse(workStyles, 200, "Work styles fetched successfully.");
+    return successResponse(serializedWorkStyles, 200, "Work styles fetched successfully.");
   } catch (error) {
     console.error("API Error GET /api/work-styles:", error);
     return errorResponse("An internal server error occurred.", 500);
