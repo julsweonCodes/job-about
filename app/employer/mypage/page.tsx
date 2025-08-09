@@ -235,7 +235,7 @@ function EmployerMypage() {
         open={dialogState.showProfileDialog}
         onClose={handleCloseProfileDialog}
         title="Edit Basic Information"
-        size="md"
+        size="lg"
         type="bottomSheet"
       >
         <div className="space-y-4 mb-4">

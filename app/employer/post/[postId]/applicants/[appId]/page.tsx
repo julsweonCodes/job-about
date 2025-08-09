@@ -132,9 +132,25 @@ function ApplicantDetailPage() {
       const res = await updateApplicantStatus(postId, appId, status);
       if (res) {
         showSuccessToast("Applicant status updated to " + status + ".");
+
+        // Optimistically update detail cache
+        queryClient.setQueryData(
+          EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, appId),
+          (prev: any) => (prev ? { ...prev, application_status: status } : prev)
+        );
+
+        // Optimistically update list cache
+        queryClient.setQueryData(EMPLOYER_QUERY_KEYS.APPLICANTS_LIST(postId), (prev: any) =>
+          Array.isArray(prev)
+            ? prev.map((a) => (a?.application_id?.toString() === appId ? { ...a, status } : a))
+            : prev
+        );
+
+        // Ensure server-sync
+        queryClient.invalidateQueries({
+          queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_DETAIL(postId, appId),
+        });
         queryClient.invalidateQueries({ queryKey: EMPLOYER_QUERY_KEYS.APPLICANTS_LIST(postId) });
-        await new Promise((resolve) => setTimeout(resolve, 800)); // 1 second delay
-        router.back();
       } else {
         showErrorToast("No changes made to applicant status.");
       }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Clock, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Clock, Eye, CheckCircle, XCircle } from "lucide-react";
 import { Applicant } from "@/types/job";
 import { ApplicantStatus } from "@/constants/enums";
 import { Button } from "@/components/ui/Button";
@@ -7,6 +7,8 @@ import Typography from "@/components/ui/Typography";
 import { formatYYYYMMDDtoMonthDayYear } from "@/lib/utils";
 import { STORAGE_URLS } from "@/constants/storage";
 import { estimateExperienceMonths, getExperienceBandEn } from "@/utils/shared/experienceUtils";
+import { useMemo } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface ApplicantCardProps {
   applicant: Applicant;
@@ -77,9 +79,27 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onReview, onVi
 
       {/* Applicant Info */}
       <div className="flex-1 mb-4">
-        <p className="text-sm md:text-base text-gray-600 mb-3 leading-relaxed">
-          {applicant.description}
-        </p>
+        {(() => {
+          const isMobile = useIsMobile();
+          const displayDescription = useMemo(
+            () =>
+              isMobile ? (applicant.description || "").replace(/\n+/g, " ") : applicant.description,
+            [isMobile, applicant.description]
+          );
+          return (
+            <p
+              className={`${isMobile ? "whitespace-normal" : "whitespace-pre-line"} text-sm md:text-base text-gray-600 mb-3 leading-relaxed`}
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {displayDescription}
+            </p>
+          );
+        })()}
 
         <div className="flex items-center gap-2 mb-3">
           <Typography as="span" variant="bodyXs" className="text-gray-500">

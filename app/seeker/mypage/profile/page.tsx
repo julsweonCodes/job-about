@@ -149,7 +149,9 @@ function SeekerProfilePage() {
               <div className="text-slate-700">
                 {tempData.description ? (
                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
-                    <p className="text-sm leading-relaxed text-slate-700">{tempData.description}</p>
+                    <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+                      {tempData.description}
+                    </p>
                   </div>
                 ) : (
                   <div className="bg-gradient-to-br from-slate-50 to-gray-50 border border-slate-200 rounded-xl p-4 text-center">
