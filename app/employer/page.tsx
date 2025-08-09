@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { StatsCard, StatsCardSkeleton } from "./components/StatsCard";
 import { JobPostCard, JobPostCardSkeleton } from "./components/JobPostCard";
@@ -70,7 +70,7 @@ const EmptyState = ({
   </div>
 );
 
-export default function EmployerDashboard() {
+function EmployerDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -268,5 +268,15 @@ export default function EmployerDashboard() {
         <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>
     </div>
+  );
+}
+
+export default function EmployerDashboard() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+    </div>}>
+      <EmployerDashboardContent />
+    </Suspense>
   );
 }
