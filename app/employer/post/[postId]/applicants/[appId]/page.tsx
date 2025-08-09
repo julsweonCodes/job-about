@@ -153,6 +153,10 @@ function ApplicantDetailPage() {
     handleApplicantStatusUpdate(ApplicantStatus.REJECTED);
   };
 
+  const finalized =
+    appDetail?.application_status === ApplicantStatus.HIRED ||
+    appDetail?.application_status === ApplicantStatus.REJECTED;
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {loadingStates.appDetail && <ApplicantDetailSkeleton />}
@@ -194,14 +198,16 @@ function ApplicantDetailPage() {
                     </div>
                   </div>
                   {/* 데스크탑용 버튼 */}
-                  <div className="hidden lg:flex gap-4 mt-8 justify-center">
-                    <Button variant="black" onClick={onClickDeny}>
-                      Deny
-                    </Button>
-                    <Button variant="default" onClick={onClickAccept}>
-                      Accept
-                    </Button>
-                  </div>
+                  {!finalized && (
+                    <div className="hidden lg:flex gap-4 mt-8 justify-center">
+                      <Button variant="black" onClick={onClickDeny}>
+                        Deny
+                      </Button>
+                      <Button variant="default" onClick={onClickAccept}>
+                        Accept
+                      </Button>
+                    </div>
+                  )}
                 </section>
 
                 {/* Work Style Summary */}
@@ -289,14 +295,16 @@ function ApplicantDetailPage() {
           </main>
 
           {/* 모바일 하단 고정 버튼 */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl flex gap-4 lg:hidden">
-            <Button variant="black" size="xl" onClick={onClickDeny}>
-              Deny
-            </Button>
-            <Button variant="default" size="xl" onClick={onClickAccept}>
-              Accept
-            </Button>
-          </div>
+          {!finalized && (
+            <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-white/20 px-4 sm:px-6 lg:px-8 py-6 shadow-2xl flex gap-4 lg:hidden">
+              <Button variant="black" size="xl" onClick={onClickDeny}>
+                Deny
+              </Button>
+              <Button variant="default" size="xl" onClick={onClickAccept}>
+                Accept
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
