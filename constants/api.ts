@@ -70,6 +70,7 @@ export const API_URLS = {
         `/api/job-posts/${id}?status=${status}${userId ? `&userId=${userId}` : ""}`,
       APPLY: (id: string) => `/api/job-posts/${id}/apply`,
       BOOKMARK: (id: string) => `/api/job-posts/${id}/bookmark`,
+      WITHDRAW: (id: string) => `/api/job-posts/${id}/withdraw`,
     },
   },
 

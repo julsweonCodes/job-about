@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Bookmark, ArrowLeft } from "lucide-react";
 import PostHeader from "@/components/common/PostHeader";
 import JobPostView from "@/components/common/JobPostView";
@@ -9,6 +9,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useSeekerJobDetail } from "@/hooks/seeker/useSeekerJobDetail";
 import { useSeekerBookmark } from "@/hooks/seeker/useSeekerBookmark";
 import { useSeekerApply } from "@/hooks/seeker/useSeekerApply";
+import { PAGE_URLS } from "@/constants/api";
 
 interface Props {
   params: { postId: string };
@@ -20,7 +21,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   // React Query hooks
   const { data: jobDetails, error } = useSeekerJobDetail(params.postId);
   const { toggleBookmark, isBookmarkLoading } = useSeekerBookmark(params.postId);
-  const { apply, isApplying, isWithdrawing } = useSeekerApply(params.postId);
+  const { apply, isApplying, isWithdrawing, withdraw } = useSeekerApply(params.postId);
 
   // 북마크 상태 (jobDetails에서 가져옴)
   const isBookmarked = jobDetails?.isBookmarked || false;
@@ -33,19 +34,20 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   };
 
   const handleWithdraw = () => {
-    console.log("withdraw");
+    withdraw();
   };
 
   const handleBack = () => {
     router.back();
   };
 
-  // 에러 발생 시 리다이렉트
-  if (error) {
-    console.error("Error fetching job post:", error);
-    router.push("/seeker");
-    return null;
-  }
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching job post:", error);
+      router.push(PAGE_URLS.SEEKER.ROOT);
+    }
+  }, [error, router]);
+  if (error) return null;
 
   const isActionLoading = isBookmarkLoading || isApplying || isWithdrawing;
 

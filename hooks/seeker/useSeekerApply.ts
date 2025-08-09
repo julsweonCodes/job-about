@@ -1,15 +1,26 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URLS } from "@/constants/api";
 import { apiPostData } from "@/utils/client/API";
 import { showSuccessToast, showErrorToast } from "@/utils/client/toastUtils";
+import { SEEKER_QUERY_KEYS } from "@/constants/queryKeys";
 
 export const useSeekerApply = (postId: string) => {
+  const queryClient = useQueryClient();
+
+  const invalidateDetailAndLists = () => {
+    // 상세 화면 갱신
+    queryClient.invalidateQueries({ queryKey: SEEKER_QUERY_KEYS.JOB_DETAIL(postId) });
+    // 지원 리스트(무한 스크롤) 갱신 - 모든 파라미터 조합에 대해 invalidate
+    queryClient.invalidateQueries({ queryKey: ["seeker-applied-jobs"] });
+  };
+
   const applyMutation = useMutation({
     mutationFn: async () => {
       await apiPostData(API_URLS.SEEKER.POST.APPLY(postId), {});
     },
     onSuccess: () => {
-      showSuccessToast("Application submitted successfully!");
+    showSuccessToast("Application submitted successfully!");
+      invalidateDetailAndLists();
     },
     onError: (error) => {
       const message = (error as Error).message || "Application failed. Please try again.";
@@ -17,15 +28,13 @@ export const useSeekerApply = (postId: string) => {
     },
   });
 
-  // Withdraw placeholder (API to be implemented)
   const withdrawMutation = useMutation({
     mutationFn: async () => {
-      // TODO: replace with actual endpoint when available
-      // await apiDeleteData(API_URLS.SEEKER.POST.WITHDRAW(postId));
-      throw new Error("Withdraw API not implemented yet");
+      await apiPostData(API_URLS.SEEKER.POST.WITHDRAW(postId), {});
     },
     onSuccess: () => {
       showSuccessToast("Application withdrawn successfully!");
+      invalidateDetailAndLists();
     },
     onError: (error) => {
       const message = (error as Error).message || "Failed to withdraw application.";

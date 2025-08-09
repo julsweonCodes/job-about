@@ -280,6 +280,11 @@ const ActionButtons: React.FC<{
 }> = ({ onApply, onWithdraw, jobData }) => {
   if (!onApply && !onWithdraw) return null;
 
+  const isFinalized =
+    jobData?.applicationStatus === ApplicantStatus.REJECTED ||
+    jobData?.applicationStatus === ApplicantStatus.HIRED;
+  if (isFinalized) return null;
+
   const isAppliedOrInReview =
     jobData?.applicationStatus === ApplicantStatus.APPLIED ||
     jobData?.applicationStatus === ApplicantStatus.IN_REVIEW;
