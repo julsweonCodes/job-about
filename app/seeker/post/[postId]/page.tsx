@@ -20,7 +20,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
   // React Query hooks
   const { data: jobDetails, error } = useSeekerJobDetail(params.postId);
   const { toggleBookmark, isBookmarkLoading } = useSeekerBookmark(params.postId);
-  const { apply, isApplying } = useSeekerApply(params.postId);
+  const { apply, isApplying, isWithdrawing } = useSeekerApply(params.postId);
 
   // 북마크 상태 (jobDetails에서 가져옴)
   const isBookmarked = jobDetails?.isBookmarked || false;
@@ -30,6 +30,10 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
 
   const handleApply = () => {
     apply();
+  };
+
+  const handleWithdraw = () => {
+    console.log("withdraw");
   };
 
   const handleBack = () => {
@@ -43,7 +47,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
     return null;
   }
 
-  const isActionLoading = isBookmarkLoading || isApplying;
+  const isActionLoading = isBookmarkLoading || isApplying || isWithdrawing;
 
   // 메인 렌더링
   return (
@@ -71,6 +75,7 @@ const SeekerJobDetailPage: React.FC<Props> = ({ params }) => {
         mode="seeker"
         showApplyButton={true}
         onApply={handleApply}
+        onWithdraw={handleWithdraw}
       />
     </div>
   );
