@@ -4,7 +4,7 @@ import { getJobPostById } from "@/app/services/job-post-services";
 import { getSeekerProfile } from "@/app/services/seeker-services";
 import { parseBigInt } from "@/lib/utils";
 import { getUserIdFromSession } from "@/utils/auth";
-import { ApplicationStatus } from "@prisma/client";
+import { $Enums, ApplicationStatus } from "@prisma/client";
 import { NextRequest } from "next/server";
 
 export const POST = async (
@@ -35,27 +35,44 @@ export const POST = async (
                 profile_id: profile.id,
                 deleted_at: null,
             },
-        });
-
-        if (existing) {
-            return errorResponse("You have already applied for this job.", 400);
-        }
-
-        const newApp = await prisma.applications.create({
-            data: {
-                job_post_id: jobPostId,
-                profile_id: profile.id,
-                status: ApplicationStatus.APPLIED,
-                created_at: new Date(),
-                updated_at: new Date(),
-            },
-            include: {
-                job_post: true
+            select: {
+                id: true,
+                status: true
             }
         });
 
-        return successResponse(parseBigInt(newApp), 201, "Application submitted successfully.");
+        if (existing && existing.status == ApplicationStatus.WITHDRAWN) {
+            const updateApp = await prisma.applications.update({
+                where: {
+                    id: existing.id,
+                    job_post_id: jobPostId,
+                    profile_id: profile.id
+                }, data: {
+                    updated_at: new Date(),
+                    status: ApplicationStatus.APPLIED,
+                }
+            })
 
+            return successResponse(parseBigInt(updateApp), 201, "Application submitted successfully.");
+        }
+        else if (existing && existing.status != ApplicationStatus.WITHDRAWN) {
+            return errorResponse("You have already applied for this job.", 400);
+        } else {
+            const newApp = await prisma.applications.create({
+                data: {
+                    job_post_id: jobPostId,
+                    profile_id: profile.id,
+                    status: ApplicationStatus.APPLIED,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                },
+                include: {
+                    job_post: true
+                }
+            });
+
+            return successResponse(parseBigInt(newApp), 201, "Application submitted successfully.");
+        }
     } catch (err: any) {
         if (err instanceof HttpError) {
             return errorResponse(err.message, err.status);
