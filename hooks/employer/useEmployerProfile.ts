@@ -83,10 +83,14 @@ export const useEmployerProfile = () => {
 
   // bizLocData가 변경될 때 originalImages 업데이트
   useEffect(() => {
-    if (bizLocData?.extraPhotos && imageState.originalImages.length === 0) {
+    if (
+      bizLocData?.extraPhotos &&
+      imageState.originalImages.length === 0 &&
+      bizLocData.extraPhotos.some((img) => img && !img.startsWith("data:"))
+    ) {
       setImageState((prev) => ({
         ...prev,
-        originalImages: bizLocData.extraPhotos.filter((img) => img !== ""),
+        originalImages: bizLocData.extraPhotos.filter((img) => img && !img.startsWith("data:")),
       }));
     }
   }, [bizLocData, imageState.originalImages.length]);
@@ -170,6 +174,8 @@ export const useEmployerProfile = () => {
         reader.readAsDataURL(file);
       });
     }
+    // 같은 파일을 다시 선택했을 때 onChange가 동작하도록 초기화
+    event.target.value = "";
   };
 
   // 드래그 앤 드롭 관리

@@ -340,7 +340,9 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
 
   const isBookmarked = user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
-  const applicationStatus = jobPostRes.applications[0]?.status as ApplicantStatus;
+  const applicationStatusPrisma = (jobPostRes as any)?.applications?.[0]?.status as
+    | ApplicationStatus
+    | undefined;
 
   // 안전한 JSON 파싱을 위한 헬퍼 함수
   const safeJsonParse = (str: string) => {
@@ -374,7 +376,9 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
     isBookmarked,
-    applicationStatus: applicationStatus ? fromPrismaAppStatus(applicationStatus) : undefined,
+    applicationStatus: applicationStatusPrisma
+      ? fromPrismaAppStatus(applicationStatusPrisma)
+      : undefined,
   };
 
   return jobPostData;
