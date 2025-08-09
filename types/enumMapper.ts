@@ -129,6 +129,23 @@ export function toPrismaLocation(value: string): string {
     burlington: "BURLINGTON",
     milton: "MILTON",
     newhamburg: "NEWHAMBURG",
+
+    // British Columbia
+    vancouver: "VANCOUVER",
+    surrey: "SURREY",
+    victoria: "VICTORIA",
+    burnaby: "BURNABY",
+    kelowna: "KELOWNA",
+    richmond: "RICHMOND",
+    abbotsford: "ABBOTSFORD",
+    langley: "LANGLEY",
+    kamloops: "KAMLOOPS",
+    nanaimo: "NANAIMO",
+    north_vancouver: "NORTH_VANCOUVER",
+    delta: "DELTA",
+    prince_george: "PRINCE_GEORGE",
+    coquitlam: "COQUITLAM",
+    chilliwack: "CHILLIWACK",
   };
   return map[value] || value;
 }
@@ -154,6 +171,23 @@ export function toPrismaLocationStrict(value: string): $Enums.Location {
     burlington: "BURLINGTON",
     milton: "MILTON",
     newhamburg: "NEWHAMBURG",
+
+    // British Columbia
+    vancouver: "VANCOUVER",
+    surrey: "SURREY",
+    victoria: "VICTORIA",
+    burnaby: "BURNABY",
+    kelowna: "KELOWNA",
+    richmond: "RICHMOND",
+    abbotsford: "ABBOTSFORD",
+    langley: "LANGLEY",
+    kamloops: "KAMLOOPS",
+    nanaimo: "NANAIMO",
+    north_vancouver: "NORTH_VANCOUVER",
+    delta: "DELTA",
+    prince_george: "PRINCE_GEORGE",
+    coquitlam: "COQUITLAM",
+    chilliwack: "CHILLIWACK",
   };
   return map[value] || value;
 }
@@ -262,6 +296,23 @@ export function fromPrismaLocation(value: string): Location {
     BURLINGTON: Location.BURLINGTON,
     MILTON: Location.MILTON,
     NEWHAMBURG: Location.NEWHAMBURG,
+
+    // British Columbia
+    VANCOUVER: Location.VANCOUVER,
+    SURREY: Location.SURREY,
+    VICTORIA: Location.VICTORIA,
+    BURNABY: Location.BURNABY,
+    KELOWNA: Location.KELOWNA,
+    RICHMOND: Location.RICHMOND,
+    ABBOTSFORD: Location.ABBOTSFORD,
+    LANGLEY: Location.LANGLEY,
+    KAMLOOPS: Location.KAMLOOPS,
+    NANAIMO: Location.NANAIMO,
+    NORTH_VANCOUVER: Location.NORTH_VANCOUVER,
+    DELTA: Location.DELTA,
+    PRINCE_GEORGE: Location.PRINCE_GEORGE,
+    COQUITLAM: Location.COQUITLAM,
+    CHILLIWACK: Location.CHILLIWACK,
   };
   return map[value] || value;
 }

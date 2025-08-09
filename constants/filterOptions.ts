@@ -1,5 +1,5 @@
 import { ApplicantStatus } from "./enums";
-import { getLocationDisplayName } from "./location";
+import { getLocationLabel } from "./location";
 
 export interface FilterOption {
   key: string;
@@ -94,8 +94,8 @@ export const createLocationFilterFromData = (locations: any[]): FilterDefinition
         typeof location === "string" ? location : location.value || location.key;
       const locationLabel =
         typeof location === "string"
-          ? getLocationDisplayName(location)
-          : location.label || location.name || getLocationDisplayName(locationValue);
+          ? getLocationLabel(location)
+          : location.label || location.name || getLocationLabel(locationValue);
 
       return {
         key: locationValue,

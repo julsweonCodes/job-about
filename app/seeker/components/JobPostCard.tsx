@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Tag, Users } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { JobPostCard as JobPostCardType } from "@/types/job";
-import { getLocationDisplayName } from "@/constants/location";
+import { getLocationLabel } from "@/constants/location";
 import { getApplicationStatusConfig, getWorkTypeConfig } from "@/utils/client/styleUtils";
 import { getJobTypeName } from "@/utils/client/enumDisplayUtils";
 
@@ -199,7 +199,7 @@ export const JobPostCard: React.FC<JobPostCardProps> = ({ job, isRecommended, on
           <div className="flex flex-wrap items-center gap-2 text-gray-500 text-xs sm:text-sm font-medium">
             <span>{job.businessName}</span>
             <span className="text-gray-400">•</span>
-            <span>{getLocationDisplayName(job.location)}</span>
+            <span>{getLocationLabel(job.location)}</span>
             {job.daysAgo !== undefined && (
               <>
                 <span className="text-gray-400">•</span>

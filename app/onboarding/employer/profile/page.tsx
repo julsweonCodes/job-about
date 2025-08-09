@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CircleCheckBig, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
@@ -17,13 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-import {
-  getAllLocationsWithDisplayNames,
-  getLocationDisplayName,
-  Location,
-} from "@/constants/location";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { getAllLocationsWithLabels, getLocationLabel, Location } from "@/constants/location";
 import { useRouter } from "next/navigation";
+import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 interface EmployerFormData {
   businessName: string;
@@ -115,7 +113,7 @@ export default function EmployerProfilePage() {
   });
   // get locations
   const getCities = (): LocationOption[] => {
-    return getAllLocationsWithDisplayNames().map((item) => ({
+    return getAllLocationsWithLabels().map((item) => ({
       value: item.value as Location, // casting string → enum
       label: item.label,
     }));
@@ -124,6 +122,7 @@ export default function EmployerProfilePage() {
   const [photos, setPhotos] = useState<(File | string)[]>([]);
   const [logoImg, setLogoImg] = useState<(File | string)[]>([]);
   const [cities, setCities] = useState<LocationOption[]>(getCities());
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: keyof EmployerFormData, value: any) => {
     setProfileFormData((prev) => ({
@@ -142,7 +141,7 @@ export default function EmployerProfilePage() {
     endTime: false,
     description: false,
   });
-
+  
   // validation functions
   const validateRequired = (val: string, msg: string) => (!val ? msg : "");
 
@@ -179,6 +178,7 @@ export default function EmployerProfilePage() {
 
   // Confirm 버튼 클릭 시 FormData로 전송
   const handleConfirm = async () => {
+    setIsLoading(true);
     const formFields = {
       name: profileFormData.businessName,
       phone_number: profileFormData.phoneNumber,
@@ -187,7 +187,6 @@ export default function EmployerProfilePage() {
       operating_start: profileFormData.startTime,
       operating_end: profileFormData.endTime,
       description: profileFormData.description,
-      // optional 태그는 백엔드에서 처리
     };
 
     const formData = new FormData();
@@ -205,23 +204,24 @@ export default function EmployerProfilePage() {
       }
     });
 
-    const res = await fetch(API_URLS.EMPLOYER.PROFILE.ROOT(false), {
+    const res = await fetch("/api/employer/profile?isUpdate=false", {
       method: "POST",
       body: formData,
     });
-
     const result = await res.json();
     if (res.ok) {
-      alert("Profile saved successfully!");
+      showSuccessToast("Profile saved successfully!");
       router.push(PAGE_URLS.EMPLOYER.ROOT);
     } else {
-      alert(result.error || "Error saving profile");
+      showErrorToast(result.error || "Error saving profile");
     }
+    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Sticky Progress Bar */}
+      { isLoading && (<LoadingScreen message="Generating business profile..." />)}
       <ProgressHeader completionPercentage={progress} title="Profile Setup" />
 
       {/* Main Content */}
@@ -304,7 +304,7 @@ export default function EmployerProfilePage() {
                     <SelectContent>
                       {Array.isArray(cities) && cities.length > 0 ? (
                         cities.map((city) => {
-                          const displayName = getLocationDisplayName(city.value);
+                          const displayName = getLocationLabel(city.value);
                           return (
                             <SelectItem
                               key={city.value}
@@ -412,35 +412,6 @@ export default function EmployerProfilePage() {
                     }
                   />
                 </div>
-
-                {/* Optional Tags
-                <div>
-                  <Typography variant="bodySm" as="label" className="block mb-3">
-                    Optional Tags
-                  </Typography>
-                  <div className="flex flex-wrap gap-3">
-                    {[
-                      { key: "familyFriendly", label: "Family-friendly" },
-                      { key: "noExperience", label: "No experience required" },
-                      { key: "quickHiring", label: "Quick hiring" },
-                    ].map(({ key, label }) => (
-                      <Chip
-                        key={key}
-                        selected={
-                          !!profileFormData.optionalTags[
-                            key as keyof EmployerFormData["optionalTags"]
-                          ]
-                        }
-                        onClick={() =>
-                          handleTagChange(key as keyof EmployerFormData["optionalTags"])
-                        }
-                      >
-                        {label}
-                      </Chip>
-                    ))}
-                  </div>
-                  </div>
-                </div>*/}
               </div>
             </JobConditionsSection>
           </div>

@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-import { getLocationDisplayName } from "@/constants/location";
+import { getLocationLabel } from "@/constants/location";
 
 import {
   getWorkTypeLabel,
@@ -188,7 +188,7 @@ function SeekerProfilePage() {
           >
             {!isEditing.location ? (
               <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                {getLocationDisplayName(tempData.location) || "Not specified"}
+                {getLocationLabel(tempData.location) || "Not specified"}
               </span>
             ) : (
               <Select
@@ -201,7 +201,7 @@ function SeekerProfilePage() {
                 <SelectContent>
                   {availableLocations.map((location) => (
                     <SelectItem key={location} value={location}>
-                      {getLocationDisplayName(location)}
+                      {getLocationLabel(location)}
                     </SelectItem>
                   ))}
                 </SelectContent>

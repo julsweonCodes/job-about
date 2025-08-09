@@ -875,6 +875,21 @@ export type Database = {
         | "BURLINGTON"
         | "MILTON"
         | "NEWHAMBURG"
+        | "VANCOUVER"
+        | "SURREY"
+        | "VICTORIA"
+        | "BURNABY"
+        | "KELOWNA"
+        | "RICHMOND"
+        | "ABBOTSFORD"
+        | "LANGLEY"
+        | "KAMLOOPS"
+        | "NANAIMO"
+        | "NORTH_VANCOUVER"
+        | "DELTA"
+        | "PRINCE_GEORGE"
+        | "COQUITLAM"
+        | "CHILLIWACK"
       QuizLabel: "A" | "B"
       Role: "APPLICANT" | "EMPLOYER"
       WorkPeriod:
@@ -1079,6 +1094,21 @@ export const Constants = {
         "BURLINGTON",
         "MILTON",
         "NEWHAMBURG",
+        "VANCOUVER",
+        "SURREY",
+        "VICTORIA",
+        "BURNABY",
+        "KELOWNA",
+        "RICHMOND",
+        "ABBOTSFORD",
+        "LANGLEY",
+        "KAMLOOPS",
+        "NANAIMO",
+        "NORTH_VANCOUVER",
+        "DELTA",
+        "PRINCE_GEORGE",
+        "COQUITLAM",
+        "CHILLIWACK",
       ],
       QuizLabel: ["A", "B"],
       Role: ["APPLICANT", "EMPLOYER"],
