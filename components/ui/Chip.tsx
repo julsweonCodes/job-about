@@ -7,7 +7,7 @@ const chipVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-gray-100 text-gray-900 hover:bg-gray-200",
+        default: "border-transparent bg-gray-100 hover:bg-gray-200",
         solid:
           "bg-gradient-to-r from-accent1 to-accent2 text-white border-transparent hover:opacity-90",
         outline: "bg-white text-text-primary border border-background-secondary",
@@ -55,8 +55,8 @@ const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
             size,
             selected: !!selected,
             disabled: !!disabled,
-            className,
-          })
+          }),
+          className
         )}
         ref={ref}
         {...props}
