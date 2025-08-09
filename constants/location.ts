@@ -115,8 +115,8 @@ export const LOCATION_PROVINCE: Record<Location, "ON" | "BC"> = {
 } as const;
 
 // Build full label like "Markham, ON"
-export const getLocationLabel = (location: Location): string => {
-  return `${LOCATION_DISPLAY_NAMES[location]}, ${LOCATION_PROVINCE[location]}`;
+export const getLocationLabel = (location: Location | string): string => {
+  return `${LOCATION_DISPLAY_NAMES[location as Location]}, ${LOCATION_PROVINCE[location as Location]}` || location;
 };
 
 export const COMMON_LOCATIONS: Location[] = [
@@ -156,6 +156,23 @@ export const convertLocationKeyToValue = (key: string): string => {
     BURLINGTON: Location.BURLINGTON,
     MILTON: Location.MILTON,
     NEWHAMBURG: Location.NEWHAMBURG,
+
+    // British Columbia
+    VANCOUVER: Location.VANCOUVER,
+    SURREY: Location.SURREY,
+    VICTORIA: Location.VICTORIA,
+    BURNABY: Location.BURNABY,
+    KELOWNA: Location.KELOWNA,
+    RICHMOND: Location.RICHMOND,
+    ABBOTSFORD: Location.ABBOTSFORD,
+    LANGLEY: Location.LANGLEY,
+    KAMLOOPS: Location.KAMLOOPS,
+    NANAIMO: Location.NANAIMO,
+    NORTH_VANCOUVER: Location.NORTH_VANCOUVER,
+    DELTA: Location.DELTA,
+    PRINCE_GEORGE: Location.PRINCE_GEORGE,
+    COQUITLAM: Location.COQUITLAM,
+    CHILLIWACK: Location.CHILLIWACK,
   };
   return locationMap[key] || key;
 };

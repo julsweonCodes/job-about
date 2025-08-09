@@ -18,8 +18,7 @@ import {
 } from "@/components/ui/Select";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { STORAGE_URLS } from "@/constants/storage";
-import { Location } from "@/constants/location";
-import { getLocationDisplayName } from "@/constants/location";
+import { getLocationLabel, Location } from "@/constants/location";
 import { useEmployerProfile } from "@/hooks/employer/useEmployerProfile";
 import { BusinessProfileSection } from "@/components/employer/BusinessProfileSection";
 import { WorkplacePhotosSection } from "@/components/employer/WorkplacePhotosSection";
@@ -115,7 +114,7 @@ function EmployerMypage() {
                 <SelectContent>
                   {Object.values(Location).map((location) => (
                     <SelectItem key={location} value={location}>
-                      {getLocationDisplayName(location)}
+                      {getLocationLabel(location)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -123,7 +122,7 @@ function EmployerMypage() {
             </div>
           ) : (
             <span className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-              {getLocationDisplayName(bizLocData?.location) || "Not specified"}
+              {getLocationLabel(bizLocData?.location) || "Not specified"}
             </span>
           )}
         </InfoSection>

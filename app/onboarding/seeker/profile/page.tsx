@@ -25,7 +25,7 @@ import {
   LANGUAGE_LEVELS,
 } from "@/constants/enums";
 import { JobType } from "@/constants/jobTypes";
-import { Location, getLocationDisplayName } from "@/constants/location";
+import { Location, getLocationLabel } from "@/constants/location";
 import ExperienceFormDialog from "@/components/seeker/ExperienceFormDialog";
 import JobTypesDialog from "@/components/common/JobTypesDialog";
 import RequiredSkillsDialog from "@/app/employer/components/RequiredSkillsDialog";
@@ -402,7 +402,7 @@ function JobSeekerProfile() {
                 <SelectContent>
                   {Array.isArray(cities) && cities.length > 0 ? (
                     cities.map((city) => {
-                      const displayName = getLocationDisplayName(city);
+                      const displayName = getLocationLabel(city);
                       return (
                         <SelectItem key={city} value={city} selectedValue={formData.location || ""}>
                           {displayName}

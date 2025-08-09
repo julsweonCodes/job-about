@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/Select";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { getAllLocationsWithLabels, getLocationLabel, Location } from "@/constants/location";
-import { PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -114,7 +113,7 @@ export default function EmployerProfilePage() {
   });
   // get locations
   const getCities = (): LocationOption[] => {
-    return getAllLocationsWithDisplayNames().map((item) => ({
+    return getAllLocationsWithLabels().map((item) => ({
       value: item.value as Location, // casting string → enum
       label: item.label,
     }));
@@ -305,7 +304,7 @@ export default function EmployerProfilePage() {
                     <SelectContent>
                       {Array.isArray(cities) && cities.length > 0 ? (
                         cities.map((city) => {
-                          const displayName = getLocationDisplayName(city.value);
+                          const displayName = getLocationLabel(city.value);
                           return (
                             <SelectItem
                               key={city.value}
