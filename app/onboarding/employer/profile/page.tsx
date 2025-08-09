@@ -17,12 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-import {
-  getAllLocationsWithDisplayNames,
-  getLocationDisplayName,
-  Location,
-} from "@/constants/location";
 import { API_URLS, PAGE_URLS } from "@/constants/api";
+import { getAllLocationsWithLabels, getLocationLabel, Location } from "@/constants/location";
+import { PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
 import { showErrorToast, showSuccessToast } from "@/utils/client/toastUtils";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -208,7 +205,7 @@ export default function EmployerProfilePage() {
       }
     });
 
-    const res = await fetch(API_URLS.EMPLOYER.PROFILE.ROOT(false), {
+    const res = await fetch("/api/employer/profile?isUpdate=false", {
       method: "POST",
       body: formData,
     });
