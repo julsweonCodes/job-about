@@ -69,7 +69,7 @@ export const useEmployerProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const profileData = await apiGetData<BizLocInfo>(API_URLS.EMPLOYER.PROFILE.ROOT);
+        const profileData = await apiGetData<BizLocInfo>(API_URLS.EMPLOYER.PROFILE.ROOT());
         setBizLocData(profileData ?? emptyBizLocInfo);
       } catch (e) {
         console.error("Failed to load business profile", e);
@@ -353,7 +353,7 @@ export const useEmployerProfile = () => {
         ]) || []
       );
 
-      await apiPatchData(API_URLS.EMPLOYER.PROFILE.ROOT, updateData);
+      await apiPatchData(API_URLS.EMPLOYER.PROFILE.ROOT(), updateData);
 
       setBizLocData(tempData);
       setIsEditing((prev) => ({ ...prev, [section]: false }));
@@ -375,7 +375,7 @@ export const useEmployerProfile = () => {
         bizDescription: tempData.bizDescription,
       };
 
-      await apiPatchData(API_URLS.EMPLOYER.PROFILE.ROOT, updateData);
+      await apiPatchData(API_URLS.EMPLOYER.PROFILE.ROOT(), updateData);
 
       setBizLocData(tempData);
       setDialogState((prev) => ({ ...prev, showProfileDialog: false }));

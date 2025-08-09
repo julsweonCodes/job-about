@@ -6,7 +6,7 @@ import { showSuccessToast, showErrorToast } from "@/utils/client/toastUtils";
 export const useSeekerApply = (postId: string) => {
   const applyMutation = useMutation({
     mutationFn: async () => {
-      await apiPostData(API_URLS.JOB_POSTS.APPLY(postId), {});
+      await apiPostData(API_URLS.SEEKER.POST.APPLY(postId), {});
     },
     onSuccess: () => {
       showSuccessToast("Application submitted successfully!");

@@ -22,7 +22,7 @@ import {
   getLocationDisplayName,
   Location,
 } from "@/constants/location";
-import { PAGE_URLS } from "@/constants/api";
+import { API_URLS, PAGE_URLS } from "@/constants/api";
 import { useRouter } from "next/navigation";
 
 interface EmployerFormData {
@@ -205,7 +205,7 @@ export default function EmployerProfilePage() {
       }
     });
 
-    const res = await fetch("/api/employer/profile?isUpdate=false", {
+    const res = await fetch(API_URLS.EMPLOYER.PROFILE.ROOT(false), {
       method: "POST",
       body: formData,
     });

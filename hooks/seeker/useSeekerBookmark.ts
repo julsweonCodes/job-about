@@ -11,11 +11,11 @@ export const useSeekerBookmark = (postId: string) => {
     mutationFn: async (isBookmarked: boolean) => {
       if (isBookmarked) {
         // 북마크 제거
-        await apiDeleteData(API_URLS.JOB_POSTS.BOOKMARK(postId));
+        await apiDeleteData(API_URLS.SEEKER.POST.BOOKMARK(postId));
         return false;
       } else {
         // 북마크 추가
-        await apiPostData(API_URLS.JOB_POSTS.BOOKMARK(postId), {});
+        await apiPostData(API_URLS.SEEKER.POST.BOOKMARK(postId), {});
         return true;
       }
     },

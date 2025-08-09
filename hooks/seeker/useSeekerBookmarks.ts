@@ -22,7 +22,7 @@ interface UseSeekerBookmarksReturn {
 // API 함수
 const fetchBookmarkedJobs = async (pageParam: number, limit: number) => {
   try {
-    const response = await apiGetData(API_URLS.JOB_POSTS.BOOKMARKS, {
+    const response = await apiGetData(API_URLS.SEEKER.BOOKMARKS, {
       page: pageParam,
       limit,
     });

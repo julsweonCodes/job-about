@@ -46,7 +46,7 @@ const fetchAppliedJobs = async (
       params.job_type = toPrismaJobType(jobType as JobType);
     }
 
-    const response = await apiGetData(API_URLS.SEEKER.APPLY, params);
+    const response = await apiGetData(API_URLS.SEEKER.APPLIES, params);
 
     if (!response) {
       throw new Error("No response received from API");

@@ -29,7 +29,10 @@ export const API_URLS = {
   // 구인자 관련
   EMPLOYER: {
     PROFILE: {
-      ROOT: "/api/employer/profile",
+      ROOT: (isUpdate?: boolean) =>
+        isUpdate === undefined
+          ? "/api/employer/profile"
+          : `/api/employer/profile?isUpdate=${isUpdate}`,
       LOGO: "/api/employer/profile/logo",
       PHOTOS: "/api/employer/profile/photos",
       PHOTOS_UPLOAD: "/api/employer/profile/photos/upload",
@@ -59,19 +62,21 @@ export const API_URLS = {
   // 구직자 관련
   SEEKER: {
     PROFILES: "/api/seeker/profiles",
-    APPLY: "/api/seeker/applies",
+    APPLIES: "/api/seeker/applies",
+    BOOKMARKS: "/api/seeker/bookmarks",
+    POST: {
+      LATEST: "/api/job-posts",
+      DETAIL: (id: string, status: string, userId?: string | number) =>
+        `/api/job-posts/${id}?status=${status}${userId ? `&userId=${userId}` : ""}`,
+      APPLY: (id: string) => `/api/job-posts/${id}/apply`,
+      BOOKMARK: (id: string) => `/api/job-posts/${id}/bookmark`,
+    },
   },
 
   // 직업 관련
   JOB_POSTS: {
-    ROOT: "/api/job-posts",
-    DETAIL: (id: string, status: string) => `/api/job-posts/${id}?status=${status}`,
     WORK_STYLES: (id: string) => `/api/job-posts/${id}/work-styles`,
     MATCH_CANDIDATES: (id: string) => `/api/job-posts/${id}/match-candidates`,
-    APPLY: (id: string) => `/api/job-posts/${id}/apply`,
-    BOOKMARK: (id: string) => `/api/job-posts/${id}/bookmark`,
-    BOOKMARKS: "/api/seeker/bookmarks",
-    APPLIES: "/api/seeker/applies",
   },
 
   // 퀴즈 관련
