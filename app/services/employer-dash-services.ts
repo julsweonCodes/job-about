@@ -191,6 +191,7 @@ export async function getApplicantsList(postId: string): Promise<Applicant[]> {
       a.user_id = d.id
       AND a.id = b.profile_id
       AND b.job_post_id = c.id
+      AND b.status <> 'WITHDRAWN'
       AND c.id = ${Number(postId)};
   `);
 
