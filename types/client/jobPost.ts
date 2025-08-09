@@ -127,7 +127,7 @@ export interface ApiAppliedJobResponse extends ApiJobPost {
 /**
  * Bookmarked Jobs API 응답 타입
  */
-export interface ApiBookmarkedJobResponse extends ApiJobPost {}
+export interface ApiBookmarkedJobResponse extends ApiJobPost { }
 
 /**
  * Recommended Jobs API 응답 타입
