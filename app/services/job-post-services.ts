@@ -23,7 +23,7 @@ import {
 import { JobPostData } from "@/types/client/jobPost";
 import { BizLocInfo } from "@/types/client/employer";
 import { JobPostItem, PaginatedJobPostResponse, Pagination } from "@/types/server/jobPost";
-import { JobStatus, LanguageLevel } from "@/constants/enums";
+import { ApplicantStatus, JobStatus, LanguageLevel } from "@/constants/enums";
 import { STORAGE_URLS } from "@/constants/storage";
 import { HttpError } from "../lib/server/commonResponse";
 import { JobType } from "@/constants/jobTypes";
@@ -252,6 +252,14 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     return null;
   }
 
+  let applicantProfile;
+  if (userId) {
+    applicantProfile = await prisma.applicant_profiles.findFirst({
+      where: { user_id: userId, deleted_at: null },
+      select: { id: true },
+    });
+  }
+
   const jobPostRes = await prisma.job_posts.findFirst({
     where: {
       id: Number(jobPostId),
@@ -272,8 +280,20 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
         where: userId ? { user_id: userId } : { id: -1 },
         select: { id: true },
       },
-    },
-  });
+      ...(userId && applicantProfile && {
+        applications: {
+          where: {
+            job_post_id: Number(jobPostId),
+            profile_id: applicantProfile.id,
+          },
+          select: {
+            status: true,
+          },
+        },
+      }),
+    }
+  }
+  );
 
   //북마크 여부 확인을 위한 역할 체크
   let user;
@@ -319,6 +339,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
   const requiredWorkStyles = await getJobPostWorkStyles(Number(jobPostId));
 
   const isBookmarked = user?.role === Role.APPLICANT && jobPostRes.bookmarked_jobs.length > 0;
+  const applicationStatus = jobPostRes.applications[0]?.status as ApplicantStatus;
 
   // 안전한 JSON 파싱을 위한 헬퍼 함수
   const safeJsonParse = (str: string) => {
@@ -352,6 +373,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
     isBookmarked,
+    applicationStatus
   };
 
   return jobPostData;
@@ -524,11 +546,10 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
   const bookmarks = await prisma.bookmarked_jobs.findMany({
     where: {
       user_id: userId,
-      ...(jobType && {
-        job_post: {
-          job_type: jobType,
-        },
-      }),
+      job_post: {
+        status: toPrismaJobStatus(JobStatus.PUBLISHED),
+        ...(jobType && { job_type: jobType })
+      },
     },
     skip,
     take: limit,
@@ -566,11 +587,10 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
   const totalCount = await prisma.bookmarked_jobs.count({
     where: {
       user_id: userId,
-      ...(jobType && {
-        job_post: {
-          job_type: jobType,
-        },
-      }),
+      job_post: {
+        status: toPrismaJobStatus(JobStatus.PUBLISHED),
+        ...(jobType && { job_type: jobType })
+      },
     },
   });
 
@@ -662,12 +682,11 @@ export async function getAppliedJobPosts(params: GetAppliedJobPostsParams) {
   const applications = await prisma.applications.findMany({
     where: {
       profile_id: profileId,
-      ...(status && { status: status }),
-      ...(jobType && {
-        job_post: {
-          job_type: jobType,
-        },
-      }),
+      job_post: {
+        status: toPrismaJobStatus(JobStatus.PUBLISHED),
+        ...(jobType && { job_type: jobType })
+      },
+      ...(status && { status: status })
     },
     skip,
     take: limit,
@@ -708,12 +727,11 @@ export async function getAppliedJobPosts(params: GetAppliedJobPostsParams) {
   const totalCount = await prisma.applications.count({
     where: {
       profile_id: profileId,
-      ...(status && { status: status }),
-      ...(jobType && {
-        job_post: {
-          job_type: jobType,
-        },
-      }),
+      job_post: {
+        status: toPrismaJobStatus(JobStatus.PUBLISHED),
+        ...(jobType && { job_type: jobType })
+      },
+      ...(status && { status: status })
     },
   });
 
