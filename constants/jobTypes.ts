@@ -30,7 +30,18 @@ import {
   WrenchIcon,
   Droplets,
   Building2,
-   Home, Briefcase, Hammer, Leaf, Clipboard, Type, Camera, Video, Baby, PawPrint, BookOpen, Paintbrush
+  Home,
+  Briefcase,
+  Hammer,
+  Leaf,
+  Clipboard,
+  Type,
+  Camera,
+  Video,
+  Baby,
+  PawPrint,
+  BookOpen,
+  Paintbrush,
 } from "lucide-react";
 import { fromPrismaJobType } from "@/types/enumMapper";
 
@@ -488,20 +499,23 @@ export const getJobTypeConfig = (jobType: JobType): JobTypeConfig => {
 
 // 서버에서 받은 JobType enum 값으로부터 클라이언트 설정을 가져오는 함수
 export const getJobTypeConfigFromServer = (serverJobType: string): JobTypeConfig | null => {
-  // fromPrismaJobType을 사용해서 Prisma enum 값을 클라이언트 enum으로 변환
-  const jobType = fromPrismaJobType(serverJobType);
-  return JOB_TYPE_CONFIGS[jobType];
+  // 1) 서버값(UPPER_SNAKE_CASE)을 소문자로 변환해 바로 매칭 (예: CUSTOMER_SERVICE -> customer_service)
+  const lowered = (serverJobType || "").toLowerCase();
+  if (Object.values(JobType).includes(lowered as JobType)) {
+    return JOB_TYPE_CONFIGS[lowered as JobType];
+  }
+
+  // 2) 호환성: enumMapper의 fromPrismaJobType에 위임 (과거 매핑 유지)
+  try {
+    const mapped = fromPrismaJobType(serverJobType);
+    if (mapped && JOB_TYPE_CONFIGS[mapped]) return JOB_TYPE_CONFIGS[mapped];
+  } catch (_) {}
+
+  return null;
 };
 
 // 서버에서 받은 JobType enum 값으로부터 UI에 필요한 정보를 가져오는 함수들
 export const getJobTypeName = (serverJobType: string): string => {
-  // 직접 JobType enum에서 찾기
-  const jobType = Object.values(JobType).find((type) => type === serverJobType);
-
-  if (jobType) {
-    return JOB_TYPE_CONFIGS[jobType].name;
-  }
-
   const config = getJobTypeConfigFromServer(serverJobType);
   return config?.name || serverJobType;
 };
