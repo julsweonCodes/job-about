@@ -29,7 +29,7 @@ const getStatusFilterStyle = (status: string) => {
     case ApplicantStatus.REJECTED:
       return "bg-red-100 text-red-700 border-red-200 hover:bg-red-200";
     case ApplicantStatus.WITHDRAWN:
-      return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
+      return "bg-black text-white border-gray-700 hover:bg-gray-900";
     default:
       return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
   }
