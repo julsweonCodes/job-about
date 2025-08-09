@@ -280,20 +280,20 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
         where: userId ? { user_id: userId } : { id: -1 },
         select: { id: true },
       },
-      ...(userId && applicantProfile && {
-        applications: {
-          where: {
-            job_post_id: Number(jobPostId),
-            profile_id: applicantProfile.id,
+      ...(userId &&
+        applicantProfile && {
+          applications: {
+            where: {
+              job_post_id: Number(jobPostId),
+              profile_id: applicantProfile.id,
+            },
+            select: {
+              status: true,
+            },
           },
-          select: {
-            status: true,
-          },
-        },
-      }),
-    }
-  }
-  );
+        }),
+    },
+  });
 
   //북마크 여부 확인을 위한 역할 체크
   let user;
@@ -372,7 +372,7 @@ export async function getJobPostView(jobPostId: string, jobPostStatus: JobStatus
     status: JobStatus[jobPostRes.status],
     title: jobPostRes.title,
     isBookmarked,
-    applicationStatus: jobPostRes.applications[0]?.status as ApplicantStatus ?? null
+    applicationStatus: ((jobPostRes as any)?.applications?.[0]?.status as ApplicantStatus) ?? null,
   };
 
   return jobPostData;
@@ -547,7 +547,7 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
       user_id: userId,
       job_post: {
         status: toPrismaJobStatus(JobStatus.PUBLISHED),
-        ...(jobType && { job_type: jobType })
+        ...(jobType && { job_type: jobType }),
       },
     },
     skip,
@@ -588,7 +588,7 @@ export async function getbookmarkedJobPosts(params: GetBookmarkedJobPostsParams)
       user_id: userId,
       job_post: {
         status: toPrismaJobStatus(JobStatus.PUBLISHED),
-        ...(jobType && { job_type: jobType })
+        ...(jobType && { job_type: jobType }),
       },
     },
   });
@@ -683,9 +683,9 @@ export async function getAppliedJobPosts(params: GetAppliedJobPostsParams) {
       profile_id: profileId,
       job_post: {
         status: toPrismaJobStatus(JobStatus.PUBLISHED),
-        ...(jobType && { job_type: jobType })
+        ...(jobType && { job_type: jobType }),
       },
-      ...(status && { status: status })
+      ...(status && { status: status }),
     },
     skip,
     take: limit,
@@ -728,9 +728,9 @@ export async function getAppliedJobPosts(params: GetAppliedJobPostsParams) {
       profile_id: profileId,
       job_post: {
         status: toPrismaJobStatus(JobStatus.PUBLISHED),
-        ...(jobType && { job_type: jobType })
+        ...(jobType && { job_type: jobType }),
       },
-      ...(status && { status: status })
+      ...(status && { status: status }),
     },
   });
 
