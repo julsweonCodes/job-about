@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { User, Heart, Users, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 interface PersonalityResult {
   name_en: string;
@@ -474,12 +475,11 @@ function App() {
   // 로딩 상태
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">성향 분석 결과를 불러오는 중...</p>
-        </div>
-      </div>
+      <LoadingScreen
+        overlay={true}
+        message="Loading your personality profile..."
+        opacity="light"
+      ></LoadingScreen>
     );
   }
 
@@ -489,13 +489,13 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">결과를 불러올 수 없습니다</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to load results</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <Button
             onClick={() => router.push("/onboarding/seeker/quiz")}
             className="bg-purple-500 text-white px-6 py-2 rounded-lg"
           >
-            퀴즈 다시하기
+            Retake Quiz
           </Button>
         </div>
       </div>
@@ -507,7 +507,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">성향 분석 결과가 없습니다.</p>
+          <p className="text-gray-600">No personality profile found.</p>
         </div>
       </div>
     );
