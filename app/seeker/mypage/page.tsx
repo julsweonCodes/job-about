@@ -1,6 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
-import { Briefcase, Heart, Calendar, Camera, Phone, User, Zap, Pencil } from "lucide-react";
+import { Briefcase, Heart, Calendar, Camera, Phone, User, Zap, Pencil, Mail } from "lucide-react";
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import { useSeekerMypageMain } from "@/hooks/seeker/useSeekerMypageMain";
@@ -17,16 +17,26 @@ import { useRouter } from "next/navigation";
 // 스켈레톤 컴포넌트들
 const ProfileSkeleton = () => (
   <div className="bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-white/50 overflow-hidden relative">
-    <div className="p-6 sm:p-8">
-      <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-6">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-4 sm:gap-6">
         <div className="relative flex-shrink-0">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl bg-gray-200 animate-pulse" />
+          <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full bg-gray-200 animate-pulse" />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-center space-y-3">
-          <div className="h-8 bg-gray-200 rounded-lg animate-pulse" />
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-            <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+        <div className="flex-1 min-w-0 flex flex-col justify-center items-center sm:items-start">
+          <div className="h-6 sm:h-7 lg:h-8 bg-gray-200 rounded-lg animate-pulse mb-3 w-32 sm:w-40" />
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-48 sm:w-56" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-36 sm:w-44" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-24 sm:w-32" />
+            </div>
           </div>
         </div>
       </div>
@@ -118,10 +128,10 @@ function SeekerMypage() {
             >
               <Pencil className="w-4 h-4 text-slate-600" />
             </button>
-            <div className="p-6 sm:p-8">
-              <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-6">
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-4 sm:gap-6">
                 <div className="relative flex-shrink-0">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2  sm:border-[3px] border-gray-200 hover:border-purple-300 transition-colors duration-200">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden border-2 sm:border-[3px] border-gray-200 hover:border-purple-300 transition-colors duration-200">
                     <ImageWithSkeleton
                       key={displayImage}
                       src={displayImage}
@@ -140,18 +150,25 @@ function SeekerMypage() {
                 </div>
 
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-3">
                     {userInfo?.name || "User"}
                   </h2>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-slate-500">
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex items-center gap-2">
-                      <Phone size={16} className="text-slate-400" />
-                      <span>{userInfo?.phone_number || "No phone number"}</span>
+                      <Mail size={14} className="text-slate-400" />
+                      <span className="text-sm text-slate-500 truncate">
+                        {userInfo?.email || "No email"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-slate-400" />
-                      <span>
+                      <Phone size={14} className="text-slate-400" />
+                      <span className="text-sm text-slate-500 truncate">
+                        {userInfo?.phone_number || "No phone number"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={14} className="text-slate-400" />
+                      <span className="text-sm text-slate-500">
                         Joined{" "}
                         {userInfo?.created_at
                           ? new Date(userInfo.created_at).toLocaleDateString()

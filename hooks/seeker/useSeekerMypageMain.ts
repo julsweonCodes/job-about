@@ -13,6 +13,7 @@ export interface UserInfo {
   name: string;
   description: string;
   phone_number: string;
+  email?: string;
   img_url?: string;
   created_at: Date;
 }
