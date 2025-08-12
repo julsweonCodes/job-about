@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { showErrorToast } from "@/utils/client/toastUtils";
 import { PAGE_URLS } from "@/constants/api";
+import { formatDescriptionForPreLine } from "@/utils/client/textUtils";
 
 export interface QuestionChoice {
   label: "A" | "B";
@@ -286,8 +287,8 @@ function QuizPage() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <blockquote className="text-gray-700 leading-relaxed text-sm sm:text-xl font-medium italic">
-              "{question.content.en}"
+            <blockquote className="text-gray-700 leading-relaxed text-sm sm:text-xl font-medium italic whitespace-pre-line">
+              "{formatDescriptionForPreLine(question.content.en)}"
             </blockquote>
           </div>
         </div>
