@@ -109,7 +109,7 @@ const getHeroContent = (isAuthenticated: boolean, userRole?: UserRole): HeroCont
   }
 
   return {
-    title: "Find Candidates That Fit Your Team",
+    title: "Find Candidates \nThat Fit Your Team",
     gradientClass: "from-blue-600 to-teal-600",
     description: "AI-powered candidate matching for small businesses and growing teams.",
   };
@@ -169,7 +169,7 @@ const HeroSection: React.FC<{
       <div className="relative max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-            {heroContent.title.split(" ").map((word, index, array) =>
+            {heroContent.title.split("\n").map((word, index, array) =>
               index === array.length - 1 ? (
                 <span
                   key={index}

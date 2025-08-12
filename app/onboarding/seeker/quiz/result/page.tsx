@@ -652,8 +652,8 @@ function App() {
             <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-4 justify-center">
               <Button
                 onClick={handleSeeJobs}
-                size="lg"
-                className={`group flex items-center justify-center space-x-2 px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl sm:rounded-2xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl text-sm sm:text-base`}
+                size="xl"
+                className={`group flex items-center justify-center space-x-2 px-6 py-3 sm:px-8 sm:py-6 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl sm:rounded-2xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl text-sm sm:text-lg`}
               >
                 <span>Continue to Profile Setup</span>
               </Button>

@@ -248,7 +248,7 @@ const AuthenticatedUserUI: React.FC<{
         <ImageWithSkeleton
           src={displayImage}
           alt="Profile"
-          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-purple-300 transition-colors duration-200"
+          className="w-10 h-10 rounded-full object-cover"
           fallbackSrc={isEmployer() ? DEFAULT_BUSINESS_IMAGE : DEFAULT_PROFILE_IMAGE}
         />
       </div>

@@ -4,7 +4,7 @@ import { Briefcase, Heart, Calendar, Camera, Phone, User, Zap, Pencil, Mail } fr
 import BackHeader from "@/components/common/BackHeader";
 import ImageUploadDialog from "@/components/common/ImageUploadDialog";
 import { useSeekerMypageMain } from "@/hooks/seeker/useSeekerMypageMain";
-import { STORAGE_URLS } from "@/constants/storage";
+import { DEFAULT_PROFILE_IMAGE, STORAGE_URLS } from "@/constants/storage";
 import { ImageWithSkeleton } from "@/components/ui/ImageWithSkeleton";
 
 import { ProfileEditDialog } from "@/components/seeker/ProfileEditDialog";
@@ -105,7 +105,7 @@ function SeekerMypage() {
     if (userInfo?.img_url) {
       return `${STORAGE_URLS.USER.PROFILE_IMG}${userInfo.img_url}`;
     }
-    return "/images/img-default-profile.png";
+    return DEFAULT_PROFILE_IMAGE;
   }, [userInfo?.img_url]);
 
   return (
@@ -131,12 +131,12 @@ function SeekerMypage() {
             <div className="p-4 sm:p-6 lg:p-8">
               <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:items-center sm:text-left gap-4 sm:gap-6">
                 <div className="relative flex-shrink-0">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden border-2 sm:border-[3px] border-gray-200 hover:border-purple-300 transition-colors duration-200">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden">
                     <ImageWithSkeleton
                       key={displayImage}
                       src={displayImage}
                       alt={userInfo?.name || "Profile"}
-                      fallbackSrc="/images/img-default-profile.png"
+                      fallbackSrc={DEFAULT_PROFILE_IMAGE}
                       className="w-full h-full object-cover"
                       skeletonClassName="bg-gray-200 animate-pulse rounded-full"
                     />
