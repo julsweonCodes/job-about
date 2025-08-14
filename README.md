@@ -1,4 +1,4 @@
-# 🇨🇦 job-about
+# 🇰🇷🇨🇦 job:about
 **AI-powered job matching for Korean immigrants & local businesses in Canada**  
 🔗 **[Try our service →](https://job-about.vercel.app/)**
 
