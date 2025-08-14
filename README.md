@@ -1,115 +1,135 @@
-# Job About Project
-
-This project is a login example using Next.js, TypeScript, TailwindCSS, and Supabase.
-
-## Tech Stack
-
-- Next.js
-- TypeScript
-- TailwindCSS
-- Supabase
-
-## Required Node.js Version
-
-- Node.js 18.x or higher (LTS recommended)
-
-## Installation & Usage
-
-1. Install dependencies
-
-```bash
-yarn install
-```
-
-**Git hooks는 자동으로 설정됩니다!** `yarn install` 실행 시 자동으로 pre-commit 체크가 설정됩니다.
-
-2. 수동으로 Git hooks 설정 (필요한 경우)
-
-```bash
-# 자동 설정 스크립트 실행
-./setup-hooks.sh
-
-# 또는 수동으로 설정
-mkdir -p .git/hooks
-# .git/hooks/pre-commit 파일이 자동으로 생성됩니다
-```
-
-3. Set environment variables
-
-Create a Supabase project and add the following to your `.env.local` file:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-4. Start the development server
-
-```bash
-yarn dev
-```
-
-## Supabase Client Setup
-
-Initialize the Supabase client in `lib/client/supabase.ts`.
-
-## Example: Login Implementation
-
-- Example login using Supabase Auth can be found in `app/test/components/TestContainer.tsx` and related hooks.
-
-## prisma
-
-`yarn add -D prisma`
-`yarn add @prisma/client`
-
-`yarn prisma init`
-
-#### DB 스키마 가져오기
-
-`yarn prisma db pull`
-
-## MCP (Model Context Protocol) 설정
-
-이 프로젝트는 MCP를 통해 Supabase 데이터베이스에 직접 접근할 수 있습니다.
-
-### MCP 서버 실행
-
-```bash
-# 개발 모드 (자동 재시작)
-yarn mcp:dev
-
-# 프로덕션 모드
-yarn mcp:start
-```
-
-### 사용 가능한 도구
-
-- `query_database`: Supabase 데이터베이스 쿼리 실행
-- `get_table_schema`: 테이블 스키마 정보 조회
-- `list_tables`: 데이터베이스 테이블 목록 조회
-
-### 환경변수 설정
-
-`.env.local` 파일에 다음 환경변수가 설정되어 있어야 합니다:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-⮕ schema.prisma 업데이트됨
-⮕ 자동으로 prisma generate 실행됨
-
-#### code로 DB 스키마 변경하기
-
-`schema.prisma` 수정 후, `yarn prisma db push`
-⮕ supabase schema update
+# 🇨🇦 job-about
+**AI-powered job matching for Korean immigrants & local businesses in Canada**  
+🔗 **[Try our service →](https://job-about.vercel.app/)**
 
 ---
 
-For more details, see the comments in each file.
+## ✨ What is job-about?
+Job-about connects job seekers and employers in Canada through **fun work-style quizzes**, smart recommendations, and AI-assisted job postings.  
+We make hiring and applying fast, simple, and surprisingly enjoyable.
 
-### generate type
-```
-npx supabase gen types typescript --project-id "ffljwadxkmnkczqygftv" --schema public > database.types.ts
-```
+---
+<p>
+  <img src="docs/assets/0_main_page_1.png" alt="Main Page 1" width="30%">
+  <img src="docs/assets/s1_onboarding_1.png" alt="Onboarding 1" width="30%">
+</p>
+
+## 🙋🏻‍♀️ For Job Seekers
+
+1. **Log in with Google and select “Create Job Seeker”** — quick, secure, and no password hassle.
+   <p>
+     <img src="docs/assets/s1_onboarding_2.png" alt="Onboarding 2" width="30%">
+   </p>
+
+
+2. **Take our story-based work-style quiz** — an interactive and engaging test that reveals your preferred way of working based on everyday situations.
+   <p>
+     <img src="docs/assets/s2_quiz_1.png" alt="Quiz 1" width="30%">
+     <img src="docs/assets/s2_quiz_2.png" alt="Quiz 2" width="30%">
+   </p>
+
+
+3. **Create your profile** — highlight your skills and preferred job types.
+   <p>
+     <img src="docs/assets/s3_profile_1.png" alt="Profile 1" width="30%">
+     <img src="docs/assets/s3_profile_2.png" alt="Profile 2" width="30%">
+   </p>
+
+
+4. **Browse your personalized job feed** — discover roles that match your profile. You can also use filters to further personalize your search.
+   <p>
+     <img src="docs/assets/s4_feed_1.png" alt="Job Post 1" width="30%">
+     <img src="docs/assets/s4_feed_2.png" alt="Job Post 2" width="30%">
+   </p>
+
+
+5. **Apply in one click** — open the job post, view details, and apply instantly. You can also bookmark jobs for later — no tedious forms.
+   <p>
+     <img src="docs/assets/s5_job_post_1.png" alt="Job Post 1" width="30%">
+     <img src="docs/assets/s5_job_post_2.png" alt="Job Post 2" width="30%">
+     <img src="docs/assets/s5_job_post_3.png" alt="Job Post 3" width="30%">
+   </p>
+
+
+6. **Track your journey** — monitor all your applications and statuses in one dashboard.
+   <p>
+     <img src="docs/assets/s6_mypage_1.png" alt="My Page 1" width="24%">
+     <img src="docs/assets/s6_mypage_2.png" alt="My Page 2" width="24%">
+     <img src="docs/assets/s6_mypage_3.png" alt="My Page 3" width="24%">
+     <img src="docs/assets/s6_mypage_4.png" alt="My Page 4" width="24%">
+   </p>
+
+---
+
+## 🏢 For Employers
+1. **Log in with Google** — instant access to your hiring dashboard.
+   <p>
+     <img src="docs/assets/e0_onboarding.png" alt="Onboarding 1" width="30%">
+   </p>
+
+
+2. **Create a business profile** — showcase your company’s personality and values.
+   <p>
+     <img src="docs/assets/e1_bizLoc_1.png" alt="Employer profile 1" width="30%">
+     <img src="docs/assets/e1_bizLoc_2.png" alt="Employer profile 2" width="30%">
+   </p>
+   
+
+3. **Post jobs with AI** — our AI helps you write engaging, clear job postings in seconds.
+   <p>
+     <img src="docs/assets/e2_jobPost_1.png" alt="Job Post 1" width="30%">
+     <img src="docs/assets/e2_jobPost_2.png" alt="Job Post 2" width="30%">
+   <br><br>
+   </p>
+   🪄 Use Gemini API to generate job descriptions.
+   <p>
+     <img src="docs/assets/e3_preview_1.png" alt="Job Post Preview 1" width="30%">
+     <img src="docs/assets/e3_preview_2.png" alt="Job Post Preview 2" width="30%">
+   <br><br></p>
+   
+
+4. **Manage everything in one place** — from job listings to candidate pipelines.
+   <br>**Manage you job listings** — view, edit, and close your job posts.
+   <p>
+     <img src="docs/assets/e4_dashboard_1.png" alt="Job Post Preview 1" width="24%">
+     <img src="docs/assets/e4_dashboard_5.png" alt="Employer dashboard-Job Post 1" width="24%">
+     <img src="docs/assets/e4_dashboard_6.png" alt="Employer dashboard-Job Post 2" width="24%">
+     <img src="docs/assets/e4_dashboard_7.png" alt="Employer dashboard-Job Post 1" width="24%">
+   <br><br>
+   </p>
+
+   **Review applications** — see who applied, their profiles, and track their status.
+   <p>
+     <img src="docs/assets/e4_dashboard_2.png" alt="Employer dashboard-Review Apps 1" width="30%">
+     <img src="docs/assets/e4_dashboard_3.png" alt="Employer dashboard-Review Apps 2" width="30%">
+     <img src="docs/assets/e4_dashboard_4.png" alt="Employer dashboard-Review Apps 3" width="30%">
+   </p>
+
+
+---
+
+## 🚀 Why job-about?
+- **Fast & Easy** — no endless forms or complicated tools.
+- **Smart Matching** — candidates meet jobs that *truly* fit them.
+- **Bilingual-Friendly** — bridging Korean and English-speaking communities.
+- **AI-Powered** — better job descriptions, smarter recommendations.
+
+---
+## 📚 Behind Our Project
+
+### 🛠 Tech Stack
+- **Frontend:** Next.js, React, TypeScript
+- **Backend:** Next.js API Routes, Prisma ORM, PostgreSQL (Supabase)
+- **Infrastructure:** Vercel, Sentry (logging & monitoring)
+- **AI Services:** Gemini API for AI-assisted job posting
+
+### 🗂 System Design (Overview)!
+   <p>
+     <img src="docs/assets/jobAbout_system_design.png" alt="System Design" width="90%">
+   </p>
+
+Job-about follows a **modern full-stack architecture**:
+- **Client Layer** — Interactive UI built with Next.js and React.
+- **API Layer** — Serverless API routes for job matching, authentication, and data access.
+- **Database Layer** — PostgreSQL hosted on Supabase, accessed via Prisma ORM.
+- **Integration Layer** — AI services (Gemini API) for generating job descriptions.
